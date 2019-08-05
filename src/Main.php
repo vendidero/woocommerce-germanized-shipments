@@ -35,6 +35,7 @@ class Main {
         Ajax::init();
         Automation::init();
         Emails::init();
+        Validation::init();
 
         include_once Package::get_path() . '/includes/wc-gzd-shipment-functions.php';
     }
