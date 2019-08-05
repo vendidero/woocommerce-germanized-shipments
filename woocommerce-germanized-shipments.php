@@ -1,15 +1,15 @@
 <?php
 /**
- * Plugin Name: WooCommerce Germanized DHL
- * Plugin URI: https://github.com/vendidero/woocommerce-germanized-dhl
- * Description: The Germanized DHL integration, installed as a feature plugin for development and testing purposes.
+ * Plugin Name: Germanized for WooCommerce Shipments
+ * Plugin URI: https://github.com/vendidero/woocommerce-germanized-shipments
+ * Description: The Germanized Shipments integration, installed as a feature plugin for development and testing purposes.
  * Author: vendidero
  * Author URI: https://vendidero.de
  * Version: 0.0.1-dev
  * Requires PHP: 5.6
  * License: GPLv3
  *
- * @package Vendidero/Germanized/DHL
+ * @package Vendidero/Germanized/Shipments
  * @internal This file is only used when running the DHL integration as a feature plugin.
  */
 
@@ -67,3 +67,5 @@ if ( is_readable( $autoloader ) ) {
     );
     return;
 }
+
+add_action( 'plugins_loaded', array( 'Vendidero\Germanized\Shipments\Package', 'init' ) );
