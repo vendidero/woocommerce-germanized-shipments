@@ -1,7 +1,7 @@
 {
-  "name": "vendidero/woocommerce-germanized-dhl",
-  "description": "The Germanized DHL implementation.",
-  "homepage": "https://github.com/vendidero/woocommerce-germanized-dhl",
+  "name": "vendidero/woocommerce-germanized-shipments",
+  "description": "The Germanized Shipments implementation.",
+  "homepage": "https://github.com/vendidero/woocommerce-germanized-shipments",
   "license": "GPL-3.0-or-later",
   "type": "wordpress-plugin",
   "prefer-stable": true,
@@ -23,7 +23,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Vendidero\\Germanized\\DHL\\": "src"
+      "Vendidero\\Germanized\\Shipments\\": "src"
     }
   }
 }

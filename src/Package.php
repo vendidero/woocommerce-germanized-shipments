@@ -4,7 +4,7 @@
  *
  * @package Automattic/WooCommerce/RestApi
  */
-namespace Vendidero\Germanized\DHL;
+namespace Vendidero\Germanized\Shipments;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -17,7 +17,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.1.0-dev';
+    const VERSION = '0.0.1-dev';
     /**
      * Init the package - load the REST API Server class.
      */

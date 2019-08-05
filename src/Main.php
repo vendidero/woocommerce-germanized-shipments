@@ -4,7 +4,7 @@
  *
  * @package WooCommerce/Blocks
  */
-namespace Vendidero\Germanized\DHL;
+namespace Vendidero\Germanized\Shipments;
 
 defined( 'ABSPATH' ) || exit;
 
