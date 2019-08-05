@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\Admin;
+use Vendidero\Germanized\Shipments\Shipment;
 use WP_List_Table;
 use Vendidero\Germanized\Shipments\Query;
 
@@ -574,7 +575,7 @@ class Table extends WP_List_Table {
      *
      * @since 4.3.0
      *
-     * @param WC_GZD_Shipment $shipment The current shipment object.
+     * @param Shipment $shipment The current shipment object.
      * @param string          $column_name The current column name.
      */
     public function column_default( $shipment, $column_name ) {
@@ -598,7 +599,7 @@ class Table extends WP_List_Table {
      *
      * @since 4.3.0
      *
-     * @param WC_GZD_Shipment $shipment The current shipment object.
+     * @param Shipment $shipment The current shipment object.
      */
     public function column_title( $shipment ) {
         $title = sprintf( _x( 'Shipment #%s', 'shipments', 'woocommerce-germanized' ), $shipment->get_id() );
@@ -626,7 +627,7 @@ class Table extends WP_List_Table {
      *
      * @since 4.3.0
      *
-     * @param WC_GZD_Shipment $shipment The current shipment object.
+     * @param Shipment $shipment The current shipment object.
      */
     public function column_items( $shipment ) {
         ?>
@@ -658,7 +659,7 @@ class Table extends WP_List_Table {
      *
      * @since 4.3.0
      *
-     * @param WC_GZD_Shipment $shipment The current shipment object.
+     * @param Shipment $shipment The current shipment object.
      */
     public function column_address( $shipment ) {
         echo '<address>' . $shipment->get_address() . '</address>';
@@ -669,7 +670,7 @@ class Table extends WP_List_Table {
      *
      * @since 4.3.0
      *
-     * @param WC_GZD_Shipment $shipment The current shipment object.
+     * @param Shipment $shipment The current shipment object.
      */
     public function column_status( $shipment ) {
         echo '<span class="shipment-status status-' . esc_attr( $shipment->get_status() ) . '">' . wc_gzd_get_shipment_status_name( $shipment->get_status() ) .'</span>';
@@ -680,7 +681,7 @@ class Table extends WP_List_Table {
      *
      * @since 4.3.0
      *
-     * @param WC_GZD_Shipment $shipment The current shipment object.
+     * @param Shipment $shipment The current shipment object.
      */
     public function column_weight( $shipment ) {
         echo wc_gzd_format_shipment_weight( $shipment->get_weight() );
@@ -691,7 +692,7 @@ class Table extends WP_List_Table {
      *
      * @since 4.3.0
      *
-     * @param WC_GZD_Shipment $shipment The current shipment object.
+     * @param Shipment $shipment The current shipment object.
      */
     public function column_dimensions( $shipment ) {
         echo wc_gzd_format_shipment_dimensions( $shipment->get_dimensions() );
@@ -702,7 +703,7 @@ class Table extends WP_List_Table {
      *
      * @since 4.3.0
      *
-     * @param WC_GZD_Shipment $shipment The current shipment object.
+     * @param Shipment $shipment The current shipment object.
      */
     public function column_date( $shipment ) {
         $shipment_timestamp = $shipment->get_date_created() ? $shipment->get_date_created()->getTimestamp() : '';
@@ -736,7 +737,7 @@ class Table extends WP_List_Table {
      *
      * @since 4.3.0
      *
-     * @param WC_GZD_Shipment $shipment The current shipment object.
+     * @param Shipment $shipment The current shipment object.
      */
     public function column_order( $shipment ) {
         if ( ( $order = $shipment->get_order() ) && is_callable( array( $order, 'get_edit_order_url' ) ) ) {

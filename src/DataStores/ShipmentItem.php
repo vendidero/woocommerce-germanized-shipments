@@ -57,7 +57,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
      * Create a new shipment item in the database.
      *
      * @since 3.0.0
-     * @param WC_GZD_Shipment_Item $item Shipment item object.
+     * @param \Vendidero\Germanized\Shipments\ShipmentItem $item Shipment item object.
      */
     public function create( &$item ) {
         global $wpdb;
@@ -85,7 +85,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
      * Update a shipment item in the database.
      *
      * @since 3.0.0
-     * @param WC_GZD_Shipment_Item $item Shipment item object.
+     * @param \Vendidero\Germanized\Shipments\ShipmentItem $item Shipment item object.
      */
     public function update( &$item ) {
         global $wpdb;
@@ -116,7 +116,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
      * Remove a shipment item from the database.
      *
      * @since 3.0.0
-     * @param WC_GZD_Shipment_Item $item Shipment item object.
+     * @param \Vendidero\Germanized\Shipments\ShipmentItem $item Shipment item object.
      * @param array         $args Array of args to pass to the delete method.
      */
     public function delete( &$item, $args = array() ) {
@@ -135,7 +135,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
      *
      * @since 3.0.0
      *
-     * @param WC_GZD_Shipment_Item $item Shipment item object.
+     * @param \Vendidero\Germanized\Shipments\ShipmentItem $item Shipment item object.
      *
      * @throws Exception If invalid shipment item.
      */
@@ -174,7 +174,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
     /**
      * Read extra data associated with the shipment item.
      *
-     * @param WC_GZD_Shipment_Item $item Shipment item object.
+     * @param \Vendidero\Germanized\Shipments\ShipmentItem $item Shipment item object.
      * @since 3.0.0
      */
     protected function read_item_data( &$item ) {
@@ -219,7 +219,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
      * Ran after both create and update, so $item->get_id() will be set.
      *
      * @since 3.0.0
-     * @param WC_GZD_Shipment_Item $item Shipment item object.
+     * @param \Vendidero\Germanized\Shipments\ShipmentItem $item Shipment item object.
      */
     public function save_item_data( &$item ) {
         $updated_props     = array();
@@ -260,7 +260,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
     /**
      * Clear meta cache.
      *
-     * @param WC_GZD_Shipment_Item $item Shipment item object.
+     * @param \Vendidero\Germanized\Shipments\ShipmentItem $item Shipment item object.
      */
     public function clear_cache( &$item ) {
         wp_cache_delete( 'item-' . $item->get_id(), 'shipment-items' );

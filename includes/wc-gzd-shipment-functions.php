@@ -8,6 +8,9 @@
  * @version 3.4.0
  */
 
+use Vendidero\Germanized\Shipments\Order;
+use Vendidero\Germanized\Shipments\Shipment;
+
 defined( 'ABSPATH' ) || exit;
 
 function wc_gzd_get_shipment_order( $order ) {
@@ -209,8 +212,8 @@ function wc_gzd_sync_shipment( $order_shipment, &$shipment ) {
 }
 
 /**
- * @param WC_GZD_Shipment_Order $order_shipment
- * @param WC_GZD_Shipment $shipment
+ * @param Order $order_shipment
+ * @param Shipment $shipment
  * @param array $args
  * @return bool
  */

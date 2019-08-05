@@ -3,6 +3,8 @@
 namespace Vendidero\Germanized\Shipments\DataStores;
 use WC_Data_Store_WP;
 use WC_Object_Data_Store_Interface;
+use Exception;
+use WC_Data;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -54,7 +56,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
     /**
      * Method to create a new shipment in the database.
      *
-     * @param WC_GZD_Shipment $shipment Shipment object.
+     * @param \Vendidero\Germanized\Shipments\Shipment $shipment Shipment object.
      */
     public function create( &$shipment ) {
         global $wpdb;
@@ -100,7 +102,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
      * Get the status to save to the object.
      *
      * @since 3.6.0
-     * @param  WC_GZD_Shipment $shipment Shipment object.
+     * @param \Vendidero\Germanized\Shipments\Shipment $shipment Shipment object.
      * @return string
      */
     protected function get_status( $shipment ) {
@@ -123,7 +125,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
     /**
      * Method to update a shipment in the database.
      *
-     * @param WC_GZD_Shipment $shipment Shipment object.
+     * @param \Vendidero\Germanized\Shipments\Shipment $shipment Shipment object.
      */
     public function update( &$shipment ) {
         global $wpdb;
@@ -177,7 +179,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
      * Remove a shipment from the database.
      *
      * @since 3.0.0
-     * @param WC_GZD_Shipment $shipment Shipment object.
+     * @param \Vendidero\Germanized\Shipments\Shipment $shipment Shipment object.
      * @param bool                $force_delete Unused param.
      */
     public function delete( &$shipment, $force_delete = false ) {
@@ -197,7 +199,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
      *
      * @since 3.0.0
      *
-     * @param WC_GZD_Shipment $shipment Shipment object.
+     * @param \Vendidero\Germanized\Shipments\Shipment $shipment Shipment object.
      *
      * @throws Exception Throw exception if invalid shipment.
      */
@@ -236,7 +238,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
     /**
      * Clear any caches.
      *
-     * @param WC_GZD_Shipment $shipment Shipment object.
+     * @param \Vendidero\Germanized\Shipments\Shipment $shipment Shipment object.
      * @since 3.0.0
      */
     protected function clear_caches( &$shipment ) {
@@ -253,7 +255,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
     /**
      * Read extra data associated with the shipment.
      *
-     * @param WC_GZD_Shipment $shipment Shipment object.
+     * @param \Vendidero\Germanized\Shipments\Shipment $shipment Shipment object.
      * @since 3.0.0
      */
     protected function read_shipment_data( &$shipment ) {
@@ -369,7 +371,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
     /**
      * Remove all items from the shipment.
      *
-     * @param WC_GZD_Shipment $shipment Shipment object.
+     * @param \Vendidero\Germanized\Shipments\Shipment $shipment Shipment object.
      */
     public function delete_items( $shipment ) {
         global $wpdb;

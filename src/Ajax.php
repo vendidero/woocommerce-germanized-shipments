@@ -43,7 +43,7 @@ class Ajax {
     }
 
     /**
-     * @param WC_GZD_Shipment_Order $order
+     * @param Order $order
      */
     private static function refresh_shipments( &$order ) {
 
@@ -682,8 +682,8 @@ class Ajax {
 
     /**
      * @param $response
-     * @param WC_GZD_Shipment_Order $order_shipment
-     * @param WC_GZD_Shipment|bool $shipment
+     * @param Order $order_shipment
+     * @param Shipment|bool $shipment
      */
     private static function send_json_success( $response, $order_shipment) {
 

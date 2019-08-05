@@ -8,13 +8,15 @@
  * @version  2.5.0
  */
 
+use Vendidero\Germanized\Shipments\Shipment;
+
 defined('ABSPATH') || exit;
 
 if ( ! function_exists( 'wc_gzd_get_email_shipment_items' ) ) {
     /**
      * Get HTML for the order items to be shown in emails.
      *
-     * @param WC_GZD_Shipment $shipment Shipment object.
+     * @param Shipment $shipment Shipment object.
      * @param array           $args Arguments.
      *
      * @since 3.0.0

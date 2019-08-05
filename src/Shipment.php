@@ -4,6 +4,8 @@ namespace Vendidero\Germanized\Shipments;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
+use WC_Order;
+use WC_DateTime;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -509,7 +511,7 @@ class Shipment extends WC_Data {
      * Adds a shipment item to this shipment. The shipment item will not persist until save.
      *
      * @since 3.0.0
-     * @param WC_GZD_Shipment_Item $item Shipment item object.
+     * @param ShipmentItem $item Shipment item object.
      *
      * @return false|void
      */
