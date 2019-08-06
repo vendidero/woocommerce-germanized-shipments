@@ -153,7 +153,7 @@ class Ajax {
         $is_active = true;
 
         ob_start();
-        include( Main::get_path() . '/includes/admin/views/html-order-shipment.php' );
+        include( Package::get_path() . '/includes/admin/views/html-order-shipment.php' );
         $html = ob_get_clean();
 
         $response['new_shipment'] = $html;
@@ -247,7 +247,7 @@ class Ajax {
         ob_start();
 
         foreach( $shipment->get_items() as $item ) {
-            include( Main::get_path() . '/includes/admin/views/html-order-shipment-item.php' );
+            include( Package::get_path() . '/includes/admin/views/html-order-shipment-item.php' );
         }
 
         $html = ob_get_clean();
@@ -366,7 +366,7 @@ class Ajax {
                 $is_active = true;
             }
 
-            include( Main::get_path() . '/includes/admin/views/html-order-shipment.php' );
+            include( Package::get_path() . '/includes/admin/views/html-order-shipment.php' );
         }
         $html = ob_get_clean();
         $html = '<div id="order-shipments-list" class="panel-inner">' . $html . '</div>';
@@ -494,7 +494,7 @@ class Ajax {
         }
 
         ob_start();
-        include( Main::get_path() . '/includes/admin/views/html-order-shipment-item.php' );
+        include( Package::get_path() . '/includes/admin/views/html-order-shipment-item.php' );
         $response['new_item'] = ob_get_clean();
 
         $response['fragments'] = array(
@@ -509,7 +509,7 @@ class Ajax {
         $order_shipment = $p_order_shipment;
 
         ob_start();
-        include( Main::get_path() . '/includes/admin/views/html-order-shipment-item-count.php' );
+        include( Package::get_path() . '/includes/admin/views/html-order-shipment-item-count.php' );
         $html = ob_get_clean();
 
         return $html;

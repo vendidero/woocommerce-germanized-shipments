@@ -1,7 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\Admin;
-use Vendidero\Germanized\Shipments\Main as Main;
+use Vendidero\Germanized\Shipments\Package;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -136,7 +136,7 @@ class Admin {
         $suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
         // Register admin styles.
-        wp_register_style( 'woocommerce_gzd_shipments_admin', Main::get_assets_url() . '/css/admin' . $suffix . '.css', array( 'woocommerce_admin_styles' ), Main::get_version() );
+        wp_register_style( 'woocommerce_gzd_shipments_admin', Package::get_assets_url() . '/css/admin' . $suffix . '.css', array( 'woocommerce_admin_styles' ), Package::get_version() );
 
         // Admin styles for WC pages only.
         if ( in_array( $screen_id, self::get_screen_ids() ) ) {
@@ -151,9 +151,9 @@ class Admin {
         $screen_id = $screen ? $screen->id : '';
         $suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
-        wp_register_script( 'wc-gzd-admin-shipment', Main::get_assets_url() . '/js/admin-shipment' . $suffix . '.js', array( 'jquery' ), Main::get_version() );
-        wp_register_script( 'wc-gzd-admin-shipments', Main::get_assets_url() . '/js/admin-shipments' . $suffix . '.js', array( 'wc-admin-order-meta-boxes', 'wc-gzd-admin-shipment' ), Main::get_version() );
-        wp_register_script( 'wc-gzd-admin-shipments-table', Main::get_assets_url() . '/js/admin-shipments-table' . $suffix . '.js', array( 'jquery', 'selectWoo' ), Main::get_version() );
+        wp_register_script( 'wc-gzd-admin-shipment', Package::get_assets_url() . '/js/admin-shipment' . $suffix . '.js', array( 'jquery' ), Package::get_version() );
+        wp_register_script( 'wc-gzd-admin-shipments', Package::get_assets_url() . '/js/admin-shipments' . $suffix . '.js', array( 'wc-admin-order-meta-boxes', 'wc-gzd-admin-shipment' ), Package::get_version() );
+        wp_register_script( 'wc-gzd-admin-shipments-table', Package::get_assets_url() . '/js/admin-shipments-table' . $suffix . '.js', array( 'jquery', 'selectWoo' ), Package::get_version() );
 
         // Orders.
         if ( in_array( str_replace( 'edit-', '', $screen_id ), wc_get_order_types( 'order-meta-boxes' ) ) ) {

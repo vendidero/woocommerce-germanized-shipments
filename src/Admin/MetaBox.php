@@ -1,7 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\Admin;
-use Vendidero\Germanized\Shipments\Main;
+use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Ajax;
 use Vendidero\Germanized\Shipments\Order;
 
@@ -121,7 +121,7 @@ class MetaBox {
         $order_shipment  = wc_gzd_get_shipment_order( $order );
         $active_shipment = isset( $_GET['shipment_id'] ) ? absint( $_GET['shipment_id'] ) : 0;
 
-        include( Main::get_path() . '/includes/admin/views/html-order-shipments.php' );
+        include( Package::get_path() . '/includes/admin/views/html-order-shipments.php' );
     }
 
     /**
