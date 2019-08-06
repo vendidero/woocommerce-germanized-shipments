@@ -218,6 +218,10 @@ window.germanized.admin = window.germanized.admin || {};
                             if ( shipmentData.hasOwnProperty( shipmentId ) ) {
                                 shipment.setIsEditable( shipmentData[ shipmentId ].is_editable );
                                 shipment.setNeedsItems( shipmentData[ shipmentId ].needs_items );
+                                shipment.setWeight( shipmentData[ shipmentId ].weight );
+                                shipment.setLength( shipmentData[ shipmentId ].length );
+                                shipment.setWidth( shipmentData[ shipmentId ].width );
+                                shipment.setHeight( shipmentData[ shipmentId ].height );
                             }
                         });
 

@@ -106,7 +106,7 @@ module.exports = function( grunt ) {
                     '<%= dirs.js %>/*js',
                     '!<%= dirs.js %>/*.min.js'
                 ],
-                tasks: ['jshint', 'uglify']
+                tasks: ['uglify']
             }
         },
 

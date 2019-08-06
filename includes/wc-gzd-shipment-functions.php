@@ -191,7 +191,7 @@ function wc_gzd_get_shipment_editable_statuses() {
     return apply_filters( 'woocommerce_gzd_shipment_editable_statuses', array( 'draft' ) );
 }
 
-function wc_gzd_sync_shipment( $order_shipment, &$shipment ) {
+function wc_gzd_sync_shipment( $order_shipment, &$shipment, $args = array() ) {
     try {
 
         if ( ! $order_shipment || ! is_a( $order_shipment, 'Vendidero\Germanized\Shipments\Order' ) ) {
@@ -200,9 +200,21 @@ function wc_gzd_sync_shipment( $order_shipment, &$shipment ) {
 
         $order = $order_shipment->get_order();
 
-        $shipment->set_order_id( $order->get_id() );
-        $shipment->set_country( $order->get_shipping_country() );
-        $shipment->set_address( $order->get_formatted_shipping_address() );
+        if ( ! $order ) {
+            throw new Exception( _x( 'Invalid order', 'shipments', 'woocommerce-germanized' ) );
+        }
+
+        $args = wp_parse_args( $args, array(
+            'order_id'      => $order->get_id(),
+            'country'       => $order->get_shipping_country(),
+            'address'       => $order->get_formatted_shipping_address(),
+            'weight'        => $shipment->get_weight( 'edit' ),
+            'length'        => $shipment->get_length( 'edit' ),
+            'width'         => $shipment->get_width( 'edit' ),
+            'height'        => $shipment->get_height( 'edit' ),
+        ) );
+
+        $shipment->set_props( $args );
 
     } catch ( Exception $e ) {
         return false;
@@ -237,7 +249,6 @@ function wc_gzd_sync_shipment_items( $order_shipment, &$shipment, $args = array(
 
         foreach( $available_items as $item_id => $item_data ) {
             if ( $order_item = $order->get_item( $item_id ) ) {
-
                 $quantity = $item_data['max_quantity'];
 
                 if ( ! empty( $args['items'] ) ) {

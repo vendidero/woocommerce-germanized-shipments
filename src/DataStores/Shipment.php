@@ -273,7 +273,6 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         $meta_key_to_props = array();
 
         foreach( $this->internal_meta_keys as $meta_key ) {
-
             $prop_name = substr( $meta_key, 1 );
 
             if ( in_array( $prop_name, $this->core_props ) ) {

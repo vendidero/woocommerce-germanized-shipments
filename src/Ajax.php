@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\Shipments;
 
+use Vendidero\Germanized\Shipments\Admin\MetaBox;
+
 /**
  * WC_Ajax class.
  */
@@ -46,78 +48,22 @@ class Ajax {
      * @param Order $order
      */
     private static function refresh_shipments( &$order ) {
-
-        foreach( $order->get_shipments() as $shipment ) {
-            $id    = $shipment->get_id();
-            $props = array();
-
-            // Sync the shipment with default data
-            if ( $shipment->is_editable() ) {
-                wc_gzd_sync_shipment( $order, $shipment );
-            }
-
-            // Do only update props if they exist
-            if ( isset( $_POST['shipment_weight'][ $id ] ) ) {
-                $props['weight'] = wc_clean( wp_unslash( $_POST['shipment_weight'][ $id ] ) );
-            }
-
-            if ( isset( $_POST['shipment_length'][ $id ] ) ) {
-                $props['length'] = wc_clean( wp_unslash( $_POST['shipment_length'][ $id ] ) );
-            }
-
-            if ( isset( $_POST['shipment_width'][ $id ] ) ) {
-                $props['width'] = wc_clean( wp_unslash( $_POST['shipment_width'][ $id ] ) );
-            }
-
-            if ( isset( $_POST['shipment_height'][ $id ] ) ) {
-                $props['height'] = wc_clean( wp_unslash( $_POST['shipment_height'][ $id ] ) );
-            }
-
-            $shipment->set_props( $props );
-
-            // Update items
-            self::refresh_shipment_items( $order, $shipment );
-        }
+        MetaBox::refresh_shipments( $order );
     }
 
+    /**
+     * @param Order $order
+     * @param bool $shipment
+     */
     private static function refresh_shipment_items( &$order, &$shipment = false ) {
-        $shipments = $shipment ? array( $shipment ) : $order->get_shipments();
-
-        foreach( $shipments as $shipment ) {
-            $id    = $shipment->get_id();
-
-            // Update items
-            foreach( $shipment->get_items() as $item ) {
-                $item_id = $item->get_id();
-                $props   = array();
-
-                // Set quantity to 1 by default
-                if ( $shipment->is_editable() ) {
-                    $props['quantity'] = 1;
-                }
-
-                if ( isset( $_POST['shipment_item'][ $id ]['quantity'][ $item_id ] ) ) {
-                    $props['quantity'] = absint( wp_unslash( $_POST['shipment_item'][ $id ]['quantity'][ $item_id ] ) );
-                }
-
-                $item->set_props( $props );
-            }
-        }
+        MetaBox::refresh_shipment_items( $order, $shipment );
     }
 
+    /**
+     * @param Order $order
+     */
     private static function refresh_status( &$order ) {
-
-        foreach( $order->get_shipments() as $shipment ) {
-
-            $id     = $shipment->get_id();
-            $status = isset( $_POST['shipment_status'][ $id ] ) ? wc_clean( wp_unslash( $_POST['shipment_status'][ $id ] ) ) : 'draft';
-
-            if ( ! wc_gzd_is_shipment_status( $status ) ) {
-                $status = 'draft';
-            }
-
-            $shipment->set_status( $status );
-        }
+        MetaBox::refresh_status( $order );
     }
 
     public static function remove_shipment() {
@@ -247,6 +193,7 @@ class Ajax {
         }
 
         static::refresh_shipments( $order_shipment );
+
         $order_shipment->validate_shipments();
 
         $response['fragments'] = self::get_shipments_html( $order_shipment, $active );
@@ -522,6 +469,9 @@ class Ajax {
 
         static::refresh_shipments( $order_shipment );
 
+        // Make sure we are working with the shipment from the order
+        $shipment = $order_shipment->get_shipment( $shipment_id );
+
         // No duplicates allowed
         if ( $shipment->get_item_by_order_item_id( $order_item_id ) ) {
             wp_send_json( $response_error );
@@ -694,6 +644,10 @@ class Ajax {
             $response['shipments'][ $shipment->get_id() ] = array(
                 'is_editable' => $shipment->is_editable(),
                 'needs_items' => $shipment->needs_items( array_keys( $available_items ) ),
+                'weight'      => wc_format_localized_decimal( $shipment->get_content_weight() ),
+                'length'      => wc_format_localized_decimal( $shipment->get_content_length() ),
+                'width'       => wc_format_localized_decimal( $shipment->get_content_width() ),
+                'height'      => wc_format_localized_decimal( $shipment->get_content_height() ),
             );
         }
 

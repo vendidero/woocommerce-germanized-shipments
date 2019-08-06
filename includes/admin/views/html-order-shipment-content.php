@@ -101,23 +101,26 @@ defined( 'ABSPATH' ) || exit;
             </script>
         </div>
         <div class="column col-6">
+
             <p class="form-row">
                 <label for="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Weight (kg)', 'x', 'woocommerce-germanized' ); ?></label>
-                <input type="text" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_weight() ) ); ?>" name="shipment_weight[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>" />
+                <input type="text" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_weight( 'edit' ) ) ); ?>" name="shipment_weight[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_weight() ) ); ?>" />
             </p>
 
             <p class="form-row dimensions_field">
-                <label for="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Dimensions (cm)', 'x', 'woocommerce-germanized' ); ?></label>
+                <label for="shipment-length-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Dimensions (cm)', 'x', 'woocommerce-germanized' ); ?></label>
 
                 <span class="wrap">
-                    <input type="text" size="6" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_length() ) ); ?>" name="shipment_length[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-length-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr_x( 'Length', 'shipments', 'woocommerce-germanized' ); ?>" />
-                    <input type="text" size="6" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_width() ) ); ?>" name="shipment_width[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-width-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr_x( 'Width', 'shipments', 'woocommerce-germanized' ); ?>" />
-                    <input type="text" size="6" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_height() ) ); ?>" name="shipment_height[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-height-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr_x( 'Height', 'shipments', 'woocommerce-germanized' ); ?>" />
+                    <input type="text" size="6" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_length( 'edit' ) ) ); ?>" name="shipment_length[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-length-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_length() ) ); ?>" />
+                    <input type="text" size="6" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_width( 'edit' ) ) ); ?>" name="shipment_width[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-width-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_width() ) ); ?>" />
+                    <input type="text" size="6" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_height( 'edit' ) ) ); ?>" name="shipment_height[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-height-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_height() ) ); ?>" />
                 </span>
             </p>
         </div>
         <div class="column col-12 shipment-footer">
-            <a class="remove-shipment delete" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Delete shipment', 'shipments', 'woocommerce-germanized' ); ?></a>
+            <?php if ( $shipment->is_editable() ) : ?>
+                <a class="remove-shipment delete" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Delete shipment', 'shipments', 'woocommerce-germanized' ); ?></a>
+            <?php endif; ?>
         </div>
     </div>
 </div>

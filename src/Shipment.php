@@ -55,6 +55,14 @@ class Shipment extends WC_Data {
 
     private $items_to_delete = array();
 
+    private $weights = null;
+
+    private $lengths = null;
+
+    private $widths = null;
+
+    private $heights = null;
+
     /**
      * Stores shipment data.
      *
@@ -186,19 +194,123 @@ class Shipment extends WC_Data {
     }
 
     public function get_weight( $context = 'view' ) {
-        return $this->get_prop( 'weight', $context );
+        $weight = $this->get_prop( 'weight', $context );
+
+        if ( 'view' === $context && '' === $weight ) {
+            return $this->get_content_weight();
+        }
+
+        return $weight;
     }
 
     public function get_length( $context = 'view' ) {
-        return $this->get_prop( 'length', $context );
+        $length = $this->get_prop( 'length', $context );
+
+        if ( 'view' === $context && '' === $length ) {
+            return $this->get_content_length();
+        }
+
+        return $length;
     }
 
     public function get_width( $context = 'view' ) {
-        return $this->get_prop( 'width', $context );
+        $width = $this->get_prop( 'width', $context );
+
+        if ( 'view' === $context && '' === $width ) {
+            return $this->get_content_width();
+        }
+
+        return $width;
     }
 
     public function get_height( $context = 'view' ) {
-        return $this->get_prop( 'height', $context );
+        $height = $this->get_prop( 'height', $context );
+
+        if ( 'view' === $context && '' === $height ) {
+            return $this->get_content_height();
+        }
+
+        return $height;
+    }
+
+    public function get_item_weights() {
+        if ( is_null( $this->weights ) ) {
+            $this->weights = array();
+
+            foreach( $this->get_items() as $item ) {
+                $this->weights[ $item->get_id() ] = ( ( $item->get_weight() === '' ? 0 : $item->get_weight() ) * $item->get_quantity() );
+            }
+
+            if ( empty( $this->weights ) ) {
+                $this->weights = array( 0 );
+            }
+        }
+
+        return $this->weights;
+    }
+
+    public function get_item_lengths() {
+        if ( is_null( $this->lengths ) ) {
+            $this->lengths = array();
+
+            foreach( $this->get_items() as $item ) {
+                $this->lengths[ $item->get_id() ] = $item->get_length() === '' ? 0 : $item->get_length();
+            }
+
+            if ( empty( $this->lengths ) ) {
+                $this->lengths = array( 0 );
+            }
+        }
+
+        return $this->lengths;
+    }
+
+    public function get_item_widths() {
+        if ( is_null( $this->widths ) ) {
+            $this->widths = array();
+
+            foreach( $this->get_items() as $item ) {
+                $this->widths[ $item->get_id() ] = $item->get_width() === '' ? 0 : $item->get_width();
+            }
+
+            if ( empty( $this->widths ) ) {
+                $this->widths = array( 0 );
+            }
+        }
+
+        return $this->widths;
+    }
+
+    public function get_item_heights() {
+        if ( is_null( $this->heights ) ) {
+            $this->heights = array();
+
+            foreach( $this->get_items() as $item ) {
+                $this->heights[ $item->get_id() ] = $item->get_height() === '' ? 0 : $item->get_height();
+            }
+
+            if ( empty( $this->heights ) ) {
+                $this->heights = array( 0 );
+            }
+        }
+
+        return $this->heights;
+    }
+
+    public function get_content_weight() {
+        return wc_format_decimal( array_sum( $this->get_item_weights() ) );
+    }
+
+    public function get_content_length() {
+        return wc_format_decimal( max( $this->get_item_lengths() ) );
+    }
+
+    public function get_content_width() {
+        return wc_format_decimal( max( $this->get_item_widths() ) );
+    }
+
+    public function get_content_height() {
+        return wc_format_decimal( max( $this->get_item_heights() ) );
     }
 
     public function get_country( $context = 'view' ) {
@@ -401,7 +513,7 @@ class Shipment extends WC_Data {
     /**
      * Return an array of items within this shipment.
      *
-     * @return WC_GZD_Shipment_Item[]
+     * @return ShipmentItem[]
      */
     public function get_items() {
         $items = array();
@@ -455,12 +567,11 @@ class Shipment extends WC_Data {
     }
 
     public function needs_items( $available_items = false ) {
-
         if ( ! $available_items && ( $order = wc_gzd_get_shipment_order( $this->get_order() ) ) ) {
             $available_items = $order->get_available_items_for_shipment();
         }
 
-        return ( $this->is_editable() && ! $this->contains_order_item( $available_items ) );
+        return ( $this->is_editable() && ! $this->contains_order_item( array_keys( $available_items ) ) );
     }
 
     /**
@@ -476,10 +587,10 @@ class Shipment extends WC_Data {
     /**
      * Get an item object.
      *
-     * @since  3.0.0
      * @param  int  $item_id ID of item to get.
      *
-     * @return WC_GZD_Shipment_Item|false
+     * @return ShipmentItem|false
+     * @since  3.0.0
      */
     public function get_item( $item_id ) {
         $items = $this->get_items();
@@ -505,6 +616,8 @@ class Shipment extends WC_Data {
         $this->items_to_delete[] = $item;
 
         unset( $this->items[ $item->get_id() ] );
+
+        $this->reset_content_data();
     }
 
     /**
@@ -530,6 +643,15 @@ class Shipment extends WC_Data {
         } else {
             $this->items[ 'new:' . count( $this->items ) ] = $item;
         }
+
+        $this->reset_content_data();
+    }
+
+    protected function reset_content_data() {
+        $this->weights = null;
+        $this->lengths = null;
+        $this->widths  = null;
+        $this->heights = null;
     }
 
     /**
@@ -623,6 +745,7 @@ class Shipment extends WC_Data {
 
             $this->save_items();
             $this->status_transition();
+            $this->reset_content_data();
         } catch ( Exception $e ) {
             $logger = wc_get_logger();
             $logger->error(

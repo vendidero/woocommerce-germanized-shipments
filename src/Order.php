@@ -63,23 +63,29 @@ class Order {
         return $status;
     }
 
-    public function validate_shipments() {
+    public function validate_shipments( $args = array() ) {
+        $args = wp_parse_args( $args, array(
+            'save' => true,
+        ) );
+
         foreach( $this->get_shipments() as $shipment ) {
 
             if ( $shipment->is_editable() ) {
+                wc_gzd_sync_shipment( $this, $shipment );
+
                 $this->validate_shipment_item_quantities( $shipment->get_id() );
             }
         }
 
-        $this->save();
+        if ( $args['save'] ) {
+            $this->save();
+        }
     }
 
     public function validate_shipment_item_quantities( $shipment_id = false ) {
         $shipment    = $shipment_id ? $this->get_shipment( $shipment_id ) : false;
         $shipments   = ( $shipment_id && $shipment ) ? array( $shipment ) : $this->get_shipments();
-
         $order_items = $this->get_shippable_items();
-        $quantities  = array();
 
         foreach( $shipments as $shipment ) {
 
@@ -89,12 +95,10 @@ class Order {
 
             // Do only check draft shipments
             if ( $shipment->is_editable() ) {
-
                 foreach( $shipment->get_items() as $item ) {
 
                     // Order item does not exist
                     if ( ! isset( $order_items[ $item->get_order_item_id() ] ) ) {
-
                         if ( ! apply_filters( 'woocommerce_gzd_shipment_order_keep_non_order_item', false, $item, $shipment ) ) {
                             $shipment->remove_item( $item->get_id() );
                         }
@@ -102,26 +106,22 @@ class Order {
                         continue;
                     }
 
-                    if ( ! isset( $quantities[ $item->get_order_item_id() ] ) ) {
-                        $quantities[ $item->get_order_item_id() ] = 0;
-                    }
+                    $order_item = $order_items[ $item->get_order_item_id() ];
+                    $quantity   = $this->get_item_quantity_left_for_shipping( $order_item, array(
+                        'shipment_id'              => $shipment->get_id(),
+                        'exclude_current_shipment' => true,
+                    ) );
 
-                    $total_quantity_before = $quantities[ $item->get_order_item_id() ];
-                    $order_item_quantity   = $this->get_shippable_item_quantity( $order_items[ $item->get_order_item_id() ] );
+                    if ( $quantity <= 0 ) {
+                        $shipment->remove_item( $item->get_id() );
+                    } else {
+                        $new_quantity = $item->get_quantity();
 
-                    $quantities[ $item->get_order_item_id() ] += $item->get_quantity();
-
-                    if ( $quantities[ $item->get_order_item_id() ] > $order_item_quantity ) {
-
-                        // Calculate the maximum allowed quantity
-                        $new_quantity = $order_item_quantity - $total_quantity_before;
-
-                        // Remove item or adjust quantity
-                        if ( $new_quantity <= 0 ) {
-                            $shipment->remove_item( $item->get_id() );
-                        } else {
-                            $item->set_quantity( $new_quantity );
+                        if ( $item->get_quantity() > $quantity ) {
+                            $new_quantity = $quantity;
                         }
+
+                        wc_gzd_sync_shipment_item( $item, $order_items[ $item->get_order_item_id() ], array( 'quantity' => $new_quantity ) );
                     }
                 }
 
@@ -133,7 +133,7 @@ class Order {
     }
 
     /**
-     * @return Vendidero\Germanized\Shipments\Shipment[] Shipments
+     * @return Shipment[] Shipments
      */
     public function get_shipments() {
 

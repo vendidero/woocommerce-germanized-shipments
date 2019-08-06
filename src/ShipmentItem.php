@@ -193,7 +193,8 @@ class ShipmentItem extends WC_Data {
     }
 
     public function get_name( $context = 'view' ) {
-        if ( $item = $this->get_order_item() ) {
+
+        if ( 'view' === $context && ( $item = $this->get_order_item() ) ) {
             return $item->get_name();
         }
 
@@ -203,7 +204,7 @@ class ShipmentItem extends WC_Data {
     /**
      * Get parent order object.
      *
-     * @return WC_GZD_Shipment
+     * @return Shipment
      */
     public function get_shipment() {
         if ( is_null( $this->shipment ) && 0 < $this->get_shipment_id() ) {
@@ -218,6 +219,7 @@ class ShipmentItem extends WC_Data {
     public function get_order_item() {
         if ( is_null( $this->order_item ) && 0 < $this->get_order_item_id() ) {
             if ( $shipment = $this->get_shipment() ) {
+
                 if ( $order = $shipment->get_order() ) {
                     $this->order_item = $order->get_item( $this->get_order_item_id() );
                 }

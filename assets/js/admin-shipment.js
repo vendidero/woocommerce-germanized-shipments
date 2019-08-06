@@ -87,6 +87,22 @@ window.germanized.admin = window.germanized.admin || {};
             this.unblockItems();
         };
 
+        this.setWeight = function( weight ) {
+            this.getShipment().find( '#shipment-weight-' + this.getId() ).attr( 'placeholder', weight );
+        };
+
+        this.setLength = function( length ) {
+            this.getShipment().find( '#shipment-length-' + this.getId() ).attr( 'placeholder', length );
+        };
+
+        this.setWidth = function( width ) {
+            this.getShipment().find( '#shipment-width-' + this.getId() ).attr( 'placeholder', width );
+        };
+
+        this.setHeight = function( height ) {
+            this.getShipment().find( '#shipment-height-' + this.getId() ).attr( 'placeholder', height );
+        };
+
         this.setIsEditable = function( isEditable ) {
             var root = this;
 
