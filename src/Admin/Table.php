@@ -131,7 +131,7 @@ class Table extends WP_List_Table {
 
         if ( 'delete' === $bulk_action ) {
 
-            $this->set_notice( sprintf( _nx( '%d shipment deleted.', '%d shipments deleted.', $number, 'shipments', 'woocommerce-germanized' ), number_format_i18n( $number ) ) );
+            $this->set_notice( sprintf( _nx( '%d shipment deleted.', '%d shipments deleted.', $number, 'shipments', 'woocommerce-germanized-shipments' ), number_format_i18n( $number ) ) );
 
         } elseif( strpos( $bulk_action, 'mark_' ) !== false ) {
 
@@ -141,7 +141,7 @@ class Table extends WP_List_Table {
             foreach ( $shipment_statuses as $slug => $name ) {
 
                 if ( 'mark_' . str_replace( 'gzd-', '', $slug ) === $bulk_action ) { // WPCS: input var ok, CSRF ok.
-                    $this->set_notice( sprintf( _nx( '%d shipment status changed.', '%d shipment statuses changed.', $number, 'shipments', 'woocommerce-germanized' ), number_format_i18n( $number ) ) );
+                    $this->set_notice( sprintf( _nx( '%d shipment status changed.', '%d shipment statuses changed.', $number, 'shipments', 'woocommerce-germanized-shipments' ), number_format_i18n( $number ) ) );
                     break;
                 }
             }
@@ -260,7 +260,7 @@ class Table extends WP_List_Table {
     /**
      */
     public function no_items() {
-        echo _x( 'No shipments found', 'shipments', 'woocommerce-germanized' );
+        echo _x( 'No shipments found', 'shipments', 'woocommerce-germanized-shipments' );
     }
 
     /**
@@ -304,7 +304,7 @@ class Table extends WP_List_Table {
                 'All <span class="count">(%s)</span>',
                 $total_shipments,
                 'shipments',
-                'woocommerce-germanized'
+                'woocommerce-germanized-shipments'
             ),
             number_format_i18n( $total_shipments )
         );
@@ -327,7 +327,7 @@ class Table extends WP_List_Table {
             );
 
             $status_label = sprintf(
-                translate_nooped_plural( _nx_noop( $title . ' <span class="count">(%s)</span>', $title . ' <span class="count">(%s)</span>', 'shipments', 'woocommerce-germanized' ), $num_shipments[ $status ] ),
+                translate_nooped_plural( _nx_noop( $title . ' <span class="count">(%s)</span>', $title . ' <span class="count">(%s)</span>', 'shipments', 'woocommerce-germanized-shipments' ), $num_shipments[ $status ] ),
                 number_format_i18n( $num_shipments[ $status ] )
             );
 
@@ -417,9 +417,9 @@ class Table extends WP_List_Table {
 
         $m = isset( $_GET['m'] ) ? (int) $_GET['m'] : 0;
         ?>
-        <label for="filter-by-date" class="screen-reader-text"><?php echo _x( 'Filter by date', 'shipments', 'woocommerce-germanized'); ?></label>
+        <label for="filter-by-date" class="screen-reader-text"><?php echo _x( 'Filter by date', 'shipments', 'woocommerce-germanized-shipments'); ?></label>
         <select name="m" id="filter-by-date">
-            <option<?php selected( $m, 0 ); ?> value="0"><?php echo _x( 'All dates', 'shipments', 'woocommerce-germanized' ); ?></option>
+            <option<?php selected( $m, 0 ); ?> value="0"><?php echo _x( 'All dates', 'shipments', 'woocommerce-germanized-shipments' ); ?></option>
             <?php
             foreach ( $months as $arc_row ) {
                 if ( 0 == $arc_row->year ) {
@@ -477,7 +477,7 @@ class Table extends WP_List_Table {
                 if ( ! empty( $output ) ) {
                     echo $output;
 
-                    submit_button( _x( 'Filter', 'shipments', 'woocommerce-germanized' ), '', 'filter_action', false, array( 'id' => 'shipment-query-submit' ) );
+                    submit_button( _x( 'Filter', 'shipments', 'woocommerce-germanized-shipments' ), '', 'filter_action', false, array( 'id' => 'shipment-query-submit' ) );
                 }
             }
             ?>
@@ -501,12 +501,12 @@ class Table extends WP_List_Table {
         if ( ! empty( $_GET['order_id'] ) ) { // phpcs:disable  WordPress.Security.NonceVerification.NoNonceVerification
             $order_id     = absint( $_GET['order_id'] ); // WPCS: input var ok, sanitization ok.
             $order_string = sprintf(
-                esc_html_x( 'Order #%s', 'shipments', 'woocommerce-germanized' ),
+                esc_html_x( 'Order #%s', 'shipments', 'woocommerce-germanized-shipments' ),
                 $order_id
             );
         }
         ?>
-        <select class="wc-gzd-order-search" name="order_id" data-placeholder="<?php echo esc_attr_x( 'Filter by order', 'shipments', 'woocommerce-germanized' ); ?>" data-allow_clear="true">
+        <select class="wc-gzd-order-search" name="order_id" data-placeholder="<?php echo esc_attr_x( 'Filter by order', 'shipments', 'woocommerce-germanized-shipments' ); ?>" data-allow_clear="true">
             <option value="<?php echo esc_attr( $order_id ); ?>" selected="selected"><?php echo htmlspecialchars( wp_kses_post( $order_string ) ); // htmlspecialchars to prevent XSS when rendered by selectWoo. ?><option>
         </select>
         <?php
@@ -526,15 +526,15 @@ class Table extends WP_List_Table {
 
         $columns               = array();
         $columns['cb']         = '<input type="checkbox" />';
-        $columns['title']      = _x( 'Title', 'shipments', 'woocommerce-germanized' );
-        $columns['date']       = _x( 'Date', 'shipments', 'woocommerce-germanized' );
-        $columns['status']     = _x( 'Status', 'shipments', 'woocommerce-germanized' );
-        $columns['items']      = _x( 'Items', 'shipments', 'woocommerce-germanized' );
-        $columns['address']    = _x( 'Address', 'shipments', 'woocommerce-germanized' );
-        // $columns['weight']     = _x( 'Weight', 'shipments', 'woocommerce-germanized' );
-        // $columns['dimensions'] = _x( 'Dimensions', 'shipments', 'woocommerce-germanized' );
-        $columns['order']      = _x( 'Order', 'shipments', 'woocommerce-germanized' );
-        $columns['actions']    = _x( 'Actions', 'shipments', 'woocommerce-germanized' );
+        $columns['title']      = _x( 'Title', 'shipments', 'woocommerce-germanized-shipments' );
+        $columns['date']       = _x( 'Date', 'shipments', 'woocommerce-germanized-shipments' );
+        $columns['status']     = _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' );
+        $columns['items']      = _x( 'Items', 'shipments', 'woocommerce-germanized-shipments' );
+        $columns['address']    = _x( 'Address', 'shipments', 'woocommerce-germanized-shipments' );
+        // $columns['weight']     = _x( 'Weight', 'shipments', 'woocommerce-germanized-shipments' );
+        // $columns['dimensions'] = _x( 'Dimensions', 'shipments', 'woocommerce-germanized-shipments' );
+        $columns['order']      = _x( 'Order', 'shipments', 'woocommerce-germanized-shipments' );
+        $columns['actions']    = _x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' );
 
         /**
          * Filters the columns displayed in the Posts list table.
@@ -602,7 +602,7 @@ class Table extends WP_List_Table {
      * @param Shipment $shipment The current shipment object.
      */
     public function column_title( $shipment ) {
-        $title = sprintf( _x( 'Shipment #%s', 'shipments', 'woocommerce-germanized' ), $shipment->get_id() );
+        $title = sprintf( _x( 'Shipment #%s', 'shipments', 'woocommerce-germanized-shipments' ), $shipment->get_id() );
 
         if ( $order = $shipment->get_order() ) {
             echo '<a href="' . $shipment->get_edit_shipment_url() . '">' . $title . '</a>';
@@ -615,7 +615,7 @@ class Table extends WP_List_Table {
         if ( current_user_can( 'edit_shop_orders' ) ) :
             ?>
             <label class="screen-reader-text" for="cb-select-<?php echo esc_attr( $shipment->get_id() ); ?>">
-                <?php printf( _x( 'Select %s', 'shipments', 'woocommerce-germanized' ), $shipment->get_id() ); ?>
+                <?php printf( _x( 'Select %s', 'shipments', 'woocommerce-germanized-shipments' ), $shipment->get_id() ); ?>
             </label>
             <input id="cb-select-<?php echo esc_attr( $shipment->get_id() ); ?>" type="checkbox" name="shipment[]" value="<?php echo esc_attr( $shipment->get_id() ); ?>" />
         <?php
@@ -642,7 +642,7 @@ class Table extends WP_List_Table {
                             <?php echo wp_kses_post( $item->get_name() ); ?>
                         <?php endif; ?>
 
-                        <?php echo ( $item->get_sku() ? '<br/><small>' . esc_html_x( 'SKU:', 'shipments', 'woocommerce-germanized' ) . ' ' . esc_html( $item->get_sku() ) . '</small>' : '' ); ?>
+                        <?php echo ( $item->get_sku() ? '<br/><small>' . esc_html_x( 'SKU:', 'shipments', 'woocommerce-germanized-shipments' ) . ' ' . esc_html( $item->get_sku() ) . '</small>' : '' ); ?>
                     </td>
                     <td class="wc-gzd-shipment-item-column-quantity">
                         <?php echo $item->get_quantity(); ?>x
@@ -717,11 +717,11 @@ class Table extends WP_List_Table {
         if ( $shipment_timestamp > strtotime( '-1 day', current_time( 'timestamp', true ) ) && $shipment_timestamp <= current_time( 'timestamp', true ) ) {
             $show_date = sprintf(
             /* translators: %s: human-readable time difference */
-                _x( '%s ago', '%s = human-readable time difference', 'woocommerce-germanized' ),
+                _x( '%s ago', '%s = human-readable time difference', 'woocommerce-germanized-shipments' ),
                 human_time_diff( $shipment->get_date_created()->getTimestamp(), current_time( 'timestamp', true ) )
             );
         } else {
-            $show_date = $shipment->get_date_created()->date_i18n( apply_filters( 'woocommerce_gzd_admin_shipment_date_format', _x( 'M j, Y', 'shipments', 'woocommerce-germanized' ) ) );
+            $show_date = $shipment->get_date_created()->date_i18n( apply_filters( 'woocommerce_gzd_admin_shipment_date_format', _x( 'M j, Y', 'shipments', 'woocommerce-germanized-shipments' ) ) );
         }
 
         printf(
@@ -768,12 +768,12 @@ class Table extends WP_List_Table {
         $actions = array();
 
         if ( current_user_can( 'delete_shop_orders' ) ) {
-            $actions['delete'] = _x( 'Delete Permanently', 'shipments', 'woocommerce-germanized' );
+            $actions['delete'] = _x( 'Delete Permanently', 'shipments', 'woocommerce-germanized-shipments' );
         }
 
         $actions['mark_processing'] = _x( 'Change status to processing', 'shipments', 'woocommerce' );
         $actions['mark_shipped']    = _x( 'Change status to shipped', 'shipments', 'woocommerce' );
-        $actions['mark_delivered']  = _x( 'Change status to delivered', 'shipments', 'woocommerce-germanized' );
+        $actions['mark_delivered']  = _x( 'Change status to delivered', 'shipments', 'woocommerce-germanized-shipments' );
 
         return apply_filters( 'woocommerce_gzd_shipments_bulk_actions', $actions );
     }

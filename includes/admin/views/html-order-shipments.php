@@ -14,7 +14,7 @@ $active_shipment = isset( $active_shipment ) ? $active_shipment : false;
     <div id="panel-order-shipments" class="<?php echo ( $order_shipment->needs_shipping() ? 'needs-shipments' : '' ); ?>">
 
         <div class="panel-title title-spread panel-inner">
-            <h2 class="order-shipments-title"><?php echo _x( 'Shipments', 'shipments', 'woocommerce-germanized' ); ?></h2>
+            <h2 class="order-shipments-title"><?php echo _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
             <span class="order-shipping-status status-<?php echo esc_attr( $order_shipment->get_shipping_status() ); ?>"><?php echo wc_gzd_get_shipment_order_shipping_status_name( $order_shipment->get_shipping_status() ); ?></span>
         </div>
 

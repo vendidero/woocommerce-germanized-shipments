@@ -43,7 +43,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
         public function __construct() {
             $this->customer_email = true;
             $this->id             = 'customer_shipment';
-            $this->title          = _x( 'Order shipped', 'shipments', 'woocommerce-germanized' );
+            $this->title          = _x( 'Order shipped', 'shipments', 'woocommerce-germanized-shipments' );
             $this->description    = __( 'Shipment notifications are sent to the customer when a shipment gets shipped.', 'woocommerce' );
             $this->template_html  = 'emails/customer-shipment.php';
             $this->template_plain = 'emails/plain/customer-shipment.php';
@@ -72,9 +72,9 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
          */
         public function get_default_subject( $partial = false ) {
             if ( $partial ) {
-                return _x( 'Your {site_title} order #{order_number} has been shipped', 'shipments', 'woocommerce-germanized' );
+                return _x( 'Your {site_title} order #{order_number} has been shipped', 'shipments', 'woocommerce-germanized-shipments' );
             } else {
-                return _x( 'Your {site_title} order #{order_number} has been shipped', 'shipments', 'woocommerce-germanized' );
+                return _x( 'Your {site_title} order #{order_number} has been shipped', 'shipments', 'woocommerce-germanized-shipments' );
             }
         }
 
@@ -87,9 +87,9 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
          */
         public function get_default_heading( $partial = false ) {
             if ( $partial ) {
-                return _x( 'Shipment to your order: {order_number}', 'shipments', 'woocommerce-germanized' );
+                return _x( 'Shipment to your order: {order_number}', 'shipments', 'woocommerce-germanized-shipments' );
             } else {
-                return _x( 'Shipment to your order: {order_number}', 'shipments', 'woocommerce-germanized' );
+                return _x( 'Shipment to your order: {order_number}', 'shipments', 'woocommerce-germanized-shipments' );
             }
         }
 
@@ -208,51 +208,51 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
         public function init_form_fields() {
             $this->form_fields = array(
                 'enabled'         => array(
-                    'title'   => _x( 'Enable/Disable', 'shipments', 'woocommerce-germanized' ),
+                    'title'   => _x( 'Enable/Disable', 'shipments', 'woocommerce-germanized-shipments' ),
                     'type'    => 'checkbox',
-                    'label'   => _x( 'Enable this email notification', 'shipments', 'woocommerce-germanized' ),
+                    'label'   => _x( 'Enable this email notification', 'shipments', 'woocommerce-germanized-shipments' ),
                     'default' => 'yes',
                 ),
                 'subject_full'    => array(
-                    'title'       => _x( 'Full shipment subject', 'shipments', 'woocommerce-germanized' ),
+                    'title'       => _x( 'Full shipment subject', 'shipments', 'woocommerce-germanized-shipments' ),
                     'type'        => 'text',
                     'desc_tip'    => true,
                     /* translators: %s: list of placeholders */
-                    'description' => sprintf( _x( 'Available placeholders: %s', 'shipments', 'woocommerce-germanized' ), '<code>{site_title}, {order_date}, {order_number}, {shipment_number}, {date_sent}</code>' ),
+                    'description' => sprintf( _x( 'Available placeholders: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>{site_title}, {order_date}, {order_number}, {shipment_number}, {date_sent}</code>' ),
                     'placeholder' => $this->get_default_subject(),
                     'default'     => '',
                 ),
                 'subject_partial' => array(
-                    'title'       => _x( 'Partial shipment subject', 'shipments', 'woocommerce-germanized' ),
+                    'title'       => _x( 'Partial shipment subject', 'shipments', 'woocommerce-germanized-shipments' ),
                     'type'        => 'text',
                     'desc_tip'    => true,
                     /* translators: %s: list of placeholders */
-                    'description' => sprintf( _x( 'Available placeholders: %s', 'shipments', 'woocommerce-germanized' ), '<code>{site_title}, {order_date}, {order_number}, {shipment_number}, {date_sent}</code>' ),
+                    'description' => sprintf( _x( 'Available placeholders: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>{site_title}, {order_date}, {order_number}, {shipment_number}, {date_sent}</code>' ),
                     'placeholder' => $this->get_default_subject( true ),
                     'default'     => '',
                 ),
                 'heading_full'    => array(
-                    'title'       => _x( 'Full shipment email heading', 'shipments', 'woocommerce-germanized' ),
+                    'title'       => _x( 'Full shipment email heading', 'shipments', 'woocommerce-germanized-shipments' ),
                     'type'        => 'text',
                     'desc_tip'    => true,
                     /* translators: %s: list of placeholders */
-                    'description' => sprintf( _x( 'Available placeholders: %s', 'shipments', 'woocommerce-germanized' ), '<code>{site_title}, {order_date}, {order_number}, {shipment_number}, {date_sent}</code>' ),
+                    'description' => sprintf( _x( 'Available placeholders: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>{site_title}, {order_date}, {order_number}, {shipment_number}, {date_sent}</code>' ),
                     'placeholder' => $this->get_default_heading(),
                     'default'     => '',
                 ),
                 'heading_partial' => array(
-                    'title'       => _x( 'Partial shipment email heading', 'shipments', 'woocommerce-germanized' ),
+                    'title'       => _x( 'Partial shipment email heading', 'shipments', 'woocommerce-germanized-shipments' ),
                     'type'        => 'text',
                     'desc_tip'    => true,
                     /* translators: %s: list of placeholders */
-                    'description' => sprintf( _x( 'Available placeholders: %s', 'shipments', 'woocommerce-germanized' ), '<code>{site_title}, {order_date}, {order_number}, {shipment_number}, {date_sent}</code>' ),
+                    'description' => sprintf( _x( 'Available placeholders: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>{site_title}, {order_date}, {order_number}, {shipment_number}, {date_sent}</code>' ),
                     'placeholder' => $this->get_default_heading( true ),
                     'default'     => '',
                 ),
                 'email_type'      => array(
-                    'title'       => _x( 'Email type', 'shipments', 'woocommerce-germanized' ),
+                    'title'       => _x( 'Email type', 'shipments', 'woocommerce-germanized-shipments' ),
                     'type'        => 'select',
-                    'description' => _x( 'Choose which format of email to send.', 'shipments', 'woocommerce-germanized' ),
+                    'description' => _x( 'Choose which format of email to send.', 'shipments', 'woocommerce-germanized-shipments' ),
                     'default'     => 'html',
                     'class'       => 'email_type wc-enhanced-select',
                     'options'     => $this->get_email_type_options(),

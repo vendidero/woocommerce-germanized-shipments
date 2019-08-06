@@ -231,7 +231,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 
             do_action( 'woocommerce_gzd_shipment_loaded', $shipment );
         } else {
-            throw new Exception( _x( 'Invalid shipment.', 'shipments', 'woocommerce-germanized' ) );
+            throw new Exception( _x( 'Invalid shipment.', 'shipments', 'woocommerce-germanized-shipments' ) );
         }
     }
 

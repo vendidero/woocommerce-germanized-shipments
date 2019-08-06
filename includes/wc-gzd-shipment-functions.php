@@ -32,9 +32,9 @@ function wc_gzd_get_shipment_order( $order ) {
 
 function wc_gzd_get_shipment_order_shipping_statuses() {
     $shipment_statuses = array(
-        'gzd-not-shipped'       => _x( 'Not shipped', 'shipments', 'woocommerce-germanized' ),
-        'gzd-partially-shipped' => _x( 'Partially shipped', 'shipments', 'woocommerce-germanized' ),
-        'gzd-shipped'           => _x( 'Shipped', 'shipments', 'woocommerce-germanized' ),
+        'gzd-not-shipped'       => _x( 'Not shipped', 'shipments', 'woocommerce-germanized-shipments' ),
+        'gzd-partially-shipped' => _x( 'Partially shipped', 'shipments', 'woocommerce-germanized-shipments' ),
+        'gzd-shipped'           => _x( 'Shipped', 'shipments', 'woocommerce-germanized-shipments' ),
     );
 
     return apply_filters( 'woocommerce_gzd_order_shipping_statuses', $shipment_statuses );
@@ -127,11 +127,11 @@ function wc_gzd_get_shipment_id( $shipment ) {
  */
 function wc_gzd_get_shipment_statuses() {
     $shipment_statuses = array(
-        'gzd-draft'      => _x( 'Draft', 'shipments', 'woocommerce-germanized' ),
-        'gzd-processing' => _x( 'Processing', 'shipments', 'woocommerce-germanized' ),
-        'gzd-shipped'    => _x( 'Shipped', 'shipments', 'woocommerce-germanized' ),
-        'gzd-delivered'  => _x( 'Delivered', 'shipments', 'woocommerce-germanized' ),
-        'gzd-returned'   => _x( 'Returned', 'shipments', 'woocommerce-germanized' ),
+        'gzd-draft'      => _x( 'Draft', 'shipments', 'woocommerce-germanized-shipments' ),
+        'gzd-processing' => _x( 'Processing', 'shipments', 'woocommerce-germanized-shipments' ),
+        'gzd-shipped'    => _x( 'Shipped', 'shipments', 'woocommerce-germanized-shipments' ),
+        'gzd-delivered'  => _x( 'Delivered', 'shipments', 'woocommerce-germanized-shipments' ),
+        'gzd-returned'   => _x( 'Returned', 'shipments', 'woocommerce-germanized-shipments' ),
     );
 
     return apply_filters( 'woocommerce_gzd_shipment_statuses', $shipment_statuses );
@@ -142,11 +142,11 @@ function wc_gzd_create_shipment( $order_shipment, $args = array() ) {
     try {
 
         if ( ! $order_shipment || ! is_a( $order_shipment, 'Vendidero\Germanized\Shipments\Order' ) ) {
-            throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized' ) );
+            throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
         }
 
         if ( ! $order = $order_shipment->get_order() ) {
-            throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized' ) );
+            throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
         }
 
         $args = wp_parse_args( $args, array(
@@ -172,7 +172,7 @@ function wc_gzd_create_shipment_item( $order_item, $args = array() ) {
     try {
 
         if ( ! $order_item || ! is_a( $order_item, 'WC_Order_Item' ) ) {
-            throw new Exception( _x( 'Invalid order item', 'shipments', 'woocommerce-germanized' ) );
+            throw new Exception( _x( 'Invalid order item', 'shipments', 'woocommerce-germanized-shipments' ) );
         }
 
         $item = new Vendidero\Germanized\Shipments\ShipmentItem();
@@ -195,13 +195,13 @@ function wc_gzd_sync_shipment( $order_shipment, &$shipment, $args = array() ) {
     try {
 
         if ( ! $order_shipment || ! is_a( $order_shipment, 'Vendidero\Germanized\Shipments\Order' ) ) {
-            throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized' ) );
+            throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
         }
 
         $order = $order_shipment->get_order();
 
         if ( ! $order ) {
-            throw new Exception( _x( 'Invalid order', 'shipments', 'woocommerce-germanized' ) );
+            throw new Exception( _x( 'Invalid order', 'shipments', 'woocommerce-germanized-shipments' ) );
         }
 
         $args = wp_parse_args( $args, array(
@@ -233,7 +233,7 @@ function wc_gzd_sync_shipment_items( $order_shipment, &$shipment, $args = array(
     try {
 
         if ( ! $order_shipment || ! is_a( $order_shipment, 'Vendidero\Germanized\Shipments\Order' ) ) {
-            throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized' ) );
+            throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
         }
 
         $args = wp_parse_args( $args, array(
@@ -446,7 +446,7 @@ function wc_gzd_format_shipment_dimensions( $dimensions ) {
     if ( ! empty( $dimension_string ) ) {
         $dimension_string .= ' ' . 'cm';
     } else {
-        $dimension_string = _x( 'N/A', 'shipments', 'woocommerce-germanized' );
+        $dimension_string = _x( 'N/A', 'shipments', 'woocommerce-germanized-shipments' );
     }
 
     return apply_filters( 'woocommerce_gzd_format_shipment_dimensions', $dimension_string, $dimensions );
@@ -465,7 +465,7 @@ function wc_gzd_format_shipment_weight( $weight ) {
     if ( ! empty( $weight_string ) ) {
         $weight_string .= ' ' . 'kg';
     } else {
-        $weight_string = _x( 'N/A', 'shipments', 'woocommerce-germanized' );
+        $weight_string = _x( 'N/A', 'shipments', 'woocommerce-germanized-shipments' );
     }
 
     return apply_filters( 'woocommerce_gzd_format_shipment_weight', $weight_string, $weight );

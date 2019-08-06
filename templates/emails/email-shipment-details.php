@@ -33,7 +33,7 @@ do_action( 'woocommerce_gzd_email_before_shipment_table', $shipment, $sent_to_ad
         $after  = '';
     }
     /* translators: %s: Order ID. */
-    echo wp_kses_post( $before . _x( 'Details to your shipment', 'shipments', 'woocommerce-germanized' ) . $after );
+    echo wp_kses_post( $before . _x( 'Details to your shipment', 'shipments', 'woocommerce-germanized-shipments' ) . $after );
     ?>
 </h2>
 
@@ -41,8 +41,8 @@ do_action( 'woocommerce_gzd_email_before_shipment_table', $shipment, $sent_to_ad
     <table class="td" cellspacing="0" cellpadding="6" style="width: 100%; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;" border="1">
         <thead>
         <tr>
-            <th class="td" scope="col" style="text-align:<?php echo esc_attr( $text_align ); ?>;"><?php echo esc_html_x( 'Product', 'shipments', 'woocommerce-germanized' ); ?></th>
-            <th class="td" scope="col" style="text-align:<?php echo esc_attr( $text_align ); ?>;"><?php echo esc_html_x( 'Quantity', 'shipments','woocommerce-germanized' ); ?></th>
+            <th class="td" scope="col" style="text-align:<?php echo esc_attr( $text_align ); ?>;"><?php echo esc_html_x( 'Product', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+            <th class="td" scope="col" style="text-align:<?php echo esc_attr( $text_align ); ?>;"><?php echo esc_html_x( 'Quantity', 'shipments','woocommerce-germanized-shipments' ); ?></th>
         </tr>
         </thead>
         <tbody>

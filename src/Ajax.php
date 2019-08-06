@@ -75,7 +75,7 @@ class Ajax {
 
         $response_error = array(
             'success' => false,
-            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized' ),
+            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
         );
 
         $response = array(
@@ -116,7 +116,7 @@ class Ajax {
 
         $response_error = array(
             'success' => false,
-            'message' => _x( 'There was an error while adding the shipment', 'shipments', 'woocommerce-germanized' ),
+            'message' => _x( 'There was an error while adding the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
         );
 
         $response = array(
@@ -137,7 +137,7 @@ class Ajax {
         self::refresh_shipment_items( $order_shipment );
 
         if ( ! $order_shipment->needs_shipping() ) {
-            $response_error['message'] = _x( 'This order contains enough shipments already.', 'shipments', 'woocommerce-germanized' );
+            $response_error['message'] = _x( 'This order contains enough shipments already.', 'shipments', 'woocommerce-germanized-shipments' );
             wp_send_json( $response_error );
         }
 
@@ -173,7 +173,7 @@ class Ajax {
 
         $response_error = array(
             'success' => false,
-            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized' ),
+            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
         );
 
         $response = array(
@@ -210,7 +210,7 @@ class Ajax {
 
         $response_error = array(
             'success' => false,
-            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized' ),
+            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
         );
 
         $response = array(
@@ -322,7 +322,7 @@ class Ajax {
 
         $response_error = array(
             'success' => false,
-            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized' ),
+            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
         );
 
         $response = array(
@@ -388,7 +388,7 @@ class Ajax {
 
         $response_error = array(
             'success' => false,
-            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized' ),
+            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
         );
 
         $response = array(
@@ -430,7 +430,7 @@ class Ajax {
 
         $response_error = array(
             'success' => false,
-            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized' ),
+            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
         );
 
         $response = array(
@@ -524,7 +524,7 @@ class Ajax {
 
         $response_error = array(
             'success' => false,
-            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized' ),
+            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
         );
 
         $response = array(
@@ -568,7 +568,7 @@ class Ajax {
 
         $response_error = array(
             'success' => false,
-            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized' ),
+            'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
         );
 
         $response = array(

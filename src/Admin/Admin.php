@@ -37,7 +37,7 @@ class Admin {
     }
 
     public static function shipments_menu() {
-        add_submenu_page( 'woocommerce', _x( 'Shipments', 'shipments', 'woocommerce-germanized' ), _x( 'Shipments', 'shipments', 'woocommerce-germanized' ), 'manage_woocommerce', 'wc-gzd-shipments', array( __CLASS__, 'shipments_page' ) );
+        add_submenu_page( 'woocommerce', _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ), _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ), 'manage_woocommerce', 'wc-gzd-shipments', array( __CLASS__, 'shipments_page' ) );
     }
 
     public static function setup_shipments_table() {
@@ -92,7 +92,7 @@ class Admin {
 
         ?>
         <div class="wrap">
-            <h1 class="wp-heading-inline"><?php echo _x( 'Shipments', 'shipments', 'woocommerce-germanized' ); ?></h1>
+            <h1 class="wp-heading-inline"><?php echo _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ); ?></h1>
             <hr class="wp-header-end" />
 
             <?php
@@ -104,7 +104,7 @@ class Admin {
 
             <form id="posts-filter" method="get">
 
-                <?php $wp_list_table->search_box( _x( 'Search shipments', 'shipments', 'woocommerce-germanized' ), 'shipment' ); ?>
+                <?php $wp_list_table->search_box( _x( 'Search shipments', 'shipments', 'woocommerce-germanized-shipments' ), 'shipment' ); ?>
 
                 <input type="hidden" name="shipment_status" class="shipment_status_page" value="<?php echo ! empty( $_REQUEST['shipment_status'] ) ? esc_attr( $_REQUEST['shipment_status'] ) : 'all'; ?>" />
                 <input type="hidden" name="type" class="type_page" value="shipment" />
@@ -124,7 +124,7 @@ class Admin {
 
         // Orders.
         foreach ( wc_get_order_types( 'order-meta-boxes' ) as $type ) {
-            add_meta_box( 'woocommerce-gzd-order-shipments', _x( 'Shipments', 'shipments', 'woocommerce-germanized' ), array( MetaBox::class, 'output' ), $type, 'normal', 'high' );
+            add_meta_box( 'woocommerce-gzd-order-shipments', _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ), array( MetaBox::class, 'output' ), $type, 'normal', 'high' );
         }
     }
 
@@ -168,7 +168,7 @@ class Admin {
                     'edit_shipments_nonce'            => wp_create_nonce( 'edit-shipments' ),
                     'order_id'                        => isset( $post->ID ) ? $post->ID : '',
                     'shipment_locked_excluded_fields' => array( 'status' ),
-                    'i18n_remove_shipment_notice'     => _x( 'Do you really want to delete the shipment?', 'shipments', 'woocommerce-germanized' ),
+                    'i18n_remove_shipment_notice'     => _x( 'Do you really want to delete the shipment?', 'shipments', 'woocommerce-germanized-shipments' ),
                 )
             );
         }

@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
             <input type="number" size="6" step="1" name="shipment_item[<?php echo esc_attr( $shipment->get_id() ); ?>][quantity][<?php echo esc_attr( $item->get_id() ); ?>]" class="item-quantity" data-original-value="<?php echo esc_attr( $item->get_quantity() ); ?>" value="<?php echo esc_attr( $item->get_quantity() ); ?>" />
         </div>
         <div class="column col-3 shipment-item-action">
-            <a class="remove-shipment-item delete" data-delete="<?php echo esc_attr( $item->get_id() ); ?>" href="#"><?php echo _x( 'Delete', 'shipments', 'woocommerce-germanized' ); ?></a>
+            <a class="remove-shipment-item delete" data-delete="<?php echo esc_attr( $item->get_id() ); ?>" href="#"><?php echo _x( 'Delete', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
         </div>
     </div>
 

@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
     <div class="columns">
         <div class="column col-6">
             <p class="form-row">
-                <label for="shipment-status-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Status', 'x', 'woocommerce-germanized' ); ?></label>
+                <label for="shipment-status-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Status', 'x', 'woocommerce-germanized-shipments' ); ?></label>
 
                 <select class="shipment-status-select" id="shipment-status-<?php echo esc_attr( $shipment->get_id() ); ?>" name="shipment_status[<?php echo esc_attr( $shipment->get_id() ); ?>]">
                     <?php foreach( wc_gzd_get_shipment_statuses() as $status => $title ) : ?>
@@ -27,13 +27,13 @@ defined( 'ABSPATH' ) || exit;
                     <div class="shipment-item-heading">
                         <div class="columns">
                             <div class="column col-6 shipment-item-name">
-                                <?php echo _x( 'Item', 'shipments', 'woocommerce-germanized' ); ?>
+                                <?php echo _x( 'Item', 'shipments', 'woocommerce-germanized-shipments' ); ?>
                             </div>
                             <div class="column col-3 shipment-item-quantity">
-                                <?php echo _x( 'Quantity', 'shipments', 'woocommerce-germanized' ); ?>
+                                <?php echo _x( 'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?>
                             </div>
                             <div class="column col-3 shipment-item-action">
-                                <?php echo _x( 'Actions', 'shipments', 'woocommerce-germanized' ); ?>
+                                <?php echo _x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' ); ?>
                             </div>
                         </div>
                     </div>
@@ -47,12 +47,12 @@ defined( 'ABSPATH' ) || exit;
 
                 <div class="shipment-item-actions">
                     <div class="add-items">
-                        <a class="add-shipment-item" href="#"><?php echo _x( 'Add item', 'shipments', 'woocommerce-germanized' ); ?></a>
+                        <a class="add-shipment-item" href="#"><?php echo _x( 'Add item', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
                     </div>
 
                     <div class="sync-items">
-                        <a class="sync-shipment-items" href="#"><?php echo _x( 'Sync items', 'shipments', 'woocommerce-germanized' ); ?></a>
-                        <?php echo wc_help_tip( _x( 'Automatically adjust items and quantities based on order item data.', 'shipments', 'woocommerce-germanized' ) ); ?>
+                        <a class="sync-shipment-items" href="#"><?php echo _x( 'Sync items', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+                        <?php echo wc_help_tip( _x( 'Automatically adjust items and quantities based on order item data.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>
                     </div>
                 </div>
             </div>
@@ -62,7 +62,7 @@ defined( 'ABSPATH' ) || exit;
                     <div class="wc-backbone-modal-content">
                         <section class="wc-backbone-modal-main" role="main">
                             <header class="wc-backbone-modal-header">
-                                <h1><?php echo esc_html_x( 'Add Item', 'shipments', 'woocommerce-germanized' ); ?></h1>
+                                <h1><?php echo esc_html_x( 'Add Item', 'shipments', 'woocommerce-germanized-shipments' ); ?></h1>
                                 <button class="modal-close modal-close-link dashicons dashicons-no-alt">
                                     <span class="screen-reader-text">Close modal panel</span>
                                 </button>
@@ -72,8 +72,8 @@ defined( 'ABSPATH' ) || exit;
                                     <table class="widefat">
                                         <thead>
                                         <tr>
-                                            <th><?php echo esc_html_x( 'Item', 'shipments', 'woocommerce-germanized' ); ?></th>
-                                            <th><?php echo esc_html_x( 'Quantity', 'shipments','woocommerce-germanized' ); ?></th>
+                                            <th><?php echo esc_html_x( 'Item', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+                                            <th><?php echo esc_html_x( 'Quantity', 'shipments','woocommerce-germanized-shipments' ); ?></th>
                                         </tr>
                                         </thead>
                                         <?php
@@ -91,7 +91,7 @@ defined( 'ABSPATH' ) || exit;
                             </article>
                             <footer>
                                 <div class="inner">
-                                    <button id="btn-ok" class="button button-primary button-large"><?php echo esc_html_x( 'Add', 'shipments','woocommerce-germanized' ); ?></button>
+                                    <button id="btn-ok" class="button button-primary button-large"><?php echo esc_html_x( 'Add', 'shipments','woocommerce-germanized-shipments' ); ?></button>
                                 </div>
                             </footer>
                         </section>
@@ -103,12 +103,12 @@ defined( 'ABSPATH' ) || exit;
         <div class="column col-6">
 
             <p class="form-row">
-                <label for="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Weight (kg)', 'x', 'woocommerce-germanized' ); ?></label>
+                <label for="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Weight (kg)', 'x', 'woocommerce-germanized-shipments' ); ?></label>
                 <input type="text" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_weight( 'edit' ) ) ); ?>" name="shipment_weight[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_weight() ) ); ?>" />
             </p>
 
             <p class="form-row dimensions_field">
-                <label for="shipment-length-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Dimensions (cm)', 'x', 'woocommerce-germanized' ); ?></label>
+                <label for="shipment-length-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Dimensions (cm)', 'x', 'woocommerce-germanized-shipments' ); ?></label>
 
                 <span class="wrap">
                     <input type="text" size="6" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_length( 'edit' ) ) ); ?>" name="shipment_length[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-length-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_length() ) ); ?>" />
@@ -119,7 +119,7 @@ defined( 'ABSPATH' ) || exit;
         </div>
         <div class="column col-12 shipment-footer">
             <?php if ( $shipment->is_editable() ) : ?>
-                <a class="remove-shipment delete" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Delete shipment', 'shipments', 'woocommerce-germanized' ); ?></a>
+                <a class="remove-shipment delete" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Delete shipment', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
             <?php endif; ?>
         </div>
     </div>

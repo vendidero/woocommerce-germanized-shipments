@@ -10,7 +10,7 @@
  * License: GPLv3
  *
  * @package Vendidero/Germanized/Shipments
- * @internal This file is only used when running the DHL integration as a feature plugin.
+ * @internal This file is only used when running the Shipments integration as a feature plugin.
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -37,7 +37,7 @@ if ( is_readable( $autoloader ) ) {
         error_log(  // phpcs:ignore
             sprintf(
             /* translators: 1: composer command. 2: plugin directory */
-                esc_html__( 'Your installation of the Germanized DHL feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'woocommerce-germanized-dhl' ),
+                esc_html__( 'Your installation of the Germanized for WooCommerce Shipments feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'woocommerce-germanized-shipments' ),
                 '`composer install`',
                 '`' . esc_html( str_replace( ABSPATH, '', __DIR__ ) ) . '`'
             )
@@ -55,7 +55,7 @@ if ( is_readable( $autoloader ) ) {
                     <?php
                     printf(
                     /* translators: 1: composer command. 2: plugin directory */
-                        esc_html__( 'Your installation of the Germanized DHL feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'woocommerce-germanized-dhl' ),
+                        esc_html__( 'Your installation of the Germanized for WooCommerce Shipments feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'woocommerce-germanized-shipments' ),
                         '<code>composer install</code>',
                         '<code>' . esc_html( str_replace( ABSPATH, '', __DIR__ ) ) . '</code>'
                     );

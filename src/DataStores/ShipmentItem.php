@@ -153,7 +153,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
         }
 
         if ( ! $data ) {
-            throw new Exception( _x( 'Invalid shipment item.', 'shipments', 'woocommerce-germanized' ) );
+            throw new Exception( _x( 'Invalid shipment item.', 'shipments', 'woocommerce-germanized-shipments' ) );
         }
 
         $item->set_props(
