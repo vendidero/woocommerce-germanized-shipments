@@ -21,7 +21,8 @@ class Package {
     public static function init() {
         self::define_tables();
 
-        // add_action( 'init', array( $this, 'install' ), 10 );
+        // add_action( 'init', array( __CLASS__, 'install' ), 10 );
+        // add_action( 'init', array( __CLASS__, 'test' ), 50 );
 
         add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
         add_action( 'after_setup_theme', array( __CLASS__, 'include_template_functions' ), 11 );
@@ -92,8 +93,7 @@ class Package {
     public static function test() {
 
         $shipments = wc_gzd_get_shipments( array(
-            'limit'        => -1,
-            'date_sent'    => '>2019-07-31',
+            'date_created'    => '>2019-07-21',
         ) );
 
         var_dump($shipments);
@@ -157,7 +157,7 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_itemmeta (
   meta_key varchar(255) default NULL,
   meta_value longtext NULL,
   PRIMARY KEY  (meta_id),
-  KEY shipment_item_id (shipment_item_id),
+  KEY gzd_shipment_item_id (gzd_shipment_item_id),
   KEY meta_key (meta_key(32))
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipments (
@@ -179,7 +179,7 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipmentmeta (
   meta_key varchar(255) default NULL,
   meta_value longtext NULL,
   PRIMARY KEY  (meta_id),
-  KEY shipment_id (shipment_id),
+  KEY gzd_shipment_id (gzd_shipment_id),
   KEY meta_key (meta_key(32))
 ) $collate;";
 

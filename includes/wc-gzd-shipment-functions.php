@@ -64,7 +64,7 @@ function wc_gzd_get_shipment_order_shipping_status_name( $status ) {
  *                             paginate is true, or just an array of values.
  */
 function wc_gzd_get_shipments( $args ) {
-    $query = new Vendidero\Germanized\Shipments\Query( $args );
+    $query = new Vendidero\Germanized\Shipments\ShipmentQuery( $args );
     return $query->get_shipments();
 }
 
@@ -191,6 +191,13 @@ function wc_gzd_get_shipment_editable_statuses() {
     return apply_filters( 'woocommerce_gzd_shipment_editable_statuses', array( 'draft' ) );
 }
 
+/**
+ * @param Order $order_shipment
+ * @param Shipment $shipment
+ * @param array $args
+ *
+ * @return bool
+ */
 function wc_gzd_sync_shipment( $order_shipment, &$shipment, $args = array() ) {
     try {
 
@@ -207,7 +214,7 @@ function wc_gzd_sync_shipment( $order_shipment, &$shipment, $args = array() ) {
         $args = wp_parse_args( $args, array(
             'order_id'      => $order->get_id(),
             'country'       => $order->get_shipping_country(),
-            'address'       => $order->get_formatted_shipping_address(),
+            'address'       => array_merge( $order->get_address( 'shipping' ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) ),
             'weight'        => $shipment->get_weight( 'edit' ),
             'length'        => $shipment->get_length( 'edit' ),
             'width'         => $shipment->get_width( 'edit' ),
@@ -294,7 +301,10 @@ function wc_gzd_sync_shipment_item( &$item, $order_item, $args = array() ) {
         $item->set_product_id( $order_item->get_product_id() );
     }
 
-    $product = $item->get_product();
+    $product    = $item->get_product();
+    $taxes      = $order_item->get_taxes();
+    $tax_total  = is_callable( array( $order_item, 'get_total_tax' ) ) ? $order_item->get_total_tax() : 0;;
+    $total      = is_callable( array( $order_item, 'get_total' ) ) ? $order_item->get_total() : 0;
 
     $args = wp_parse_args( $args, array(
         'order_item_id' => $order_item->get_id(),
@@ -302,6 +312,7 @@ function wc_gzd_sync_shipment_item( &$item, $order_item, $args = array() ) {
         'quantity'      => 1,
         'name'          => $order_item->get_name(),
         'sku'           => $product ? $product->get_sku() : '',
+        'total'         => $total + $tax_total,
         'weight'        => $product ? wc_get_weight( $product->get_weight(), 'kg' ) : '',
         'length'        => $product ? wc_get_dimension( $product->get_length(), 'cm' ) : '',
         'width'         => $product ? wc_get_dimension( $product->get_width(), 'cm' ) : '',

@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  * @version  3.1.0
  * @package  WooCommerce/Abstracts
  */
-class Query extends WC_Object_Query {
+class ShipmentQuery extends WC_Object_Query {
 
     protected $args = array();
 
@@ -385,7 +385,7 @@ class Query extends WC_Object_Query {
             if ( isset( $this->args['offset'] ) ) {
                 $this->query_limit = $wpdb->prepare( 'LIMIT %d, %d', $this->args['offset'], $this->args['posts_per_page'] );
             } else {
-                $this->query_limit = $wpdb->prepare( 'LIMIT %d, %d', $this->args['posts_per_page'] * ( $this->args['paged'] - 1 ), $this->args['posts_per_page'] );
+                $this->query_limit = $wpdb->prepare( 'LIMIT %d, %d', $this->args['posts_per_page'] * ( $this->args['page'] - 1 ), $this->args['posts_per_page'] );
             }
         }
 

@@ -34,6 +34,7 @@ class ShipmentItem extends WC_Data {
         'height'        => '',
         'sku'           => '',
         'name'          => '',
+        'total'         => 0,
     );
 
     /**
@@ -136,6 +137,16 @@ class ShipmentItem extends WC_Data {
      */
     public function get_product_id( $context = 'view' ) {
         return $this->get_prop( 'product_id', $context );
+    }
+
+    /**
+     * Get order ID this meta belongs to.
+     *
+     * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+     * @return int
+     */
+    public function get_total( $context = 'view' ) {
+        return $this->get_prop( 'total', $context );
     }
 
     /**
@@ -266,6 +277,21 @@ class ShipmentItem extends WC_Data {
      */
     public function set_order_item_id( $value ) {
         $this->set_prop( 'order_item_id', absint( $value ) );
+    }
+
+    /**
+     * Set order ID.
+     *
+     * @param int $value Order ID.
+     */
+    public function set_total( $value ) {
+        $value = wc_format_decimal( $value );
+
+        if ( ! is_numeric( $value ) ) {
+            $value = 0;
+        }
+
+        $this->set_prop( 'total', $value );
     }
 
     /**

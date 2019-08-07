@@ -24,6 +24,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
         '_length',
         '_height',
         '_weight',
+        '_total',
         '_sku'
     );
 

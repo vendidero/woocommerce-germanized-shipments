@@ -78,8 +78,9 @@ class Shipment extends WC_Data {
         'height'                => '',
         'length'                => '',
         'country'               => '',
-        'address'               => '',
+        'address'               => array(),
         'tracking_id'           => '',
+        'total'                 => 0,
     );
 
     public function __construct( $data = 0 ) {
@@ -313,20 +314,95 @@ class Shipment extends WC_Data {
         return wc_format_decimal( max( $this->get_item_heights() ) );
     }
 
-    public function get_country( $context = 'view' ) {
-        return $this->get_prop( 'country', $context );
-    }
-
     public function get_address( $context = 'view' ) {
         return $this->get_prop( 'address', $context );
+    }
+
+    public function get_total( $context = 'view' ) {
+        return $this->get_prop( 'total', $context );
     }
 
     public function get_tracking_id( $context = 'view' ) {
         return $this->get_prop( 'tracking_id', $context );
     }
 
-    public function get_address_lines() {
-        return explode( '<br/>', $this->get_address() );
+    public function get_formatted_address( $empty_content = '' ) {
+        $address = WC()->countries->get_formatted_address( $this->get_address() );
+
+        return $address ? $address : $empty_content;
+    }
+
+    public function get_phone( $context = 'view' ) {
+        return $this->get_address_prop( 'phone', $context );
+    }
+
+    public function get_email( $context = 'view' ) {
+        return $this->get_address_prop( 'email', $context );
+    }
+
+    public function get_address_1( $context = 'view' ) {
+        return $this->get_address_prop( 'address_1', $context );
+    }
+
+    public function get_address_2( $context = 'view' ) {
+        return $this->get_address_prop( 'address_2', $context );
+    }
+
+    public function get_company( $context = 'view' ) {
+        return $this->get_address_prop( 'company', $context );
+    }
+
+    public function get_first_name( $context = 'view' ) {
+        return $this->get_address_prop( 'first_name', $context );
+    }
+
+    public function get_last_name( $context = 'view' ) {
+        return $this->get_address_prop( 'last_name', $context );
+    }
+
+    public function get_postcode( $context = 'view' ) {
+        return $this->get_address_prop( 'postcode', $context );
+    }
+
+    public function get_city( $context = 'view' ) {
+        return $this->get_address_prop( 'city', $context );
+    }
+
+    public function get_state( $context = 'view' ) {
+        return $this->get_address_prop( 'state', $context );
+    }
+
+    public function get_country( $context = 'view' ) {
+        return $this->get_address_prop( 'country', $context ) ? $this->get_address_prop( 'country', $context ) : '';
+    }
+
+    public function send_to_external_pickup( $types ) {
+        $types = is_array( $types ) ? $types : array( $types );
+
+        return apply_filters( 'woocommerce_gzd_shipment_send_to_external_pickup', false, $types );
+    }
+
+    /**
+     * Gets a prop for a getter method.
+     *
+     * @since  3.0.0
+     * @param  string $prop Name of prop to get.
+     * @param  string $address billing or shipping.
+     * @param  string $context What the value is for. Valid values are view and edit.
+     * @return mixed
+     */
+    protected function get_address_prop( $prop, $context = 'view' ) {
+        $value = null;
+
+        if ( isset( $this->changes['address'][ $prop ] ) || isset( $this->data['address'][ $prop ] ) ) {
+            $value = isset( $this->changes['address'][ $prop ] ) ? $this->changes['address'][ $prop ] : $this->data['address'][ $prop ];
+
+            if ( 'view' === $context ) {
+                $value = apply_filters( $this->get_hook_prefix() . '_' . $prop, $value, $this );
+            }
+        }
+
+        return $value;
     }
 
     /**
@@ -492,11 +568,24 @@ class Shipment extends WC_Data {
     }
 
     public function set_address( $address ) {
-        $this->set_prop( 'address', $address );
+        $this->set_prop( 'address', (array) $address );
+    }
+
+    public function set_total( $value ) {
+        $value = wc_format_decimal( $value );
+
+        if ( ! is_numeric( $value ) ) {
+            $value = 0;
+        }
+
+        $this->set_prop( 'total', $value );
     }
 
     public function set_country( $country ) {
-        $this->set_prop( 'country', $country );
+        $address            = $this->get_address();
+        $address['country'] = $country;
+
+        $this->set_address( $address );
     }
 
     public function set_tracking_id( $tracking_id ) {
@@ -567,6 +656,7 @@ class Shipment extends WC_Data {
     }
 
     public function needs_items( $available_items = false ) {
+
         if ( ! $available_items && ( $order = wc_gzd_get_shipment_order( $this->get_order() ) ) ) {
             $available_items = $order->get_available_items_for_shipment();
         }
@@ -610,7 +700,7 @@ class Shipment extends WC_Data {
      * @return false|void
      */
     public function remove_item( $item_id ) {
-        $item      = $this->get_item( $item_id );
+        $item = $this->get_item( $item_id );
 
         // Unset and remove later.
         $this->items_to_delete[] = $item;
@@ -618,6 +708,7 @@ class Shipment extends WC_Data {
         unset( $this->items[ $item->get_id() ] );
 
         $this->reset_content_data();
+        $this->calculate_totals();
     }
 
     /**
@@ -630,7 +721,7 @@ class Shipment extends WC_Data {
      */
     public function add_item( $item ) {
         // Make sure that items are loaded
-        $items     = $this->get_items();
+        $items = $this->get_items();
 
         // Set parent.
         $item->set_shipment_id( $this->get_id() );
@@ -645,6 +736,7 @@ class Shipment extends WC_Data {
         }
 
         $this->reset_content_data();
+        $this->calculate_totals();
     }
 
     protected function reset_content_data() {
@@ -693,6 +785,9 @@ class Shipment extends WC_Data {
     public function remove_items() {
         $this->data_store->delete_items( $this );
         $this->items = array();
+
+        $this->reset_content_data();
+        $this->calculate_totals();
     }
 
     /**
@@ -724,6 +819,16 @@ class Shipment extends WC_Data {
         }
     }
 
+    protected function calculate_totals() {
+        $total = 0;
+
+        foreach( $this->get_items() as $item ) {
+            $total += round( $item->get_total(), wc_get_price_decimals() );
+        }
+
+        $this->set_total( $total );
+    }
+
     /**
      * Save data to the database.
      *
@@ -732,6 +837,8 @@ class Shipment extends WC_Data {
      */
     public function save() {
         try {
+            $this->calculate_totals();
+
             if ( $this->data_store ) {
                 // Trigger action before saving to the DB. Allows you to adjust object props before save.
                 do_action( 'woocommerce_before_' . $this->object_type . '_object_save', $this, $this->data_store );

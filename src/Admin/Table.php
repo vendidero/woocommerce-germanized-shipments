@@ -3,7 +3,7 @@
 namespace Vendidero\Germanized\Shipments\Admin;
 use Vendidero\Germanized\Shipments\Shipment;
 use WP_List_Table;
-use Vendidero\Germanized\Shipments\Query;
+use Vendidero\Germanized\Shipments\ShipmentQuery;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -87,8 +87,7 @@ class Table extends WP_List_Table {
         } elseif( 'delete' === $action ) {
             foreach ( $ids as $id ) {
                 if ( $shipment = wc_gzd_get_shipment( $id ) ) {
-                    // $shipment->delete( true );
-
+                    $shipment->delete( true );
                     $changed++;
                 }
             }
@@ -246,7 +245,7 @@ class Table extends WP_List_Table {
         }
 
         // Query the user IDs for this page
-        $this->query = new Query( $args );
+        $this->query = new ShipmentQuery( $args );
         $this->items = $this->query->get_shipments();
 
         $this->set_pagination_args(
@@ -662,7 +661,7 @@ class Table extends WP_List_Table {
      * @param Shipment $shipment The current shipment object.
      */
     public function column_address( $shipment ) {
-        echo '<address>' . $shipment->get_address() . '</address>';
+        echo '<address>' . $shipment->get_formatted_address() . '</address>';
     }
 
     /**

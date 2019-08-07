@@ -34,6 +34,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         '_height',
         '_weight',
         '_address',
+        '_total',
     );
 
     protected $core_props = array(
@@ -282,7 +283,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
             $meta_key_to_props[ $meta_key ] = $prop_name;
         }
 
-        $props_to_update = $this->get_props_to_update( $shipment, $meta_key_to_props, 'shipment' );
+        $props_to_update = $this->get_props_to_update( $shipment, $meta_key_to_props, 'gzd_shipment' );
 
         foreach ( $props_to_update as $meta_key => $prop ) {
 

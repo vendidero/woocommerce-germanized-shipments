@@ -29,7 +29,7 @@ $text_align = is_rtl() ? 'right' : 'left';
             <h2><?php echo esc_html_x( 'Shipment goes to:', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
             <address class="address">
-                <?php echo implode( ( $plain_text ? "\n" : "<br/>" ), $shipment->get_address_lines() ); ?>
+                <?php echo $shipment->get_formatted_address(); ?>
             </address>
         </td>
     </tr>
