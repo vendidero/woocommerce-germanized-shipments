@@ -348,6 +348,18 @@ class Shipment extends WC_Data {
         return $this->get_address_prop( 'address_2', $context );
     }
 
+    public function get_address_street_number( $type = 'address_1' ) {
+	    $split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
+
+	    return $split['number'] . $split['number_addition'];
+    }
+
+	public function get_address_street( $type = 'address_1' ) {
+		$split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
+
+		return $split['street'];
+	}
+
     public function get_company( $context = 'view' ) {
         return $this->get_address_prop( 'company', $context );
     }
@@ -358,6 +370,10 @@ class Shipment extends WC_Data {
 
     public function get_last_name( $context = 'view' ) {
         return $this->get_address_prop( 'last_name', $context );
+    }
+
+    public function get_formatted_full_name() {
+	    return sprintf( _x( '%1$s %2$s', 'full name', 'woocommerce-germanized-shipments' ), $this->get_first_name(), $this->get_last_name() );
     }
 
     public function get_postcode( $context = 'view' ) {

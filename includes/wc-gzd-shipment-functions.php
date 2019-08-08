@@ -138,7 +138,6 @@ function wc_gzd_get_shipment_statuses() {
 }
 
 function wc_gzd_create_shipment( $order_shipment, $args = array() ) {
-
     try {
 
         if ( ! $order_shipment || ! is_a( $order_shipment, 'Vendidero\Germanized\Shipments\Order' ) ) {
@@ -168,7 +167,6 @@ function wc_gzd_create_shipment( $order_shipment, $args = array() ) {
 }
 
 function wc_gzd_create_shipment_item( $order_item, $args = array() ) {
-
     try {
 
         if ( ! $order_item || ! is_a( $order_item, 'WC_Order_Item' ) ) {
@@ -189,6 +187,18 @@ function wc_gzd_create_shipment_item( $order_item, $args = array() ) {
 
 function wc_gzd_get_shipment_editable_statuses() {
     return apply_filters( 'woocommerce_gzd_shipment_editable_statuses', array( 'draft' ) );
+}
+
+function wc_gzd_split_shipment_street( $streetStr ) {
+	$aMatch         = array();
+	$pattern        = '#^([\w[:punct:] ]+) ([0-9]{1,5})([\w[:punct:]\-/]*)$#';
+	$matchResult    = preg_match( $pattern, $streetStr, $aMatch );
+
+	$street         = ( isset( $aMatch[1] ) ) ? $aMatch[1] : '';
+	$number         = ( isset( $aMatch[2] ) ) ? $aMatch[2] : '';
+	$numberAddition = ( isset( $aMatch[3] ) ) ? $aMatch[3] : '';
+
+	return array( 'street' => $street, 'number' => $number, 'number_addition' => $numberAddition );
 }
 
 /**
@@ -222,6 +232,8 @@ function wc_gzd_sync_shipment( $order_shipment, &$shipment, $args = array() ) {
         ) );
 
         $shipment->set_props( $args );
+
+        do_action( 'woocommerce_gzd_shipment_synced', $shipment, $order_shipment, $args );
 
     } catch ( Exception $e ) {
         return false;
@@ -288,6 +300,8 @@ function wc_gzd_sync_shipment_items( $order_shipment, &$shipment, $args = array(
             }
         }
 
+	    do_action( 'woocommerce_gzd_shipment_items_synced', $shipment, $order_shipment, $args );
+
     } catch ( Exception $e ) {
         return false;
     }
@@ -302,7 +316,6 @@ function wc_gzd_sync_shipment_item( &$item, $order_item, $args = array() ) {
     }
 
     $product    = $item->get_product();
-    $taxes      = $order_item->get_taxes();
     $tax_total  = is_callable( array( $order_item, 'get_total_tax' ) ) ? $order_item->get_total_tax() : 0;;
     $total      = is_callable( array( $order_item, 'get_total' ) ) ? $order_item->get_total() : 0;
 
@@ -320,6 +333,8 @@ function wc_gzd_sync_shipment_item( &$item, $order_item, $args = array() ) {
     ) );
 
     $item->set_props( $args );
+
+	do_action( 'woocommerce_gzd_shipment_item_synced', $item, $order_item, $args );
 }
 
 function wc_gzd_get_shipment_status_name( $status ) {
