@@ -178,7 +178,7 @@ window.germanized.admin = window.germanized.admin || {};
         this.onAddItem = function() {
 
             this.getShipment().WCBackboneModal({
-                template: 'wc-gzd-dhl-modal-add-shipment-item-' + this.getId()
+                template: 'wc-gzd-modal-add-shipment-item-' + this.getId()
             });
 
             return false;
@@ -271,8 +271,8 @@ window.germanized.admin = window.germanized.admin || {};
             onAddItemSuccess: function( data ) {
                 $( '.wc-backbone-modal-content article' ).unblock();
 
-                $select   = $( 'select#wc-gzd-dhl-add-order-items-select' );
-                $quantity = $( 'input#wc-gzd-dhl-add-order-items-quantity' );
+                $select   = $( 'select#wc-gzd-shipment-add-order-items-select' );
+                $quantity = $( 'input#wc-gzd-shipment-add-order-items-quantity' );
 
                 $quantity.val( 1 );
 
@@ -281,7 +281,7 @@ window.germanized.admin = window.germanized.admin || {};
                     $quantity.data( 'max-quantity-' + id, item.max_quantity );
                 });
 
-                $( document.body ).on( 'change', 'input#wc-gzd-dhl-add-order-items-quantity', function() {
+                $( document.body ).on( 'change', 'input#wc-gzd-shipment-add-order-items-quantity', function() {
                     var item_id  = $select.val(),
                         quantity = $( this ).val();
 
@@ -298,7 +298,7 @@ window.germanized.admin = window.germanized.admin || {};
             init: function ( e, target ) {
                 var id = this.getId();
 
-                if ( ( 'wc-gzd-dhl-modal-add-shipment-item-' + id ) === target ) {
+                if ( ( 'wc-gzd-modal-add-shipment-item-' + id ) === target ) {
 
                     $( '.wc-backbone-modal-content article' ).block({
                         message: null,
@@ -320,7 +320,7 @@ window.germanized.admin = window.germanized.admin || {};
             response: function ( e, target, data ) {
                 var id = this.getId();
 
-                if ( ( 'wc-gzd-dhl-modal-add-shipment-item-' + id ) === target ) {
+                if ( ( 'wc-gzd-modal-add-shipment-item-' + id ) === target ) {
                     this.addItem( data.item_id, data.item_qty );
                 }
             }

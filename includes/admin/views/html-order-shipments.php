@@ -18,9 +18,7 @@ $active_shipment = isset( $active_shipment ) ? $active_shipment : false;
             <span class="order-shipping-status status-<?php echo esc_attr( $order_shipment->get_shipping_status() ); ?>"><?php echo wc_gzd_get_shipment_order_shipping_status_name( $order_shipment->get_shipping_status() ); ?></span>
         </div>
 
-        <div class="notice-wrapper panel-inner">
-
-        </div>
+        <div class="notice-wrapper panel-inner"></div>
 
         <div id="order-shipments-list" class="panel-inner">
             <?php foreach( $order_shipment->get_shipments() as $shipment ) :
@@ -39,6 +37,8 @@ $active_shipment = isset( $active_shipment ) ? $active_shipment : false;
                 <div class="order-shipment-save">
                     <button id="order-shipments-save" class="button button-primary" type="submit"><?php echo _x( 'Save', 'shipments', 'woocommere-germanized' ); ?></button>
                 </div>
+
+	            <?php do_action( 'woocommerce_gzd_shipments_meta_box_actions', $order_shipment ); ?>
             </div>
         </div>
     </div>

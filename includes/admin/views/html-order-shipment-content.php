@@ -2,7 +2,7 @@
 /**
  * Order shipments HTML for meta box.
  *
- * @package WooCommerce_Germanized/DHL/Admin
+ * @package WooCommerce_Germanized/Shipments/Admin
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -11,10 +11,11 @@ defined( 'ABSPATH' ) || exit;
 
 <div class="shipment-content">
     <div class="columns">
+	    <?php do_action( 'woocommerce_gzd_shipment_admin_before_columns', $shipment ); ?>
+
         <div class="column col-6">
             <p class="form-row">
                 <label for="shipment-status-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Status', 'x', 'woocommerce-germanized-shipments' ); ?></label>
-
                 <select class="shipment-status-select" id="shipment-status-<?php echo esc_attr( $shipment->get_id() ); ?>" name="shipment_status[<?php echo esc_attr( $shipment->get_id() ); ?>]">
                     <?php foreach( wc_gzd_get_shipment_statuses() as $status => $title ) : ?>
                         <option value="<?php echo esc_attr( $status ); ?>" <?php selected( $status, 'gzd-' . $shipment->get_status(), true ); ?>><?php echo $title; ?></option>
@@ -54,10 +55,12 @@ defined( 'ABSPATH' ) || exit;
                         <a class="sync-shipment-items" href="#"><?php echo _x( 'Sync items', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
                         <?php echo wc_help_tip( _x( 'Automatically adjust items and quantities based on order item data.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>
                     </div>
+
+	                <?php do_action( 'woocommerce_gzd_shipments_meta_box_shipment_item_actions', $shipment ); ?>
                 </div>
             </div>
 
-            <script type="text/template" id="tmpl-wc-gzd-dhl-modal-add-shipment-item-<?php echo esc_attr( $shipment->get_id() ); ?>">
+            <script type="text/template" id="tmpl-wc-gzd-modal-add-shipment-item-<?php echo esc_attr( $shipment->get_id() ); ?>">
                 <div class="wc-backbone-modal">
                     <div class="wc-backbone-modal-content">
                         <section class="wc-backbone-modal-main" role="main">
@@ -78,8 +81,8 @@ defined( 'ABSPATH' ) || exit;
                                         </thead>
                                         <?php
                                         $row = '
-									        <td><select id="wc-gzd-dhl-add-order-items-select" name="item_id"></select></td>
-									        <td><input id="wc-gzd-dhl-add-order-items-quantity" type="number" step="1" min="0" max="9999" autocomplete="off" name="item_qty" placeholder="1" size="4" class="quantity" /></td>';
+									        <td><select id="wc-gzd-shipment-add-order-items-select" name="item_id"></select></td>
+									        <td><input id="wc-gzd-shipment-add-order-items-quantity" type="number" step="1" min="0" max="9999" autocomplete="off" name="item_qty" placeholder="1" size="4" class="quantity" /></td>';
                                         ?>
                                         <tbody data-row="<?php echo esc_attr( $row ); ?>">
                                         <tr>
@@ -99,9 +102,10 @@ defined( 'ABSPATH' ) || exit;
                 </div>
                 <div class="wc-backbone-modal-backdrop modal-close"></div>
             </script>
+
+	        <?php do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_left_column', $shipment ); ?>
         </div>
         <div class="column col-6">
-
             <p class="form-row">
                 <label for="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php printf( _x( 'Weight (%s)', 'shipments', 'woocommerce-germanized-shipments' ), get_option( 'woocommerce_weight_unit' ) ); ?></label>
                 <input type="text" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_weight( 'edit' ) ) ); ?>" name="shipment_weight[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_weight() ) ); ?>" />
@@ -116,11 +120,18 @@ defined( 'ABSPATH' ) || exit;
                     <input type="text" size="6" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_height( 'edit' ) ) ); ?>" name="shipment_height[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-height-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_height() ) ); ?>" />
                 </span>
             </p>
+
+	        <?php do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_right_column', $shipment ); ?>
         </div>
+
+        <?php do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_fields', $shipment ); ?>
+
         <div class="column col-12 shipment-footer">
             <?php if ( $shipment->is_editable() ) : ?>
                 <a class="remove-shipment delete" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Delete shipment', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
             <?php endif; ?>
+
+	        <?php do_action( 'woocommerce_gzd_shipments_meta_box_shipment_actions', $shipment ); ?>
         </div>
     </div>
 </div>

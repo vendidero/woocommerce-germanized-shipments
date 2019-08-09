@@ -14,8 +14,6 @@ class Admin {
      * Constructor.
      */
     public static function init() {
-        add_action( 'init', array( __CLASS__, 'init' ), 11 );
-
         add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_styles' ) );
         add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_scripts' ) );
 
