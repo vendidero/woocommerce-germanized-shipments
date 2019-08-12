@@ -584,7 +584,7 @@ class Shipment extends WC_Data {
     }
 
     public function set_address( $address ) {
-        $this->set_prop( 'address', (array) $address );
+        $this->set_prop( 'address', empty( $address ) ? array() : (array) $address );
     }
 
     public function set_total( $value ) {

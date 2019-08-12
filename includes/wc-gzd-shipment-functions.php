@@ -75,7 +75,7 @@ function wc_gzd_get_shipments( $args ) {
  *
  * @param  mixed $the_shipment Object or shipment id.
  *
- * @return bool|WC_GZD_Shipment
+ * @return bool|Shipment
  */
 function wc_gzd_get_shipment( $the_shipment = false ) {
     $shipment_id = wc_gzd_get_shipment_id( $the_shipment );

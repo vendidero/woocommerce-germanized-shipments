@@ -231,6 +231,10 @@ window.germanized.admin = window.germanized.admin || {};
 
                         if ( data.hasOwnProperty( 'message' ) ) {
                             self.addNotice( data.message, 'error' );
+                        } else if( data.hasOwnProperty( 'messages' ) ) {
+                            $.each( data.messages, function( i, message ) {
+                                self.addNotice( message, 'error' );
+                            });
                         }
                     }
                 },
