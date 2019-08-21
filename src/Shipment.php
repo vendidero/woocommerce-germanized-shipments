@@ -395,7 +395,7 @@ class Shipment extends WC_Data {
     public function send_to_external_pickup( $types ) {
         $types = is_array( $types ) ? $types : array( $types );
 
-        return apply_filters( 'woocommerce_gzd_shipment_send_to_external_pickup', false, $types );
+        return apply_filters( 'woocommerce_gzd_shipment_send_to_external_pickup', false, $types, $this );
     }
 
     /**

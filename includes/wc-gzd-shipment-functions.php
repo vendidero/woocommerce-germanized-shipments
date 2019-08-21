@@ -186,7 +186,7 @@ function wc_gzd_create_shipment_item( $order_item, $args = array() ) {
 }
 
 function wc_gzd_get_shipment_editable_statuses() {
-    return apply_filters( 'woocommerce_gzd_shipment_editable_statuses', array( 'draft' ) );
+    return apply_filters( 'woocommerce_gzd_shipment_editable_statuses', array( 'draft', 'processing' ) );
 }
 
 function wc_gzd_split_shipment_street( $streetStr ) {
