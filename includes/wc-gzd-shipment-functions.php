@@ -10,6 +10,7 @@
 
 use Vendidero\Germanized\Shipments\Order;
 use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Germanized\Shipments\AddressSplitter;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -190,15 +191,20 @@ function wc_gzd_get_shipment_editable_statuses() {
 }
 
 function wc_gzd_split_shipment_street( $streetStr ) {
-	$aMatch         = array();
-	$pattern        = '#^([\w[:punct:] ]+) ([0-9]{1,5})([\w[:punct:]\-/]*)$#';
-	$matchResult    = preg_match( $pattern, $streetStr, $aMatch );
+	$return = array(
+		'street' => $streetStr,
+		'number' => '',
+	);
 
-	$street         = ( isset( $aMatch[1] ) ) ? $aMatch[1] : '';
-	$number         = ( isset( $aMatch[2] ) ) ? $aMatch[2] : '';
-	$numberAddition = ( isset( $aMatch[3] ) ) ? $aMatch[3] : '';
+	try {
+		$split = AddressSplitter::splitAddress( $streetStr );
 
-	return array( 'street' => $street, 'number' => $number, 'number_addition' => $numberAddition );
+		$return['street'] = $split['streetName'];
+		$return['number'] = $split['houseNumber'];
+		
+	} catch( Exception $e ) {}
+
+	return $return;
 }
 
 /**

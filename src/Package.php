@@ -19,6 +19,10 @@ class Package {
      * Init the package - load the REST API Server class.
      */
     public static function init() {
+	    if ( ! self::has_dependencies() ) {
+		    return;
+	    }
+
         self::define_tables();
 
         // add_action( 'init', array( __CLASS__, 'install' ), 10 );
@@ -32,6 +36,10 @@ class Package {
 
         self::includes();
     }
+
+	public static function has_dependencies() {
+		return class_exists( 'WooCommerce' );
+	}
 
     private static function includes() {
 

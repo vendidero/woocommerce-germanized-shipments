@@ -351,7 +351,7 @@ class Shipment extends WC_Data {
     public function get_address_street_number( $type = 'address_1' ) {
 	    $split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
 
-	    return $split['number'] . $split['number_addition'];
+	    return $split['number'];
     }
 
 	public function get_address_street( $type = 'address_1' ) {
