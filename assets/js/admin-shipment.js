@@ -82,6 +82,8 @@ window.germanized.admin = window.germanized.admin || {};
 
             if ( currentQty > maxQuantity ) {
                 $item.find( '.item-quantity' ).val( maxQuantity );
+            } else if ( currentQty <= 0 ) {
+                $item.find( '.item-quantity' ).val( 1 );
             }
 
             this.unblockItems();

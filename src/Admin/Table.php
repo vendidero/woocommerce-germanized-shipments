@@ -553,7 +553,7 @@ class Table extends WP_List_Table {
      */
     protected function get_sortable_columns() {
         return array(
-            'date'     => array( 'date', true ),
+            'date'     => array( 'date_created', false ),
             'weight'   => 'weight',
         );
     }
@@ -609,6 +609,45 @@ class Table extends WP_List_Table {
             echo $title;
         }
     }
+
+	/**
+	 * Handles shipment actions.
+	 *
+	 * @since 0.0.1
+	 *
+	 * @param Shipment $shipment The current shipment object.
+	 */
+	protected function column_actions( $shipment ) {
+		echo '<p>';
+
+		do_action( 'woocommerce_gzd_shipments_table_actions_start', $shipment );
+
+		$actions = array();
+
+		if ( $shipment->has_status( array( 'draft' ) ) ) {
+			$actions['processing'] = array(
+				'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_update_shipment_status&status=processing&shipment_id=' . $shipment->get_id() ), 'update-shipment-status' ),
+				'name'   => __( 'Processing', 'woocommerce-germanized-shipments' ),
+				'action' => 'processing',
+			);
+		}
+
+		if ( $shipment->has_status( array( 'draft', 'processing' ) ) ) {
+			$actions['shipped'] = array(
+				'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_update_shipment_status&status=shipped&shipment_id=' . $shipment->get_id() ), 'update-shipment-status' ),
+				'name'   => __( 'Shipped', 'woocommerce-germanized-shipments' ),
+				'action' => 'shipped',
+			);
+		}
+
+		$actions = apply_filters( 'woocommerce_gzd_shipments_table_actions', $actions, $shipment );
+
+		echo wc_gzd_render_shipment_action_buttons( $actions ); // WPCS: XSS ok.
+
+		do_action( 'woocommerce_gzd_shipments_table_actions_end', $shipment );
+
+		echo '</p>';
+	}
 
     public function column_cb( $shipment ) {
         if ( current_user_can( 'edit_shop_orders' ) ) :

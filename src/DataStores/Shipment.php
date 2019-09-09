@@ -74,8 +74,8 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         );
 
         if ( $shipment->get_date_sent() ) {
-            $data['shipment_date_sent'] = gmdate( 'Y-m-d H:i:s', $shipment->get_date_sent( 'edit' )->getOffsetTimestamp() );
-            $data['shipment_date_sent'] = gmdate( 'Y-m-d H:i:s', $shipment->get_date_sent( 'edit' )->getTimestamp() );
+            $data['shipment_date_sent']     = gmdate( 'Y-m-d H:i:s', $shipment->get_date_sent( 'edit' )->getOffsetTimestamp() );
+            $data['shipment_date_sent_gmt'] = gmdate( 'Y-m-d H:i:s', $shipment->get_date_sent( 'edit' )->getTimestamp() );
         }
 
         $wpdb->insert(

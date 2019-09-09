@@ -23,19 +23,33 @@ class Package {
 		    return;
 	    }
 
-        self::define_tables();
+	    self::define_tables();
 
-        // add_action( 'init', array( __CLASS__, 'install' ), 10 );
-        // add_action( 'init', array( __CLASS__, 'test' ), 50 );
+	    // Install
+	    register_activation_hook( trailingslashit( self::get_path() ) . 'woocommerce-germanized-shipments.php', array( __CLASS__, 'install' ) );
 
-        add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
-        add_action( 'after_setup_theme', array( __CLASS__, 'include_template_functions' ), 11 );
-
-        // Filter email templates
-        add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
+	    if ( self::is_enabled() ) {
+		    self::init_hooks();
+	    }
 
         self::includes();
     }
+
+    protected static function init_hooks() {
+	    add_filter( 'woocommerce_data_stores', array( __CLASS__, 'register_data_stores' ), 10, 1 );
+	    add_action( 'after_setup_theme', array( __CLASS__, 'include_template_functions' ), 11 );
+
+	    // Filter email templates
+	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
+    }
+
+	public static function install() {
+		Install::install();
+	}
+
+	public static function install_integration() {
+		self::install();
+	}
 
 	public static function has_dependencies() {
 		return class_exists( 'WooCommerce' );
@@ -43,14 +57,18 @@ class Package {
 
     private static function includes() {
 
-        if ( is_admin() ) {
-            Admin\Admin::init();
-        }
+        if ( self::is_enabled() ) {
 
-        Ajax::init();
-        Automation::init();
-        Emails::init();
-        Validation::init();
+	        if ( is_admin() ) {
+		        Admin\Admin::init();
+	        }
+
+	        Ajax::init();
+	        Automation::init();
+	        Emails::init();
+	        Validation::init();
+	        Api::init();
+        }
 
         include_once self::get_path() . '/includes/wc-gzd-shipment-functions.php';
     }
@@ -127,73 +145,6 @@ class Package {
         // var_dump($id);
     }
 
-    public static function install() {
-        global $wpdb;
-
-        $wpdb->hide_errors();
-
-        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
-
-        dbDelta( self::get_schema() );
-    }
-
-    private static function get_schema() {
-        global $wpdb;
-
-        $collate = '';
-
-        if ( $wpdb->has_cap( 'collation' ) ) {
-            $collate = $wpdb->get_charset_collate();
-        }
-
-        $tables = "
-CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_items (
-  shipment_item_id BIGINT UNSIGNED NOT NULL auto_increment,
-  shipment_id BIGINT UNSIGNED NOT NULL,
-  shipment_item_name TEXT NOT NULL,
-  shipment_item_order_item_id BIGINT UNSIGNED NOT NULL,
-  shipment_item_product_id BIGINT UNSIGNED NOT NULL,
-  shipment_item_quantity SMALLINT UNSIGNED NOT NULL DEFAULT '1',
-  PRIMARY KEY  (shipment_item_id),
-  KEY shipment_id (shipment_id),
-  KEY shipment_item_order_item_id (shipment_item_order_item_id)
-  KEY shipment_item_product_id (shipment_item_product_id)
-) $collate;
-CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_itemmeta (
-  meta_id BIGINT UNSIGNED NOT NULL auto_increment,
-  gzd_shipment_item_id BIGINT UNSIGNED NOT NULL,
-  meta_key varchar(255) default NULL,
-  meta_value longtext NULL,
-  PRIMARY KEY  (meta_id),
-  KEY gzd_shipment_item_id (gzd_shipment_item_id),
-  KEY meta_key (meta_key(32))
-) $collate;
-CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipments (
-  shipment_id BIGINT UNSIGNED NOT NULL auto_increment,
-  shipment_date_created datetime NOT NULL default '0000-00-00 00:00:00',
-  shipment_date_created_gmt datetime NOT NULL default '0000-00-00 00:00:00',
-  shipment_date_sent datetime default NULL,
-  shipment_date_sent_gmt datetime default NULL,
-  shipment_status varchar(20) NOT NULL default 'gzd-draft',
-  shipment_order_id BIGINT UNSIGNED NOT NULL,
-  shipment_country varchar(2) NOT NULL DEFAULT '',
-  shipment_tracking_id varchar(200) NOT NULL DEFAULT '',
-  PRIMARY KEY  (shipment_id),
-  KEY shipment_order_id (shipment_order_id)
-) $collate;
-CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipmentmeta (
-  meta_id BIGINT UNSIGNED NOT NULL auto_increment,
-  gzd_shipment_id BIGINT UNSIGNED NOT NULL,
-  meta_key varchar(255) default NULL,
-  meta_value longtext NULL,
-  PRIMARY KEY  (meta_id),
-  KEY gzd_shipment_id (gzd_shipment_id),
-  KEY meta_key (meta_key(32))
-) $collate;";
-
-        return $tables;
-    }
-
     /**
      * Return the version of the package.
      *
@@ -224,4 +175,14 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipmentmeta (
     public static function get_assets_url() {
         return self::get_url() . '/assets';
     }
+
+	public static function is_enabled() {
+		return 'yes' === self::get_setting( 'enable' );
+	}
+
+	public static function get_setting( $name ) {
+		$option_name = "woocommerce_gzd_shipments_{$name}";
+
+		return get_option( $option_name );
+	}
 }

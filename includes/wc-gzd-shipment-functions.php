@@ -138,6 +138,12 @@ function wc_gzd_get_shipment_statuses() {
     return apply_filters( 'woocommerce_gzd_shipment_statuses', $shipment_statuses );
 }
 
+/**
+ * @param Order $order_shipment
+ * @param array $args
+ *
+ * @return Shipment|WP_Error
+ */
 function wc_gzd_create_shipment( $order_shipment, $args = array() ) {
     try {
 
@@ -151,11 +157,12 @@ function wc_gzd_create_shipment( $order_shipment, $args = array() ) {
 
         $args = wp_parse_args( $args, array(
             'items' => array(),
+	        'props' => array(),
         ) );
 
         $shipment = new Vendidero\Germanized\Shipments\Shipment();
 
-        wc_gzd_sync_shipment( $order_shipment, $shipment );
+        wc_gzd_sync_shipment( $order_shipment, $shipment, $args['props'] );
         wc_gzd_sync_shipment_items( $order_shipment, $shipment, $args );
 
         $shipment->save();
@@ -246,6 +253,20 @@ function wc_gzd_sync_shipment( $order_shipment, &$shipment, $args = array() ) {
     }
 
     return true;
+}
+
+function wc_gzd_render_shipment_action_buttons( $actions ) {
+	$actions_html = '';
+
+	foreach ( $actions as $action ) {
+		if ( isset( $action['group'] ) ) {
+			$actions_html .= '<div class="wc-gzd-shipment-action-button-group"><label>' . $action['group'] . '</label> <span class="wc-gzd-shipment-action-button-group__items">' . wc_gzd_render_shipment_action_buttons( $action['actions'] ) . '</span></div>';
+		} elseif ( isset( $action['action'], $action['url'], $action['name'] ) ) {
+			$actions_html .= sprintf( '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-%1$s %1$s" href="%2$s" aria-label="%3$s" title="%3$s">%4$s</a>', esc_attr( $action['action'] ), esc_url( $action['url'] ), esc_attr( isset( $action['title'] ) ? $action['title'] : $action['name'] ), esc_html( $action['name'] ) );
+		}
+	}
+
+	return $actions_html;
 }
 
 /**

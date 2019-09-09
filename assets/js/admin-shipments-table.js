@@ -14,6 +14,20 @@ window.germanized.admin = window.germanized.admin || {};
             var self = germanized.admin.shipments_table;
 
             self.initEnhanced();
+
+            $( document.body ).on( 'init_tooltips', function() {
+                self.initTipTips();
+            });
+
+            self.initTipTip();
+        },
+
+        initTipTip: function() {
+            $( '.column-actions .wc-gzd-shipment-action-button' ).tipTip( {
+                'fadeIn': 50,
+                'fadeOut': 50,
+                'delay': 200
+            });
         },
 
         initEnhanced: function() {
@@ -63,7 +77,7 @@ window.germanized.admin = window.germanized.admin || {};
                             $( this ).selectWoo( select2_args ).addClass( 'enhanced' );
                         });
 
-                    }).trigger( 'wc-enhanced-select-init' );
+                    });
 
                 $( 'html' ).on( 'click', function( event ) {
                     if ( this === event.target ) {

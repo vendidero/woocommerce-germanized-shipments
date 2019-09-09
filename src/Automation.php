@@ -6,31 +6,66 @@
  */
 namespace Vendidero\Germanized\Shipments;
 
+use Vendidero\Germanized\Shipments\Admin\MetaBox;
+
 defined( 'ABSPATH' ) || exit;
 
 class Automation {
 
     public static function init() {
-        if ( apply_filters( 'woocommerce_gzd_shipments_automation_enable', true ) ) {
-            if ( apply_filters( 'woocommerce_gzd_shipments_automation_status_based', true ) ) {
-                $from_status = apply_filters( 'woocommerce_gzd_shipments_automation_status_from', '' );
-                $to_status   = apply_filters( 'woocommerce_gzd_shipments_automation_status_to', 'processing' );
+        if ( 'yes' === Package::get_setting( 'auto_enable' ) ) {
+        	$statuses = (array) Package::get_setting( 'auto_statuses' );
 
-                if ( empty( $from_status ) ) {
-                    add_action( 'woocommerce_order_status_' . $to_status, array( __CLASS__, 'create_shipments' ), 10, 1 );
-                } else {
-                    add_action( 'woocommerce_order_status_from_' . $from_status . '_to_' . $to_status, array( __CLASS__, 'create_shipments' ), 10, 1 );
-                }
+        	if ( ! empty( $statuses ) ) {
+        		foreach( $statuses as $status ) {
+					$status = str_replace( 'wc-', '', $status );
 
-            } elseif( apply_filters( 'woocommerce_gzd_shipments_automation_new', false ) ) {
-                add_action( 'woocommerce_new_order', array( __CLASS__, 'create_shipments' ), 10, 1 );
-            }
+			        add_action( 'woocommerce_order_status_' . $status, array( __CLASS__, 'maybe_create_shipments' ), 10, 1 );
+		        }
+	        } else {
+		        add_action( 'woocommerce_new_order', array( __CLASS__, 'maybe_create_shipments' ), 10, 1 );
+	        }
         }
     }
 
-    public function create_shipments( $order_id ) {
-        if ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) {
+    public static function create_shipments( $order_id ) {
+	    $shipment_status = Package::get_setting( 'auto_default_status' );
 
-        }
+	    if ( empty( $shipment_status ) ) {
+	    	$shipment_status = 'processing';
+	    }
+
+	    if ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) {
+		    $shipments = $order_shipment->get_shipments();
+
+		    foreach( $shipments as $shipment ) {
+			    if ( $shipment->is_editable() ) {
+
+				    wc_gzd_sync_shipment( $order_shipment, $shipment );
+				    wc_gzd_sync_shipment_items( $order_shipment, $shipment );
+
+				    $shipment->set_status( $shipment_status );
+				    $shipment->save();
+			    }
+		    }
+
+		    if ( $order_shipment->needs_shipping() ) {
+			    $shipment = wc_gzd_create_shipment( $order_shipment, array( 'props' => array( 'status' => $shipment_status ) ) );
+
+			    if ( ! is_wp_error( $shipment ) ) {
+				    $order_shipment->add_shipment( $shipment );
+			    }
+		    }
+	    }
+    }
+
+    public static function maybe_create_shipments( $order_id ) {
+
+    	// Make sure that MetaBox is saved before we process automation
+    	if ( isset( $_POST['action'] ) && 'editpost' === $_POST['action'] && isset( $_POST['post_type'] ) && 'shop_order' === $_POST['post_type'] ) {
+			add_action( 'woocommerce_process_shop_order_meta', array( __CLASS__, 'create_shipments' ), 70 );
+	    } else {
+    		self::create_shipments( $order_id );
+	    }
     }
 }

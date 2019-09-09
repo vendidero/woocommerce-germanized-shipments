@@ -36,7 +36,8 @@ class Ajax {
             'save_shipments',
             'sync_shipment_items',
             'validate_shipment_item_quantities',
-            'json_search_orders'
+            'json_search_orders',
+	        'update_shipment_status',
         );
 
         foreach ( $ajax_events as $ajax_event ) {
@@ -64,6 +65,21 @@ class Ajax {
      */
     private static function refresh_status( &$order ) {
         MetaBox::refresh_status( $order );
+    }
+
+    public static function update_shipment_status() {
+	    if ( current_user_can( 'edit_shop_orders' ) && check_admin_referer( 'update-shipment-status' ) && isset( $_GET['status'], $_GET['shipment_id'] ) ) {
+	    	$status   = sanitize_text_field( wp_unslash( $_GET['status'] ) );
+		    $shipment = wc_gzd_get_shipment( absint( wp_unslash( $_GET['shipment_id'] ) ) );
+
+		    if ( wc_gzd_is_shipment_status( 'gzd-' . $status ) && $shipment ) {
+			    $shipment->update_status( $status, true );
+			    do_action( 'woocommerce_gzd_updated_shipment_status', $shipment->get_id(), $status );
+		    }
+	    }
+
+	    wp_safe_redirect( wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=wc-gzd-shipments' ) );
+	    exit;
     }
 
     public static function remove_shipment() {
@@ -580,7 +596,8 @@ class Ajax {
 
         $shipment_id   = absint( $_POST['shipment_id'] );
         $item_id       = absint( $_POST['item_id'] );
-        $quantity      = isset( $_POST['quantity'] ) ? absint( $_POST['quantity'] ) : 1;
+        $quantity      = isset( $_POST['quantity'] ) ? (int) $_POST['quantity'] : 1;
+        $quantity      = $quantity <= 0 ? 1 : $quantity;
 
         if ( ! $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
             wp_send_json( $response_error );
@@ -609,7 +626,7 @@ class Ajax {
 
         static::refresh_shipments( $order_shipment );
 
-        $quantity_max             = $order_shipment->get_item_quantity_left_for_shipping( $order_item, array(
+        $quantity_max = $order_shipment->get_item_quantity_left_for_shipping( $order_item, array(
             'exclude_current_shipment' => true,
             'shipment_id'              => $shipment->get_id(),
         ) );
