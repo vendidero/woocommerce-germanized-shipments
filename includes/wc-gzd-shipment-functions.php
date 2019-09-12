@@ -262,7 +262,9 @@ function wc_gzd_render_shipment_action_buttons( $actions ) {
 		if ( isset( $action['group'] ) ) {
 			$actions_html .= '<div class="wc-gzd-shipment-action-button-group"><label>' . $action['group'] . '</label> <span class="wc-gzd-shipment-action-button-group__items">' . wc_gzd_render_shipment_action_buttons( $action['actions'] ) . '</span></div>';
 		} elseif ( isset( $action['action'], $action['url'], $action['name'] ) ) {
-			$actions_html .= sprintf( '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-%1$s %1$s" href="%2$s" aria-label="%3$s" title="%3$s">%4$s</a>', esc_attr( $action['action'] ), esc_url( $action['url'] ), esc_attr( isset( $action['title'] ) ? $action['title'] : $action['name'] ), esc_html( $action['name'] ) );
+			$target = isset( $action['target'] ) ? $action['target'] : '_self';
+
+			$actions_html .= sprintf( '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-%1$s %1$s" href="%2$s" aria-label="%3$s" title="%3$s" target="%4$s">%5$s</a>', esc_attr( $action['action'] ), esc_url( $action['url'] ), esc_attr( isset( $action['title'] ) ? $action['title'] : $action['name'] ), $target, esc_html( $action['name'] ) );
 		}
 	}
 

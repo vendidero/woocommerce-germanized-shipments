@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments;
 use WC_Data;
 use WC_Data_Store;
+use Exception;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -79,9 +80,17 @@ class ShipmentItem extends WC_Data {
 
         $this->data_store = WC_Data_Store::load( 'shipment-item' );
 
-        if ( $this->get_id() > 0 ) {
-            $this->data_store->read( $this );
-        }
+	    // If we have an ID, load the user from the DB.
+	    if ( $this->get_id() ) {
+		    try {
+			    $this->data_store->read( $this );
+		    } catch ( Exception $e ) {
+			    $this->set_id( 0 );
+			    $this->set_object_read( true );
+		    }
+	    } else {
+		    $this->set_object_read( true );
+	    }
     }
 
     /**

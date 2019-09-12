@@ -91,6 +91,10 @@
         content: "\e00f"; }
       .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.shipped::after {
         content: "\f147"; }
+      .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.generate::after {
+        content: "\f502"; }
+      .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.download::after {
+        content: "\f103"; }
   .woocommerce_page_wc-gzd-shipments .wp-list-table .column-address {
     width: 20ch; }
   .woocommerce_page_wc-gzd-shipments .wp-list-table .column-items {

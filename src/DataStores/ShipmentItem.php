@@ -46,15 +46,6 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
     protected $meta_type = 'gzd_shipment_item';
 
     /**
-     * This only needs set if you are using a custom metadata type (for example payment tokens.
-     * This should be the name of the field your table uses for associating meta with objects.
-     * For example, in payment_tokenmeta, this would be payment_token_id.
-     *
-     * @var string
-     */
-    protected $object_id_field_for_meta = 'shipment_item_id';
-
-    /**
      * Create a new shipment item in the database.
      *
      * @since 3.0.0

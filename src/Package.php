@@ -41,6 +41,8 @@ class Package {
 
 	    // Filter email templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
+
+	    // add_action( 'admin_init', array( __CLASS__, 'test' ) );
     }
 
 	public static function install() {
@@ -118,12 +120,15 @@ class Package {
 
     public static function test() {
 
-        $shipments = wc_gzd_get_shipments( array(
-            'date_created'    => '>2019-07-21',
-        ) );
+    	$item = new ShipmentItem( 117 );
+    	$item->update_meta_data( '_testing_it', '100' );
+    	$item->save();
 
-        var_dump($shipments);
-        exit();
+    	$shipment = new Shipment( 55 );
+    	$shipment->update_meta_data( '_testing_it', '100' );
+    	$shipment->save();
+
+    	exit();
 
         /*
         $shipment = new WC_GZD_Shipment( 1 );

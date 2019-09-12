@@ -381,6 +381,8 @@ window.germanized.admin = window.germanized.admin || {};
             }
 
             self.hideOrShowFooter();
+
+            $( document.body ).trigger( 'woocommerce_gzd_shipments_needs_saving', [ self.needsSaving, self.getActiveShipmentId() ] );
         },
 
         setNeedsShipments: function( needsShipments ) {
@@ -480,6 +482,9 @@ window.germanized.admin = window.germanized.admin || {};
 
         initTiptip: function() {
             var self = germanized.admin.shipments;
+
+            // Tooltips
+            $( document.body ).trigger( 'init_tooltips' );
 
             self.$wrapper.find( '.woocommerce-help-tip' ).tipTip({
                 'attribute': 'data-tip',

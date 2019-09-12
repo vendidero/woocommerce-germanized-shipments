@@ -16,7 +16,7 @@ window.germanized.admin = window.germanized.admin || {};
             self.initEnhanced();
 
             $( document.body ).on( 'init_tooltips', function() {
-                self.initTipTips();
+                self.initTipTip();
             });
 
             self.initTipTip();
