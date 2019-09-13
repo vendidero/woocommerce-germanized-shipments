@@ -20,7 +20,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $text_align = is_rtl() ? 'right' : 'left';
-
 ?>
 
 <table id="addresses" cellspacing="0" cellpadding="0" style="width: 100%; vertical-align: top; margin-bottom: 40px; padding:0;" border="0">

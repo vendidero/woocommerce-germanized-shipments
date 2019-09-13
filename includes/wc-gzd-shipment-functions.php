@@ -214,6 +214,36 @@ function wc_gzd_split_shipment_street( $streetStr ) {
 	return $return;
 }
 
+function wc_gzd_get_shipping_providers() {
+	return apply_filters( 'woocommerce_gzd_shipping_providers', array() );
+}
+
+function wc_gzd_get_shipping_provider_title( $slug ) {
+	$providers = wc_gzd_get_shipping_providers();
+
+	if ( array_key_exists( $slug, $providers ) ) {
+		$title = $providers[ $slug ];
+	} else {
+		$title = $slug;
+	}
+
+	return apply_filters( 'woocommerce_gzd_shipping_provider_title', $title, $slug );
+}
+
+function wc_gzd_get_shipping_provider_slug( $provider ) {
+	$providers = wc_gzd_get_shipping_providers();
+
+	if ( in_array( $provider, $providers ) ) {
+		$slug = array_search( $provider, $providers );
+	} elseif( array_key_exists( $provider, $providers ) ) {
+		$slug = $provider;
+	} else {
+		$slug = sanitize_key( $provider );
+	}
+
+	return $slug;
+}
+
 /**
  * @param Order $order_shipment
  * @param Shipment $shipment

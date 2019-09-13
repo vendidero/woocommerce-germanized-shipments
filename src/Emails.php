@@ -11,7 +11,18 @@ class Emails {
         add_filter( 'woocommerce_email_actions', array( __CLASS__, 'register_email_notifications' ), 10, 1 );
 
         add_action( 'init', array( __CLASS__, 'email_hooks' ), 10 );
+
+	    // Change email template path if is germanized email template
+	    add_filter( 'woocommerce_template_directory', array( __CLASS__, 'set_woocommerce_template_dir' ), 10, 2 );
     }
+
+	public static function set_woocommerce_template_dir( $dir, $template ) {
+		if ( file_exists( Package::get_path() . '/templates/' . $template ) ) {
+			return 'woocommerce-germanized';
+		}
+
+		return $dir;
+	}
 
     public static function register_emails( $emails ) {
         $emails['WC_GZD_Email_Customer_Shipment'] = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-shipment.php';
@@ -20,8 +31,9 @@ class Emails {
     }
 
     public static function email_hooks() {
-        add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_address' ), 10, 4 );
-        add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_details' ), 20, 4 );
+	    add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_tracking' ), 10, 4 );
+        add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_address' ), 20, 4 );
+        add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_details' ), 30, 4 );
     }
 
     public static function register_email_notifications( $actions ) {
@@ -42,6 +54,40 @@ class Emails {
 
         return $actions;
     }
+
+	/**
+	 * @param Shipment $shipment
+	 * @param bool $sent_to_admin
+	 * @param bool $plain_text
+	 * @param string $email
+	 */
+	public static function email_tracking( $shipment, $sent_to_admin = false, $plain_text = false, $email = '' ) {
+
+		// Do only include shipment tracking if estimated delivery date or tracking instruction or tracking url exists
+		if ( ! $shipment->get_est_delivery_date() && ! $shipment->has_tracking_instruction() && ! $shipment->get_tracking_url() ) {
+			return;
+		}
+
+		if ( $plain_text ) {
+			wc_get_template(
+				'emails/plain/email-shipment-tracking.php', array(
+					'shipment'      => $shipment,
+					'sent_to_admin' => $sent_to_admin,
+					'plain_text'    => $plain_text,
+					'email'         => $email,
+				)
+			);
+		} else {
+			wc_get_template(
+				'emails/email-shipment-tracking.php', array(
+					'shipment'      => $shipment,
+					'sent_to_admin' => $sent_to_admin,
+					'plain_text'    => $plain_text,
+					'email'         => $email,
+				)
+			);
+		}
+	}
 
     public static function email_address( $shipment, $sent_to_admin = false, $plain_text = false, $email = '' ) {
         if ( $plain_text ) {

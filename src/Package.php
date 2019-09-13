@@ -120,6 +120,14 @@ class Package {
 
     public static function test() {
 
+    	$shipments = wc_gzd_get_shipments( array(
+		    'date_created'      => '<2019-09-14',
+		    'limit'             => 10,
+	    ) );
+
+    	var_dump($shipments);
+    	exit();
+
     	$item = new ShipmentItem( 117 );
     	$item->update_meta_data( '_testing_it', '100' );
     	$item->save();

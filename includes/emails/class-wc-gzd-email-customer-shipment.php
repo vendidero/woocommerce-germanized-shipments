@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
 
+use Vendidero\Germanized\Shipments\Package;
+
 if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
 
     /**
@@ -45,8 +47,11 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
             $this->id             = 'customer_shipment';
             $this->title          = _x( 'Order shipped', 'shipments', 'woocommerce-germanized-shipments' );
             $this->description    = __( 'Shipment notifications are sent to the customer when a shipment gets shipped.', 'woocommerce' );
+
             $this->template_html  = 'emails/customer-shipment.php';
             $this->template_plain = 'emails/plain/customer-shipment.php';
+            $this->template_base  = Package::get_path() . '/templates/';
+
             $this->placeholders   = array(
                 '{site_title}'      => $this->get_blogname(),
                 '{shipment_number}' => '',

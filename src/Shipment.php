@@ -71,6 +71,7 @@ class Shipment extends WC_Data {
     protected $data = array(
         'date_created'          => null,
         'date_sent'             => null,
+        'est_delivery_date'     => null,
         'order_id'              => 0,
         'status'                => '',
         'weight'                => '',
@@ -80,6 +81,7 @@ class Shipment extends WC_Data {
         'country'               => '',
         'address'               => array(),
         'tracking_id'           => '',
+        'shipping_provider'     => '',
         'total'                 => 0,
     );
 
@@ -189,6 +191,17 @@ class Shipment extends WC_Data {
     public function get_date_sent( $context = 'view' ) {
         return $this->get_prop( 'date_sent', $context );
     }
+
+	/**
+	 * Return the date this license was created.
+	 *
+	 * @since  3.0.0
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return WC_DateTime|null object if the date is set or null if there is no date.
+	 */
+	public function get_est_delivery_date( $context = 'view' ) {
+		return $this->get_prop( 'est_delivery_date', $context );
+	}
 
     public function get_order_id( $context = 'view' ) {
         return $this->get_prop( 'order_id', $context );
@@ -324,6 +337,30 @@ class Shipment extends WC_Data {
 
     public function get_tracking_id( $context = 'view' ) {
         return $this->get_prop( 'tracking_id', $context );
+    }
+
+	public function get_tracking_url() {
+		return apply_filters( $this->get_hook_prefix() . 'tracking_url', '', $this );
+	}
+
+	public function get_tracking_instruction() {
+		$instruction = '';
+
+		if ( $this->get_shipping_provider() && $this->get_tracking_id() ) {
+			$instruction = sprintf( __( 'Your shipment is being processed by %s. If you want to track the shipment, please use the following tracking number: %s. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_provider_title( $this->get_shipping_provider() ), $this->get_tracking_id() );
+		}
+
+		return apply_filters( $this->get_hook_prefix() . 'tracking_instruction', $instruction, $this );
+	}
+
+	public function has_tracking_instruction() {
+    	$instruction = $this->get_tracking_instruction();
+
+    	return ( ! empty( $instruction ) ) ? true : false;
+	}
+
+    public function get_shipping_provider( $context = 'view' ) {
+	    return $this->get_prop( 'shipping_provider', $context );
     }
 
     public function get_formatted_address( $empty_content = '' ) {
@@ -567,6 +604,16 @@ class Shipment extends WC_Data {
         $this->set_date_prop( 'date_sent', $date );
     }
 
+	/**
+	 * Set the date this license was last updated.
+	 *
+	 * @since  1.0.0
+	 * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
+	 */
+	public function set_est_delivery_date( $date = null ) {
+		$this->set_date_prop( 'est_delivery_date', $date );
+	}
+
     public function set_weight( $weight ) {
         $this->set_prop( 'weight', '' === $weight ? '' : wc_format_decimal( $weight ) );
     }
@@ -607,6 +654,10 @@ class Shipment extends WC_Data {
     public function set_tracking_id( $tracking_id ) {
         $this->set_prop( 'tracking_id', $tracking_id );
     }
+
+	public function set_shipping_provider( $provider ) {
+		$this->set_prop( 'shipping_provider', wc_gzd_get_shipping_provider_slug( $provider ) );
+	}
 
     public function set_order_id( $order_id ) {
         // Reset order object

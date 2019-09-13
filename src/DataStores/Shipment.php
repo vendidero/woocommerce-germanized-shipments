@@ -45,7 +45,10 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         'date_created_gmt',
         'date_sent',
         'date_sent_gmt',
-        'status'
+	    'est_delivery_date',
+	    'est_delivery_date_gmt',
+        'status',
+	    'shipping_provider'
     );
 
     /*
@@ -65,18 +68,24 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         $shipment->set_date_created( current_time( 'timestamp', true ) );
 
         $data = array(
-            'shipment_country'          => $shipment->get_country(),
-            'shipment_order_id'         => $shipment->get_order_id(),
-            'shipment_tracking_id'      => $shipment->get_tracking_id(),
-            'shipment_status'           => $this->get_status( $shipment ),
-            'shipment_date_created'     => gmdate( 'Y-m-d H:i:s', $shipment->get_date_created( 'edit' )->getOffsetTimestamp() ),
-            'shipment_date_created_gmt' => gmdate( 'Y-m-d H:i:s', $shipment->get_date_created( 'edit' )->getTimestamp() ),
+            'shipment_country'           => $shipment->get_country(),
+            'shipment_order_id'          => $shipment->get_order_id(),
+            'shipment_tracking_id'       => $shipment->get_tracking_id(),
+            'shipment_status'            => $this->get_status( $shipment ),
+            'shipment_shipping_provider' => $shipment->get_shipping_provider(),
+            'shipment_date_created'      => gmdate( 'Y-m-d H:i:s', $shipment->get_date_created( 'edit' )->getOffsetTimestamp() ),
+            'shipment_date_created_gmt'  => gmdate( 'Y-m-d H:i:s', $shipment->get_date_created( 'edit' )->getTimestamp() ),
         );
 
         if ( $shipment->get_date_sent() ) {
             $data['shipment_date_sent']     = gmdate( 'Y-m-d H:i:s', $shipment->get_date_sent( 'edit' )->getOffsetTimestamp() );
             $data['shipment_date_sent_gmt'] = gmdate( 'Y-m-d H:i:s', $shipment->get_date_sent( 'edit' )->getTimestamp() );
         }
+
+	    if ( $shipment->get_est_delivery_date() ) {
+		    $data['shipment_est_delivery_date']     = gmdate( 'Y-m-d H:i:s', $shipment->get_est_delivery_date( 'edit' )->getOffsetTimestamp() );
+		    $data['shipment_est_delivery_date_gmt'] = gmdate( 'Y-m-d H:i:s', $shipment->get_est_delivery_date( 'edit' )->getTimestamp() );
+	    }
 
         $wpdb->insert(
             $wpdb->gzd_shipments,
@@ -148,6 +157,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
                     break;
                 case "date_created":
                 case "date_sent":
+	            case "est_delivery_date":
                     $shipment_data[ 'shipment_' . $prop ]          = gmdate( 'Y-m-d H:i:s', $shipment->{'get_' . $prop}( 'edit' )->getOffsetTimestamp() );
                     $shipment_data[ 'shipment_' . $prop . '_gmt' ] = gmdate( 'Y-m-d H:i:s', $shipment->{'get_' . $prop}( 'edit' )->getTimestamp() );
                     break;
@@ -217,12 +227,14 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         if ( $data ) {
             $shipment->set_props(
                 array(
-                    'order_id'     => $data->shipment_order_id,
-                    'country'      => $data->shipment_country,
-                    'tracking_id'  => $data->shipment_tracking_id,
-                    'date_created' => 0 < $data->shipment_date_created_gmt ? wc_string_to_timestamp( $data->shipment_date_created_gmt ) : null,
-                    'date_sent'    => 0 < $data->shipment_date_sent_gmt ? wc_string_to_timestamp( $data->shipment_date_sent_gmt ) : null,
-                    'status'       => $data->shipment_status,
+                    'order_id'          => $data->shipment_order_id,
+                    'country'           => $data->shipment_country,
+                    'tracking_id'       => $data->shipment_tracking_id,
+                    'shipping_provider' => $data->shipment_shipping_provider,
+                    'date_created'      => 0 < $data->shipment_date_created_gmt ? wc_string_to_timestamp( $data->shipment_date_created_gmt ) : null,
+                    'date_sent'         => 0 < $data->shipment_date_sent_gmt ? wc_string_to_timestamp( $data->shipment_date_sent_gmt ) : null,
+                    'est_delivery_date' => 0 < $data->shipment_est_delivery_date_gmt ? wc_string_to_timestamp( $data->shipment_est_delivery_date_gmt ) : null,
+                    'status'            => $data->shipment_status,
                 )
             );
 
@@ -416,38 +428,39 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 
         // Allow Woo to treat these props as date query compatible
         $date_queries = array(
-            'date_created' => 'post_date',
-            'date_sent'    => 'post_modified',
+            'date_created',
+            'date_sent',
+	        'est_delivery_date'
         );
 
-        foreach ( $date_queries as $query_var_key => $db_key ) {
-            if ( isset( $query_vars[ $query_var_key ] ) && '' !== $query_vars[ $query_var_key ] ) {
+	    foreach ( $date_queries as $db_key ) {
+		    if ( isset( $query_vars[ $db_key ] ) && '' !== $query_vars[ $db_key ] ) {
 
-                // Remove any existing meta queries for the same keys to prevent conflicts.
-                $existing_queries = wp_list_pluck( $wp_query_args['meta_query'], 'key', true );
-                $meta_query_index = array_search( $db_key, $existing_queries, true );
+			    // Remove any existing meta queries for the same keys to prevent conflicts.
+			    $existing_queries = wp_list_pluck( $wp_query_args['meta_query'], 'key', true );
+			    $meta_query_index = array_search( $db_key, $existing_queries, true );
 
-                if ( false !== $meta_query_index ) {
-                    unset( $wp_query_args['meta_query'][ $meta_query_index ] );
-                }
+			    if ( false !== $meta_query_index ) {
+				    unset( $wp_query_args['meta_query'][ $meta_query_index ] );
+			    }
 
-                $wp_query_args = $this->parse_date_for_wp_query( $query_vars[ $query_var_key ], $db_key, $wp_query_args );
-            }
-        }
+			    $date_query_args = $this->parse_date_for_wp_query( $query_vars[ $db_key ], 'post_date', array() );
 
-        /**
-         * Replace date query columns after Woo parsed dates.
-         * Include table name because otherwise WP_Date_Query won't accept our custom column.
-         */
-        if ( isset( $wp_query_args['date_query'] ) ) {
+			    /**
+			     * Replace date query columns after Woo parsed dates.
+			     * Include table name because otherwise WP_Date_Query won't accept our custom column.
+			     */
+			    if ( isset( $date_query_args['date_query'] ) && ! empty( $date_query_args['date_query'] ) ) {
+			    	$date_query = $date_query_args['date_query'][0];
 
-            foreach( $wp_query_args['date_query'] as $key => $date_query ) {
+				    if ( 'post_date' === $date_query['column'] ) {
+					    $date_query['column'] = $wpdb->gzd_shipments . '.shipment_' . $db_key;
+				    }
 
-                if ( isset( $date_query['column'] ) && in_array( $date_query['column'], $date_queries, true ) ) {
-                    $wp_query_args['date_query'][ $key ]['column'] = $wpdb->gzd_shipments . '.shipment_' . array_search( $date_query['column'], $date_queries, true );
-                }
-            }
-        }
+				    $wp_query_args['date_query'][] = $date_query;
+			    }
+		    }
+	    }
 
         if ( ! isset( $query_vars['paginate'] ) || ! $query_vars['paginate'] ) {
             $wp_query_args['no_found_rows'] = true;

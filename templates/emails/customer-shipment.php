@@ -31,10 +31,10 @@ do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
         <?php
         if ( $partial_shipment ) {
             /* translators: %s: Site title */
-            printf( _x( 'Your order on %s has been partially shipped. There are more details below for your reference:', 'shipments', 'woocommerce-germanized-shipments' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
+            printf( _x( 'Your order on %s has been partially shipped. Find details below for your reference:', 'shipments', 'woocommerce-germanized-shipments' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
         } else {
             /* translators: %s: Site title */
-            printf( _x( 'Your order on %s has been shipped. There are more details below for your reference:', 'shipments', 'woocommerce-germanized-shipments' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
+            printf( _x( 'Your order on %s has been shipped. Find details below for your reference:', 'shipments', 'woocommerce-germanized-shipments' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ) ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
         }
         ?>
     </p>
@@ -47,12 +47,6 @@ do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
  * @since 2.5.0
  */
 do_action( 'woocommerce_gzd_email_shipment_details', $shipment, $sent_to_admin, $plain_text, $email );
-
-?>
-    <p>
-        <?php _ex( 'We hope to see you again soon.', 'shipments', 'woocommerce-germanized-shipments' ); // phpcs:ignore WordPress.XSS.EscapeOutput ?>
-    </p>
-<?php
 
 /*
  * @hooked WC_Emails::email_footer() Output the email footer
