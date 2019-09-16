@@ -69,10 +69,14 @@ class Api {
 						'date_created_gmt'      => wc_rest_prepare_date_response( $shipment->get_date_created( $context ) ),
 						'date_sent'             => wc_rest_prepare_date_response( $shipment->get_date_sent( $context ), false ),
 						'date_sent_gmt'         => wc_rest_prepare_date_response( $shipment->get_date_sent( $context ) ),
+						'est_delivery_date'     => wc_rest_prepare_date_response( $shipment->get_est_delivery_date( $context ), false ),
+						'est_delivery_date_gmt' => wc_rest_prepare_date_response( $shipment->get_est_delivery_date( $context ) ),
 						'total'                 => wc_format_decimal( $shipment->get_total(), $request['dp'] ),
 						'weight'                => $shipment->get_weight( $context ),
 						'status'                => $shipment->get_status(),
 						'tracking_id'           => $shipment->get_tracking_id(),
+						'tracking_url'          => $shipment->get_tracking_url(),
+						'shipping_provider'     => $shipment->get_shipping_provider(),
 						'dimensions'            => array(
 							'length' => $shipment->get_length( $context ),
 							'width'  => $shipment->get_width( $context ),
@@ -123,6 +127,18 @@ class Api {
 						'context'     => array( 'view', 'edit' ),
 						'readonly'    => true,
 					),
+					'tracking_url' => array(
+						'description' => __( 'Shipment tracking url.', 'woocommerce-germanized-shipments' ),
+						'type'        => 'string',
+						'context'     => array( 'view', 'edit' ),
+						'readonly'    => true,
+					),
+					'shipping_provider' => array(
+						'description' => __( 'Shipment shipping provider.', 'woocommerce-germanized-shipments' ),
+						'type'        => 'string',
+						'context'     => array( 'view', 'edit' ),
+						'readonly'    => true,
+					),
 					'date_created'         => array(
 						'description' => __( "The date the shipment was created, in the site's timezone.", 'woocommerce-germanized-shipments' ),
 						'type'        => 'date-time',
@@ -143,6 +159,18 @@ class Api {
 					),
 					'date_sent_gmt'     => array(
 						'description' => __( 'The date the shipment was sent, as GMT.', 'woocommerce-germanized-shipments' ),
+						'type'        => 'date-time',
+						'context'     => array( 'view', 'edit' ),
+						'readonly'    => true,
+					),
+					'est_delivery_date' => array(
+						'description' => __( "The estimated delivery date of the shipment, in the site's timezone.", 'woocommerce-germanized-shipments' ),
+						'type'        => 'date-time',
+						'context'     => array( 'view', 'edit' ),
+						'readonly'    => true,
+					),
+					'est_delivery_date_gmt'     => array(
+						'description' => __( 'The estimated delivery date of the shipment, as GMT.', 'woocommerce-germanized-shipments' ),
 						'type'        => 'date-time',
 						'context'     => array( 'view', 'edit' ),
 						'readonly'    => true,

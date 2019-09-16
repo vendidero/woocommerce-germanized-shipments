@@ -11,6 +11,8 @@ defined( 'ABSPATH' ) || exit;
  */
 class Admin {
 
+    protected static $bulk_handlers = null;
+
     /**
      * Constructor.
      */
@@ -229,15 +231,46 @@ class Admin {
         if ( 'woocommerce_page_wc-gzd-shipments' === $screen_id ) {
             wp_enqueue_script( 'wc-gzd-admin-shipments-table' );
 
+            $bulk_actions = array();
+
+            foreach( self::get_bulk_action_handlers() as $handler ) {
+                $bulk_actions[ sanitize_key( $handler->get_action() ) ] = array(
+                    'title' => $handler->get_title(),
+                    'nonce' => wp_create_nonce( $handler->get_nonce_name() ),
+                );
+            }
+
             wp_localize_script(
                 'wc-gzd-admin-shipments-table',
                 'wc_gzd_admin_shipments_table_params',
                 array(
                     'ajax_url'            => admin_url( 'admin-ajax.php' ),
                     'search_orders_nonce' => wp_create_nonce( 'search-orders' ),
+                    'bulk_actions'        => $bulk_actions,
                 )
             );
         }
+    }
+
+	/**
+	 * @return BulkActionHandler[] $handler
+	 */
+    public static function get_bulk_action_handlers() {
+        if ( is_null( self::$bulk_handlers ) ) {
+	        $handlers = apply_filters( 'woocommerce_gzd_shipments_bulk_action_handlers', array() );
+
+	        foreach( $handlers as $key => $handler ) {
+		        self::$bulk_handlers[ $key ] = new $handler();
+	        }
+        }
+
+        return self::$bulk_handlers;
+    }
+
+    public static function get_bulk_action_handler( $action ) {
+        $handlers = self::get_bulk_action_handlers();
+
+        return array_key_exists( $action, $handlers ) ? $handlers[ $action ] : false;
     }
 
     public static function get_screen_ids() {

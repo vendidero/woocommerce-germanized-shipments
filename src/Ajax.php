@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments;
 
+use Vendidero\Germanized\Shipments\Admin\Admin;
 use Vendidero\Germanized\Shipments\Admin\MetaBox;
 
 /**
@@ -38,11 +39,73 @@ class Ajax {
             'validate_shipment_item_quantities',
             'json_search_orders',
 	        'update_shipment_status',
+	        'shipments_bulk_action_handle'
         );
 
         foreach ( $ajax_events as $ajax_event ) {
             add_action( 'wp_ajax_woocommerce_gzd_' . $ajax_event, array( __CLASS__, $ajax_event ) );
         }
+    }
+
+    public static function shipments_bulk_action_handle() {
+    	$action = isset( $_POST['bulk_action'] ) ? wc_clean( $_POST['bulk_action'] ) : '';
+
+	    check_ajax_referer( "woocommerce_gzd_shipments_{$action}", 'security' );
+
+	    if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['step'] ) || ! isset( $_POST['ids'] ) ) {
+		    wp_die( -1 );
+	    }
+
+	    $response_error = array(
+		    'success' => false,
+		    'message' => _x( 'There was an error while bulk processing shipments.', 'shipments', 'woocommerce-germanized-shipments' ),
+	    );
+
+	    $response = array(
+		    'success' => true,
+		    'message' => '',
+	    );
+
+	    $handlers = Admin::get_bulk_action_handlers();
+
+	    if ( ! array_key_exists( $action, $handlers ) ) {
+		    wp_send_json( $response_error );
+	    }
+
+	    $ids     = isset( $_POST['ids'] ) ? array_map( 'absint', $_POST['ids'] ) : array();
+	    $step    = isset( $_POST['step'] ) ? absint( $_POST['step'] ) : 1;
+
+	    $handler = $handlers[ $action ];
+
+		$handler->set_step( $step );
+		$handler->set_ids( $ids );
+
+	    $handler->handle();
+
+	    if ( $handler->get_percent_complete() >= 100 ) {
+	    	$errors = $handler->get_notices( 'error' );
+
+	    	if ( empty( $errors ) ) {
+	    		$handler->add_notice( $handler->get_success_message(), 'success' );
+	    		$handler->update_notices();
+		    }
+
+		    wp_send_json_success(
+			    array(
+				    'step'       => 'done',
+				    'percentage' => 100,
+				    'url'        => admin_url( 'admin.php?page=wc-gzd-shipments&bulk_action_handling=finished&current_bulk_action=' . sanitize_key( $handler->get_action() ) ),
+			    )
+		    );
+	    } else {
+		    wp_send_json_success(
+			    array(
+				    'step'       => ++$step,
+				    'percentage' => $handler->get_percent_complete(),
+				    'ids'        => $handler->get_ids(),
+			    )
+		    );
+	    }
     }
 
     /**

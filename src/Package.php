@@ -28,10 +28,7 @@ class Package {
 	    // Install
 	    register_activation_hook( trailingslashit( self::get_path() ) . 'woocommerce-germanized-shipments.php', array( __CLASS__, 'install' ) );
 
-	    if ( self::is_enabled() ) {
-		    self::init_hooks();
-	    }
-
+	    self::init_hooks();
         self::includes();
     }
 
@@ -59,18 +56,15 @@ class Package {
 
     private static function includes() {
 
-        if ( self::is_enabled() ) {
-
-	        if ( is_admin() ) {
-		        Admin\Admin::init();
-	        }
-
-	        Ajax::init();
-	        Automation::init();
-	        Emails::init();
-	        Validation::init();
-	        Api::init();
+        if ( is_admin() ) {
+	        Admin\Admin::init();
         }
+
+        Ajax::init();
+        Automation::init();
+        Emails::init();
+        Validation::init();
+        Api::init();
 
         include_once self::get_path() . '/includes/wc-gzd-shipment-functions.php';
     }
@@ -188,10 +182,6 @@ class Package {
     public static function get_assets_url() {
         return self::get_url() . '/assets';
     }
-
-	public static function is_enabled() {
-		return 'yes' === self::get_setting( 'enable' );
-	}
 
 	public static function get_setting( $name ) {
 		$option_name = "woocommerce_gzd_shipments_{$name}";

@@ -441,11 +441,57 @@ class Table extends WP_List_Table {
         <?php
     }
 
+	/**
+	 * Generate the table navigation above or below the table
+	 *
+	 * @since 3.1.0
+	 * @param string $which
+	 */
+	protected function display_tablenav( $which ) {
+	    $finished    = ( isset( $_GET['bulk_action_handling'] ) && 'finished' === $_GET['bulk_action_handling'] ) ? true : false;
+	    $bulk_action = ( isset( $_GET['current_bulk_action'] ) ) ? wc_clean( $_GET['current_bulk_action'] ) : '';
+
+	    if ( 'top' === $which ) {
+	        ?>
+            <div class="bulk-action-wrapper">
+                <h4 class="bulk-title"><?php _e( 'Processing bulk actions...', 'woocommerce-germanized-shipments' ); ?></h4>
+                <div class="bulk-notice-wrapper"></div>
+                <progress class="woocommerce-shimpents-bulk-progress" max="100" value="0"></progress>
+            </div>
+		    <?php if ( $finished && ( $handler = Admin::get_bulk_action_handler( $bulk_action ) ) ) :
+                $notices = $handler->get_notices( 'error' );
+		        $success = $handler->get_notices( 'success' );
+                ?>
+                <?php if ( ! empty( $notices ) ) : ?>
+                    <?php foreach( $notices as $notice ) : ?>
+                        <div class="error">
+                            <p><?php echo $notice; ?></p>
+                        </div>
+                    <?php endforeach; ?>
+                <?php elseif ( $success ) : ?>
+                    <div class="updated">
+                        <p><?php echo $handler->get_success_message(); ?></p>
+                    </div>
+                <?php endif; ?>
+
+                <?php
+                    do_action( "woocommerce_gzd_shipments_bulk_action_{$bulk_action}_handled", $handler, $bulk_action );
+			        $handler->reset();
+                ?>
+            <?php endif; ?>
+            <?php
+        }
+
+	    parent::display_tablenav( $which );
+	}
+
     /**
      * @param string $which
      */
     protected function extra_tablenav( $which ) {
         ?>
+
+
         <div class="alignleft actions">
             <?php
             if ( 'top' === $which && ! is_singular() ) {

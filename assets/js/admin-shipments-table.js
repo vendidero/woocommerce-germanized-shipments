@@ -11,15 +11,81 @@ window.germanized.admin = window.germanized.admin || {};
         params: {},
 
         init: function() {
-            var self = germanized.admin.shipments_table;
+            var self    = germanized.admin.shipments_table;
+            self.params = wc_gzd_admin_shipments_table_params;
 
             self.initEnhanced();
+
+            $( document )
+                .on( 'click', '#doaction, #doaction2', self.onBulkSubmit );
 
             $( document.body ).on( 'init_tooltips', function() {
                 self.initTipTip();
             });
 
             self.initTipTip();
+        },
+
+        onBulkSubmit: function() {
+            var self   = germanized.admin.shipments_table,
+                action = $( this ).parents( '.bulkactions' ).find( 'select[name=action]' ).val(),
+                ids    = [];
+
+            $( '#posts-filter' ).find( 'input[name="shipment[]"]:checked' ).each( function() {
+                ids.push( $( this ).val() );
+            });
+
+            if ( self.params.bulk_actions.hasOwnProperty( action ) && ids.length > 0 ) {
+
+                var actionData = self.params.bulk_actions[ action ];
+
+                $( '.bulk-action-wrapper' ).find( '.bulk-title' ).text( actionData['title'] );
+                $( '#posts-filter' ).addClass( 'bulk-action-processing' );
+                $( '#posts-filter' ).find( '.bulkactions button' ).prop( 'disabled', true );
+
+                // Handle bulk action processing
+                self.handleBulkAction( action, 1, ids );
+
+                return false;
+            }
+        },
+
+        handleBulkAction: function( action, step, ids ) {
+            var self       = germanized.admin.shipments_table,
+                actionData = self.params.bulk_actions[ action ];
+
+            $.ajax( {
+                type: 'POST',
+                url: self.params.ajax_url,
+                data: {
+                    action           : 'woocommerce_gzd_shipments_bulk_action_handle',
+                    bulk_action      : action,
+                    step             : step,
+                    ids              : ids,
+                    security         : actionData['nonce']
+                },
+                dataType: 'json',
+                success: function( response ) {
+                    if ( response.success ) {
+
+                        if ( 'done' === response.data.step ) {
+                            $( '.bulk-action-wrapper' ).find( '.woocommerce-shimpents-bulk-progress' ).val( response.data.percentage );
+
+                            window.location = response.data.url;
+
+                            setTimeout( function() {
+                                $( '#posts-filter' ).removeClass( 'bulk-action-processing' );
+                                $( '#posts-filter' ).find( '.bulkactions button' ).prop( 'disabled', false );
+                            }, 2000 );
+                        } else {
+                            $( '.bulk-action-wrapper' ).find( '.woocommerce-shimpents-bulk-progress' ).val( response.data.percentage );
+                            self.handleBulkAction( action, parseInt( response.data.step, 10 ), response.data.ids );
+                        }
+                    }
+                }
+            }).fail( function( response ) {
+                window.console.log( response );
+            } );
         },
 
         initTipTip: function() {
