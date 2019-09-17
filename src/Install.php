@@ -36,7 +36,7 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_items (
   shipment_item_quantity SMALLINT UNSIGNED NOT NULL DEFAULT '1',
   PRIMARY KEY  (shipment_item_id),
   KEY shipment_id (shipment_id),
-  KEY shipment_item_order_item_id (shipment_item_order_item_id)
+  KEY shipment_item_order_item_id (shipment_item_order_item_id),
   KEY shipment_item_product_id (shipment_item_product_id)
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_itemmeta (

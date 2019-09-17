@@ -31,7 +31,23 @@ class Admin {
 
 	    add_filter( 'handle_bulk_actions-edit-shop_order', array( __CLASS__, 'handle_order_bulk_actions' ), 10, 3 );
 	    add_filter( 'bulk_actions-edit-shop_order', array( __CLASS__, 'define_order_bulk_actions' ), 10, 1 );
+
+	    // Template check
+	    add_filter( 'woocommerce_gzd_template_check', array( __CLASS__, 'add_template_check' ), 10, 1 );
     }
+
+	public static function add_template_check( $check ) {
+		$check['shipments'] = array(
+			'title'             => __( 'Shipments', 'woocommerce-germanized-shipments' ),
+			'path'              => Package::get_path() . '/templates',
+			'template_path'     => $check['germanized']['template_path'],
+			'outdated_help_url' => $check['germanized']['outdated_help_url'],
+			'files'             => array(),
+			'has_outdated'      => false,
+		);
+
+		return $check;
+	}
 
     public static function add_table_view( $screen_ids ) {
 	    $screen_ids[] = 'woocommerce_page_wc-gzd-shipments';
