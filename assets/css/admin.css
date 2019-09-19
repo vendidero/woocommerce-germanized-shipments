@@ -257,6 +257,8 @@
     padding-bottom: 0; }
   .germanized-shipments #panel-order-shipments .order-shipment p.form-row {
     margin-bottom: 1.5em; }
+    .germanized-shipments #panel-order-shipments .order-shipment p.form-row input[type=text], .germanized-shipments #panel-order-shipments .order-shipment p.form-row input[type=number], .germanized-shipments #panel-order-shipments .order-shipment p.form-row input[type=email] {
+      height: 30px; }
     .germanized-shipments #panel-order-shipments .order-shipment p.form-row label .woocommerce-help-tip {
       float: none; }
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item-action {

@@ -77,6 +77,10 @@ class Ajax {
 
 	    $handler = $handlers[ $action ];
 
+	    if ( 1 === $step ) {
+	    	$handler->reset( true );
+	    }
+
 		$handler->set_step( $step );
 		$handler->set_ids( $ids );
 

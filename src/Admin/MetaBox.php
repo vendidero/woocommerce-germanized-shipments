@@ -41,6 +41,10 @@ class MetaBox {
                 $props['height'] = wc_clean( wp_unslash( $_POST['shipment_height'][ $id ] ) );
             }
 
+	        if ( isset( $_POST['shipment_shipping_method'][ $id ] ) ) {
+		        $props['shipping_method'] = wc_clean( wp_unslash( $_POST['shipment_shipping_method'][ $id ] ) );
+	        }
+
             // Sync the shipment
             if ( $shipment->is_editable() ) {
                 wc_gzd_sync_shipment( $order, $shipment, $props );

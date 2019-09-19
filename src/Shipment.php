@@ -82,6 +82,7 @@ class Shipment extends WC_Data {
         'address'               => array(),
         'tracking_id'           => '',
         'shipping_provider'     => '',
+        'shipping_method'       => '',
         'total'                 => 0,
     );
 
@@ -206,6 +207,24 @@ class Shipment extends WC_Data {
     public function get_order_id( $context = 'view' ) {
         return $this->get_prop( 'order_id', $context );
     }
+
+	public function get_shipping_method( $context = 'view' ) {
+		return $this->get_prop( 'shipping_method', $context );
+	}
+
+	public function get_available_shipping_methods() {
+		$methods = array();
+
+		if ( $order = $this->get_order() ) {
+			$items = $order->get_shipping_methods();
+
+			foreach( $items as $item ) {
+				$methods[ $item->get_method_id() . ':' . $item->get_instance_id() ] = $item->get_name();
+			}
+		}
+
+		return $methods;
+	}
 
     public function get_weight( $context = 'view' ) {
         $weight = $this->get_prop( 'weight', $context );
@@ -633,6 +652,10 @@ class Shipment extends WC_Data {
     public function set_address( $address ) {
         $this->set_prop( 'address', empty( $address ) ? array() : (array) $address );
     }
+
+	public function set_shipping_method( $method ) {
+		$this->set_prop( 'shipping_method', $method );
+	}
 
     public function set_total( $value ) {
         $value = wc_format_decimal( $value );

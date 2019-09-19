@@ -23,6 +23,17 @@ defined( 'ABSPATH' ) || exit;
                 </select>
             </p>
 
+            <?php if ( sizeof( $shipment->get_available_shipping_methods() ) > 1 ) : ?>
+                <p class="form-row">
+                    <label for="shipment-shipping-method-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Shipping method', 'x', 'woocommerce-germanized-shipments' ); ?></label>
+                    <select class="shipment-shipping-method-select" id="shipment-shipping-method-<?php echo esc_attr( $shipment->get_id() ); ?>" name="shipment_shipping_method[<?php echo esc_attr( $shipment->get_id() ); ?>]">
+			            <?php foreach( $shipment->get_available_shipping_methods() as $method => $title ) : ?>
+                            <option value="<?php echo esc_attr( $method ); ?>" <?php selected( $method, $shipment->get_shipping_method(), true ); ?>><?php echo $title; ?></option>
+			            <?php endforeach; ?>
+                    </select>
+                </p>
+            <?php endif; ?>
+
             <div class="shipment-items">
                 <div class="shipment-item-list-wrapper">
                     <div class="shipment-item-heading">
@@ -121,7 +132,9 @@ defined( 'ABSPATH' ) || exit;
                 </span>
             </p>
 
-	        <?php do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_right_column', $shipment ); ?>
+            <div class="columns">
+	            <?php do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_right_column', $shipment ); ?>
+            </div>
         </div>
 
         <?php do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_fields', $shipment ); ?>

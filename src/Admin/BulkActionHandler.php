@@ -72,7 +72,7 @@ abstract class BulkActionHandler {
 		update_user_option( get_current_user_id(), $this->get_notice_option_name(), $this->notices );
 	}
 
-	public function reset() {
+	public function reset( $is_new = false ) {
 		delete_user_option( get_current_user_id(), $this->get_notice_option_name() );
 	}
 

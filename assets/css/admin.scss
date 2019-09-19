@@ -426,6 +426,10 @@ $layout-spacing: 1rem;
       p.form-row {
         margin-bottom: 1.5em;
 
+        input[type=text], input[type=number], input[type=email] {
+          height: 30px;
+        }
+
         label {
           .woocommerce-help-tip {
             float: none;

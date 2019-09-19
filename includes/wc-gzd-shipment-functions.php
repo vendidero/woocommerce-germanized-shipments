@@ -31,6 +31,16 @@ function wc_gzd_get_shipment_order( $order ) {
     return false;
 }
 
+function wc_gzd_get_shipments_by_order( $order ) {
+	$shipments = array();
+
+	if ( $order_shipment = wc_gzd_get_shipment_order( $order ) ) {
+		$shipments = $order_shipment->get_shipments();
+	}
+
+	return $shipments;
+}
+
 function wc_gzd_get_shipment_order_shipping_statuses() {
     $shipment_statuses = array(
         'gzd-not-shipped'       => _x( 'Not shipped', 'shipments', 'woocommerce-germanized-shipments' ),
@@ -265,13 +275,14 @@ function wc_gzd_sync_shipment( $order_shipment, &$shipment, $args = array() ) {
         }
 
         $args = wp_parse_args( $args, array(
-            'order_id'      => $order->get_id(),
-            'country'       => $order->get_shipping_country(),
-            'address'       => array_merge( $order->get_address( 'shipping' ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) ),
-            'weight'        => $shipment->get_weight( 'edit' ),
-            'length'        => $shipment->get_length( 'edit' ),
-            'width'         => $shipment->get_width( 'edit' ),
-            'height'        => $shipment->get_height( 'edit' ),
+            'order_id'        => $order->get_id(),
+            'country'         => $order->get_shipping_country(),
+            'shipping_method' => wc_gzd_get_shipment_order_shipping_method_id( $order ),
+            'address'         => array_merge( $order->get_address( 'shipping' ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) ),
+            'weight'          => $shipment->get_weight( 'edit' ),
+            'length'          => $shipment->get_length( 'edit' ),
+            'width'           => $shipment->get_width( 'edit' ),
+            'height'          => $shipment->get_height( 'edit' ),
         ) );
 
         $shipment->set_props( $args );
@@ -283,6 +294,24 @@ function wc_gzd_sync_shipment( $order_shipment, &$shipment, $args = array() ) {
     }
 
     return true;
+}
+
+/**
+ * @param WC_Order $order
+ */
+function wc_gzd_get_shipment_order_shipping_method_id( $order ) {
+	$methods = $order->get_shipping_methods();
+	$id      = '';
+
+	if ( ! empty( $methods ) ) {
+		$method = array_pop( array_reverse( $methods ) );
+
+		if ( $method ) {
+			$id = $method->get_method_id() . ':' . $method->get_instance_id();
+		}
+	}
+
+	return apply_filters( 'woocommerce_gzd_shipment_order_shipping_method_id', $id, $order );
 }
 
 function wc_gzd_render_shipment_action_buttons( $actions ) {

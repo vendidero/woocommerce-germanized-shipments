@@ -176,7 +176,7 @@ class Order {
 
         foreach( $shipments as $shipment ) {
 
-            if( $shipment->get_id() === (int) $shipment_id ) {
+            if ( $shipment->get_id() === (int) $shipment_id ) {
                 return $shipment;
             }
         }
