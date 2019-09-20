@@ -304,7 +304,8 @@ function wc_gzd_get_shipment_order_shipping_method_id( $order ) {
 	$id      = '';
 
 	if ( ! empty( $methods ) ) {
-		$method = array_pop( array_reverse( $methods ) );
+		$method_vals = array_values( $methods );
+		$method      = array_shift( $method_vals );
 
 		if ( $method ) {
 			$id = $method->get_method_id() . ':' . $method->get_instance_id();

@@ -18,6 +18,7 @@ class MetaBox {
     public static function refresh_shipments( &$order ) {
 
         foreach( $order->get_shipments() as $shipment ) {
+
             $id    = $shipment->get_id();
             $props = array();
 
@@ -45,8 +46,10 @@ class MetaBox {
 		        $props['shipping_method'] = wc_clean( wp_unslash( $_POST['shipment_shipping_method'][ $id ] ) );
 	        }
 
-            // Sync the shipment
-            if ( $shipment->is_editable() ) {
+	        $new_status = isset( $_POST['shipment_status'][ $id ] ) ? str_replace( 'gzd-', '', wc_clean( wp_unslash( $_POST['shipment_status'][ $id ] ) ) ) : 'draft';
+
+	        // Sync the shipment - make sure gets refresh on status switch (e.g. from shipped to processing)
+            if ( $shipment->is_editable() || in_array( $new_status, wc_gzd_get_shipment_editable_statuses() ) ) {
                 wc_gzd_sync_shipment( $order, $shipment, $props );
             }
         }

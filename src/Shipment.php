@@ -847,6 +847,8 @@ class Shipment extends WC_Data {
 
         if ( $status_transition ) {
             try {
+	            do_action( 'woocommerce_gzd_shipment_before_status_change', $this->get_id(), $this );
+
                 $status_to = $status_transition['to'];
 
                 do_action( 'woocommerce_gzd_shipment_status_' . $status_to, $this->get_id(), $this );
