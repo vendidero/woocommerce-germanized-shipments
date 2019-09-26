@@ -273,6 +273,14 @@ class Admin {
 	 */
     public static function get_bulk_action_handlers() {
         if ( is_null( self::$bulk_handlers ) ) {
+
+	        /**
+	         * Filter to register new BulkActionHandler for certain Shipment bulk actions.
+	         *
+	         * @param array $handlers Array containing key => classname.
+	         *
+	         * @since 3.0.0
+	         */
 	        $handlers = apply_filters( 'woocommerce_gzd_shipments_bulk_action_handlers', array() );
 
 	        foreach( $handlers as $key => $handler ) {

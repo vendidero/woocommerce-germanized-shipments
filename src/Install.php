@@ -57,13 +57,16 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipments (
   shipment_est_delivery_date datetime default NULL,
   shipment_est_delivery_date_gmt datetime default NULL,
   shipment_status varchar(20) NOT NULL default 'gzd-draft',
-  shipment_order_id BIGINT UNSIGNED NOT NULL,
+  shipment_order_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  shipment_parent_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
   shipment_country varchar(2) NOT NULL DEFAULT '',
   shipment_tracking_id varchar(200) NOT NULL DEFAULT '',
+  shipment_type varchar(200) NOT NULL DEFAULT '',
   shipment_shipping_provider varchar(200) NOT NULL DEFAULT '',
   shipment_shipping_method varchar(200) NOT NULL DEFAULT '',
   PRIMARY KEY  (shipment_id),
-  KEY shipment_order_id (shipment_order_id)
+  KEY shipment_order_id (shipment_order_id),
+  KEY shipment_parent_id (shipment_parent_id)
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipmentmeta (
   meta_id BIGINT UNSIGNED NOT NULL auto_increment,

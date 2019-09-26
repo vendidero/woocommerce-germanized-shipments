@@ -1,18 +1,17 @@
 <?php
 /**
- * Customer refunded order email
+ * Customer Shipment
  *
- * This template can be overridden by copying it to yourtheme/woocommerce/emails/customer-refunded-order.php.
+ * This template can be overridden by copying it to yourtheme/woocommerce-germanized/emails/customer-shipment.php.
  *
- * HOWEVER, on occasion WooCommerce will need to update template files and you
+ * HOWEVER, on occasion Germanized will need to update template files and you
  * (the theme developer) will need to copy the new files to your theme to
  * maintain compatibility. We try to do this as little as possible, but it does
  * happen. When this occurs the version of the template file will be bumped and
  * the readme will list any important changes.
  *
- * @see https://docs.woocommerce.com/document/template-structure/
- * @package WooCommerce/Templates/Emails
- * @version 3.5.0
+ * @package Germanized/Shipments/Templates/Emails
+ * @version 1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -41,10 +40,18 @@ do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
 <?php
 
 /*
- * @hooked WC_Emails::order_details() Shows the order details table.
- * @hooked WC_Structured_Data::generate_order_data() Generates structured data.
- * @hooked WC_Structured_Data::output_structured_data() Outputs structured data.
- * @since 2.5.0
+ * Output Email details for a Shipment.
+ *
+ * @hooked \Vendidero\Germanized\Shipments\Email::email_tracking() Adds tracking info.
+ * @hooked \Vendidero\Germanized\Shipments\Email::email_address() Adds shipping address.
+ * @hooked \Vendidero\Germanized\Shipments\Email::email_details() Adds shipment table.
+ *
+ * @param \Vendidero\Germanized\Shipments\Shipment $shipment The shipment instance.
+ * @param boolean                                  $sent_to_admin Whether to send this email to admin or not.
+ * @param boolean                                  $plain_text Whether this email is in plaintext format or not.
+ * @param WC_Email                                 $email The email instance.
+ *
+ * @since 3.0.0
  */
 do_action( 'woocommerce_gzd_email_shipment_details', $shipment, $sent_to_admin, $plain_text, $email );
 

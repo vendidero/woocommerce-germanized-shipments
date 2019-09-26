@@ -1,18 +1,17 @@
 <?php
 /**
- * Order details table shown in emails.
+ * Email Shipment details
  *
- * This template can be overridden by copying it to yourtheme/woocommerce/emails/email-order-details.php.
+ * This template can be overridden by copying it to yourtheme/woocommerce-germanized/emails/email-shipment-details.php.
  *
- * HOWEVER, on occasion WooCommerce will need to update template files and you
+ * HOWEVER, on occasion Germanized will need to update template files and you
  * (the theme developer) will need to copy the new files to your theme to
  * maintain compatibility. We try to do this as little as possible, but it does
  * happen. When this occurs the version of the template file will be bumped and
  * the readme will list any important changes.
  *
- * @see https://docs.woocommerce.com/document/template-structure/
- * @package WooCommerce/Templates/Emails
- * @version 3.3.1
+ * @package Germanized/Shipments/Templates/Emails
+ * @version 1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -21,6 +20,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $text_align = is_rtl() ? 'right' : 'left';
 
+/*
+ * Action that fires before outputting a Shipment's table in an Email.
+ *
+ * @param \Vendidero\Germanized\Shipments\Shipment $shipment The shipment instance.
+ * @param boolean                                  $sent_to_admin Whether to send this email to admin or not.
+ * @param boolean                                  $plain_text Whether this email is in plaintext format or not.
+ * @param WC_Email                                 $email The email instance.
+ *
+ * @since 3.0.0
+ */
 do_action( 'woocommerce_gzd_email_before_shipment_table', $shipment, $sent_to_admin, $plain_text, $email ); ?>
 
 <h2>
@@ -59,4 +68,15 @@ do_action( 'woocommerce_gzd_email_before_shipment_table', $shipment, $sent_to_ad
     </table>
 </div>
 
-<?php do_action( 'woocommerce_gzd_email_after_shipment_table', $shipment, $sent_to_admin, $plain_text, $email ); ?>
+<?php
+/*
+ * Action that fires after outputting a Shipment's table in an Email.
+ *
+ * @param \Vendidero\Germanized\Shipments\Shipment $shipment The shipment instance.
+ * @param boolean                                  $sent_to_admin Whether to send this email to admin or not.
+ * @param boolean                                  $plain_text Whether this email is in plaintext format or not.
+ * @param WC_Email                                 $email The email instance.
+ *
+ * @since 3.0.0
+ */
+do_action( 'woocommerce_gzd_email_after_shipment_table', $shipment, $sent_to_admin, $plain_text, $email ); ?>

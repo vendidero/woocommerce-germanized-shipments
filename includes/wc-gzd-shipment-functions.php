@@ -11,6 +11,9 @@
 use Vendidero\Germanized\Shipments\Order;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\AddressSplitter;
+use Vendidero\Germanized\Shipments\ShipmentFactory;
+use Vendidero\Germanized\Shipments\ShipmentItem;
+use Vendidero\Germanized\Shipments\SimpleShipment;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -31,6 +34,26 @@ function wc_gzd_get_shipment_order( $order ) {
     return false;
 }
 
+/**
+ * Get shipment type data by type.
+ *
+ * @param  string $type type name.
+ * @return bool|array Details about the shipment type.
+ */
+function wc_gzd_get_shipment_type_data( $type ) {
+	$types = array(
+		'simple' => array(
+			'class_name' => '\Vendidero\Germanized\Shipments\SimpleShipment'
+		),
+	);
+
+	if ( $type && array_key_exists( $type, $types ) ) {
+		return $types[ $type ];
+	} else {
+		return $types['simple'];
+	}
+}
+
 function wc_gzd_get_shipments_by_order( $order ) {
 	$shipments = array();
 
@@ -48,6 +71,14 @@ function wc_gzd_get_shipment_order_shipping_statuses() {
         'gzd-shipped'           => _x( 'Shipped', 'shipments', 'woocommerce-germanized-shipments' ),
     );
 
+	/**
+	 * Filter to adjust or add order shipping statuses.
+	 * An order might retrieve a shipping status e.g. not shipped.
+	 *
+	 * @param array $shipment_statuses Available order shipping statuses.
+	 *
+	 * @since 3.0.0
+	 */
     return apply_filters( 'woocommerce_gzd_order_shipping_statuses', $shipment_statuses );
 }
 
@@ -63,77 +94,47 @@ function wc_gzd_get_shipment_order_shipping_status_name( $status ) {
         $status_name = $statuses[ $status ];
     }
 
+	/**
+	 * Filter to adjust the status name for a certain order shipping status.
+	 *
+	 * @see wc_gzd_get_shipment_order_shipping_statuses()
+	 *
+	 * @param string $status_name The status name.
+	 * @param string $status The shipping status.
+	 *
+	 * @since 3.0.0
+	 */
     return apply_filters( 'woocommerce_gzd_order_shipping_status_name', $status_name, $status );
 }
 
 /**
  * Standard way of retrieving shipments based on certain parameters.
  *
- * @since  2.6.0
  * @param  array $args Array of args (above).
- * @return WC_GZD_Shipment[]|stdClass Number of pages and an array of order objects if
- *                             paginate is true, or just an array of values.
+ *
+ * @return Shipment[] The shipments found.
+ *@since  3.0.0
  */
 function wc_gzd_get_shipments( $args ) {
     $query = new Vendidero\Germanized\Shipments\ShipmentQuery( $args );
+
     return $query->get_shipments();
 }
 
 /**
  * Main function for returning shipments.
  *
- * @since  2.2
- *
  * @param  mixed $the_shipment Object or shipment id.
  *
- * @return bool|Shipment
+ * @return bool|SimpleShipment|Shipment
  */
-function wc_gzd_get_shipment( $the_shipment = false ) {
-    $shipment_id = wc_gzd_get_shipment_id( $the_shipment );
-
-    if ( ! $shipment_id ) {
-        return false;
-    }
-
-    // Filter classname so that the class can be overridden if extended.
-    $classname = apply_filters( 'woocommerce_gzd_shipment_class', 'Vendidero\Germanized\Shipments\Shipment', $shipment_id );
-
-    if ( ! class_exists( $classname ) ) {
-        return false;
-    }
-
-    try {
-        return new $classname( $shipment_id );
-    } catch ( Exception $e ) {
-        wc_caught_exception( $e, __FUNCTION__, func_get_args() );
-        return false;
-    }
-}
-
-/**
- * Get the order ID depending on what was passed.
- *
- * @since 3.0.0
- * @param  mixed $order Order data to convert to an ID.
- * @return int|bool false on failure
- */
-function wc_gzd_get_shipment_id( $shipment ) {
-    if ( is_numeric( $shipment ) ) {
-        return $shipment;
-    } elseif ( $shipment instanceof Vendidero\Germanized\Shipments\Shipment ) {
-        return $shipment->get_id();
-    } elseif ( ! empty( $shipment->shipment_id ) ) {
-        return $shipment->shipment_id;
-    } else {
-        return false;
-    }
+function wc_gzd_get_shipment( $the_shipment ) {
+    return ShipmentFactory::get_shipment( $the_shipment );
 }
 
 /**
  * Get all shipment statuses.
  *
- * @since 2.2
- * @used-by WC_Order::set_status
  * @return array
  */
 function wc_gzd_get_shipment_statuses() {
@@ -145,6 +146,13 @@ function wc_gzd_get_shipment_statuses() {
         'gzd-returned'   => _x( 'Returned', 'shipments', 'woocommerce-germanized-shipments' ),
     );
 
+	/**
+	 * Add or adjust available Shipment statuses.
+	 *
+	 * @param array $shipment_statuses The available shipment statuses.
+	 *
+	 * @since 3.0.0
+	 */
     return apply_filters( 'woocommerce_gzd_shipment_statuses', $shipment_statuses );
 }
 
@@ -170,7 +178,11 @@ function wc_gzd_create_shipment( $order_shipment, $args = array() ) {
 	        'props' => array(),
         ) );
 
-        $shipment = new Vendidero\Germanized\Shipments\Shipment();
+        $shipment = ShipmentFactory::get_shipment( false, 'simple' );
+
+        if ( ! $shipment ) {
+	        throw new Exception( _x( 'Error while creating the shipment instance', 'shipments', 'woocommerce-germanized-shipments' ) );
+        }
 
         wc_gzd_sync_shipment( $order_shipment, $shipment, $args['props'] );
         wc_gzd_sync_shipment_items( $order_shipment, $shipment, $args );
@@ -204,6 +216,14 @@ function wc_gzd_create_shipment_item( $order_item, $args = array() ) {
 }
 
 function wc_gzd_get_shipment_editable_statuses() {
+	/**
+	 * Filter that allows to adjust Shipment statuses which decide upon whether
+	 * a Shipment is editable or not.
+	 *
+	 * @param array $statuses Statuses which should be considered as editable.
+	 *
+	 * @since 3.0.0
+	 */
     return apply_filters( 'woocommerce_gzd_shipment_editable_statuses', array( 'draft', 'processing' ) );
 }
 
@@ -225,6 +245,13 @@ function wc_gzd_split_shipment_street( $streetStr ) {
 }
 
 function wc_gzd_get_shipping_providers() {
+	/**
+	 * Filter that allows third-parties to add custom shipping providers (e.g. DHL) to Shipments.
+	 *
+	 * @param array $providers Array containing key => value pairs of providers and their title or description.
+	 *
+	 * @since 3.0.0
+	 */
 	return apply_filters( 'woocommerce_gzd_shipping_providers', array() );
 }
 
@@ -237,6 +264,14 @@ function wc_gzd_get_shipping_provider_title( $slug ) {
 		$title = $slug;
 	}
 
+	/**
+	 * Filter to adjust the title of a certain shipping provider e.g. DHL.
+	 *
+	 * @param string  $title The shipping provider title.
+	 * @param string  $slug The shipping provider slug.
+	 *
+	 * @since 3.0.0
+	 */
 	return apply_filters( 'woocommerce_gzd_shipping_provider_title', $title, $slug );
 }
 
@@ -287,6 +322,16 @@ function wc_gzd_sync_shipment( $order_shipment, &$shipment, $args = array() ) {
 
         $shipment->set_props( $args );
 
+	    /**
+	     * Action that fires after a shipment has been synced. Syncing is used to
+	     * keep the shipment in sync with the corresponding order.
+	     *
+	     * @param Shipment $shipment The shipment object.
+	     * @param Order $order_shipment The shipment order object.
+	     * @param array                                    $args Array containing properties in key => value pairs to be updated.
+	     *
+	     * @since 3.0.0
+	     */
         do_action( 'woocommerce_gzd_shipment_synced', $shipment, $order_shipment, $args );
 
     } catch ( Exception $e ) {
@@ -312,6 +357,14 @@ function wc_gzd_get_shipment_order_shipping_method_id( $order ) {
 		}
 	}
 
+	/**
+	 * Allows adjusting the shipping method id for a certain Order.
+	 *
+	 * @param string   $id The shipping method id.
+	 * @param WC_Order $order The order object.
+	 *
+	 * @since 3.0.0
+	 */
 	return apply_filters( 'woocommerce_gzd_shipment_order_shipping_method_id', $id, $order );
 }
 
@@ -389,6 +442,15 @@ function wc_gzd_sync_shipment_items( $order_shipment, &$shipment, $args = array(
             }
         }
 
+	    /**
+	     * Action that fires after items of a shipment have been synced.
+	     *
+	     * @param Shipment $shipment The shipment object.
+	     * @param Order $order_shipment The shipment order object.
+	     * @param array                                    $args Array containing additional data e.g. items.
+	     *
+	     * @since 3.0.0
+	     */
 	    do_action( 'woocommerce_gzd_shipment_items_synced', $shipment, $order_shipment, $args );
 
     } catch ( Exception $e ) {
@@ -423,6 +485,16 @@ function wc_gzd_sync_shipment_item( &$item, $order_item, $args = array() ) {
 
     $item->set_props( $args );
 
+	/**
+	 * Action that fires after a shipment item has been synced. Syncing is used to
+	 * keep the shipment item in sync with the corresponding order item.
+	 *
+	 * @param ShipmentItem $item The shipment item object.
+	 * @param WC_Order_Item                                $order_item The order item object.
+	 * @param array                                        $args Array containing props in key => value pairs which have been updated.
+	 *
+	 * @since 3.0.0
+	 */
 	do_action( 'woocommerce_gzd_shipment_item_synced', $item, $order_item, $args );
 }
 
@@ -438,10 +510,25 @@ function wc_gzd_get_shipment_status_name( $status ) {
         $status_name = $statuses[ $status ];
     }
 
+	/**
+	 * Filter to adjust the shipment status name or title.
+	 *
+	 * @param string  $status_name The status name or title.
+	 * @param integer $status The status slug.
+	 *
+	 * @since 3.0.0
+	 */
     return apply_filters( 'woocommerce_gzd_shipment_status_name', $status_name, $status );
 }
 
 function wc_gzd_get_shipment_sent_stati() {
+	/**
+	 * Filter to adjust which Shipment statuses should be considered as sent.
+	 *
+	 * @param array $statuses An array of statuses considered as shipped,
+	 *
+	 * @since 3.0.0
+	 */
     return apply_filters( 'woocommerce_gzd_shipment_sent_stati', array(
         'shipped',
         'delivered',
@@ -514,7 +601,14 @@ function wc_gzd_get_shipment_item( $the_item = false ) {
         return false;
     }
 
-    // Filter classname so that the class can be overridden if extended.
+	/**
+	 * Filter to adjust the classname used to construct a ShipmentItem.
+	 *
+	 * @param string  $classname The classname to be used.
+	 * @param integer $item_id The shipment item id.
+	 *
+	 * @since 3.0.0
+	 */
     $classname = apply_filters( 'woocommerce_gzd_shipment_item_class', 'Vendidero\Germanized\Shipments\ShipmentItem', $item_id );
 
     if ( ! class_exists( $classname ) ) {
@@ -564,6 +658,14 @@ function wc_gzd_format_shipment_dimensions( $dimensions ) {
         $dimension_string = _x( 'N/A', 'shipments', 'woocommerce-germanized-shipments' );
     }
 
+	/**
+	 * Filter to adjust the format of Shipment dimensions e.g. LxBxH.
+	 *
+	 * @param string  $dimension_string The dimension string.
+	 * @param array   $dimensions Array containing the dimensions.
+	 *
+	 * @since 3.0.0
+	 */
     return apply_filters( 'woocommerce_gzd_format_shipment_dimensions', $dimension_string, $dimensions );
 }
 
@@ -583,5 +685,13 @@ function wc_gzd_format_shipment_weight( $weight ) {
         $weight_string = _x( 'N/A', 'shipments', 'woocommerce-germanized-shipments' );
     }
 
+	/**
+	 * Filter to adjust the format of Shipment weight.
+	 *
+	 * @param string  $weight_string The weight string.
+	 * @param string  $weight The Shipment weight.
+	 *
+	 * @since 3.0.0
+	 */
     return apply_filters( 'woocommerce_gzd_format_shipment_weight', $weight_string, $weight );
 }

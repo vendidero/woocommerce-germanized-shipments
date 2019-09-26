@@ -38,6 +38,13 @@ if ( ! function_exists( 'wc_gzd_get_email_shipment_items' ) ) {
 
         wc_get_template(
             $template,
+	        /**
+	         * Filter to adjust the arguments passed to retrieving ShipmentItems for display in an Email.
+	         *
+	         * @param array $args Array containing the arguments passed.
+	         *
+	         * @since 3.0.0
+	         */
             apply_filters(
                 'woocommerce_gzd_email_shipment_items_args',
                 array(

@@ -1,8 +1,8 @@
 <?php
 /**
- * Class WC_Email_Customer_Refunded_Order file.
+ * Class WC_GZD_Email_Customer_Shipment file.
  *
- * @package WooCommerce\Emails
+ * @package Vendidero/Germanized/Shipments/Emails
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,17 +10,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use Vendidero\Germanized\Shipments\Package;
+use Vendidero\Germanized\Shipments\Shipment;
 
 if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
 
     /**
-     * Customer Refunded Order Email.
+     * Customer Shipment notification.
      *
-     * Order refunded emails are sent to the customer when the order is marked refunded.
+     * Shipment notification are sent as soon as a shipment is marked as shipped.
      *
-     * @class    WC_Email_Customer_Refunded_Order
-     * @version  3.5.0
-     * @package  WooCommerce/Classes/Emails
+     * @class    WC_GZD_Email_Customer_Shipment
+     * @version  1.0.0
+     * @package  Vendidero/Germanized/Shipments/Emails
      * @extends  WC_Email
      */
     class WC_GZD_Email_Customer_Shipment extends WC_Email {
@@ -28,7 +29,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
         /**
          * Shipment.
          *
-         * @var WC_GZD_Shipment|bool
+         * @var Shipment|bool
          */
         public $shipment;
 
@@ -77,7 +78,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
          */
         public function get_default_subject( $partial = false ) {
             if ( $partial ) {
-                return _x( 'Your {site_title} order #{order_number} has been shipped', 'shipments', 'woocommerce-germanized-shipments' );
+                return _x( 'Your {site_title} order #{order_number} has been partially shipped', 'shipments', 'woocommerce-germanized-shipments' );
             } else {
                 return _x( 'Your {site_title} order #{order_number} has been shipped', 'shipments', 'woocommerce-germanized-shipments' );
             }
@@ -92,7 +93,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
          */
         public function get_default_heading( $partial = false ) {
             if ( $partial ) {
-                return _x( 'Shipment to your order: {order_number}', 'shipments', 'woocommerce-germanized-shipments' );
+                return _x( 'Partial shipment to your order: {order_number}', 'shipments', 'woocommerce-germanized-shipments' );
             } else {
                 return _x( 'Shipment to your order: {order_number}', 'shipments', 'woocommerce-germanized-shipments' );
             }
@@ -110,6 +111,14 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
                 $subject = $this->get_option( 'subject_full', $this->get_default_subject() );
             }
 
+	        /**
+	         * Filter to adjust the email subject for a shipped Shipment.
+	         *
+	         * @param string                         $subject The subject.
+	         * @param WC_GZD_Email_Customer_Shipment $email The email instance.
+	         *
+	         * @since 3.0.0
+	         */
             return apply_filters( 'woocommerce_email_subject_customer_shipment', $this->format_string( $subject ), $this->object );
         }
 
@@ -125,6 +134,14 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
                 $heading = $this->get_option( 'heading_full', $this->get_default_heading() );
             }
 
+	        /**
+	         * Filter to adjust the email heading for a shipped Shipment.
+	         *
+	         * @param string                         $heading The heading.
+	         * @param WC_GZD_Email_Customer_Shipment $email The email instance.
+	         *
+	         * @since 3.0.0
+	         */
             return apply_filters( 'woocommerce_email_heading_customer_shipment', $this->format_string( $heading ), $this->object );
         }
 

@@ -1,18 +1,22 @@
 <?php
-
+/**
+ * Regular shipment
+ *
+ * @package Vendidero\Germanized\Shipments
+ * @version 1.0.0
+ */
 namespace Vendidero\Germanized\Shipments;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
-use WC_Order;
 use WC_DateTime;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * DHL Shipment class.
+ * Shipment Class.
  */
-class Shipment extends WC_Data {
+abstract class Shipment extends WC_Data {
 
     /**
      * Stores data about status changes so relevant hooks can be fired.
@@ -24,7 +28,7 @@ class Shipment extends WC_Data {
     /**
      * This is the name of this object type.
      *
-     * @since 3.0.0
+     * @since 1.0.0
      * @var string
      */
     protected $object_type = 'shipment';
@@ -32,7 +36,7 @@ class Shipment extends WC_Data {
     /**
      * Contains a reference to the data store for this class.
      *
-     * @since 3.0.0
+     * @since 1.0.0
      * @var object
      */
     protected $data_store = 'shipment';
@@ -41,27 +45,52 @@ class Shipment extends WC_Data {
      * Stores meta in cache for future reads.
      * A group must be set to to enable caching.
      *
-     * @since 3.0.0
+     * @since 1.0.0
      * @var string
      */
     protected $cache_group = 'shipment';
 
-    /**
-     * @var WC_Order
-     */
-    private $order = null;
+	/**
+	 * The contained ShipmentItems.
+	 *
+	 * @var null|Shipment
+	 */
+	protected $items = null;
 
-    private $items = null;
+	/**
+	 * List of items to be deleted on save.
+	 *
+	 * @var Shipment[]
+	 */
+	protected $items_to_delete = array();
 
-    private $items_to_delete = array();
+	/**
+	 * Item weights.
+	 *
+	 * @var null|float[]
+	 */
+	protected $weights = null;
 
-    private $weights = null;
+	/**
+	 * Item lengths.
+	 *
+	 * @var null|float[]
+	 */
+	protected $lengths = null;
 
-    private $lengths = null;
+	/**
+	 * Item widths.
+	 *
+	 * @var null|integer[]
+	 */
+	protected $widths = null;
 
-    private $widths = null;
-
-    private $heights = null;
+	/**
+	 * Item heights.
+	 *
+	 * @var null|integer[]
+	 */
+	protected $heights = null;
 
     /**
      * Stores shipment data.
@@ -71,8 +100,6 @@ class Shipment extends WC_Data {
     protected $data = array(
         'date_created'          => null,
         'date_sent'             => null,
-        'est_delivery_date'     => null,
-        'order_id'              => 0,
         'status'                => '',
         'weight'                => '',
         'width'                 => '',
@@ -86,6 +113,12 @@ class Shipment extends WC_Data {
         'total'                 => 0,
     );
 
+	/**
+	 * Get the shipment if ID is passed, otherwise the shipment is new and empty.
+	 * This class should NOT be instantiated, but the `wc_gzd_get_shipment` function should be used.
+	 *
+	 * @param int|object|Shipment $shipment Shipment to read.
+	 */
     public function __construct( $data = 0 ) {
         parent::__construct( $data );
 
@@ -110,11 +143,13 @@ class Shipment extends WC_Data {
         }
     }
 
+    public function get_type() {
+    	return '';
+    }
+
     /**
      * Merge changes with data and clear.
      * Overrides WC_Data::apply_changes.
-     * array_replace_recursive does not work well for license because it merges domains registered instead
-     * of replacing them.
      *
      * @since 3.2.0
      */
@@ -129,6 +164,11 @@ class Shipment extends WC_Data {
         $this->changes = array();
     }
 
+	/**
+	 * Return item count (quantities summed up).
+	 *
+	 * @return int
+	 */
     public function get_item_count() {
         $items    = $this->get_items();
         $quantity = 0;
@@ -143,7 +183,6 @@ class Shipment extends WC_Data {
     /**
      * Prefix for action and filter hooks on data.
      *
-     * @since  3.0.0
      * @return string
      */
     protected function get_hook_prefix() {
@@ -151,7 +190,7 @@ class Shipment extends WC_Data {
     }
 
     /**
-     * Return the order statuses without wc- internal prefix.
+     * Return the shipment statuses without gzd- internal prefix.
      *
      * @param  string $context View or edit context.
      * @return string
@@ -160,21 +199,47 @@ class Shipment extends WC_Data {
         $status = $this->get_prop( 'status', $context );
 
         if ( empty( $status ) && 'view' === $context ) {
-            // In view context, return the default status if no status has been set.
-            $status = apply_filters( 'woocommerce_gzd_default_shipment_status', 'draft' );
+
+	        /**
+	         * Filters the default Shipment status used as fallback.
+	         *
+	         * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+	         * unique hook for a shipment type.
+	         *
+	         * Example hook name: woocommerce_gzd_shipment_get_default_shipment_status
+	         *
+	         * @param string $status Default fallback status.
+	         *
+	         * @since 3.0.0
+	         */
+            $status = apply_filters( "{$this->get_hook_prefix()}}default_shipment_status", 'draft' );
         }
 
         return $status;
     }
 
+	/**
+	 * Checks whether the shipment has a specific status or not.
+	 *
+	 * @param  string $status The status to be checked against.
+	 * @return boolean
+	 */
     public function has_status( $status ) {
+	    /**
+	     * Filter to decide whether a Shipment has a certain status or not.
+	     *
+	     * @param boolean                                  $has_status Whether the Shipment has a status or not.
+	     * @param Shipment $this The shipment object.
+	     * @param string                                   $status The status to be checked against.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_shipment_has_status', ( is_array( $status ) && in_array( $this->get_status(), $status, true ) ) || $this->get_status() === $status, $this, $status );
     }
 
     /**
-     * Return the date this license was created.
+     * Return the date this shipment was created.
      *
-     * @since  3.0.0
      * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
      * @return WC_DateTime|null object if the date is set or null if there is no date.
      */
@@ -183,9 +248,8 @@ class Shipment extends WC_Data {
     }
 
     /**
-     * Return the date this license was created.
+     * Return the date this shipment was sent.
      *
-     * @since  3.0.0
      * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
      * @return WC_DateTime|null object if the date is set or null if there is no date.
      */
@@ -194,38 +258,21 @@ class Shipment extends WC_Data {
     }
 
 	/**
-	 * Return the date this license was created.
+	 * Returns the shipment method.
 	 *
-	 * @since  3.0.0
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
-	 * @return WC_DateTime|null object if the date is set or null if there is no date.
+	 * @return string
 	 */
-	public function get_est_delivery_date( $context = 'view' ) {
-		return $this->get_prop( 'est_delivery_date', $context );
-	}
-
-    public function get_order_id( $context = 'view' ) {
-        return $this->get_prop( 'order_id', $context );
-    }
-
 	public function get_shipping_method( $context = 'view' ) {
 		return $this->get_prop( 'shipping_method', $context );
 	}
 
-	public function get_available_shipping_methods() {
-		$methods = array();
-
-		if ( $order = $this->get_order() ) {
-			$items = $order->get_shipping_methods();
-
-			foreach( $items as $item ) {
-				$methods[ $item->get_method_id() . ':' . $item->get_instance_id() ] = $item->get_name();
-			}
-		}
-
-		return $methods;
-	}
-
+	/**
+	 * Returns the shipment weight. In case view context was chosen and weight is not yet set, returns the content weight.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_weight( $context = 'view' ) {
         $weight = $this->get_prop( 'weight', $context );
 
@@ -236,6 +283,12 @@ class Shipment extends WC_Data {
         return $weight;
     }
 
+	/**
+	 * Returns the shipment length. In case view context was chosen and length is not yet set, returns the content length.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_length( $context = 'view' ) {
         $length = $this->get_prop( 'length', $context );
 
@@ -246,6 +299,12 @@ class Shipment extends WC_Data {
         return $length;
     }
 
+	/**
+	 * Returns the shipment width. In case view context was chosen and width is not yet set, returns the content width.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_width( $context = 'view' ) {
         $width = $this->get_prop( 'width', $context );
 
@@ -256,6 +315,12 @@ class Shipment extends WC_Data {
         return $width;
     }
 
+	/**
+	 * Returns the shipment height. In case view context was chosen and height is not yet set, returns the content height.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_height( $context = 'view' ) {
         $height = $this->get_prop( 'height', $context );
 
@@ -266,6 +331,11 @@ class Shipment extends WC_Data {
         return $height;
     }
 
+	/**
+	 * Returns the calculated weights for included items.
+	 *
+	 * @return float[]
+	 */
     public function get_item_weights() {
         if ( is_null( $this->weights ) ) {
             $this->weights = array();
@@ -282,6 +352,11 @@ class Shipment extends WC_Data {
         return $this->weights;
     }
 
+	/**
+	 * Returns the calculated lengths for included items.
+	 *
+	 * @return float[]
+	 */
     public function get_item_lengths() {
         if ( is_null( $this->lengths ) ) {
             $this->lengths = array();
@@ -298,6 +373,11 @@ class Shipment extends WC_Data {
         return $this->lengths;
     }
 
+	/**
+	 * Returns the calculated widths for included items.
+	 *
+	 * @return float[]
+	 */
     public function get_item_widths() {
         if ( is_null( $this->widths ) ) {
             $this->widths = array();
@@ -314,6 +394,11 @@ class Shipment extends WC_Data {
         return $this->widths;
     }
 
+	/**
+	 * Returns the calculated heights for included items.
+	 *
+	 * @return float[]
+	 */
     public function get_item_heights() {
         if ( is_null( $this->heights ) ) {
             $this->heights = array();
@@ -330,38 +415,99 @@ class Shipment extends WC_Data {
         return $this->heights;
     }
 
+	/**
+	 * Returns the calculated weight for included items.
+	 *
+	 * @return float
+	 */
     public function get_content_weight() {
         return wc_format_decimal( array_sum( $this->get_item_weights() ) );
     }
 
+	/**
+	 * Returns the calculated length for included items.
+	 *
+	 * @return float
+	 */
     public function get_content_length() {
         return wc_format_decimal( max( $this->get_item_lengths() ) );
     }
 
+	/**
+	 * Returns the calculated width for included items.
+	 *
+	 * @return float
+	 */
     public function get_content_width() {
         return wc_format_decimal( max( $this->get_item_widths() ) );
     }
 
+	/**
+	 * Returns the calculated height for included items.
+	 *
+	 * @return float
+	 */
     public function get_content_height() {
         return wc_format_decimal( max( $this->get_item_heights() ) );
     }
 
+	/**
+	 * Returns the shipping address properties.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string[]
+	 */
     public function get_address( $context = 'view' ) {
         return $this->get_prop( 'address', $context );
     }
 
+	/**
+	 * Returns the shipment total.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return float
+	 */
     public function get_total( $context = 'view' ) {
         return $this->get_prop( 'total', $context );
     }
 
+	/**
+	 * Returns the shipment tracking id.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_tracking_id( $context = 'view' ) {
         return $this->get_prop( 'tracking_id', $context );
     }
 
+	/**
+	 * Returns the shipment tracking URL.
+	 *
+	 * @return string
+	 */
 	public function get_tracking_url() {
-		return apply_filters( $this->get_hook_prefix() . 'tracking_url', '', $this );
+		/**
+		 * Filter to adjust a Shipment's tracking URL.
+		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type.
+		 *
+		 * Example hook name: woocommerce_gzd_shipment_get_tracking_url
+		 *
+		 * @param string                                   $tracking_url The tracking URL.
+		 * @param Shipment $this The shipment object.
+		 *
+		 * @since 3.0.0
+		 */
+		return apply_filters( "{$this->get_hook_prefix()}tracking_url", '', $this );
 	}
 
+	/**
+	 * Returns the shipment tracking instruction.
+	 *
+	 * @return string
+	 */
 	public function get_tracking_instruction() {
 		$instruction = '';
 
@@ -369,100 +515,231 @@ class Shipment extends WC_Data {
 			$instruction = sprintf( __( 'Your shipment is being processed by %s. If you want to track the shipment, please use the following tracking number: %s. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_provider_title( $this->get_shipping_provider() ), $this->get_tracking_id() );
 		}
 
-		return apply_filters( $this->get_hook_prefix() . 'tracking_instruction', $instruction, $this );
+		/**
+		 * Filter to adjust a Shipment's tracking instruction.
+		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type.
+		 *
+		 * Example hook name: woocommerce_gzd_shipment_get_tracking_instruction
+		 *
+		 * @param string                                   $instruction The tracking instruction.
+		 * @param Shipment $this The shipment object.
+		 *
+		 * @since 3.0.0
+		 */
+		return apply_filters( "{$this->get_hook_prefix()}tracking_instruction", $instruction, $this );
 	}
 
+	/**
+	 * Returns whether the current shipment has tracking instructions available or not.
+	 *
+	 * @return boolean
+	 */
 	public function has_tracking_instruction() {
     	$instruction = $this->get_tracking_instruction();
 
     	return ( ! empty( $instruction ) ) ? true : false;
 	}
 
+	/**
+	 * Returns the shipment shipping provider.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_shipping_provider( $context = 'view' ) {
 	    return $this->get_prop( 'shipping_provider', $context );
     }
 
+	/**
+	 * Returns the formatted shipping address.
+	 *
+	 * @param  string $empty_content Content to show if no address is present.
+	 * @return string
+	 */
     public function get_formatted_address( $empty_content = '' ) {
         $address = WC()->countries->get_formatted_address( $this->get_address() );
 
         return $address ? $address : $empty_content;
     }
 
+	/**
+	 * Returns the shipment address phone number.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_phone( $context = 'view' ) {
         return $this->get_address_prop( 'phone', $context );
     }
 
+	/**
+	 * Returns the shipment address email.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_email( $context = 'view' ) {
         return $this->get_address_prop( 'email', $context );
     }
 
+	/**
+	 * Returns the shipment address first line.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_address_1( $context = 'view' ) {
         return $this->get_address_prop( 'address_1', $context );
     }
 
+	/**
+	 * Returns the shipment address second line.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_address_2( $context = 'view' ) {
         return $this->get_address_prop( 'address_2', $context );
     }
 
+	/**
+	 * Returns the shipment address street number by splitting the address.
+	 *
+	 * @param  string $type The address type e.g. address_1 or address_2.
+	 *
+	 * @return string
+	 */
     public function get_address_street_number( $type = 'address_1' ) {
 	    $split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
 
 	    return $split['number'];
     }
 
+	/**
+	 * Returns the shipment address street without number by splitting the address.
+	 *
+	 * @param  string $type The address type e.g. address_1 or address_2.
+	 *
+	 * @return string
+	 */
 	public function get_address_street( $type = 'address_1' ) {
 		$split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
 
 		return $split['street'];
 	}
 
+	/**
+	 * Returns the shipment address company.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_company( $context = 'view' ) {
         return $this->get_address_prop( 'company', $context );
     }
 
+	/**
+	 * Returns the shipment address first name.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_first_name( $context = 'view' ) {
         return $this->get_address_prop( 'first_name', $context );
     }
 
+	/**
+	 * Returns the shipment address last name.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_last_name( $context = 'view' ) {
         return $this->get_address_prop( 'last_name', $context );
     }
 
+	/**
+	 * Returns the shipment address formatted full name.
+	 *
+	 * @return string
+	 */
     public function get_formatted_full_name() {
 	    return sprintf( _x( '%1$s %2$s', 'full name', 'woocommerce-germanized-shipments' ), $this->get_first_name(), $this->get_last_name() );
     }
 
+	/**
+	 * Returns the shipment address postcode.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_postcode( $context = 'view' ) {
         return $this->get_address_prop( 'postcode', $context );
     }
 
+	/**
+	 * Returns the shipment address city.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_city( $context = 'view' ) {
         return $this->get_address_prop( 'city', $context );
     }
 
+	/**
+	 * Returns the shipment address state.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_state( $context = 'view' ) {
         return $this->get_address_prop( 'state', $context );
     }
 
+	/**
+	 * Returns the shipment address country.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
     public function get_country( $context = 'view' ) {
         return $this->get_address_prop( 'country', $context ) ? $this->get_address_prop( 'country', $context ) : '';
     }
 
+	/**
+	 * Decides whether the shipment is sent to an external pickup or not.
+	 *
+	 * @param string[] $types
+	 *
+	 * @return boolean
+	 */
     public function send_to_external_pickup( $types ) {
         $types = is_array( $types ) ? $types : array( $types );
 
+	    /**
+	     * Filter to decide whether a Shipment is to be sent to a external pickup location
+	     * e.g. packstation.
+	     *
+	     * @param boolean                                  $external True if the Shipment goes to a pickup location.
+	     * @param array                                    $types Array containing the types to be checked agains.
+	     * @param Shipment $this The shipment object.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_shipment_send_to_external_pickup', false, $types, $this );
     }
 
-    /**
-     * Gets a prop for a getter method.
-     *
-     * @since  3.0.0
-     * @param  string $prop Name of prop to get.
-     * @param  string $address billing or shipping.
-     * @param  string $context What the value is for. Valid values are view and edit.
-     * @return mixed
-     */
+	/**
+	 * Returns an address prop.
+	 *
+	 * @param string $prop
+	 * @param string $context
+	 *
+	 * @return null|string
+	 */
     protected function get_address_prop( $prop, $context = 'view' ) {
         $value = null;
 
@@ -470,7 +747,20 @@ class Shipment extends WC_Data {
             $value = isset( $this->changes['address'][ $prop ] ) ? $this->changes['address'][ $prop ] : $this->data['address'][ $prop ];
 
             if ( 'view' === $context ) {
-                $value = apply_filters( $this->get_hook_prefix() . '_' . $prop, $value, $this );
+	            /**
+	             * Filter to adjust a Shipment's shipping address property e.g. first_name.
+	             *
+	             * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+	             * unique hook for a shipment type. `$prop` refers to the actual address property e.g. first_name.
+	             *
+	             * Example hook name: woocommerce_gzd_shipment_get_address_first_name
+	             *
+	             * @param string                                   $value The address property value.
+	             * @param Shipment $this The shipment object.
+	             *
+	             * @since 3.0.0
+	             */
+                $value = apply_filters( "{$this->get_hook_prefix()}address_{$prop}", $value, $this );
             }
         }
 
@@ -478,7 +768,7 @@ class Shipment extends WC_Data {
     }
 
     /**
-     * Returns formatted dimensions.
+     * Returns dimensions.
      *
      * @return string|array
      */
@@ -490,20 +780,43 @@ class Shipment extends WC_Data {
         );
     }
 
-    public function get_order() {
-        if ( is_null( $this->order ) ) {
-            $this->order = ( $this->get_order_id() > 0 ? wc_get_order( $this->get_order_id() ) : false );
-        }
-
-        return $this->order;
-    }
-
+	/**
+	 * Returns whether the shipment is editable or not.
+	 *
+	 * @return boolean
+	 */
     public function is_editable() {
+	    /**
+	     * Filter to dedice whether the current Shipment is still editable or not.
+	     *
+	     * @param boolean                                  $is_editable Whether the Shipment is editable or not.
+	     * @param Shipment $this The shipment object.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_shipment_is_editable', $this->has_status( wc_gzd_get_shipment_editable_statuses() ), $this );
     }
 
+	/**
+	 * Returns the shipment number.
+	 *
+	 * @return string
+	 */
     public function get_shipment_number() {
-        return (string) apply_filters( 'woocommerce_gzd_get_shipment_number', $this->get_id(), $this );
+	    /**
+	     * Filter to adjust a Shipment's number.
+	     *
+	     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+	     * unique hook for a shipment type.
+	     *
+	     * Example hook name: woocommerce_gzd_shipment_get_shipment_number
+	     *
+	     * @param string                                   $number The shipment number.
+	     * @param Shipment $this The shipment object.
+	     *
+	     * @since 3.0.0
+	     */
+        return (string) apply_filters( "{$this->get_hook_prefix()}shipment_number", $this->get_id(), $this );
     }
 
     /*
@@ -513,11 +826,11 @@ class Shipment extends WC_Data {
     */
 
     /**
-     * Set order status.
+     * Set shipment status.
      *
-     * @since 3.0.0
-     * @param string $new_status Status to change the order to. No internal wc- prefix is required.
-     * @return array details of change
+     * @param string  $new_status Status to change the shipment to. No internal gzd- prefix is required.
+     * @param boolean $manual_update Whether it is a manual status update or not.
+     * @return array  details of change
      */
     public function set_status( $new_status, $manual_update = false ) {
         $old_status = $this->get_status();
@@ -538,6 +851,14 @@ class Shipment extends WC_Data {
             );
 
             if ( $manual_update ) {
+	            /**
+	             * Action that fires after a shipment status has been updated manually.
+	             *
+	             * @param integer $shipment_id The shipment id.
+	             * @param string  $status The new shipment status.
+	             *
+	             * @since 3.0.0
+	             */
                 do_action( 'woocommerce_gzd_shipment_edit_status', $this->get_id(), $result['to'] );
             }
 
@@ -548,20 +869,13 @@ class Shipment extends WC_Data {
     }
 
     /**
-     * Maybe set date paid.
+     * Maybe set date sent.
      *
-     * Sets the date paid variable when transitioning to the payment complete
-     * order status. This is either processing or completed. This is not filtered
-     * to avoid infinite loops e.g. if loading an order via the filter.
-     *
-     * Date paid is set once in this manner - only when it is not already set.
-     * This ensures the data exists even if a gateway does not use the
-     * `payment_complete` method.
-     *
-     * @since 3.0.0
+     * Sets the date sent variable when transitioning to the shipped shipment status.
+     * Date sent is set once in this manner - only when it is not already set.
      */
     public function maybe_set_date_sent() {
-        // This logic only runs if the date_paid prop has not been set yet.
+        // This logic only runs if the date_sent prop has not been set yet.
         if ( ! $this->get_date_sent( 'edit' ) ) {
             $sent_stati = wc_gzd_get_shipment_sent_stati();
 
@@ -574,12 +888,12 @@ class Shipment extends WC_Data {
     }
 
     /**
-     * Updates status of order immediately.
+     * Updates status of shipment immediately.
      *
-     * @uses WC_Order::set_status()
-     * @param string $new_status    Status to change the order to. No internal wc- prefix is required.
-     * @param string $note          Optional note to add.
-     * @param bool   $manual        Is this a manual order status change?.
+     * @uses Shipment::set_status()
+     *
+     * @param string $new_status    Status to change the shipment to. No internal gzd- prefix is required.
+     * @param bool   $manual        Is this a manual order status change?
      * @return bool
      */
     public function update_status( $new_status, $manual = false ) {
@@ -604,9 +918,8 @@ class Shipment extends WC_Data {
     }
 
     /**
-     * Set the date this license was last updated.
+     * Set the date this shipment was created.
      *
-     * @since  1.0.0
      * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
      */
     public function set_date_created( $date = null ) {
@@ -614,9 +927,8 @@ class Shipment extends WC_Data {
     }
 
     /**
-     * Set the date this license was last updated.
+     * Set the date this shipment was sent.
      *
-     * @since  1.0.0
      * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
      */
     public function set_date_sent( $date = null ) {
@@ -624,39 +936,73 @@ class Shipment extends WC_Data {
     }
 
 	/**
-	 * Set the date this license was last updated.
+	 * Set the date this shipment will be delivered.
 	 *
-	 * @since  1.0.0
 	 * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
 	 */
 	public function set_est_delivery_date( $date = null ) {
 		$this->set_date_prop( 'est_delivery_date', $date );
 	}
 
+	/**
+	 * Set shipment weight.
+	 *
+	 * @param string $weight The weight.
+	 */
     public function set_weight( $weight ) {
         $this->set_prop( 'weight', '' === $weight ? '' : wc_format_decimal( $weight ) );
     }
 
+	/**
+	 * Set shipment width.
+	 *
+	 * @param string $width The width.
+	 */
     public function set_width( $width ) {
         $this->set_prop( 'width', '' === $width ? '' : wc_format_decimal( $width ) );
     }
 
+	/**
+	 * Set shipment length.
+	 *
+	 * @param string $length The length.
+	 */
     public function set_length( $length ) {
         $this->set_prop( 'length', '' === $length ? '' : wc_format_decimal( $length ) );
     }
 
+	/**
+	 * Set shipment height.
+	 *
+	 * @param string $height The height.
+	 */
     public function set_height( $height ) {
         $this->set_prop( 'height', '' === $height ? '' : wc_format_decimal( $height ) );
     }
 
+	/**
+	 * Set shipment address.
+	 *
+	 * @param string[] $address The address props.
+	 */
     public function set_address( $address ) {
         $this->set_prop( 'address', empty( $address ) ? array() : (array) $address );
     }
 
+	/**
+	 * Set shipment shipping method.
+	 *
+	 * @param string $method The shipping method.
+	 */
 	public function set_shipping_method( $method ) {
 		$this->set_prop( 'shipping_method', $method );
 	}
 
+	/**
+	 * Set shipment total.
+	 *
+	 * @param float|string $value The shipment total.
+	 */
     public function set_total( $value ) {
         $value = wc_format_decimal( $value );
 
@@ -667,6 +1013,11 @@ class Shipment extends WC_Data {
         $this->set_prop( 'total', $value );
     }
 
+	/**
+	 * Set shipment shipping country.
+	 *
+	 * @param string $country The country in ISO format.
+	 */
     public function set_country( $country ) {
         $address            = $this->get_address();
         $address['country'] = $country;
@@ -674,20 +1025,23 @@ class Shipment extends WC_Data {
         $this->set_address( $address );
     }
 
+	/**
+	 * Set shipment tracking id.
+	 *
+	 * @param string $tracking_id The trakcing id.
+	 */
     public function set_tracking_id( $tracking_id ) {
         $this->set_prop( 'tracking_id', $tracking_id );
     }
 
+	/**
+	 * Set shipment shipping provider.
+	 *
+	 * @param string $provider The shipping provider.
+	 */
 	public function set_shipping_provider( $provider ) {
 		$this->set_prop( 'shipping_provider', wc_gzd_get_shipping_provider_slug( $provider ) );
 	}
-
-    public function set_order_id( $order_id ) {
-        // Reset order object
-        $this->order = null;
-
-        $this->set_prop( 'order_id', absint( $order_id ) );
-    }
 
     /**
      * Return an array of items within this shipment.
@@ -705,64 +1059,28 @@ class Shipment extends WC_Data {
             $items = (array) $this->items;
         }
 
-        return apply_filters( 'woocommerce_gzd_shipment_get_items', $items, $this );
-    }
-
-    public function get_item_by_order_item_id( $order_item_id ) {
-        $items = $this->get_items();
-
-        foreach( $items as $item ) {
-            if ( $item->get_order_item_id() === $order_item_id ) {
-                return $item;
-            }
-        }
-
-        return false;
-    }
-
-    public function contains_order_item( $item_id ) {
-
-        if ( ! is_array( $item_id ) ) {
-            $item_id = array( $item_id );
-        }
-
-        $new_items = $item_id;
-
-        foreach( $item_id as $key => $order_item_id ) {
-
-            if ( is_a( $order_item_id, 'WC_Order_Item' ) ) {
-                $order_item_id   = $order_item_id->get_id();
-                $item_id[ $key ] = $order_item_id;
-            }
-
-            if ( $this->get_item_by_order_item_id( $order_item_id ) ) {
-                unset( $new_items[ $key ] );
-            }
-        }
-
-        $contains = empty( $new_items ) ? true : false;
-
-        return apply_filters( 'woocommerce_gzd_shipment_contains_order_item', $contains, $item_id );
-    }
-
-    public function needs_items( $available_items = false ) {
-
-        if ( ! $available_items && ( $order = wc_gzd_get_shipment_order( $this->get_order() ) ) ) {
-            $available_items = $order->get_available_items_for_shipment();
-        }
-
-        return ( $this->is_editable() && ! $this->contains_order_item( array_keys( $available_items ) ) );
+	    /**
+	     * Filter to adjust items belonging to a Shipment.
+	     *
+	     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+	     * unique hook for a shipment type.
+	     *
+	     * Example hook name: woocommerce_gzd_shipment_get_items
+	     *
+	     * @param string                                   $number The shipment number.
+	     * @param Shipment $this The shipment object.
+	     *
+	     * @since 3.0.0
+	     */
+        return apply_filters( "{$this->get_hook_prefix()}items", $items, $this );
     }
 
     /**
-     * Get's the URL to edit the order in the backend.
+     * Get's the URL to edit the shipment in the backend.
      *
-     * @since 3.3.0
      * @return string
      */
-    public function get_edit_shipment_url() {
-        return apply_filters( 'woocommerce_gzd_get_edit_shipment_url', get_admin_url( null, 'post.php?post=' . $this->get_order_id() . '&action=edit&shipment_id=' . $this->get_id() ), $this );
-    }
+    abstract public function get_edit_shipment_url();
 
     /**
      * Get an item object.
@@ -770,7 +1088,6 @@ class Shipment extends WC_Data {
      * @param  int  $item_id ID of item to get.
      *
      * @return ShipmentItem|false
-     * @since  3.0.0
      */
     public function get_item( $item_id ) {
         $items = $this->get_items();
@@ -829,6 +1146,9 @@ class Shipment extends WC_Data {
         $this->calculate_totals();
     }
 
+	/**
+	 * Reset item content data.
+	 */
     protected function reset_content_data() {
         $this->weights = null;
         $this->lengths = null;
@@ -847,16 +1167,66 @@ class Shipment extends WC_Data {
 
         if ( $status_transition ) {
             try {
+	            /**
+	             * Action that fires before a shipment status transition happens.
+	             *
+	             * @param integer                                  $shipment_id The shipment id.
+	             * @param Shipment $shipment The shipment object.
+	             *
+	             * @since 3.0.0
+	             */
 	            do_action( 'woocommerce_gzd_shipment_before_status_change', $this->get_id(), $this );
 
                 $status_to = $status_transition['to'];
 
+	            /**
+	             * Action that indicates shipment status change to a specific status.
+	             *
+	             * The dynamic portion of the hook name, `$status_to` refers to the new shipment status.
+	             *
+	             * Example hook name: `woocommerce_gzd_shipment_status_processing`
+	             *
+	             * @param integer                                  $shipment_id The shipment id.
+	             * @param Shipment $shipment The shipment object.
+	             *
+	             * @see wc_gzd_get_shipment_statuses()
+	             *
+	             * @since 3.0.0
+	             */
                 do_action( 'woocommerce_gzd_shipment_status_' . $status_to, $this->get_id(), $this );
 
                 if ( ! empty( $status_transition['from'] ) ) {
                     $status_from = $status_transition['from'];
 
+	                /**
+	                 * Action that indicates shipment status change from a specific status to a specific status.
+	                 *
+	                 * The dynamic portion of the hook name, `$status_from` refers to the old shipment status.
+	                 * `$status_to` refers to the new status.
+	                 *
+	                 * Example hook name: `woocommerce_gzd_shipment_status_processing_to_shipped`
+	                 *
+	                 * @param integer                                  $shipment_id The shipment id.
+	                 * @param Shipment $shipment The shipment object.
+	                 *
+	                 * @see wc_gzd_get_shipment_statuses()
+	                 *
+	                 * @since 3.0.0
+	                 */
                     do_action( 'woocommerce_gzd_shipment_status_' . $status_from . '_to_' . $status_to, $this->get_id(), $this );
+
+	                /**
+	                 * Action that indicates shipment status change.
+	                 *
+	                 * @param integer                                  $shipment_id The shipment id.
+	                 * @param string                                   $status_from The old shipment status.
+	                 * @param string                                   $status_to The new shipment status.
+	                 * @param Shipment $shipment The shipment object.
+	                 *
+	                 * @see wc_gzd_get_shipment_statuses()
+	                 *
+	                 * @since 3.0.0
+	                 */
                     do_action( 'woocommerce_gzd_shipment_status_changed', $this->get_id(), $status_from, $status_to, $this );
                 }
             } catch ( Exception $e ) {
@@ -883,7 +1253,7 @@ class Shipment extends WC_Data {
     }
 
     /**
-     * Save all order items which are part of this order.
+     * Save all items which are part of this shipment.
      */
     protected function save_items() {
         $items_changed = false;
@@ -911,6 +1281,9 @@ class Shipment extends WC_Data {
         }
     }
 
+	/**
+	 * Calculate totals based on contained items.
+	 */
     protected function calculate_totals() {
         $total = 0;
 
@@ -924,8 +1297,7 @@ class Shipment extends WC_Data {
     /**
      * Save data to the database.
      *
-     * @since 3.0.0
-     * @return int order ID
+     * @return integer shipment id
      */
     public function save() {
         try {

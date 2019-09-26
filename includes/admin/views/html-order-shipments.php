@@ -5,6 +5,8 @@
  * @package WooCommerce_Germanized/DHL/Admin
  */
 
+use Vendidero\Germanized\Shipments\Order;
+
 defined( 'ABSPATH' ) || exit;
 
 $active_shipment = isset( $active_shipment ) ? $active_shipment : false;
@@ -38,7 +40,15 @@ $active_shipment = isset( $active_shipment ) ? $active_shipment : false;
                     <button id="order-shipments-save" class="button button-primary" type="submit"><?php echo _x( 'Save', 'shipments', 'woocommere-germanized' ); ?></button>
                 </div>
 
-	            <?php do_action( 'woocommerce_gzd_shipments_meta_box_actions', $order_shipment ); ?>
+	            <?php
+	            /**
+	             * Action that fires in the action container for Shipments of a specific order.
+	             *
+	             * @param Order $order_shipment The shipment order object.
+	             *
+	             * @since 3.0.0
+	             */
+                do_action( 'woocommerce_gzd_shipments_meta_box_actions', $order_shipment ); ?>
             </div>
         </div>
     </div>

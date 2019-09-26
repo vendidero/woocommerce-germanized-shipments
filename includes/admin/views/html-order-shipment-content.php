@@ -5,13 +5,23 @@
  * @package WooCommerce_Germanized/Shipments/Admin
  */
 
+use Vendidero\Germanized\Shipments\Shipment;
+
 defined( 'ABSPATH' ) || exit;
 
 ?>
 
 <div class="shipment-content">
     <div class="columns">
-	    <?php do_action( 'woocommerce_gzd_shipment_admin_before_columns', $shipment ); ?>
+	    <?php
+	    /**
+	     * Action that fires before the first column of a Shipment's meta box is being outputted.
+	     *
+	     * @param Shipment $shipment The shipment object.
+	     *
+	     * @since 3.0.0
+	     */
+        do_action( 'woocommerce_gzd_shipment_admin_before_columns', $shipment ); ?>
 
         <div class="column col-6">
             <p class="form-row">
@@ -67,7 +77,15 @@ defined( 'ABSPATH' ) || exit;
                         <?php echo wc_help_tip( _x( 'Automatically adjust items and quantities based on order item data.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>
                     </div>
 
-	                <?php do_action( 'woocommerce_gzd_shipments_meta_box_shipment_item_actions', $shipment ); ?>
+	                <?php
+	                /**
+	                 * Action that fires in the item action container of a Shipment's meta box admin view.
+	                 *
+	                 * @param Shipment $shipment The shipment object.
+	                 *
+	                 * @since 3.0.0
+	                 */
+                    do_action( 'woocommerce_gzd_shipments_meta_box_shipment_item_actions', $shipment ); ?>
                 </div>
             </div>
 
@@ -114,7 +132,15 @@ defined( 'ABSPATH' ) || exit;
                 <div class="wc-backbone-modal-backdrop modal-close"></div>
             </script>
 
-	        <?php do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_left_column', $shipment ); ?>
+	        <?php
+	        /**
+	         * Action that fires after the left column of a Shipment's meta box admin view.
+	         *
+	         * @param Shipment $shipment The shipment object.
+	         *
+	         * @since 3.0.0
+	         */
+            do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_left_column', $shipment ); ?>
         </div>
         <div class="column col-6">
             <p class="form-row">
@@ -133,18 +159,42 @@ defined( 'ABSPATH' ) || exit;
             </p>
 
             <div class="columns">
-	            <?php do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_right_column', $shipment ); ?>
+	            <?php
+	            /**
+	             * Action that fires after the right column of a Shipment's meta box admin view.
+	             *
+	             * @param Shipment $shipment The shipment object.
+	             *
+	             * @since 3.0.0
+	             */
+                do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_right_column', $shipment ); ?>
             </div>
         </div>
 
-        <?php do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_fields', $shipment ); ?>
+        <?php
+        /**
+         * Action that fires after the fields of a  Shipment's meta box admin view have been rendered.
+         *
+         * @param Shipment $shipment The shipment object.
+         *
+         * @since 3.0.0
+         */
+        do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_fields', $shipment ); ?>
 
         <div class="column col-12 shipment-footer">
             <?php if ( $shipment->is_editable() ) : ?>
                 <a class="remove-shipment delete" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Delete shipment', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
             <?php endif; ?>
 
-	        <?php do_action( 'woocommerce_gzd_shipments_meta_box_shipment_actions', $shipment ); ?>
+	        <?php
+	        /**
+	         * Action that fires in the shipment action container of a Shipment's meta box admin view.
+	         *
+	         * @param Shipment $shipment The shipment object.
+	         *
+	         * @since 3.0.0
+	         */
+            do_action( 'woocommerce_gzd_shipments_meta_box_shipment_actions', $shipment ); ?>
         </div>
     </div>
 </div>

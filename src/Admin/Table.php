@@ -79,6 +79,14 @@ class Table extends WP_List_Table {
                     if ( $shipment = wc_gzd_get_shipment( $id ) ) {
                         $shipment->update_status( $new_status, true );
 
+	                    /**
+	                     * Action that fires after a shipment bulk status update has been processed.
+	                     *
+	                     * @param integer $shipment_id The shipment id.
+	                     * @param string  $new_status The new shipment status.
+	                     *
+	                     * @since 3.0.0
+	                     */
                         do_action( 'woocommerce_gzd_shipment_edit_status', $id, $new_status );
                         $changed++;
                     }
@@ -93,6 +101,16 @@ class Table extends WP_List_Table {
             }
         }
 
+	    /**
+	     * Filter to decide whether a Shipment has changed during bulk action or not.
+	     *
+	     * @param boolean                                     $changed Whether the Shipment has changed or not.
+         * @param string                                      $action The bulk action
+         * @param string                                      $redirect_to The redirect URL.
+         * @param Table $table The table instance.
+	     *
+	     * @since 3.0.0
+	     */
         $changed = apply_filters( 'woocommerce_gzd_shipments_bulk_action', $changed, $action, $ids, $redirect_to, $this );
 
         if ( $changed ) {
@@ -146,6 +164,15 @@ class Table extends WP_List_Table {
             }
         }
 
+	    /**
+	     * Action that fires after bulk updating shipments. Action might be usefull to add
+         * custom notices after custom bulk actions have been applied.
+	     *
+	     * @param string                                      $bulk_action The bulk action.
+	     * @param Table $shipment_table The table object.
+	     *
+	     * @since 3.0.0
+	     */
         do_action( 'woocommerce_gzd_shipments_bulk_notice', $bulk_action, $this );
     }
 
@@ -178,6 +205,14 @@ class Table extends WP_List_Table {
 
         $per_page        = $this->get_items_per_page( 'woocommerce_page_wc_gzd_shipments_per_page', 10 );
 
+	    /**
+	     * Filter to adjust Shipment's table items per page.
+	     *
+	     * @param integer $per_page Number of Shipments per page.
+         * @param string  $type The type in this case shipment.
+	     *
+	     * @since 3.0.0
+	     */
         $per_page        = apply_filters( 'woocommerce_gzd_shipments_edit_per_page', $per_page, 'shipment' );
         $this->stati     = wc_gzd_get_shipment_statuses();
         $this->counts    = wc_gzd_get_shipment_counts();
@@ -475,8 +510,16 @@ class Table extends WP_List_Table {
                 <?php endif; ?>
 
                 <?php
-                    do_action( "woocommerce_gzd_shipments_bulk_action_{$bulk_action}_handled", $handler, $bulk_action );
-			        $handler->reset();
+			    /**
+			     * Action that fires after a certain bulk action result has been rendered.
+			     *
+			     * @param BulkActionHandler $bulk_action_handler The bulk action handler.
+			     * @param string                                                  $bulk_action The bulk action.
+			     *
+			     * @since 3.0.0
+			     */
+                do_action( "woocommerce_gzd_shipments_bulk_action_{$bulk_action}_handled", $handler, $bulk_action );
+                $handler->reset();
                 ?>
             <?php endif; ?>
             <?php
@@ -500,21 +543,14 @@ class Table extends WP_List_Table {
                 $this->months_dropdown( 'shipment' );
                 $this->order_filter();
 
-                /**
-                 * Fires before the Filter button on the Posts and Pages list tables.
-                 *
-                 * The Filter button allows sorting by date and/or category on the
-                 * Posts list table, and sorting by date on the Pages list table.
-                 *
-                 * @since 2.1.0
-                 * @since 4.4.0 The `$post_type` parameter was added.
-                 * @since 4.6.0 The `$which` parameter was added.
-                 *
-                 * @param string $post_type The post type slug.
-                 * @param string $which     The location of the extra table nav markup:
-                 *                          'top' or 'bottom' for WP_Posts_List_Table,
-                 *                          'bar' for WP_Media_List_Table.
-                 */
+	            /**
+	             * Action that fires after outputting Shipments table view filters.
+                 * Might be used to add custom filters to the Shipments table view.
+	             *
+	             * @param string $which top or bottom.
+	             *
+	             * @since 3.0.0
+	             */
                 do_action( 'woocommerce_gzd_shipments_filters', $which );
 
                 $output = ob_get_clean();
@@ -528,14 +564,6 @@ class Table extends WP_List_Table {
             ?>
         </div>
         <?php
-        /**
-         * Fires immediately following the closing "actions" div in the tablenav for the posts
-         * list table.
-         *
-         * @since 4.4.0
-         *
-         * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
-         */
         do_action( 'manage_posts_extra_tablenav', $which );
     }
 
@@ -582,12 +610,11 @@ class Table extends WP_List_Table {
         $columns['actions']    = _x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' );
 
         /**
-         * Filters the columns displayed in the Posts list table.
+         * Filters the columns displayed in the Shipments list table.
          *
-         * @since 1.5.0
+         * @since 3.0.0
          *
-         * @param string[] $post_columns An associative array of column headings.
-         * @param string   $post_type    The post type slug.
+         * @param string[] $columns An associative array of column headings.
          */
         $columns = apply_filters( 'woocommerce_gzd_manage_shipments_columns', $columns );
 
@@ -626,15 +653,12 @@ class Table extends WP_List_Table {
     public function column_default( $shipment, $column_name ) {
 
         /**
-         * Fires in each custom column in the Posts list table.
+         * Fires in each custom column in the Shipments list table.
          *
-         * This hook only fires if the current post type is non-hierarchical,
-         * such as posts.
+         * @since 3.0.0
          *
-         * @since 1.5.0
-         *
-         * @param string $column_name The name of the column to display.
-         * @param int    $post_id     The current post ID.
+         * @param string  $column_name The name of the column to display.
+         * @param integer $shipment_id     The current shipment id.
          */
         do_action( 'woocommerce_gzd_manage_shipments_custom_column', $column_name, $shipment->get_id() );
     }
@@ -666,6 +690,13 @@ class Table extends WP_List_Table {
 	protected function column_actions( $shipment ) {
 		echo '<p>';
 
+		/**
+		 * Action that fires before table actions are outputted for a Shipment.
+		 *
+		 * @param Shipment $shipment The shipment object.
+		 *
+		 * @since 3.0.0
+		 */
 		do_action( 'woocommerce_gzd_shipments_table_actions_start', $shipment );
 
 		$actions = array();
@@ -686,10 +717,25 @@ class Table extends WP_List_Table {
 			);
 		}
 
+		/**
+		 * Filters the actions available for Shipments table list column.
+		 *
+		 * @param array                                    $actions The registered Shipment actions.
+         * @param Shipment $shipment The shipment object.
+		 *
+		 * @since 3.0.0
+		 */
 		$actions = apply_filters( 'woocommerce_gzd_shipments_table_actions', $actions, $shipment );
 
 		echo wc_gzd_render_shipment_action_buttons( $actions ); // WPCS: XSS ok.
 
+		/**
+		 * Action that fires after table actions are outputted for a Shipment.
+		 *
+		 * @param Shipment $shipment The shipment object.
+		 *
+		 * @since 3.0.0
+		 */
 		do_action( 'woocommerce_gzd_shipments_table_actions_end', $shipment );
 
 		echo '</p>';
@@ -805,6 +851,13 @@ class Table extends WP_List_Table {
                 human_time_diff( $shipment->get_date_created()->getTimestamp(), current_time( 'timestamp', true ) )
             );
         } else {
+	        /**
+	         * Filter to adjust the Shipment date format in table view.
+	         *
+	         * @param string $format The date format.
+	         *
+	         * @since 3.0.0
+	         */
             $show_date = $shipment->get_date_created()->date_i18n( apply_filters( 'woocommerce_gzd_admin_shipment_date_format', _x( 'M j, Y', 'shipments', 'woocommerce-germanized-shipments' ) ) );
         }
 
@@ -859,6 +912,13 @@ class Table extends WP_List_Table {
         $actions['mark_shipped']    = _x( 'Change status to shipped', 'shipments', 'woocommerce' );
         $actions['mark_delivered']  = _x( 'Change status to delivered', 'shipments', 'woocommerce-germanized-shipments' );
 
+	    /**
+	     * Filter to register addtional Shipment bulk actions.
+	     *
+	     * @param array $actions Array containing key => value pairs.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_shipments_bulk_actions', $actions );
     }
 

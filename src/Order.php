@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments;
 use WC_Order;
 use WC_Customer;
+use WC_Order_Item;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -99,6 +100,17 @@ class Order {
 
                     // Order item does not exist
                     if ( ! isset( $order_items[ $item->get_order_item_id() ] ) ) {
+
+	                    /**
+	                     * Filter to decide whether to keep non-existing OrderItems within
+	                     * the Shipment while validating or not.
+	                     *
+	                     * @param boolean                                      $keep Whether to keep non-existing OrderItems or not.
+	                     * @param ShipmentItem $item The shipment item object.
+	                     * @param Shipment $shipment The shipment object.
+	                     *
+	                     * @since 3.0.0
+	                     */
                         if ( ! apply_filters( 'woocommerce_gzd_shipment_order_keep_non_order_item', false, $item, $shipment ) ) {
                             $shipment->remove_item( $item->get_id() );
                         }
@@ -222,6 +234,15 @@ class Order {
             $quantity_left = 0;
         }
 
+	    /**
+	     * Filter to adjust the quantity left for shipment of a specific order item.
+	     *
+	     * @param integer                                      $quantity_left The quantity left for shipment.
+	     * @param WC_Order_Item                                $order_item The order item object.
+	     * @param Order $this The shipment order object.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_item_quantity_left_for_shipping', $quantity_left, $order_item, $this );
     }
 
@@ -271,6 +292,16 @@ class Order {
             $needs_shipping = true;
         }
 
+	    /**
+	     * Filter to decide whether an order item needs shipping or not.
+	     *
+	     * @param boolean                               $needs_shipping Whether the item needs shipping or not.
+	     * @param WC_Order_Item                        $item The order item object.
+	     * @param array                                 $args Additional arguments to be considered.
+	     * @param Order $order The shipment order object.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_item_needs_shipping', $needs_shipping, $order_item, $args, $this );
     }
 
@@ -295,6 +326,16 @@ class Order {
 
         $items = array_filter( $items );
 
+	    /**
+	     * Filter to adjust shippable order items for a specific order.
+	     * By default excludes virtual items.
+	     *
+	     * @param WC_Order_Item[]                       $items Array containing shippable order items.
+	     * @param WC_Order                              $order The order object.
+	     * @param Order $order The shipment order object.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_shippable_items', $items, $this->get_order(), $this );
     }
 
@@ -308,6 +349,15 @@ class Order {
 
         $quantity_left = $order_item->get_quantity() - $refunded_qty;
 
+	    /**
+	     * Filter that allows adjusting the quantity left for shipping or a specific order item.
+	     *
+	     * @param integer                               $quantity_left The quantity left for shipping.
+	     * @param WC_Order_Item                        $item The order item object.
+	     * @param Order $order The shipment order object.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_item_shippable_quantity', $quantity_left, $order_item, $this );
     }
 
@@ -318,6 +368,14 @@ class Order {
             $count += $this->get_shippable_item_quantity( $item );
         }
 
+	    /**
+	     * Filters the total number of shippable items available in an order.
+	     *
+	     * @param integer                               $count The total number of items.
+	     * @param Order $order The shipment order object.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_shippable_item_count', $count, $this );
     }
 
@@ -345,6 +403,15 @@ class Order {
             }
         }
 
+	    /**
+	     * Filter to decide whether an order needs shipping or not.
+	     *
+	     * @param boolean                               $needs_shipping Whether the order needs shipping or not.
+	     * @param WC_Order                              $order The order object.
+	     * @param Order $order The shipment order object.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_needs_shipping', $needs_shipping, $this->get_order(), $this );
     }
 

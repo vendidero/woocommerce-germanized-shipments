@@ -141,6 +141,14 @@ class Ajax {
 
 		    if ( wc_gzd_is_shipment_status( 'gzd-' . $status ) && $shipment ) {
 			    $shipment->update_status( $status, true );
+			    /**
+			     * Action to indicate Shipment status change via WP Admin.
+			     *
+			     * @param integer $shipment_id The shipment id.
+			     * @param string  $status The status to be switched to.
+			     *
+			     * @since 3.0.0
+			     */
 			    do_action( 'woocommerce_gzd_updated_shipment_status', $shipment->get_id(), $status );
 		    }
 	    }
@@ -387,7 +395,14 @@ class Ajax {
             }
         }
 
-        wp_send_json( apply_filters( 'woocommerce_gzd_json_search_found_orders', $found_orders ) );
+	    /**
+	     * Filter to adjust found orders to filter Shipments.
+	     *
+	     * @param array $result The order search result.
+	     *
+	     * @since 3.0.0
+	     */
+        wp_send_json( apply_filters( 'woocommerce_gzd_json_search_found_shipment_orders', $found_orders ) );
     }
 
     private static function get_order_status_html( $order_shipment ) {

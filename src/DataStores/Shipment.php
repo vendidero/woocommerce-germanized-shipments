@@ -39,6 +39,8 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 
     protected $core_props = array(
         'country',
+        'type',
+        'parent_id',
         'order_id',
         'tracking_id',
         'date_created',
@@ -70,9 +72,11 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 
         $data = array(
             'shipment_country'           => $shipment->get_country(),
-            'shipment_order_id'          => $shipment->get_order_id(),
+            'shipment_order_id'          => is_callable( array( $shipment, 'get_order_id' ) ) ? $shipment->get_order_id() : 0,
+            'shipment_parent_id'         => is_callable( array( $shipment, 'get_parent_id' ) ) ? $shipment->get_parent_id() : 0,
             'shipment_tracking_id'       => $shipment->get_tracking_id(),
             'shipment_status'            => $this->get_status( $shipment ),
+            'shipment_type'              => $shipment->get_type(),
             'shipment_shipping_provider' => $shipment->get_shipping_provider(),
             'shipment_shipping_method'   => $shipment->get_shipping_method(),
             'shipment_date_created'      => gmdate( 'Y-m-d H:i:s', $shipment->get_date_created( 'edit' )->getOffsetTimestamp() ),
@@ -84,7 +88,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
             $data['shipment_date_sent_gmt'] = gmdate( 'Y-m-d H:i:s', $shipment->get_date_sent( 'edit' )->getTimestamp() );
         }
 
-	    if ( $shipment->get_est_delivery_date() ) {
+	    if ( is_callable( array( $shipment, 'get_est_delivery_date' ) ) && $shipment->get_est_delivery_date() ) {
 		    $data['shipment_est_delivery_date']     = gmdate( 'Y-m-d H:i:s', $shipment->get_est_delivery_date( 'edit' )->getOffsetTimestamp() );
 		    $data['shipment_est_delivery_date_gmt'] = gmdate( 'Y-m-d H:i:s', $shipment->get_est_delivery_date( 'edit' )->getTimestamp() );
 	    }
@@ -106,7 +110,19 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 
             $this->clear_caches( $shipment );
 
-            do_action( 'woocommerce_gzd_new_shipment', $shipment_id );
+            $hook_postfix = $this->get_hook_postfix( $shipment );
+
+	        /**
+	         * Action that indicates that a new Shipment has been created in the DB.
+	         *
+	         * The dynamic portion of this hook, `$hook_postfix` refers to the
+	         * shipment type in case it is not a simple shipment.
+	         *
+	         * @param integer $shipment_id The shipment id.
+	         *
+	         * @since 3.0.0
+	         */
+            do_action( "woocommerce_gzd_new_{$hook_postfix}shipment", $shipment_id );
         }
     }
 
@@ -121,7 +137,8 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         $shipment_status = $shipment->get_status( 'edit' );
 
         if ( ! $shipment_status ) {
-            $shipment_status = apply_filters( 'woocommerce_gzd_default_shipment_status', 'gzd-draft' );
+	        /** This filter is documented in src/Shipment.php */
+            $shipment_status = apply_filters( 'woocommerce_gzd_get_shipment_default_status', 'gzd-draft' );
         }
 
         $valid_statuses = array_keys( wc_gzd_get_shipment_statuses() );
@@ -160,11 +177,15 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
                 case "date_created":
                 case "date_sent":
 	            case "est_delivery_date":
-                    $shipment_data[ 'shipment_' . $prop ]          = gmdate( 'Y-m-d H:i:s', $shipment->{'get_' . $prop}( 'edit' )->getOffsetTimestamp() );
-                    $shipment_data[ 'shipment_' . $prop . '_gmt' ] = gmdate( 'Y-m-d H:i:s', $shipment->{'get_' . $prop}( 'edit' )->getTimestamp() );
-                    break;
+	            	if ( is_callable( array( $shipment, 'get_' . $prop ) ) ) {
+			            $shipment_data[ 'shipment_' . $prop ]          = gmdate( 'Y-m-d H:i:s', $shipment->{'get_' . $prop}( 'edit' )->getOffsetTimestamp() );
+			            $shipment_data[ 'shipment_' . $prop . '_gmt' ] = gmdate( 'Y-m-d H:i:s', $shipment->{'get_' . $prop}( 'edit' )->getTimestamp() );
+		            }
+	            	break;
                 default:
-                    $shipment_data[ 'shipment_' . $prop ] = $shipment->{'get_' . $prop}( 'edit' );
+	                if ( is_callable( array( $shipment, 'get_' . $prop ) ) ) {
+		                $shipment_data[ 'shipment_' . $prop ] = $shipment->{'get_' . $prop}( 'edit' );
+	                }
                     break;
             }
         }
@@ -184,8 +205,19 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 
         $this->clear_caches( $shipment );
 
-        do_action( 'woocommerce_gzd_shipment_object_updated_props', $shipment, $changed_props );
-        do_action( 'woocommerce_gzd_shipment_updated', $shipment->get_id() );
+        $hook_postfix = $this->get_hook_postfix( $shipment );
+
+	    /**
+	     * Action that indicates that a Shipment has been updated in the DB.
+	     *
+	     * The dynamic portion of this hook, `$hook_postfix` refers to the
+	     * shipment type in case it is not a simple shipment.
+	     *
+	     * @param integer $shipment_id The shipment id.
+	     *
+	     * @since 3.0.0
+	     */
+        do_action( "woocommerce_gzd_{$hook_postfix}shipment_updated", $shipment->get_id() );
     }
 
     /**
@@ -204,7 +236,20 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         $this->delete_items( $shipment );
         $this->clear_caches( $shipment );
 
-        do_action( 'woocommerce_gzd_shipment_deleted', $shipment->get_id(), $shipment );
+        $hook_postfix = $this->get_hook_postfix( $shipment );
+
+	    /**
+	     * Action that indicates that a Shipment has been deleted from the DB.
+	     *
+	     * The dynamic portion of this hook, `$hook_postfix` refers to the
+	     * shipment type in case it is not a simple shipment.
+	     *
+	     * @param integer                                  $shipment_id The shipment id.
+	     * @param \Vendidero\Germanized\Shipments\Shipment $shipment The shipment object.
+	     *
+	     * @since 3.0.0
+	     */
+        do_action( "woocommerce_gzd_{$hook_postfix}shipment_deleted", $shipment->get_id(), $shipment );
     }
 
     /**
@@ -230,6 +275,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
             $shipment->set_props(
                 array(
                     'order_id'          => $data->shipment_order_id,
+                    'parent_id'         => $data->shipment_parent_id,
                     'country'           => $data->shipment_country,
                     'tracking_id'       => $data->shipment_tracking_id,
                     'shipping_provider' => $data->shipment_shipping_provider,
@@ -246,7 +292,19 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
             $shipment->read_meta_data();
             $shipment->set_object_read( true );
 
-            do_action( 'woocommerce_gzd_shipment_loaded', $shipment );
+            $hook_postfix = $this->get_hook_postfix( $shipment );
+
+	        /**
+	         * Action that indicates that a Shipment has been loaded from DB.
+	         *
+	         * The dynamic portion of this hook, `$hook_postfix` refers to the
+	         * shipment type in case it is not a simple shipment.
+	         *
+	         * @param \Vendidero\Germanized\Shipments\Shipment $shipment The shipment object.
+	         *
+	         * @since 3.0.0
+	         */
+            do_action( "woocommerce_gzd_{$hook_postfix}shipment_loaded", $shipment );
         } else {
             throw new Exception( _x( 'Invalid shipment.', 'shipments', 'woocommerce-germanized-shipments' ) );
         }
@@ -268,6 +326,33 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
     | Additional Methods
     |--------------------------------------------------------------------------
     */
+
+	protected function get_hook_postfix( $shipment ) {
+		if ( 'simple' !== $shipment->get_type() ) {
+			return $shipment->get_type() . '_';
+		}
+
+		return '';
+	}
+
+	/**
+	 * Get the label type based on label ID.
+	 *
+	 * @param int $shipment_id Shipment id.
+	 * @return string
+	 */
+	public function get_shipment_type( $shipment_id ) {
+		global $wpdb;
+
+		$type = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT shipment_type FROM {$wpdb->gzd_shipments} WHERE shipment_id = %d LIMIT 1",
+				$shipment_id
+			)
+		);
+
+		return ! empty( $type ) ? $type[0] : false;
+	}
 
     /**
      * Read extra data associated with the shipment.
@@ -303,12 +388,14 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 
         foreach ( $props_to_update as $meta_key => $prop ) {
 
+	        if ( ! is_callable( array( $shipment, "get_$prop" ) ) ) {
+		        continue;
+	        }
+
             $value = $shipment->{"get_$prop"}( 'edit' );
             $value = is_string( $value ) ? wp_slash( $value ) : $value;
 
-            switch ( $prop ) {
-
-            }
+            switch ( $prop ) {}
 
             $updated = $this->update_or_delete_meta( $shipment, $meta_key, $value );
 
@@ -317,6 +404,14 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
             }
         }
 
+	    /**
+	     * Action that fires after updating a Shipment's properties.
+	     *
+	     * @param \Vendidero\Germanized\Shipments\Shipment $shipment The shipment object.
+	     * @param array                                    $changed_props The updated properties.
+	     *
+	     * @since 3.0.0
+	     */
         do_action( 'woocommerce_gzd_shipment_object_updated_props', $shipment, $updated_props );
     }
 
@@ -421,6 +516,11 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 
         $wp_query_args = parent::get_wp_query_args( $query_vars );
 
+        // Force type to be existent
+	    if ( isset( $query_vars['type'] ) ) {
+	    	$wp_query_args['type'] = $query_vars['type'];
+	    }
+
         if ( ! isset( $wp_query_args['date_query'] ) ) {
             $wp_query_args['date_query'] = array();
         }
@@ -469,6 +569,15 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
             $wp_query_args['no_found_rows'] = true;
         }
 
+	    /**
+	     * Filter to adjust Shipments query arguments after parsing.
+	     *
+	     * @param array                                               $wp_query_args Array containing parsed query arguments.
+	     * @param array                                               $query_vars The original query arguments.
+	     * @param Shipment $data_store The shipment data store object.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_shipping_data_store_get_shipments_query', $wp_query_args, $query_vars, $this );
     }
 

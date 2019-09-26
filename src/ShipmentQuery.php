@@ -48,6 +48,8 @@ class ShipmentQuery extends WC_Object_Query {
             'status'         => array_keys( wc_gzd_get_shipment_statuses() ),
             'limit'          => 10,
             'order_id'       => '',
+            'parent_id'      => '',
+            'type'           => 'simple',
             'country'        => '',
             'tracking_id'    => '',
             'order'          => 'DESC',
@@ -64,16 +66,29 @@ class ShipmentQuery extends WC_Object_Query {
     /**
      * Get shipments matching the current query vars.
      *
-     * @return array|object of WC_GZD_Shipment objects
-     *
-     * @throws Exception When WC_Data_Store validation fails.
+     * @return Shipment[] Array containing Shipments.
      */
     public function get_shipments() {
-        $args    = apply_filters( 'woocommerce_gzd_shipment_query_args', $this->get_query_vars() );
-        $args    = WC_Data_Store::load( 'shipment' )->get_query_args( $args );
+	    /**
+	     * Filter to adjust query arguments passed to a Shipment query.
+	     *
+	     * @param array $args The arguments passed.
+	     *
+	     * @since 3.0.0
+	     */
+        $args = apply_filters( 'woocommerce_gzd_shipment_query_args', $this->get_query_vars() );
+        $args = WC_Data_Store::load( 'shipment' )->get_query_args( $args );
 
         $this->query( $args );
 
+	    /**
+	     * Filter to adjust the Shipment query result.
+	     *
+	     * @param Shipment[] $results Shipment results.
+	     * @param array                                      $args The arguments passed.
+	     *
+	     * @since 3.0.0
+	     */
         return apply_filters( 'woocommerce_gzd_shipment_query', $this->results, $args );
     }
 
@@ -95,22 +110,7 @@ class ShipmentQuery extends WC_Object_Query {
 
         $qv =& $this->args;
 
-        /**
-         * Filters the users array before the query takes place.
-         *
-         * Return a non-null value to bypass WordPress's default user queries.
-         * Filtering functions that require pagination information are encouraged to set
-         * the `total_users` property of the WP_User_Query object, passed to the filter
-         * by reference. If WP_User_Query does not perform a database query, it will not
-         * have enough information to generate these values itself.
-         *
-         * @since 5.1.0
-         *
-         * @param array|null $results Return an array of user data to short-circuit WP's user query
-         *                            or null to allow WP to run its normal queries.
-         * @param WP_User_Query $this The WP_User_Query instance (passed by reference).
-         */
-        $this->results = apply_filters_ref_array( 'woocommerce_gzd_shipments_pre_query', array( null, &$this ) );
+        $this->results = null;
 
         if ( null === $this->results ) {
             $this->request = "SELECT $this->query_fields $this->query_from $this->query_where $this->query_orderby $this->query_limit";
@@ -122,19 +122,7 @@ class ShipmentQuery extends WC_Object_Query {
             }
 
             if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
-                /**
-                 * Filters SELECT FOUND_ROWS() query for the current WP_User_Query instance.
-                 *
-                 * @since 3.2.0
-                 * @since 5.1.0 Added the `$this` parameter.
-                 *
-                 * @global wpdb $wpdb WordPress database abstraction object.
-                 *
-                 * @param string $sql         The SELECT FOUND_ROWS() query for the current WP_User_Query.
-                 * @param WP_User_Query $this The current WP_User_Query instance.
-                 */
-                $found_shipments_query = apply_filters( 'woocommerce_gzd_found_shipments_query', 'SELECT FOUND_ROWS()', $this );
-
+                $found_shipments_query = 'SELECT FOUND_ROWS()';
                 $this->total_shipments = (int) $wpdb->get_var( $found_shipments_query );
             }
         }
@@ -159,6 +147,10 @@ class ShipmentQuery extends WC_Object_Query {
             $this->args['order_id'] = absint( $this->args['order_id'] );
         }
 
+	    if ( isset( $this->args['parent_id'] ) ) {
+		    $this->args['parent_id'] = absint( $this->args['parent_id'] );
+	    }
+
         if ( isset( $this->args['tracking_id'] ) ) {
             $this->args['tracking_id'] = sanitize_key( $this->args['tracking_id'] );
         }
@@ -167,6 +159,11 @@ class ShipmentQuery extends WC_Object_Query {
             $this->args['status'] = (array) $this->args['status'];
             $this->args['status'] = array_map( 'sanitize_key', $this->args['status'] );
         }
+
+	    if ( isset( $this->args['type'] ) ) {
+		    $this->args['type'] = (array) $this->args['type'];
+		    $this->args['type'] = array_map( 'wc_clean', $this->args['type'] );
+	    }
 
         if ( isset( $this->args['country'] ) ) {
             $countries = isset( WC()->countries ) ? WC()->countries : false;
@@ -233,10 +230,31 @@ class ShipmentQuery extends WC_Object_Query {
             $this->query_where .= $wpdb->prepare( " AND shipment_tracking_id IN ('%s')", $this->args['tracking_id'] );
         }
 
+	    // parent id
+	    if ( isset( $this->args['parent_id'] ) ) {
+		    $this->query_where .= $wpdb->prepare( " AND shipment_parent_id = %d", $this->args['parent_id'] );
+	    }
+
         // country
         if ( isset( $this->args['country'] ) ) {
             $this->query_where .= $wpdb->prepare( " AND shipment_country IN ('%s')", $this->args['country'] );
         }
+
+	    // type
+	    if ( isset( $this->args['type'] ) ) {
+		    $types    = $this->args['type'];
+		    $p_types  = array();
+
+		    foreach( $types as $type ) {
+			    $p_types[] = $wpdb->prepare( "shipment_type = '%s'", $type );
+		    }
+
+		    $where_type = implode( ' OR ', $p_types );
+
+		    if ( ! empty( $where_type ) ) {
+			    $this->query_where .= " AND ($where_type)";
+		    }
+	    }
 
         // status
         if ( isset( $this->args['status'] ) ) {
@@ -282,7 +300,7 @@ class ShipmentQuery extends WC_Object_Query {
             $search_columns = array();
 
             if ( $this->args['search_columns'] ) {
-                $search_columns = array_intersect( $this->args['search_columns'], array( 'shipment_id', 'shipment_country', 'shipment_tracking_id', 'shipment_order_id' ) );
+                $search_columns = array_intersect( $this->args['search_columns'], array( 'shipment_id', 'shipment_country', 'shipment_tracking_id', 'shipment_order_id', 'shipment_shipping_provider', 'shipment_shipping_method' ) );
             }
 
             if ( ! $search_columns ) {
@@ -296,16 +314,16 @@ class ShipmentQuery extends WC_Object_Query {
             }
 
             /**
-             * Filters the columns to search in a WP_User_Query search.
+             * Filters the columns to search in a ShipmentQuery search.
              *
-             * The default columns depend on the search term, and include 'user_email',
-             * 'user_login', 'ID', 'user_url', 'display_name', and 'user_nicename'.
+             * The default columns depend on the search term, and include 'shipment_id', 'shipment_country',
+             * 'shipment_tracking_id', 'shipment_order_id', 'shipment_shipping_provider' and 'shipment_shipping_method'.
              *
-             * @since 3.6.0
+             * @since 3.0.0
              *
-             * @param string[]      $search_columns Array of column names to be searched.
-             * @param string        $search         Text being searched.
-             * @param WP_User_Query $this           The current WP_User_Query instance.
+             * @param string[]                                      $search_columns Array of column names to be searched.
+             * @param string                                        $search         Text being searched.
+             * @param ShipmentQuery $this The current ShipmentQuery instance.
              */
             $search_columns = apply_filters( 'woocommerce_gzd_shipment_search_columns', $search_columns, $search, $this );
 
