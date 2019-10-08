@@ -45,7 +45,7 @@ class Order {
 
     public function get_shipping_status() {
         $status    = 'not-shipped';
-        $shipments = $this->get_shipments();
+        $shipments = $this->get_simple_shipments();
 
         if ( ! empty( $shipments ) ) {
             foreach( $shipments as $shipment ) {
@@ -69,10 +69,13 @@ class Order {
             'save' => true,
         ) );
 
-        foreach( $this->get_shipments() as $shipment ) {
+        foreach( $this->get_simple_shipments() as $shipment ) {
 
             if ( $shipment->is_editable() ) {
-                wc_gzd_sync_shipment( $this, $shipment );
+
+	            // Make sure we are working based on the current instance.
+	            $shipment->set_order_shipment( $this );
+	            $shipment->sync();
 
                 $this->validate_shipment_item_quantities( $shipment->get_id() );
             }
@@ -85,7 +88,7 @@ class Order {
 
     public function validate_shipment_item_quantities( $shipment_id = false ) {
         $shipment    = $shipment_id ? $this->get_shipment( $shipment_id ) : false;
-        $shipments   = ( $shipment_id && $shipment ) ? array( $shipment ) : $this->get_shipments();
+        $shipments   = ( $shipment_id && $shipment ) ? array( $shipment ) : $this->get_simple_shipments();
         $order_items = $this->get_shippable_items();
 
         foreach( $shipments as $shipment ) {
@@ -133,7 +136,7 @@ class Order {
                             $new_quantity = $quantity;
                         }
 
-                        wc_gzd_sync_shipment_item( $item, $order_items[ $item->get_order_item_id() ], array( 'quantity' => $new_quantity ) );
+                        $item->sync( array( 'quantity' => $new_quantity ) );
                     }
                 }
 
@@ -150,10 +153,12 @@ class Order {
     public function get_shipments() {
 
         if ( is_null( $this->shipments ) ) {
+
             $this->shipments = wc_gzd_get_shipments( array(
                 'order_id' => $this->get_order()->get_id(),
                 'limit'    => -1,
                 'orderby'  => 'date_created',
+                'type'     => array( 'simple', 'return' ),
                 'order'    => 'ASC'
             ) );
         }
@@ -162,6 +167,41 @@ class Order {
 
         return $shipments;
     }
+
+	/**
+	 * @return SimpleShipment[]
+	 */
+    public function get_simple_shipments() {
+    	$simple = array();
+
+		foreach( $this->get_shipments() as $shipment ) {
+			if ( 'simple' === $shipment->get_type() ) {
+				$simple[] = $shipment;
+			}
+		}
+
+		return $simple;
+    }
+
+	/**
+	 * @return ReturnShipment[]
+	 */
+	public function get_return_shipments( $parent_id = false ) {
+		$returns = array();
+
+		foreach( $this->get_shipments() as $shipment ) {
+			if ( 'return' === $shipment->get_type() ) {
+
+				if ( $parent_id && $shipment->get_parent_id() !== (int) $parent_id ) {
+					continue;
+				}
+
+				$returns[] = $shipment;
+			}
+		}
+
+		return $returns;
+	}
 
     public function add_shipment( &$shipment ) {
         $shipments = $this->get_shipments();
@@ -183,6 +223,11 @@ class Order {
         }
     }
 
+	/**
+	 * @param $shipment_id
+	 *
+	 * @return bool|SimpleShipment|ReturnShipment
+	 */
     public function get_shipment( $shipment_id ) {
         $shipments = $this->get_shipments();
 
@@ -214,7 +259,7 @@ class Order {
         if ( $order_item ) {
             $quantity_left = $this->get_shippable_item_quantity( $order_item );
 
-            foreach( $this->get_shipments() as $shipment ) {
+            foreach( $this->get_simple_shipments() as $shipment ) {
 
                 if ( $args['sent_only'] && ! $shipment->has_status( wc_gzd_get_shipment_sent_stati() ) ) {
                     continue;

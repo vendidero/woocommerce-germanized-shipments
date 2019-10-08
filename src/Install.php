@@ -33,11 +33,13 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_items (
   shipment_item_name TEXT NOT NULL,
   shipment_item_order_item_id BIGINT UNSIGNED NOT NULL,
   shipment_item_product_id BIGINT UNSIGNED NOT NULL,
+  shipment_item_parent_id BIGINT UNSIGNED NOT NULL,
   shipment_item_quantity SMALLINT UNSIGNED NOT NULL DEFAULT '1',
   PRIMARY KEY  (shipment_item_id),
   KEY shipment_id (shipment_id),
   KEY shipment_item_order_item_id (shipment_item_order_item_id),
-  KEY shipment_item_product_id (shipment_item_product_id)
+  KEY shipment_item_product_id (shipment_item_product_id),
+  KEY shipment_item_parent_id (shipment_item_parent_id)
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_itemmeta (
   meta_id BIGINT UNSIGNED NOT NULL auto_increment,

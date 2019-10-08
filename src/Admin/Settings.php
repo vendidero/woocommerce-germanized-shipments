@@ -67,6 +67,67 @@ class Settings {
 			),
 
 			array( 'type' => 'sectionend', 'id' => 'shipments_auto_options' ),
+
+			array( 'title' => __( 'Return Address', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_return_options' ),
+
+			array(
+				'title'             => __( 'First Name', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_first_name',
+				'default'           => '',
+			),
+
+			array(
+				'title'             => __( 'Last Name', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_last_name',
+				'default'           => '',
+			),
+
+			array(
+				'title'             => __( 'Company', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_company',
+				'default'           => get_bloginfo( 'name' ),
+			),
+
+			array(
+				'title'             => __( 'Address 1', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_address_1',
+				'default'           => get_option( 'woocommerce_store_address' ),
+			),
+
+			array(
+				'title'             => __( 'Address 2', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_address_2',
+				'default'           => get_option( 'woocommerce_store_address_2' ),
+			),
+
+			array(
+				'title'             => __( 'City', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_city',
+				'default'           => get_option( 'woocommerce_store_city' ),
+			),
+
+			array(
+				'title'             => __( 'Country / State', 'woocommerce-germanized-shipments' ),
+				'id'                => 'woocommerce_gzd_shipments_return_address_country',
+				'default'           => get_option( 'woocommerce_store_country' ),
+				'type'              => 'single_select_country',
+				'desc_tip'          => true,
+			),
+
+			array(
+				'title'             => __( 'Postcode', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_postcode',
+				'default'           => get_option( 'woocommerce_store_postcode' ),
+			),
+
+			array( 'type' => 'sectionend', 'id' => 'shipments_return_options' ),
 		);
 
 		return $settings;

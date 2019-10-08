@@ -153,13 +153,21 @@ window.germanized.admin = window.germanized.admin || {};
 
         getData: function( additionalData ) {
             var self = germanized.admin.shipments,
-                data = self.$wrapper.find( ':input[name]' ).serializeArray();
+                data = {};
 
             additionalData = additionalData || {};
 
-            $.each( additionalData, function( key, value ) {
-                data.push({ name: key, value: value });
+            $.each( self.$wrapper.find( ':input[name]' ).serializeArray(), function( index, item ) {
+                if ( item.name.indexOf( '[]' ) !== -1 ) {
+                    item.name = item.name.replace( '[]', '' );
+                    data[ item.name ] = $.makeArray( data[ item.name ] );
+                    data[ item.name ].push( item.value );
+                } else {
+                    data[ item.name ] = item.value;
+                }
             });
+
+            $.extend( data, additionalData );
 
             return data;
         },
@@ -217,6 +225,7 @@ window.germanized.admin = window.germanized.admin || {};
 
                             if ( shipmentData.hasOwnProperty( shipmentId ) ) {
                                 shipment.setIsEditable( shipmentData[ shipmentId ].is_editable );
+                                shipment.setIsReturnable( shipmentData[ shipmentId ].is_returnable );
                                 shipment.setNeedsItems( shipmentData[ shipmentId ].needs_items );
                                 shipment.setWeight( shipmentData[ shipmentId ].weight );
                                 shipment.setLength( shipmentData[ shipmentId ].length );
@@ -417,16 +426,30 @@ window.germanized.admin = window.germanized.admin || {};
 
         onToggleShipment: function() {
             var self      = germanized.admin.shipments,
-                $shipment = $( this ).parents( '.order-shipment' ),
+                $shipment = $( this ).parents( '.order-shipment:first' ),
                 isActive  = $shipment.hasClass( 'active' );
 
-            self.closeShipments();
+            console.log($shipment);
+
+            if ( ! $shipment.hasClass( 'shipment-return' ) ) {
+                self.closeShipments();
+            } else {
+                self.closeReturns( $shipment.parents( '.shipment-return-list' ) );
+            }
 
             if ( ! isActive ) {
-                $shipment.find( '.shipment-content-wrapper' ).slideDown( 300, function() {
+                $shipment.find( '> .shipment-content-wrapper' ).slideDown( 300, function() {
                     $shipment.addClass( 'active' );
                 });
             }
+        },
+
+        closeReturns: function( $wrapper ) {
+            var self = germanized.admin.shipments;
+
+            $wrapper.find( '.order-shipment.active .shipment-content-wrapper' ).slideUp( 300, function() {
+                $wrapper.find( '.order-shipment.active' ).removeClass( 'active' );
+            });
         },
 
         closeShipments: function() {

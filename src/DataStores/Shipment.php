@@ -35,6 +35,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         '_weight',
         '_address',
         '_total',
+	    '_sender_address'
     );
 
     protected $core_props = array(
@@ -234,6 +235,15 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         $wpdb->delete( $wpdb->gzd_shipmentmeta, array( 'shipment_id' => $shipment->get_id() ), array( '%d' ) );
 
         $this->delete_items( $shipment );
+
+        if ( 'simple' === $shipment->get_type() ) {
+
+        	// Delete returns as well
+        	foreach( $shipment->get_returns() as $return ) {
+        		$return->delete( $force_delete );
+	        }
+        }
+
         $this->clear_caches( $shipment );
 
         $hook_postfix = $this->get_hook_postfix( $shipment );
@@ -609,9 +619,15 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         return $this->get_wp_query_args( $query_vars );
     }
 
-    public function get_shipment_count( $status ) {
+    public function get_shipment_count( $status, $type = '' ) {
         global $wpdb;
 
-        return absint( $wpdb->get_var( $wpdb->prepare( "SELECT COUNT( * ) FROM {$wpdb->gzd_shipments} WHERE shipment_status = %s", $status ) ) );
+        if ( empty( $type ) ) {
+        	$query = $wpdb->prepare( "SELECT COUNT( * ) FROM {$wpdb->gzd_shipments} WHERE shipment_status = %s", $status );
+        } else {
+	        $query = $wpdb->prepare( "SELECT COUNT( * ) FROM {$wpdb->gzd_shipments} WHERE shipment_status = %s and shipment_type = %s", $status, $type );
+        }
+
+        return absint( $wpdb->get_var( $query ) );
     }
 }

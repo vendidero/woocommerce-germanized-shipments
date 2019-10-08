@@ -36,14 +36,12 @@ class Automation {
 	    }
 
 	    if ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) {
-		    $shipments = $order_shipment->get_shipments();
+		    $shipments = $order_shipment->get_simple_shipments();
 
 		    foreach( $shipments as $shipment ) {
 			    if ( $shipment->is_editable() ) {
-
-				    wc_gzd_sync_shipment( $order_shipment, $shipment );
-				    wc_gzd_sync_shipment_items( $order_shipment, $shipment );
-
+			    	$shipment->sync();
+			    	$shipment->sync_items();
 				    $shipment->set_status( $shipment_status );
 				    $shipment->save();
 			    }

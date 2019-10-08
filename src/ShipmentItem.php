@@ -27,6 +27,7 @@ class ShipmentItem extends WC_Data {
     protected $data = array(
         'shipment_id'   => 0,
         'order_item_id' => 0,
+        'parent_id'     => 0,
         'quantity'      => 1,
         'product_id'    => 0,
         'weight'        => '',
@@ -148,6 +149,16 @@ class ShipmentItem extends WC_Data {
         return $this->get_prop( 'product_id', $context );
     }
 
+	/**
+	 * Get item parent id.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return int
+	 */
+	public function get_parent_id( $context = 'view' ) {
+		return $this->get_prop( 'parent_id', $context );
+	}
+
     /**
      * Get order ID this meta belongs to.
      *
@@ -224,7 +235,7 @@ class ShipmentItem extends WC_Data {
     /**
      * Get parent order object.
      *
-     * @return Shipment
+     * @return SimpleShipment|ReturnShipment|Shipment
      */
     public function get_shipment() {
         if ( is_null( $this->shipment ) && 0 < $this->get_shipment_id() ) {
@@ -234,6 +245,71 @@ class ShipmentItem extends WC_Data {
         $shipment = ( $this->shipment ) ? $this->shipment : false;
 
         return $shipment;
+    }
+
+    public function set_shipment( &$shipment ) {
+    	$this->shipment = $shipment;
+    }
+
+    public function sync( $args = array() ) {
+    	$item = false;
+
+	    if ( $shipment = $this->get_shipment() ) {
+	    	if ( 'return' === $shipment->get_type() ) {
+	    		if ( $parent = $shipment->get_parent() ) {
+	    			$item = $parent->get_item( $this->get_parent_id() );
+			    }
+		    } else {
+	    		$item = $this->get_order_item();
+		    }
+	    }
+
+    	if ( is_a( $item, '\Vendidero\Germanized\Shipments\ShipmentItem' ) ) {
+
+		    $default_data = $item->get_data();
+
+		    unset( $default_data['id'] );
+		    unset( $default_data['shipment_id'] );
+
+		    $default_data['parent_id']   = $item->get_id();
+		    $args                        = wp_parse_args( $args, $default_data );
+
+	    } elseif( is_a( $item, 'WC_Order_Item' ) ) {
+
+    		if ( is_callable( array( $item, 'get_product_id' ) ) ) {
+			    $this->set_product_id( $item->get_product_id() );
+		    }
+
+		    $product    = $this->get_product();
+		    $tax_total  = is_callable( array( $item, 'get_total_tax' ) ) ? $item->get_total_tax() : 0;;
+		    $total      = is_callable( array( $item, 'get_total' ) ) ? $item->get_total() : 0;
+
+		    $args = wp_parse_args( $args, array(
+			    'order_item_id' => $item->get_id(),
+			    'product_id'    => is_callable( array( $item, 'get_product_id' ) ) ? $item->get_product_id() : 0,
+			    'quantity'      => 1,
+			    'name'          => $item->get_name(),
+			    'sku'           => $product ? $product->get_sku() : '',
+			    'total'         => $total + $tax_total,
+			    'weight'        => $product ? wc_get_weight( $product->get_weight(), 'kg' ) : '',
+			    'length'        => $product ? wc_get_dimension( $product->get_length(), 'cm' ) : '',
+			    'width'         => $product ? wc_get_dimension( $product->get_width(), 'cm' ) : '',
+			    'height'        => $product ? wc_get_dimension( $product->get_height(), 'cm' ) : '',
+		    ) );
+	    }
+
+	    $this->set_props( $args );
+
+	    /**
+	     * Action that fires after a shipment item has been synced. Syncing is used to
+	     * keep the shipment item in sync with the corresponding order item or parent shipment item.
+	     *
+	     * @param WC_Order_Item|ShipmentItem $item The order item object or parent shipment item.
+	     * @param array                      $args Array containing props in key => value pairs which have been updated.
+	     *
+	     * @since 3.0.0
+	     */
+	    do_action( 'woocommerce_gzd_shipment_item_synced', $this, $item, $args );
     }
 
     public function get_order_item() {
@@ -312,6 +388,15 @@ class ShipmentItem extends WC_Data {
         $this->product = null;
         $this->set_prop( 'product_id', absint( $value ) );
     }
+
+	/**
+	 * Set parent id.
+	 *
+	 * @param int $value parent id.
+	 */
+	public function set_parent_id( $value ) {
+		$this->set_prop( 'parent_id', absint( $value ) );
+	}
 
     public function set_sku( $sku ) {
         $this->set_prop( 'sku', $sku );

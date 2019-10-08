@@ -50,7 +50,7 @@ class MetaBox {
 
 	        // Sync the shipment - make sure gets refresh on status switch (e.g. from shipped to processing)
             if ( $shipment->is_editable() || in_array( $new_status, wc_gzd_get_shipment_editable_statuses() ) ) {
-                wc_gzd_sync_shipment( $order, $shipment, $props );
+	            $shipment->sync( $props );
             }
         }
     }
@@ -83,9 +83,7 @@ class MetaBox {
                     $props['quantity'] = absint( wp_unslash( $_POST['shipment_item'][ $id ]['quantity'][ $item_id ] ) );
                 }
 
-                if ( $order_item = $item->get_order_item() ) {
-                    wc_gzd_sync_shipment_item( $item, $order_item, $props );
-                }
+                $item->sync( $props );
             }
         }
     }

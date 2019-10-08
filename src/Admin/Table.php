@@ -21,6 +21,8 @@ class Table extends WP_List_Table {
 
     protected $notice = array();
 
+    protected $shipment_type = '';
+
     /**
      * Constructor.
      *
@@ -36,6 +38,12 @@ class Table extends WP_List_Table {
     public function __construct( $args = array() ) {
         add_action( 'admin_notices', array( $this, 'bulk_admin_notices' ) );
         add_filter( 'removable_query_args', array( $this, 'enable_query_removing' ) );
+
+        $args = wp_parse_args( $args, array(
+            'type' => 'simple',
+        ) );
+
+        $this->shipment_type = $args['type'];
 
         parent::__construct(
             array(
@@ -194,6 +202,10 @@ class Table extends WP_List_Table {
         return current_user_can( 'edit_shop_orders' );
     }
 
+    public function get_page_option() {
+        return 'woocommerce_page_wc_gzd_shipments_per_page';
+    }
+
     /**
      * @global array    $avail_post_stati
      * @global WP_Query $wp_query
@@ -203,7 +215,7 @@ class Table extends WP_List_Table {
     public function prepare_items() {
         global $per_page;
 
-        $per_page        = $this->get_items_per_page( 'woocommerce_page_wc_gzd_shipments_per_page', 10 );
+        $per_page        = $this->get_items_per_page( $this->get_page_option(), 10 );
 
 	    /**
 	     * Filter to adjust Shipment's table items per page.
@@ -215,7 +227,7 @@ class Table extends WP_List_Table {
 	     */
         $per_page        = apply_filters( 'woocommerce_gzd_shipments_edit_per_page', $per_page, 'shipment' );
         $this->stati     = wc_gzd_get_shipment_statuses();
-        $this->counts    = wc_gzd_get_shipment_counts();
+        $this->counts    = wc_gzd_get_shipment_counts( $this->shipment_type );
         $paged           = $this->get_pagenum();
 
         $args = array(
@@ -223,6 +235,7 @@ class Table extends WP_List_Table {
             'paginate'    => true,
             'offset'      => ( $paged - 1 ) * $per_page,
             'count_total' => true,
+            'type'        => $this->shipment_type,
         );
 
         if ( isset( $_REQUEST['shipment_status'] ) && in_array( $_REQUEST['shipment_status'], array_keys( $this->stati ) ) ) {
@@ -592,22 +605,27 @@ class Table extends WP_List_Table {
         return array( 'widefat', 'fixed', 'striped', 'posts', 'shipments' );
     }
 
+    protected function get_custom_columns() {
+        $columns = array();
+
+	    $columns['cb']         = '<input type="checkbox" />';
+	    $columns['title']      = _x( 'Title', 'shipments', 'woocommerce-germanized-shipments' );
+	    $columns['date']       = _x( 'Date', 'shipments', 'woocommerce-germanized-shipments' );
+	    $columns['status']     = _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' );
+	    $columns['items']      = _x( 'Items', 'shipments', 'woocommerce-germanized-shipments' );
+	    $columns['address']    = _x( 'Address', 'shipments', 'woocommerce-germanized-shipments' );
+	    $columns['order']      = _x( 'Order', 'shipments', 'woocommerce-germanized-shipments' );
+	    $columns['actions']    = _x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' );
+
+	    return $columns;
+    }
+
     /**
      * @return array
      */
     public function get_columns() {
 
-        $columns               = array();
-        $columns['cb']         = '<input type="checkbox" />';
-        $columns['title']      = _x( 'Title', 'shipments', 'woocommerce-germanized-shipments' );
-        $columns['date']       = _x( 'Date', 'shipments', 'woocommerce-germanized-shipments' );
-        $columns['status']     = _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' );
-        $columns['items']      = _x( 'Items', 'shipments', 'woocommerce-germanized-shipments' );
-        $columns['address']    = _x( 'Address', 'shipments', 'woocommerce-germanized-shipments' );
-        // $columns['weight']     = _x( 'Weight', 'shipments', 'woocommerce-germanized-shipments' );
-        // $columns['dimensions'] = _x( 'Dimensions', 'shipments', 'woocommerce-germanized-shipments' );
-        $columns['order']      = _x( 'Order', 'shipments', 'woocommerce-germanized-shipments' );
-        $columns['actions']    = _x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' );
+        $columns               = $this->get_custom_columns();
 
         /**
          * Filters the columns displayed in the Shipments list table.
@@ -671,13 +689,17 @@ class Table extends WP_List_Table {
      * @param Shipment $shipment The current shipment object.
      */
     public function column_title( $shipment ) {
-        $title = sprintf( _x( 'Shipment #%s', 'shipments', 'woocommerce-germanized-shipments' ), $shipment->get_id() );
+        $title = sprintf( _x( '%s #%s', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label( $shipment->get_type() ), $shipment->get_id() );
 
         if ( $order = $shipment->get_order() ) {
             echo '<a href="' . $shipment->get_edit_shipment_url() . '">' . $title . '</a>';
         } else {
             echo $title;
         }
+    }
+
+    protected function get_custom_actions( $shipment, $actions ) {
+        return $actions;
     }
 
 	/**
@@ -716,6 +738,8 @@ class Table extends WP_List_Table {
 				'action' => 'shipped',
 			);
 		}
+
+		$actions = $this->get_custom_actions( $shipment, $actions );
 
 		/**
 		 * Filters the actions available for Shipments table list column.
@@ -898,6 +922,10 @@ class Table extends WP_List_Table {
         <?php
     }
 
+    protected function get_custom_bulk_actions( $actions ) {
+        return $actions;
+    }
+
     /**
      * @return array
      */
@@ -908,9 +936,11 @@ class Table extends WP_List_Table {
             $actions['delete'] = _x( 'Delete Permanently', 'shipments', 'woocommerce-germanized-shipments' );
         }
 
-        $actions['mark_processing'] = _x( 'Change status to processing', 'shipments', 'woocommerce' );
-        $actions['mark_shipped']    = _x( 'Change status to shipped', 'shipments', 'woocommerce' );
+        $actions['mark_processing'] = _x( 'Change status to processing', 'shipments', 'woocommerce-germanized-shipments' );
+        $actions['mark_shipped']    = _x( 'Change status to shipped', 'shipments', 'woocommerce-germanized-shipments' );
         $actions['mark_delivered']  = _x( 'Change status to delivered', 'shipments', 'woocommerce-germanized-shipments' );
+
+        $actions = $this->get_custom_bulk_actions( $actions );
 
 	    /**
 	     * Filter to register addtional Shipment bulk actions.

@@ -33,7 +33,8 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
         'order_item_id',
         'quantity',
         'name',
-        'product_id'
+        'product_id',
+	    'parent_id'
     );
 
     /**
@@ -60,6 +61,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
                 'shipment_item_quantity'      => $item->get_quantity(),
                 'shipment_item_order_item_id' => $item->get_order_item_id(),
                 'shipment_item_product_id'    => $item->get_product_id(),
+                'shipment_item_parent_id'     => $item->get_parent_id(),
                 'shipment_item_name'          => $item->get_name(),
             )
         );
@@ -100,6 +102,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
                 'shipment_item_order_item_id' => $item->get_order_item_id(),
                 'shipment_item_quantity'      => $item->get_quantity(),
                 'shipment_item_product_id'    => $item->get_product_id(),
+                'shipment_item_parent_id'     => $item->get_parent_id(),
                 'shipment_item_name'          => $item->get_name(),
             ), array( 'shipment_item_id' => $item->get_id() )
             );
@@ -190,6 +193,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
                 'order_item_id' => $data->shipment_item_order_item_id,
                 'quantity'      => $data->shipment_item_quantity,
                 'product_id'    => $data->shipment_item_product_id,
+                'parent_id'     => $data->shipment_item_parent_id,
                 'name'          => $data->shipment_item_name
             )
         );

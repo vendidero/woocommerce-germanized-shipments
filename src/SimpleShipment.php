@@ -26,6 +26,13 @@ class SimpleShipment extends Shipment {
 	 */
 	private $order = null;
 
+	/**
+	 * The corresponding order object.
+	 *
+	 * @var null|Order
+	 */
+	private $order_shipment = null;
+
 	protected $extra_data = array(
 		'est_delivery_date'     => null,
 		'order_id'              => 0,
@@ -68,6 +75,15 @@ class SimpleShipment extends Shipment {
 	}
 
 	/**
+	 * Set shipment order.
+	 *
+	 * @param Order $order_shipment The order shipment.
+	 */
+	public function set_order_shipment( &$order_shipment ) {
+		$this->order_shipment = $order_shipment;
+	}
+
+	/**
 	 * Tries to fetch the order for the current shipment.
 	 *
 	 * @return bool|WC_Order|null
@@ -78,6 +94,127 @@ class SimpleShipment extends Shipment {
 		}
 
 		return $this->order;
+	}
+
+	public function get_order_shipment() {
+		if ( is_null( $this->order_shipment ) ) {
+			$order                = $this->get_order();
+			$this->order_shipment = ( $order ? wc_gzd_get_shipment_order( $order ) : false );
+		}
+
+		return $this->order_shipment;
+	}
+
+	public function sync( $args = array() ) {
+		try {
+
+			if ( ! $order_shipment = $this->get_order_shipment() ) {
+				throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
+			}
+
+			$order = $order_shipment->get_order();
+
+			$args = wp_parse_args( $args, array(
+				'order_id'        => $order->get_id(),
+				'country'         => $order->get_shipping_country(),
+				'shipping_method' => wc_gzd_get_shipment_order_shipping_method_id( $order ),
+				'address'         => array_merge( $order->get_address( 'shipping' ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) ),
+				'weight'          => $this->get_weight( 'edit' ),
+				'length'          => $this->get_length( 'edit' ),
+				'width'           => $this->get_width( 'edit' ),
+				'height'          => $this->get_height( 'edit' ),
+			) );
+
+			$this->set_props( $args );
+
+			/**
+			 * Action that fires after a shipment has been synced. Syncing is used to
+			 * keep the shipment in sync with the corresponding order.
+			 *
+			 * @param SimpleShipment $shipment The shipment object.
+			 * @param Order          $order_shipment The shipment order object.
+			 * @param array          $args Array containing properties in key => value pairs to be updated.
+			 *
+			 * @since 3.0.0
+			 */
+			do_action( 'woocommerce_gzd_shipment_synced', $this, $order_shipment, $args );
+
+		} catch ( Exception $e ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public function sync_items( $args = array() ) {
+		try {
+
+			if ( ! $order_shipment = $this->get_order_shipment() ) {
+				throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
+			}
+
+			$order = $order_shipment->get_order();
+
+			$args = wp_parse_args( $args, array(
+				'items' => array(),
+			) );
+
+			$available_items = $order_shipment->get_available_items_for_shipment( array(
+				'shipment_id'              => $this->get_id(),
+				'exclude_current_shipment' => true,
+			) );
+
+			foreach( $available_items as $item_id => $item_data ) {
+
+				if ( $order_item = $order->get_item( $item_id ) ) {
+					$quantity = $item_data['max_quantity'];
+
+					if ( ! empty( $args['items'] ) ) {
+						if ( isset( $args['items'][ $item_id ] ) ) {
+							$new_quantity = absint( $args['items'][ $item_id ] );
+
+							if ( $new_quantity < $quantity ) {
+								$quantity = $new_quantity;
+							}
+						} else {
+							continue;
+						}
+					}
+
+					if ( ! $shipment_item = $this->get_item_by_order_item_id( $item_id ) ) {
+						$shipment_item = wc_gzd_create_shipment_item( $this, $order_item, array( 'quantity' => $quantity ) );
+
+						$this->add_item( $shipment_item );
+					} else {
+						$shipment_item->sync( array( 'quantity' => $quantity ) );
+					}
+				}
+			}
+
+			foreach( $this->get_items() as $item ) {
+
+				// Remove non-existent items
+				if( ! $order_item = $order->get_item( $item->get_order_item_id() ) ) {
+					$this->remove_item( $item->get_id() );
+				}
+			}
+
+			/**
+			 * Action that fires after items of a shipment have been synced.
+			 *
+			 * @param SimpleShipment $shipment The shipment object.
+			 * @param Order          $order_shipment The shipment order object.
+			 * @param array          $args Array containing additional data e.g. items.
+			 *
+			 * @since 3.0.0
+			 */
+			do_action( 'woocommerce_gzd_shipment_items_synced', $this, $order_shipment, $args );
+
+		} catch ( Exception $e ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -99,6 +236,97 @@ class SimpleShipment extends Shipment {
 		return $methods;
 	}
 
+	public function get_available_items_for_return( $args = array() ) {
+		$args     = wp_parse_args( $args, array(
+			'disable_duplicates'       => false,
+			'shipment_id'              => 0,
+			'exclude_current_shipment' => false,
+		) );
+
+		$items    = array();
+		$shipment = false;
+
+		if ( $order_shipment = $this->get_order_shipment() ) {
+			$shipment = $args['shipment_id'] ? $order_shipment->get_shipment( $args['shipment_id'] ) : false;
+		}
+
+		foreach( $this->get_items() as $item ) {
+
+			$quantity_left = $this->get_item_quantity_left_for_return( $item->get_id(), $args );
+
+			if ( $shipment ) {
+				if ( $args['disable_duplicates'] && $shipment->get_item_by_item_parent_id( $item->get_id() ) ) {
+					continue;
+				}
+			}
+
+			if ( $quantity_left > 0 ) {
+				$items[ $item->get_id() ] = array(
+					'name'         => $item->get_name(),
+					'max_quantity' => $quantity_left,
+				);
+			}
+		}
+
+		return $items;
+	}
+
+	public function get_item_quantity_left_for_return( $item_id, $args = array() ) {
+		$args = wp_parse_args( $args, array(
+			'exclude_current_shipment' => false,
+			'shipment_id'              => 0,
+		) );
+
+		$returns       = $this->get_returns();
+		$quantity_left = 0;
+
+		if ( $item = $this->get_item( $item_id ) ) {
+			$quantity_left = $item->get_quantity();
+
+			foreach( $returns as $return ) {
+
+				if ( $args['exclude_current_shipment'] && $args['shipment_id'] > 0 && $args['shipment_id'] === $return->get_id() ) {
+					continue;
+				}
+
+				if ( $return_item = $return->get_item_by_item_parent_id( $item_id ) ) {
+					$quantity_left -= $return_item->get_quantity();
+				}
+			}
+
+			if ( $quantity_left < 0 ) {
+				$quantity_left = 0;
+			}
+		}
+
+		return $quantity_left;
+	}
+
+	public function get_shippable_item_count() {
+		if ( $order_shipment = $this->get_order_shipment() ) {
+			return $order_shipment->get_shippable_item_count();
+		}
+
+		return 0;
+	}
+
+	public function get_returns() {
+		if ( $order = $this->get_order_shipment() ) {
+			return $order->get_return_shipments( $this->get_id() );
+		} else {
+			return wc_gzd_get_shipments( array(
+				'parent_id' => $this->get_id(),
+				'type'      => 'return',
+			) );
+		}
+	}
+
+	public function has_complete_return() {
+		$items = $this->get_available_items_for_return();
+
+		return empty( $items ) ? true : false;
+	}
+
 	/**
 	 * Returns whether the Shipment needs additional items or not.
 	 *
@@ -115,6 +343,15 @@ class SimpleShipment extends Shipment {
 		return ( $this->is_editable() && ! $this->contains_order_item( $available_items ) );
 	}
 
+	public function is_returnable() {
+
+		if ( $this->has_status( array( 'shipped', 'delivered' ) ) && ! $this->has_complete_return() ) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public function get_edit_shipment_url() {
 		/**
 		 * Filter to adjust the edit Shipment admin URL.
@@ -125,65 +362,5 @@ class SimpleShipment extends Shipment {
 		 * @since 3.0.0
 		 */
 		return apply_filters( 'woocommerce_gzd_get_edit_shipment_url', get_admin_url( null, 'post.php?post=' . $this->get_order_id() . '&action=edit&shipment_id=' . $this->get_id() ), $this );
-	}
-
-	/**
-	 * Finds an ShipmentItem based on an order item id.
-	 *
-	 * @param integer $order_item_id
-	 *
-	 * @return bool|ShipmentItem
-	 */
-	public function get_item_by_order_item_id( $order_item_id ) {
-		$items = $this->get_items();
-
-		foreach( $items as $item ) {
-			if ( $item->get_order_item_id() === $order_item_id ) {
-				return $item;
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * Returns whether the Shipment contains an order item or not.
-	 *
-	 * @param integer|integer[] $item_id
-	 *
-	 * @return boolean
-	 */
-	public function contains_order_item( $item_id ) {
-
-		if ( ! is_array( $item_id ) ) {
-			$item_id = array( $item_id );
-		}
-
-		$new_items = $item_id;
-
-		foreach( $item_id as $key => $order_item_id ) {
-
-			if ( is_a( $order_item_id, 'WC_Order_Item' ) ) {
-				$order_item_id   = $order_item_id->get_id();
-				$item_id[ $key ] = $order_item_id;
-			}
-
-			if ( $this->get_item_by_order_item_id( $order_item_id ) ) {
-				unset( $new_items[ $key ] );
-			}
-		}
-
-		$contains = empty( $new_items ) ? true : false;
-
-		/**
-		 * Filter to adjust whether a Shipment contains a specific order item or not.
-		 *
-		 * @param boolean                                  $contains Whether the Shipment contains the order item or not.
-		 * @param integer                                  $order_item_id The order item id.
-		 * @param Shipment $this The shipment object.
-		 *
-		 * @since 3.0.0
-		 */
-		return apply_filters( 'woocommerce_gzd_shipment_contains_order_item', $contains, $item_id, $this );
 	}
 }

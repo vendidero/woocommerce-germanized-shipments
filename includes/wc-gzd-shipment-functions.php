@@ -14,6 +14,8 @@ use Vendidero\Germanized\Shipments\AddressSplitter;
 use Vendidero\Germanized\Shipments\ShipmentFactory;
 use Vendidero\Germanized\Shipments\ShipmentItem;
 use Vendidero\Germanized\Shipments\SimpleShipment;
+use Vendidero\Germanized\Shipments\ReturnShipment;
+use Vendidero\Germanized\Shipments\Package;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -34,6 +36,12 @@ function wc_gzd_get_shipment_order( $order ) {
     return false;
 }
 
+function wc_gzd_get_shipment_label( $type, $plural = false ) {
+	$type_data = wc_gzd_get_shipment_type_data( $type );
+
+	return ( ! $plural ? $type_data['labels']['singular'] : $type_data['labels']['plural'] );
+}
+
 /**
  * Get shipment type data by type.
  *
@@ -43,7 +51,18 @@ function wc_gzd_get_shipment_order( $order ) {
 function wc_gzd_get_shipment_type_data( $type ) {
 	$types = array(
 		'simple' => array(
-			'class_name' => '\Vendidero\Germanized\Shipments\SimpleShipment'
+			'class_name' => '\Vendidero\Germanized\Shipments\SimpleShipment',
+			'labels'     => array(
+				'singular' => __( 'Shipment', 'woocommerce-germanized-shipments' ),
+				'plural'   => __( 'Shipments', 'woocommerce-germanized-shipments' ),
+			),
+		),
+		'return' => array(
+			'class_name' => '\Vendidero\Germanized\Shipments\ReturnShipment',
+			'labels'     => array(
+				'singular' => __( 'Return', 'woocommerce-germanized-shipments' ),
+				'plural'   => __( 'Returns', 'woocommerce-germanized-shipments' ),
+			),
 		),
 	);
 
@@ -156,6 +175,73 @@ function wc_gzd_get_shipment_statuses() {
     return apply_filters( 'woocommerce_gzd_shipment_statuses', $shipment_statuses );
 }
 
+function wc_gzd_get_shipment_selectable_statuses( $type ) {
+	$shipment_statuses = wc_gzd_get_shipment_statuses();
+
+	if ( isset( $shipment_statuses['gzd-returned'] ) ) {
+		unset( $shipment_statuses['gzd-returned'] );
+	}
+
+	if ( 'return' === $type ) {
+		if ( isset( $shipment_statuses['gzd-delivered'] ) ) {
+			$shipment_statuses['gzd-delivered'] = _x( 'Received', 'shipments', 'woocommerce-germanized-shipments' );
+		}
+	}
+
+	/**
+	 * Add or remove selectable Shipment statuses for a certain type.
+	 *
+	 * @param array $shipment_statuses The available shipment statuses.
+	 * @param string $type The shipment type e.g. return.
+	 *
+	 * @since 3.0.0
+	 */
+	return apply_filters( 'woocommerce_gzd_shipment_selectable_statuses', $shipment_statuses, $type );
+}
+
+/**
+ * @param SimpleShipment $parent_shipment
+ * @param array $args
+ *
+ * @return ReturnShipment|WP_Error
+ */
+function wc_gzd_create_return_shipment( $parent_shipment, $args = array() ) {
+	try {
+
+		if ( ! $parent_shipment || ! is_a( $parent_shipment, 'Vendidero\Germanized\Shipments\Shipment' ) ) {
+			throw new Exception( _x( 'Invalid shipment.', 'shipments', 'woocommerce-germanized-shipments' ) );
+		}
+
+		if ( $parent_shipment->has_complete_return() ) {
+			throw new Exception( _x( 'This shipment is already fully returned.', 'shipments', 'woocommerce-germanized-shipments' ) );
+		}
+
+		$args = wp_parse_args( $args, array(
+			'items' => array(),
+			'props' => array(),
+		) );
+
+		$shipment = ShipmentFactory::get_shipment( false, 'return' );
+
+		if ( ! $shipment ) {
+			throw new Exception( _x( 'Error while creating the shipment instance', 'shipments', 'woocommerce-germanized-shipments' ) );
+		}
+
+		// Make sure shipment knows its parent
+		$shipment->set_parent_id( $parent_shipment->get_id() );
+		$shipment->set_parent( $parent_shipment );
+
+		$shipment->sync( $args['props'] );
+		$shipment->sync_items( $args );
+		$shipment->save();
+
+	} catch ( Exception $e ) {
+		return new WP_Error( 'error', $e->getMessage() );
+	}
+
+	return $shipment;
+}
+
 /**
  * @param Order $order_shipment
  * @param array $args
@@ -184,9 +270,9 @@ function wc_gzd_create_shipment( $order_shipment, $args = array() ) {
 	        throw new Exception( _x( 'Error while creating the shipment instance', 'shipments', 'woocommerce-germanized-shipments' ) );
         }
 
-        wc_gzd_sync_shipment( $order_shipment, $shipment, $args['props'] );
-        wc_gzd_sync_shipment_items( $order_shipment, $shipment, $args );
-
+        $shipment->set_order_shipment( $order_shipment );
+        $shipment->sync( $args['props'] );
+        $shipment->sync_items( $args );
         $shipment->save();
 
     } catch ( Exception $e ) {
@@ -196,7 +282,7 @@ function wc_gzd_create_shipment( $order_shipment, $args = array() ) {
     return $shipment;
 }
 
-function wc_gzd_create_shipment_item( $order_item, $args = array() ) {
+function wc_gzd_create_shipment_item( $shipment, $order_item, $args = array() ) {
     try {
 
         if ( ! $order_item || ! is_a( $order_item, 'WC_Order_Item' ) ) {
@@ -204,8 +290,10 @@ function wc_gzd_create_shipment_item( $order_item, $args = array() ) {
         }
 
         $item = new Vendidero\Germanized\Shipments\ShipmentItem();
-        wc_gzd_sync_shipment_item( $item, $order_item, $args );
 
+        $item->set_order_item_id( $order_item->get_id() );
+        $item->set_shipment( $shipment );
+        $item->sync( $args );
         $item->save();
 
     } catch ( Exception $e ) {
@@ -213,6 +301,26 @@ function wc_gzd_create_shipment_item( $order_item, $args = array() ) {
     }
 
     return $item;
+}
+
+function wc_gzd_create_return_shipment_item( $shipment, $parent_item, $args = array() ) {
+	try {
+
+		if ( ! $parent_item || ! is_a( $parent_item, '\Vendidero\Germanized\Shipments\ShipmentItem' ) ) {
+			throw new Exception( _x( 'Invalid shipment item', 'shipments', 'woocommerce-germanized-shipments' ) );
+		}
+
+		$item = new Vendidero\Germanized\Shipments\ShipmentItem();
+		$item->set_parent_id( $parent_item->get_id() );
+		$item->set_shipment( $shipment );
+		$item->sync( $args );
+		$item->save();
+
+	} catch ( Exception $e ) {
+		return new WP_Error( 'error', $e->getMessage() );
+	}
+
+	return $item;
 }
 
 function wc_gzd_get_shipment_editable_statuses() {
@@ -290,55 +398,28 @@ function wc_gzd_get_shipping_provider_slug( $provider ) {
 }
 
 /**
- * @param Order $order_shipment
- * @param Shipment $shipment
- * @param array $args
+ * @param SimpleShipment $parent_shipment
  *
- * @return bool
+ * @return array
  */
-function wc_gzd_sync_shipment( $order_shipment, &$shipment, $args = array() ) {
-    try {
+function wc_gzd_get_shipment_return_address( $parent_shipment ) {
+	$country_state = wc_format_country_state_string( Package::get_setting( 'return_address_country' ) );
 
-        if ( ! $order_shipment || ! is_a( $order_shipment, 'Vendidero\Germanized\Shipments\Order' ) ) {
-            throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
-        }
+	$address = array(
+		'first_name' => Package::get_setting( 'return_address_first_name' ),
+		'last_name'  => Package::get_setting( 'return_address_last_name' ),
+		'company'    => Package::get_setting( 'return_address_company' ),
+		'address_1'  => Package::get_setting( 'return_address_address_1' ),
+		'address_2'  => Package::get_setting( 'return_address_address_2' ),
+		'city'       => Package::get_setting( 'return_address_city' ),
+		'country'    => $country_state['country'],
+		'state'      => $country_state['state'],
+		'postcode'   => Package::get_setting( 'return_address_postcode' ),
+ 	);
 
-        $order = $order_shipment->get_order();
+	$address['email'] = get_option( 'admin_email' );
 
-        if ( ! $order ) {
-            throw new Exception( _x( 'Invalid order', 'shipments', 'woocommerce-germanized-shipments' ) );
-        }
-
-        $args = wp_parse_args( $args, array(
-            'order_id'        => $order->get_id(),
-            'country'         => $order->get_shipping_country(),
-            'shipping_method' => wc_gzd_get_shipment_order_shipping_method_id( $order ),
-            'address'         => array_merge( $order->get_address( 'shipping' ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) ),
-            'weight'          => $shipment->get_weight( 'edit' ),
-            'length'          => $shipment->get_length( 'edit' ),
-            'width'           => $shipment->get_width( 'edit' ),
-            'height'          => $shipment->get_height( 'edit' ),
-        ) );
-
-        $shipment->set_props( $args );
-
-	    /**
-	     * Action that fires after a shipment has been synced. Syncing is used to
-	     * keep the shipment in sync with the corresponding order.
-	     *
-	     * @param Shipment $shipment The shipment object.
-	     * @param Order $order_shipment The shipment order object.
-	     * @param array                                    $args Array containing properties in key => value pairs to be updated.
-	     *
-	     * @since 3.0.0
-	     */
-        do_action( 'woocommerce_gzd_shipment_synced', $shipment, $order_shipment, $args );
-
-    } catch ( Exception $e ) {
-        return false;
-    }
-
-    return true;
+	return $address;
 }
 
 /**
@@ -384,120 +465,6 @@ function wc_gzd_render_shipment_action_buttons( $actions ) {
 	return $actions_html;
 }
 
-/**
- * @param Order $order_shipment
- * @param Shipment $shipment
- * @param array $args
- * @return bool
- */
-function wc_gzd_sync_shipment_items( $order_shipment, &$shipment, $args = array() ) {
-    try {
-
-        if ( ! $order_shipment || ! is_a( $order_shipment, 'Vendidero\Germanized\Shipments\Order' ) ) {
-            throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
-        }
-
-        $args = wp_parse_args( $args, array(
-            'items' => array(),
-        ) );
-
-        $order = $order_shipment->get_order();
-
-        $available_items = $order_shipment->get_available_items_for_shipment( array(
-            'shipment_id'              => $shipment->get_id(),
-            'exclude_current_shipment' => true,
-        ) );
-
-        foreach( $available_items as $item_id => $item_data ) {
-            if ( $order_item = $order->get_item( $item_id ) ) {
-                $quantity = $item_data['max_quantity'];
-
-                if ( ! empty( $args['items'] ) ) {
-                    if ( isset( $args['items'][ $item_id ] ) ) {
-                        $new_quantity = absint( $args['items'][ $item_id ] );
-
-                        if ( $new_quantity < $quantity ) {
-                            $quantity = $new_quantity;
-                        }
-                    } else {
-                        continue;
-                    }
-                }
-
-                if ( ! $shipment_item = $shipment->get_item_by_order_item_id( $item_id ) ) {
-                    $shipment_item = wc_gzd_create_shipment_item( $order_item, array( 'quantity' => $quantity ) );
-
-                    $shipment->add_item( $shipment_item );
-                } else {
-                    wc_gzd_sync_shipment_item( $shipment_item, $order_item, array( 'quantity' => $quantity ) );
-                }
-            }
-        }
-
-        foreach( $shipment->get_items() as $item ) {
-
-            // Remove non-existent items
-            if( ! $order_item = $order->get_item( $item->get_order_item_id() ) ) {
-                $shipment->remove_item( $item->get_id() );
-            }
-        }
-
-	    /**
-	     * Action that fires after items of a shipment have been synced.
-	     *
-	     * @param Shipment $shipment The shipment object.
-	     * @param Order $order_shipment The shipment order object.
-	     * @param array                                    $args Array containing additional data e.g. items.
-	     *
-	     * @since 3.0.0
-	     */
-	    do_action( 'woocommerce_gzd_shipment_items_synced', $shipment, $order_shipment, $args );
-
-    } catch ( Exception $e ) {
-        return false;
-    }
-
-    return true;
-}
-
-function wc_gzd_sync_shipment_item( &$item, $order_item, $args = array() ) {
-
-    if ( is_callable( array( $order_item, 'get_product_id' ) ) ) {
-        $item->set_product_id( $order_item->get_product_id() );
-    }
-
-    $product    = $item->get_product();
-    $tax_total  = is_callable( array( $order_item, 'get_total_tax' ) ) ? $order_item->get_total_tax() : 0;;
-    $total      = is_callable( array( $order_item, 'get_total' ) ) ? $order_item->get_total() : 0;
-
-    $args = wp_parse_args( $args, array(
-        'order_item_id' => $order_item->get_id(),
-        'product_id'    => is_callable( array( $order_item, 'get_product_id' ) ) ? $order_item->get_product_id() : 0,
-        'quantity'      => 1,
-        'name'          => $order_item->get_name(),
-        'sku'           => $product ? $product->get_sku() : '',
-        'total'         => $total + $tax_total,
-        'weight'        => $product ? wc_get_weight( $product->get_weight(), 'kg' ) : '',
-        'length'        => $product ? wc_get_dimension( $product->get_length(), 'cm' ) : '',
-        'width'         => $product ? wc_get_dimension( $product->get_width(), 'cm' ) : '',
-        'height'        => $product ? wc_get_dimension( $product->get_height(), 'cm' ) : '',
-    ) );
-
-    $item->set_props( $args );
-
-	/**
-	 * Action that fires after a shipment item has been synced. Syncing is used to
-	 * keep the shipment item in sync with the corresponding order item.
-	 *
-	 * @param ShipmentItem $item The shipment item object.
-	 * @param WC_Order_Item                                $order_item The order item object.
-	 * @param array                                        $args Array containing props in key => value pairs which have been updated.
-	 *
-	 * @since 3.0.0
-	 */
-	do_action( 'woocommerce_gzd_shipment_item_synced', $item, $order_item, $args );
-}
-
 function wc_gzd_get_shipment_status_name( $status ) {
     if ( 'gzd-' !== substr( $status, 0, 4 ) ) {
         $status = 'gzd-' . $status;
@@ -536,17 +503,17 @@ function wc_gzd_get_shipment_sent_stati() {
     ) );
 }
 
-function wc_gzd_get_shipment_counts() {
+function wc_gzd_get_shipment_counts( $type = '' ) {
     $counts = array();
 
     foreach( array_keys( wc_gzd_get_shipment_statuses() ) as $status ) {
-        $counts[ $status ] = wc_gzd_get_shipment_count( $status );
+        $counts[ $status ] = wc_gzd_get_shipment_count( $status, $type );
     }
 
     return $counts;
 }
 
-function wc_gzd_get_shipment_count( $status ) {
+function wc_gzd_get_shipment_count( $status, $type = '' ) {
     $count             = 0;
     $status            = ( substr( $status, 0, 4 ) ) === 'gzd-' ? $status : 'gzd-' . $status;
     $shipment_statuses = array_keys( wc_gzd_get_shipment_statuses() );
@@ -555,7 +522,7 @@ function wc_gzd_get_shipment_count( $status ) {
         return 0;
     }
 
-    $cache_key    = WC_Cache_Helper::get_cache_prefix( 'shipments' ) . $status;
+    $cache_key    = WC_Cache_Helper::get_cache_prefix( 'shipments' ) . $status . $type;
     $cached_count = wp_cache_get( $cache_key, 'counts' );
 
     if ( false !== $cached_count ) {
@@ -565,7 +532,7 @@ function wc_gzd_get_shipment_count( $status ) {
     $data_store = WC_Data_Store::load( 'shipment' );
 
     if ( $data_store ) {
-        $count += $data_store->get_shipment_count( $status );
+        $count += $data_store->get_shipment_count( $status, $type );
     }
 
     wp_cache_set( $cache_key, $count, 'counts' );

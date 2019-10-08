@@ -10,6 +10,7 @@ use WC_Data;
 use WC_Data_Store;
 use Exception;
 use WC_DateTime;
+use WC_Order;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -164,6 +165,12 @@ abstract class Shipment extends WC_Data {
         $this->changes = array();
     }
 
+    public function get_order_shipment() {
+    	return false;
+    }
+
+    public function set_order_shipment( &$order_shipment ) {}
+
 	/**
 	 * Return item count (quantities summed up).
 	 *
@@ -221,7 +228,7 @@ abstract class Shipment extends WC_Data {
 	/**
 	 * Checks whether the shipment has a specific status or not.
 	 *
-	 * @param  string $status The status to be checked against.
+	 * @param  string|string[] $status The status to be checked against.
 	 * @return boolean
 	 */
     public function has_status( $status ) {
@@ -797,6 +804,10 @@ abstract class Shipment extends WC_Data {
         return apply_filters( 'woocommerce_gzd_shipment_is_editable', $this->has_status( wc_gzd_get_shipment_editable_statuses() ), $this );
     }
 
+    public function is_returnable() {
+    	return false;
+    }
+
 	/**
 	 * Returns the shipment number.
 	 *
@@ -1280,6 +1291,151 @@ abstract class Shipment extends WC_Data {
             }
         }
     }
+
+	/**
+	 * Finds an ShipmentItem based on an order item id.
+	 *
+	 * @param integer $order_item_id
+	 *
+	 * @return bool|ShipmentItem
+	 */
+	public function get_item_by_order_item_id( $order_item_id ) {
+		$items = $this->get_items();
+
+		foreach( $items as $item ) {
+			if ( $item->get_order_item_id() === $order_item_id ) {
+				return $item;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Tries to fetch the order for the current shipment.
+	 *
+	 * @return bool|WC_Order|null
+	 */
+	public function get_order() {
+		return false;
+	}
+
+	/**
+	 * Returns whether the Shipment contains an order item or not.
+	 *
+	 * @param integer|integer[] $item_id
+	 *
+	 * @return boolean
+	 */
+	public function contains_order_item( $item_id ) {
+
+		if ( ! is_array( $item_id ) ) {
+			$item_id = array( $item_id );
+		}
+
+		$new_items = $item_id;
+
+		foreach( $item_id as $key => $order_item_id ) {
+
+			if ( is_a( $order_item_id, 'WC_Order_Item' ) ) {
+				$order_item_id   = $order_item_id->get_id();
+				$item_id[ $key ] = $order_item_id;
+			}
+
+			if ( $this->get_item_by_order_item_id( $order_item_id ) ) {
+				unset( $new_items[ $key ] );
+			}
+		}
+
+		$contains = empty( $new_items ) ? true : false;
+
+		/**
+		 * Filter to adjust whether a Shipment contains a specific order item or not.
+		 *
+		 * @param boolean                                  $contains Whether the Shipment contains the order item or not.
+		 * @param integer[]                                $order_item_id The order item id(s).
+		 * @param Shipment $this The shipment object.
+		 *
+		 * @since 3.0.0
+		 */
+		return apply_filters( 'woocommerce_gzd_shipment_contains_order_item', $contains, $item_id, $this );
+	}
+
+	public function get_shippable_item_count() {
+		return 0;
+	}
+
+	/**
+	 * Finds an ShipmentItem based on an item parent id.
+	 *
+	 * @param integer $item_parent_id
+	 *
+	 * @return bool|ShipmentItem
+	 */
+	public function get_item_by_item_parent_id( $item_parent_id ) {
+		$items = $this->get_items();
+
+		foreach( $items as $item ) {
+			if ( $item->get_parent_id() === $item_parent_id ) {
+				return $item;
+			}
+		}
+
+		return false;
+	}
+
+	public function needs_items( $available_items = false ) {
+		return false;
+	}
+
+	public function sync( $args = array() ) {
+		return false;
+	}
+
+	public function sync_items( $args = array() ) {
+		return false;
+	}
+
+	/**
+	 * Returns whether the Shipment contains an item with a certain parent id.
+	 *
+	 * @param integer|integer[] $item_id
+	 *
+	 * @return boolean
+	 */
+	public function contains_item_parent( $item_parent_id ) {
+
+		if ( ! is_array( $item_parent_id ) ) {
+			$item_parent_id = array( $item_parent_id );
+		}
+
+		$new_items = $item_parent_id;
+
+		foreach( $item_parent_id as $key => $item_p_id ) {
+
+			if ( is_a( $item_p_id, '\Vendidero\Germanized\Shipments\ShipmentItem' ) ) {
+				$item_p_id        = $item_parent_id->get_id();
+				$item_id[ $key ]  = $item_parent_id;
+			}
+
+			if ( $this->get_item_by_item_parent_id( $item_p_id ) ) {
+				unset( $new_items[ $key ] );
+			}
+		}
+
+		$contains = empty( $new_items ) ? true : false;
+
+		/**
+		 * Filter to adjust whether a Shipment contains a specific item with a certain parent id or not.
+		 *
+		 * @param boolean                                  $contains Whether the Shipment contains the item's parent or not.
+		 * @param integer[]                                $order_item_id The item parent id(s).
+		 * @param Shipment $this The shipment object.
+		 *
+		 * @since 3.0.0
+		 */
+		return apply_filters( 'woocommerce_gzd_shipment_contains_item_parent', $contains, $item_parent_id, $this );
+	}
 
 	/**
 	 * Calculate totals based on contained items.

@@ -24,10 +24,6 @@ class Package {
 	    }
 
 	    self::define_tables();
-
-	    // Install
-	    register_activation_hook( trailingslashit( self::get_path() ) . 'woocommerce-germanized-shipments.php', array( __CLASS__, 'install' ) );
-
 	    self::init_hooks();
         self::includes();
     }
@@ -39,7 +35,7 @@ class Package {
 	    // Filter email templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
 
-	    // add_action( 'admin_init', array( __CLASS__, 'test' ) );
+	    add_action( 'admin_init', array( __CLASS__, 'test' ) );
     }
 
 	public static function install() {
@@ -114,10 +110,16 @@ class Package {
 
     public static function test() {
 
-		$shipment = wc_gzd_get_shipment( 67 );
-		var_dump($shipment->get_order_id());
-		var_dump($shipment);
-		exit();
+    	// wc_gzd_create_shipment( wc_gzd_get_shipment_order( 24662 ) );
+    	// exit();
+
+		// $shipment = wc_gzd_get_shipment( 72 );
+		// $return = wc_gzd_create_return_shipment( $shipment );
+		// var_dump($return);
+		// exit();
+
+		// var_dump($return);
+		// exit();
 
         /*
         $shipment = new WC_GZD_Shipment( 1 );

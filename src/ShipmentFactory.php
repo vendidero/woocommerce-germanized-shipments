@@ -24,7 +24,7 @@ class ShipmentFactory {
 	 * Get shipment.
 	 *
 	 * @param  mixed $shipment_id (default: false) Shipment id to get or empty if new.
-	 * @return SimpleShipment|bool
+	 * @return SimpleShipment|ReturnShipment|bool
 	 */
 	public static function get_shipment( $shipment_id = false, $shipment_type = 'simple' ) {
 		$shipment_id = self::get_shipment_id( $shipment_id );

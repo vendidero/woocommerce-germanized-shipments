@@ -28,8 +28,10 @@ class Ajax {
         }
 
         $ajax_events = array(
-            'get_shipment_available_order_items',
+            'get_shipment_available_items',
+            'get_shipment_available_return_items',
             'add_shipment_item',
+	        'add_shipment_return',
             'add_shipment',
             'remove_shipment',
             'remove_shipment_item',
@@ -255,6 +257,62 @@ class Ajax {
         self::send_json_success( $response, $order_shipment );
     }
 
+	public static function add_shipment_return() {
+		check_ajax_referer( 'edit-shipments', 'security' );
+
+		if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['shipment_id'] ) ) {
+			wp_die( -1 );
+		}
+
+		$response_error = array(
+			'success' => false,
+			'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
+		);
+
+		$response = array(
+			'success'      => true,
+			'message'      => '',
+			'new_shipment' => '',
+		);
+
+		$shipment_id = absint( $_POST['shipment_id'] );
+		$items       = isset( $_POST['return_item'] ) ? (array) $_POST['return_item'] : array();
+
+		if ( ! $parent_shipment = wc_gzd_get_shipment( $shipment_id ) ) {
+			wp_send_json( $response_error );
+		}
+
+		if ( ! $order = $parent_shipment->get_order() ) {
+			wp_send_json( $response_error );
+		}
+
+		if ( ! $order_shipment = wc_gzd_get_shipment_order( $order ) ) {
+			wp_send_json( $response_error );
+		}
+
+		$parent_shipment = $order_shipment->get_shipment( $shipment_id );
+		// Make sure the parent knows the order instance and it's returns
+		$parent_shipment->set_order_shipment( $order_shipment );
+
+		self::refresh_shipment_items( $order_shipment );
+
+		$shipment = wc_gzd_create_return_shipment( $parent_shipment, array( 'items' => $items ) );
+
+		if ( is_wp_error( $shipment ) ) {
+			wp_send_json( $response_error );
+		}
+
+		$order_shipment->add_shipment( $shipment );
+
+		ob_start();
+		include( Package::get_path() . '/includes/admin/views/html-order-shipment.php' );
+		$html = ob_get_clean();
+
+		$response['new_shipment'] = $html;
+
+		self::send_json_success( $response, $order_shipment );
+	}
+
     public static function validate_shipment_item_quantities() {
         check_ajax_referer( 'edit-shipments', 'security' );
 
@@ -330,8 +388,9 @@ class Ajax {
         if ( $shipment->is_editable() ) {
             $shipment = $order_shipment->get_shipment( $shipment_id );
 
-            wc_gzd_sync_shipment_items( $order_shipment, $shipment );
-
+            // Make sure we are working based on the current instance.
+            $shipment->set_order_shipment( $order_shipment );
+			$shipment->sync_items();
             $shipment->save();
         }
 
@@ -344,8 +403,8 @@ class Ajax {
         $html = ob_get_clean();
 
         $response['fragments'] = array(
-            '#shipment-' . $shipment->get_id() . ' .shipment-item-list' => '<div class="shipment-item-list">' . $html . '</div>',
-            '#shipment-' . $shipment->get_id() . ' .item-count' => self::get_item_count_html( $shipment, $order_shipment ),
+            '#shipment-' . $shipment->get_id() . ' .shipment-item-list:first' => '<div class="shipment-item-list">' . $html . '</div>',
+            '#shipment-' . $shipment->get_id() . ' .item-count:first' => self::get_item_count_html( $shipment, $order_shipment ),
         );
 
         self::send_json_success( $response, $order_shipment );
@@ -457,7 +516,7 @@ class Ajax {
 
     private static function get_shipments_html( $order_shipment, $active = 0 ) {
         ob_start();
-        foreach( $order_shipment->get_shipments() as $shipment ) {
+        foreach( $order_shipment->get_simple_shipments() as $shipment ) {
             $is_active = false;
 
             if ( $active === $shipment->get_id() ) {
@@ -477,7 +536,50 @@ class Ajax {
         return $fragments;
     }
 
-    public static function get_shipment_available_order_items() {
+    public static function get_shipment_available_return_items() {
+	    check_ajax_referer( 'edit-shipments', 'security' );
+
+	    if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['shipment_id'] ) ) {
+		    wp_die( -1 );
+	    }
+
+	    $response_error = array(
+		    'success' => false,
+		    'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
+	    );
+
+	    $response = array(
+		    'success' => true,
+		    'message' => '',
+		    'html'    => '',
+	    );
+
+	    $shipment_id = absint( $_POST['shipment_id'] );
+
+	    if ( ! $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
+		    wp_send_json( $response_error );
+	    }
+
+	    if ( ! $order = $shipment->get_order() ) {
+		    wp_send_json( $response_error );
+	    }
+
+	    if ( ! $order_shipment = wc_gzd_get_shipment_order( $order ) ) {
+		    wp_send_json( $response_error );
+	    }
+
+	    static::refresh_shipments( $order_shipment );
+
+	    $shipment->set_order_shipment( $order_shipment );
+
+	    ob_start();
+	    include( Package::get_path() . '/includes/admin/views/html-order-shipment-add-return-items.php' );
+	    $response['html'] = ob_get_clean();
+
+	    self::send_json_success( $response, $order_shipment );
+    }
+
+    public static function get_shipment_available_items() {
         check_ajax_referer( 'edit-shipments', 'security' );
 
         if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['shipment_id'] ) ) {
@@ -511,10 +613,19 @@ class Ajax {
 
         static::refresh_shipments( $order_shipment );
 
-        $response['items'] = $order_shipment->get_available_items_for_shipment( array(
-            'shipment_id'        => $shipment_id,
-            'disable_duplicates' => true,
-        ) );
+        if ( 'return' === $shipment->get_type() ) {
+	        $shipment->set_order_shipment( $order_shipment );
+
+	        $response['items'] = $shipment->get_parent()->get_available_items_for_return( array(
+		        'shipment_id'        => $shipment->get_id(),
+		        'disable_duplicates' => true,
+	        ) );
+        } else {
+	        $response['items'] = $order_shipment->get_available_items_for_shipment( array(
+		        'shipment_id'        => $shipment_id,
+		        'disable_duplicates' => true,
+	        ) );
+        }
 
         self::send_json_success( $response, $order_shipment );
     }
@@ -537,15 +648,15 @@ class Ajax {
             'new_item'  => '',
         );
 
-        $shipment_id   = absint( $_POST['shipment_id'] );
-        $order_item_id = isset( $_POST['order_item_id'] ) ? absint( $_POST['order_item_id'] ) : 0;
-        $item_quantity = isset( $_POST['quantity'] ) ? absint( $_POST['quantity'] ) : false;
+        $shipment_id      = absint( $_POST['shipment_id'] );
+        $original_item_id = isset( $_POST['original_item_id'] ) ? absint( $_POST['original_item_id'] ) : 0;
+        $item_quantity    = isset( $_POST['quantity'] ) ? absint( $_POST['quantity'] ) : false;
 
         if ( false !== $item_quantity && $item_quantity === 0 ) {
             $item_quantity = 1;
         }
 
-        if ( empty( $order_item_id ) ) {
+        if ( empty( $original_item_id ) ) {
             wp_send_json( $response_error );
         }
 
@@ -554,10 +665,6 @@ class Ajax {
         }
 
         if ( ! $order = $shipment->get_order() ) {
-            wp_send_json( $response_error );
-        }
-
-        if ( ! $order_item = $order->get_item( $order_item_id ) ) {
             wp_send_json( $response_error );
         }
 
@@ -570,25 +677,14 @@ class Ajax {
         // Make sure we are working with the shipment from the order
         $shipment = $order_shipment->get_shipment( $shipment_id );
 
-        // No duplicates allowed
-        if ( $shipment->get_item_by_order_item_id( $order_item_id ) ) {
-            wp_send_json( $response_error );
-        }
-
-        // Check max quantity
-        $quantity_left = $order_shipment->get_item_quantity_left_for_shipping( $order_item );
-
-        if ( $item_quantity ) {
-            if ( $item_quantity > $quantity_left ) {
-                $item_quantity = $quantity_left;
-            }
+        if ( 'return' === $shipment->get_type() ) {
+	        $item = self::add_shipment_return_item( $order_shipment, $shipment, $original_item_id, $item_quantity );
         } else {
-            $item_quantity = $quantity_left;
+        	$item = self::add_shipment_order_item( $order_shipment, $shipment, $original_item_id, $item_quantity );
         }
 
-        if ( $item = wc_gzd_create_shipment_item( $order_item, array( 'quantity' => $item_quantity ) ) ) {
-            $shipment->add_item( $item );
-            $shipment->save();
+        if ( ! $item ) {
+	        wp_send_json( $response_error );
         }
 
         ob_start();
@@ -596,15 +692,104 @@ class Ajax {
         $response['new_item'] = ob_get_clean();
 
         $response['fragments'] = array(
-            '#shipment-' . $shipment->get_id() . ' .item-count' => self::get_item_count_html( $shipment, $order_shipment ),
+            '#shipment-' . $shipment->get_id() . ' .item-count:first' => self::get_item_count_html( $shipment, $order_shipment ),
         );
 
         self::send_json_success( $response, $order_shipment );
     }
 
+	/**
+	 * @param Order $order_shipment
+	 * @param ReturnShipment $shipment
+	 * @param integer $parent_item_id
+	 * @param integer $quantity
+	 */
+    private static function add_shipment_return_item( $order_shipment, $shipment, $parent_item_id, $quantity ) {
+	    $response_error = array(
+		    'success' => false,
+		    'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
+	    );
+
+	    if ( ! $parent = $shipment->get_parent() ) {
+		    wp_send_json( $response_error );
+	    }
+	    
+	    if ( ! $parent_item = $parent->get_item( $parent_item_id ) ) {
+		    wp_send_json( $response_error );
+	    }
+
+	    // No duplicates allowed
+	    if ( $shipment->get_item_by_item_parent_id( $parent_item_id ) ) {
+		    wp_send_json( $response_error );
+	    }
+
+	    // Check max quantity
+	    $quantity_left = $parent->get_item_quantity_left_for_return( $parent_item_id );
+
+	    if ( $quantity ) {
+		    if ( $quantity > $quantity_left ) {
+			    $quantity = $quantity_left;
+		    }
+	    } else {
+		    $quantity = $quantity_left;
+	    }
+
+	    if ( $item = wc_gzd_create_return_shipment_item( $shipment, $parent_item, array( 'quantity' => $quantity ) ) ) {
+		    $shipment->add_item( $item );
+		    $shipment->save();
+	    }
+
+	    return $item;
+    } 
+
+	/**
+	 * @param Order $order_shipment
+	 * @param SimpleShipment $shipment
+	 * @param integer $order_item_id
+	 * @param integer $quantity
+	 */
+    private static function add_shipment_order_item( $order_shipment, $shipment, $order_item_id, $quantity ) {
+
+	    $response_error = array(
+		    'success' => false,
+		    'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
+	    );
+
+    	$order = $order_shipment->get_order();
+
+	    if ( ! $order_item = $order->get_item( $order_item_id ) ) {
+		    wp_send_json( $response_error );
+	    }
+
+	    // No duplicates allowed
+	    if ( $shipment->get_item_by_order_item_id( $order_item_id ) ) {
+		    wp_send_json( $response_error );
+	    }
+
+	    // Check max quantity
+	    $quantity_left = $order_shipment->get_item_quantity_left_for_shipping( $order_item );
+
+	    if ( $quantity ) {
+		    if ( $quantity > $quantity_left ) {
+			    $quantity = $quantity_left;
+		    }
+	    } else {
+		    $quantity = $quantity_left;
+	    }
+
+	    if ( $item = wc_gzd_create_shipment_item( $shipment, $order_item, array( 'quantity' => $quantity ) ) ) {
+		    $shipment->add_item( $item );
+		    $shipment->save();
+	    }
+
+	    return $item;
+    }
+
     private static function get_item_count_html( $p_shipment, $p_order_shipment ) {
         $shipment       = $p_shipment;
-        $order_shipment = $p_order_shipment;
+
+        // Refresh the instance to make sure we are working with the same object
+        $shipment->set_order_shipment( $p_order_shipment );
 
         ob_start();
         include( Package::get_path() . '/includes/admin/views/html-order-shipment-item-count.php' );
@@ -651,7 +836,7 @@ class Ajax {
 
         $response['item_id']   = $item_id;
         $response['fragments'] = array(
-            '#shipment-' . $shipment->get_id() . ' .item-count' => self::get_item_count_html( $shipment, $order_shipment ),
+            '#shipment-' . $shipment->get_id() . ' .item-count:first' => self::get_item_count_html( $shipment, $order_shipment ),
         );
 
         self::send_json_success( $response, $order_shipment );
@@ -708,10 +893,21 @@ class Ajax {
 
         static::refresh_shipments( $order_shipment );
 
-        $quantity_max = $order_shipment->get_item_quantity_left_for_shipping( $order_item, array(
-            'exclude_current_shipment' => true,
-            'shipment_id'              => $shipment->get_id(),
-        ) );
+        $quantity_max = 0;
+
+	    if ( 'return' === $shipment->get_type() ) {
+	    	$shipment->set_order_shipment( $order_shipment );
+
+		    $quantity_max = $shipment->get_parent()->get_item_quantity_left_for_return( $item->get_parent_id(), array(
+			    'exclude_current_shipment' => true,
+			    'shipment_id'              => $shipment->get_id(),
+		    ) );
+	    } else {
+		    $quantity_max = $order_shipment->get_item_quantity_left_for_shipping( $order_item, array(
+			    'exclude_current_shipment' => true,
+			    'shipment_id'              => $shipment->get_id(),
+		    ) );
+	    }
 
         $response['item_id']      = $item_id;
         $response['max_quantity'] = $quantity_max;
@@ -723,7 +919,7 @@ class Ajax {
         $shipment->get_item( $item_id )->set_quantity( $quantity );
 
         $response['fragments'] = array(
-            '#shipment-' . $shipment->get_id() . ' .item-count' => self::get_item_count_html( $shipment, $order_shipment ),
+            '#shipment-' . $shipment->get_id() . ' .item-count:first' => self::get_item_count_html( $shipment, $order_shipment ),
         );
 
         self::send_json_success( $response, $order_shipment );
@@ -734,19 +930,23 @@ class Ajax {
      * @param Order $order_shipment
      * @param Shipment|bool $shipment
      */
-    private static function send_json_success( $response, $order_shipment) {
+    private static function send_json_success( $response, $order_shipment ) {
 
         $available_items       = $order_shipment->get_available_items_for_shipment();
         $response['shipments'] = array();
 
         foreach( $order_shipment->get_shipments() as $shipment ) {
+
+        	$shipment->set_order_shipment( $order_shipment );
+
             $response['shipments'][ $shipment->get_id() ] = array(
-                'is_editable' => $shipment->is_editable(),
-                'needs_items' => $shipment->needs_items( array_keys( $available_items ) ),
-                'weight'      => wc_format_localized_decimal( $shipment->get_content_weight() ),
-                'length'      => wc_format_localized_decimal( $shipment->get_content_length() ),
-                'width'       => wc_format_localized_decimal( $shipment->get_content_width() ),
-                'height'      => wc_format_localized_decimal( $shipment->get_content_height() ),
+                'is_editable'   => $shipment->is_editable(),
+                'needs_items'   => $shipment->needs_items( array_keys( $available_items ) ),
+                'is_returnable' => $shipment->is_returnable(),
+                'weight'        => wc_format_localized_decimal( $shipment->get_content_weight() ),
+                'length'        => wc_format_localized_decimal( $shipment->get_content_length() ),
+                'width'         => wc_format_localized_decimal( $shipment->get_content_width() ),
+                'height'        => wc_format_localized_decimal( $shipment->get_content_height() ),
             );
         }
 

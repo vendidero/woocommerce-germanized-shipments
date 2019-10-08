@@ -23,7 +23,7 @@ $active_shipment = isset( $active_shipment ) ? $active_shipment : false;
         <div class="notice-wrapper panel-inner"></div>
 
         <div id="order-shipments-list" class="panel-inner">
-            <?php foreach( $order_shipment->get_shipments() as $shipment ) :
+            <?php foreach( $order_shipment->get_simple_shipments() as $shipment ) :
                 $is_active = ( $active_shipment && $shipment->get_id() === $active_shipment ) ? true : false;
 
                 include 'html-order-shipment.php'; ?>

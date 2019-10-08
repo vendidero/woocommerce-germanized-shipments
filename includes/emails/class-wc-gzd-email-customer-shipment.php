@@ -163,7 +163,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
 
                     $this->object = $this->shipment->get_order();
 
-                    if ( $order_shipment->needs_shipping() || sizeof( $order_shipment->get_shipments() ) > 1 ) {
+                    if ( $order_shipment->needs_shipping() || sizeof( $order_shipment->get_simple_shipments() ) > 1 ) {
                         $this->partial_shipment = true;
                     }
 
