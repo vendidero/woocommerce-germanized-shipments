@@ -33,11 +33,18 @@ class SimpleShipment extends Shipment {
 	 */
 	private $order_shipment = null;
 
+	private $force_order_shipment_usage = false;
+
 	protected $extra_data = array(
 		'est_delivery_date'     => null,
 		'order_id'              => 0,
 	);
 
+	/**
+	 * Returns the shipment type.
+	 *
+	 * @return string
+	 */
 	public function get_type() {
 		return 'simple';
 	}
@@ -50,6 +57,15 @@ class SimpleShipment extends Shipment {
 	 */
 	public function get_est_delivery_date( $context = 'view' ) {
 		return $this->get_prop( 'est_delivery_date', $context );
+	}
+
+	/**
+	 * Set the date this shipment will be delivered.
+	 *
+	 * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
+	 */
+	public function set_est_delivery_date( $date = null ) {
+		$this->set_date_prop( 'est_delivery_date', $date );
 	}
 
 	/**
@@ -80,7 +96,9 @@ class SimpleShipment extends Shipment {
 	 * @param Order $order_shipment The order shipment.
 	 */
 	public function set_order_shipment( &$order_shipment ) {
-		$this->order_shipment = $order_shipment;
+		$this->order_shipment             = $order_shipment;
+		/** Little hack to determine whether to work with the order shipment instance for retrieving return instances */
+		$this->force_order_shipment_usage = true;
 	}
 
 	/**
@@ -96,6 +114,11 @@ class SimpleShipment extends Shipment {
 		return $this->order;
 	}
 
+	/**
+	 * Returns the order shipment instance. Loads from DB if not yet exists.
+	 *
+	 * @return bool|Order
+	 */
 	public function get_order_shipment() {
 		if ( is_null( $this->order_shipment ) ) {
 			$order                = $this->get_order();
@@ -105,6 +128,13 @@ class SimpleShipment extends Shipment {
 		return $this->order_shipment;
 	}
 
+	/**
+	 * Sync the shipment with it's corresponding order.
+	 *
+	 * @param array $args
+	 *
+	 * @return bool
+	 */
 	public function sync( $args = array() ) {
 		try {
 
@@ -146,6 +176,14 @@ class SimpleShipment extends Shipment {
 		return true;
 	}
 
+	/**
+	 * Sync items with the corresponding order items.
+	 * Limits quantities and removes non-existing items.
+	 *
+	 * @param array $args
+	 *
+	 * @return bool
+	 */
 	public function sync_items( $args = array() ) {
 		try {
 
@@ -236,6 +274,13 @@ class SimpleShipment extends Shipment {
 		return $methods;
 	}
 
+	/**
+	 * Returns available items for return.
+	 *
+	 * @param array $args
+	 *
+	 * @return array
+	 */
 	public function get_available_items_for_return( $args = array() ) {
 		$args     = wp_parse_args( $args, array(
 			'disable_duplicates'       => false,
@@ -271,6 +316,14 @@ class SimpleShipment extends Shipment {
 		return $items;
 	}
 
+	/**
+	 * Returns the quantity left for return of a certain item.
+	 *
+	 * @param int $item_id
+	 * @param array $args
+	 *
+	 * @return int
+	 */
 	public function get_item_quantity_left_for_return( $item_id, $args = array() ) {
 		$args = wp_parse_args( $args, array(
 			'exclude_current_shipment' => false,
@@ -302,6 +355,11 @@ class SimpleShipment extends Shipment {
 		return $quantity_left;
 	}
 
+	/**
+	 * Returns the number of items available for shipment.
+	 *
+	 * @return int|mixed|void
+	 */
 	public function get_shippable_item_count() {
 		if ( $order_shipment = $this->get_order_shipment() ) {
 			return $order_shipment->get_shippable_item_count();
@@ -310,8 +368,13 @@ class SimpleShipment extends Shipment {
 		return 0;
 	}
 
+	/**
+	 * Returns return shipments linked to that shipment.
+	 *
+	 * @return ReturnShipment[]
+	 */
 	public function get_returns() {
-		if ( $order = $this->get_order_shipment() ) {
+		if ( $this->force_order_shipment_usage && ( $order = $this->get_order_shipment() ) ) {
 			return $order->get_return_shipments( $this->get_id() );
 		} else {
 			return wc_gzd_get_shipments( array(
@@ -321,6 +384,12 @@ class SimpleShipment extends Shipment {
 		}
 	}
 
+	/**
+	 * Checks whether the current shipment is fully returned, e.g. if
+	 * items exist which are not yet linked to a return.
+	 *
+	 * @return bool
+	 */
 	public function has_complete_return() {
 		$items = $this->get_available_items_for_return();
 
@@ -343,6 +412,11 @@ class SimpleShipment extends Shipment {
 		return ( $this->is_editable() && ! $this->contains_order_item( $available_items ) );
 	}
 
+	/**
+	 * Checks if the current shipment is returnable or not.
+	 *
+	 * @return bool
+	 */
 	public function is_returnable() {
 
 		if ( $this->has_status( array( 'shipped', 'delivered' ) ) && ! $this->has_complete_return() ) {
@@ -352,15 +426,25 @@ class SimpleShipment extends Shipment {
 		return false;
 	}
 
+	/**
+	 * Returns the edit shipment URL.
+	 *
+	 * @return mixed|string|void
+	 */
 	public function get_edit_shipment_url() {
 		/**
 		 * Filter to adjust the edit Shipment admin URL.
 		 *
-		 * @param string                                   $url  The URL.
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type.
+		 *
+		 * Example hook name: woocommerce_gzd_shipment_get_edit_url
+		 *
+		 * @param string   $url  The URL.
 		 * @param Shipment $this The shipment object.
 		 *
 		 * @since 3.0.0
 		 */
-		return apply_filters( 'woocommerce_gzd_get_edit_shipment_url', get_admin_url( null, 'post.php?post=' . $this->get_order_id() . '&action=edit&shipment_id=' . $this->get_id() ), $this );
+		return apply_filters( "{$this->get_hook_prefix()}edit_url", get_admin_url( null, 'post.php?post=' . $this->get_order_id() . '&action=edit&shipment_id=' . $this->get_id() ), $this );
 	}
 }

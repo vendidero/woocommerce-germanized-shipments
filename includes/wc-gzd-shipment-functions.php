@@ -42,14 +42,18 @@ function wc_gzd_get_shipment_label( $type, $plural = false ) {
 	return ( ! $plural ? $type_data['labels']['singular'] : $type_data['labels']['plural'] );
 }
 
+function wc_gzd_get_shipment_types() {
+	return array_keys( wc_gzd_get_shipment_type_data( false ) );
+}
+
 /**
  * Get shipment type data by type.
  *
  * @param  string $type type name.
  * @return bool|array Details about the shipment type.
  */
-function wc_gzd_get_shipment_type_data( $type ) {
-	$types = array(
+function wc_gzd_get_shipment_type_data( $type = false ) {
+	$types = apply_filters( 'woocommerce_gzd_shipment_type_data', array(
 		'simple' => array(
 			'class_name' => '\Vendidero\Germanized\Shipments\SimpleShipment',
 			'labels'     => array(
@@ -64,10 +68,12 @@ function wc_gzd_get_shipment_type_data( $type ) {
 				'plural'   => __( 'Returns', 'woocommerce-germanized-shipments' ),
 			),
 		),
-	);
+	) );
 
 	if ( $type && array_key_exists( $type, $types ) ) {
 		return $types[ $type ];
+	} elseif ( false === $type ) {
+		return $types;
 	} else {
 		return $types['simple'];
 	}

@@ -947,15 +947,6 @@ abstract class Shipment extends WC_Data {
     }
 
 	/**
-	 * Set the date this shipment will be delivered.
-	 *
-	 * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
-	 */
-	public function set_est_delivery_date( $date = null ) {
-		$this->set_date_prop( 'est_delivery_date', $date );
-	}
-
-	/**
 	 * Set shipment weight.
 	 *
 	 * @param string $weight The weight.

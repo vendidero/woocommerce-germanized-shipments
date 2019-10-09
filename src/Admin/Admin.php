@@ -125,7 +125,7 @@ class Admin {
 		    check_admin_referer( 'bulk-shipments' );
 
 		    $pagenum       = $wp_list_table->get_pagenum();
-		    $parent_file   = 'admin.php?page=wc-gzd-shipments';
+		    $parent_file   = $wp_list_table->get_main_page();
 		    $sendback      = remove_query_arg( array( 'deleted', 'ids', 'changed', 'bulk_action' ), wp_get_referer() );
 
 		    if ( ! $sendback ) {

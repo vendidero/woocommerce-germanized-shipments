@@ -174,14 +174,19 @@ class Table extends WP_List_Table {
 
 	    /**
 	     * Action that fires after bulk updating shipments. Action might be usefull to add
-         * custom notices after custom bulk actions have been applied.
+	     * custom notices after custom bulk actions have been applied.
 	     *
-	     * @param string                                      $bulk_action The bulk action.
-	     * @param Table $shipment_table The table object.
+	     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+	     * unique hook for a shipment type e.g. return. In case of simple shipments the type is omitted.
+	     *
+	     * Example hook name: woocommerce_gzd_return_shipments_table_bulk_notice
+	     *
+	     * @param string $bulk_action The bulk action.
+	     * @param Table  $shipment_table The table object.
 	     *
 	     * @since 3.0.0
 	     */
-        do_action( 'woocommerce_gzd_shipments_bulk_notice', $bulk_action, $this );
+        do_action( "{$this->get_hook_prefix()}bulk_notice", $bulk_action, $this );
     }
 
     public function set_notice( $message, $type = 'success' ) {
@@ -220,12 +225,17 @@ class Table extends WP_List_Table {
 	    /**
 	     * Filter to adjust Shipment's table items per page.
 	     *
+	     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+	     * unique hook for a shipment type e.g. return. In case of simple shipments the type is omitted.
+	     *
+	     * Example hook name: woocommerce_gzd_return_shipments_table_edit_per_page
+	     *
 	     * @param integer $per_page Number of Shipments per page.
-         * @param string  $type The type in this case shipment.
+	     * @param string  $type The type in this case shipment.
 	     *
 	     * @since 3.0.0
 	     */
-        $per_page        = apply_filters( 'woocommerce_gzd_shipments_edit_per_page', $per_page, 'shipment' );
+        $per_page        = apply_filters( "{$this->get_hook_prefix()}edit_per_page", $per_page, 'shipment' );
         $this->stati     = wc_gzd_get_shipment_statuses();
         $this->counts    = wc_gzd_get_shipment_counts( $this->shipment_type );
         $paged           = $this->get_pagenum();
@@ -249,6 +259,10 @@ class Table extends WP_List_Table {
         if ( isset( $_REQUEST['order'] ) ) {
             $args['order'] = 'asc' === $_REQUEST['order'] ? 'ASC' : 'DESC';
         }
+
+	    if ( isset( $_REQUEST['parent_id'] ) && ! empty( $_REQUEST['parent_id'] ) ) {
+		    $args['parent_id'] = absint( $_REQUEST['parent_id'] );
+	    }
 
         if ( isset( $_REQUEST['order_id'] ) && ! empty( $_REQUEST['order_id'] ) ) {
             $args['order_id'] = absint( $_REQUEST['order_id'] );
@@ -395,7 +409,7 @@ class Table extends WP_List_Table {
      * @return string The formatted link string.
      */
     protected function get_edit_link( $args, $label, $class = '' ) {
-        $url = add_query_arg( $args, 'admin.php?page=wc-gzd-shipments' );
+        $url = add_query_arg( $args, $this->get_main_page() );
 
         $class_html = $aria_current = '';
         if ( ! empty( $class ) ) {
@@ -526,12 +540,18 @@ class Table extends WP_List_Table {
 			    /**
 			     * Action that fires after a certain bulk action result has been rendered.
 			     *
+			     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+			     * unique hook for a shipment type e.g. return. In case of simple shipments the type is omitted.
+                 * `$bulk_action` refers to the bulk action handled.
+			     *
+			     * Example hook name: woocommerce_gzd_return_shipments_table_mark_processing_handled
+			     *
 			     * @param BulkActionHandler $bulk_action_handler The bulk action handler.
-			     * @param string                                                  $bulk_action The bulk action.
+			     * @param string            $bulk_action The bulk action.
 			     *
 			     * @since 3.0.0
 			     */
-                do_action( "woocommerce_gzd_shipments_bulk_action_{$bulk_action}_handled", $handler, $bulk_action );
+                do_action( "{$this->get_hook_prefix()}{$bulk_action}_handled", $handler, $bulk_action );
                 $handler->reset();
                 ?>
             <?php endif; ?>
@@ -558,13 +578,18 @@ class Table extends WP_List_Table {
 
 	            /**
 	             * Action that fires after outputting Shipments table view filters.
-                 * Might be used to add custom filters to the Shipments table view.
+	             * Might be used to add custom filters to the Shipments table view.
+	             *
+	             * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+	             * unique hook for a shipment type e.g. return. In case of simple shipments the type is omitted.
+	             *
+	             * Example hook name: woocommerce_gzd_return_shipments_table_filters
 	             *
 	             * @param string $which top or bottom.
 	             *
 	             * @since 3.0.0
 	             */
-                do_action( 'woocommerce_gzd_shipments_filters', $which );
+                do_action( "{$this->get_hook_prefix()}filters", $which );
 
                 $output = ob_get_clean();
 
@@ -627,14 +652,19 @@ class Table extends WP_List_Table {
 
         $columns               = $this->get_custom_columns();
 
-        /**
-         * Filters the columns displayed in the Shipments list table.
-         *
-         * @since 3.0.0
-         *
-         * @param string[] $columns An associative array of column headings.
-         */
-        $columns = apply_filters( 'woocommerce_gzd_manage_shipments_columns', $columns );
+	    /**
+	     * Filters the columns displayed in the Shipments list table.
+	     *
+	     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+	     * unique hook for a shipment type e.g. return. In case of simple shipments the type is omitted.
+	     *
+	     * Example hook name: woocommerce_gzd_return_shipments_table_edit_per_page
+	     *
+	     * @param string[] $columns An associative array of column headings.
+	     *
+	     * @since 3.0.0
+	     */
+        $columns = apply_filters( "{$this->get_hook_prefix()}columns", $columns );
 
         return $columns;
     }
@@ -670,15 +700,24 @@ class Table extends WP_List_Table {
      */
     public function column_default( $shipment, $column_name ) {
 
-        /**
-         * Fires in each custom column in the Shipments list table.
-         *
-         * @since 3.0.0
-         *
-         * @param string  $column_name The name of the column to display.
-         * @param integer $shipment_id     The current shipment id.
-         */
-        do_action( 'woocommerce_gzd_manage_shipments_custom_column', $column_name, $shipment->get_id() );
+	    /**
+	     * Fires in each custom column in the Shipments list table.
+	     *
+	     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+	     * unique hook for a shipment type e.g. return. In case of simple shipments the type is omitted.
+	     *
+	     * Example hook name: woocommerce_gzd_return_shipments_table_filters
+	     *
+	     * @param string  $column_name The name of the column to display.
+	     * @param integer $shipment_id The current shipment id.
+	     *
+	     * @since 3.0.0
+	     */
+        do_action( "{$this->get_hook_prefix()}custom_column", $column_name, $shipment->get_id() );
+    }
+
+    public function get_main_page() {
+        return 'admin.php?page=wc-gzd-shipments';
     }
 
     /**
@@ -715,11 +754,16 @@ class Table extends WP_List_Table {
 		/**
 		 * Action that fires before table actions are outputted for a Shipment.
 		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type e.g. return. In case of simple shipments the type is omitted.
+		 *
+		 * Example hook name: woocommerce_gzd_return_shipments_table_actions_start
+		 *
 		 * @param Shipment $shipment The shipment object.
 		 *
 		 * @since 3.0.0
 		 */
-		do_action( 'woocommerce_gzd_shipments_table_actions_start', $shipment );
+		do_action( "{$this->get_hook_prefix()}actions_start", $shipment );
 
 		$actions = array();
 
@@ -744,23 +788,33 @@ class Table extends WP_List_Table {
 		/**
 		 * Filters the actions available for Shipments table list column.
 		 *
-		 * @param array                                    $actions The registered Shipment actions.
-         * @param Shipment $shipment The shipment object.
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type e.g. return. In case of simple shipments the type is omitted.
+		 *
+		 * Example hook name: woocommerce_gzd_return_shipments_table_actions
+		 *
+		 * @param array    $actions The registered Shipment actions.
+		 * @param Shipment $shipment The shipment object.
 		 *
 		 * @since 3.0.0
 		 */
-		$actions = apply_filters( 'woocommerce_gzd_shipments_table_actions', $actions, $shipment );
+		$actions = apply_filters( "{$this->get_hook_prefix()}actions", $actions, $shipment );
 
 		echo wc_gzd_render_shipment_action_buttons( $actions ); // WPCS: XSS ok.
 
 		/**
 		 * Action that fires after table actions are outputted for a Shipment.
 		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type e.g. return. In case of simple shipments the type is omitted.
+		 *
+		 * Example hook name: woocommerce_gzd_return_shipments_table_actions_end
+		 *
 		 * @param Shipment $shipment The shipment object.
 		 *
 		 * @since 3.0.0
 		 */
-		do_action( 'woocommerce_gzd_shipments_table_actions_end', $shipment );
+		do_action( "{$this->get_hook_prefix()}actions_end", $shipment );
 
 		echo '</p>';
 	}
@@ -926,6 +980,12 @@ class Table extends WP_List_Table {
         return $actions;
     }
 
+    protected function get_hook_prefix() {
+        $suffix = ( 'simple' === $this->shipment_type ? '' : '_' . $this->shipment_type );
+
+        return "woocommerce_gzd{$suffix}_shipments_table_";
+    }
+
     /**
      * @return array
      */
@@ -943,13 +1003,18 @@ class Table extends WP_List_Table {
         $actions = $this->get_custom_bulk_actions( $actions );
 
 	    /**
-	     * Filter to register addtional Shipment bulk actions.
+	     * Filter to register addtional bulk actions for shipments.
+         *
+	     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+	     * unique hook for a shipment type e.g. return. In case of simple shipments the type is omitted.
+         *
+         * Example hook name: woocommerce_gzd_return_shipments_table_bulk_actions
 	     *
 	     * @param array $actions Array containing key => value pairs.
 	     *
 	     * @since 3.0.0
 	     */
-        return apply_filters( 'woocommerce_gzd_shipments_bulk_actions', $actions );
+        return apply_filters( "{$this->get_hook_prefix()}bulk_actions", $actions );
     }
 
 }

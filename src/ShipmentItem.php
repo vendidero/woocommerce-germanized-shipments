@@ -4,6 +4,7 @@ namespace Vendidero\Germanized\Shipments;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
+use WC_Order_Item;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -247,10 +248,20 @@ class ShipmentItem extends WC_Data {
         return $shipment;
     }
 
+	/**
+	 * Sets the linked shipment instance.
+	 *
+	 * @param Shipment $shipment
+	 */
     public function set_shipment( &$shipment ) {
     	$this->shipment = $shipment;
     }
 
+	/**
+	 * Syncs an item with either it's parent item or the corresponding order item.
+	 *
+	 * @param array $args
+	 */
     public function sync( $args = array() ) {
     	$item = false;
 
@@ -305,7 +316,7 @@ class ShipmentItem extends WC_Data {
 	     * keep the shipment item in sync with the corresponding order item or parent shipment item.
 	     *
 	     * @param WC_Order_Item|ShipmentItem $item The order item object or parent shipment item.
-	     * @param array                      $args Array containing props in key => value pairs which have been updated.
+	     * @param array                       $args Array containing props in key => value pairs which have been updated.
 	     *
 	     * @since 3.0.0
 	     */

@@ -44,6 +44,10 @@ class ReturnTable extends Table {
 		return $actions;
 	}
 
+	public function get_main_page() {
+		return 'admin.php?page=wc-gzd-return-shipments';
+	}
+
 	protected function get_custom_bulk_actions( $actions ) {
 
 		if ( isset( $actions['mark_delivered'] ) ) {

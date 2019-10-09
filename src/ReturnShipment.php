@@ -1,6 +1,7 @@
 <?php
 /**
- * Return shipment
+ * Return shipment. Counterparts to simple shipments. Return
+ * shipments serve to handle retoure/return shipments from customers to the shop owner.
  *
  * @package Vendidero\Germanized\Shipments
  * @version 1.0.0
@@ -44,6 +45,11 @@ class ReturnShipment extends Shipment {
 		'sender_address' => array(),
 	);
 
+	/**
+	 * Returns the shipment type.
+	 *
+	 * @return string
+	 */
 	public function get_type() {
 		return 'return';
 	}
@@ -75,6 +81,16 @@ class ReturnShipment extends Shipment {
 	 */
 	public function get_order_id( $context = 'view' ) {
 		return $this->get_prop( 'order_id', $context );
+	}
+
+	/**
+	 * Returns the address of the sender e.g. customer.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string[]
+	 */
+	public function get_sender_address( $context = 'view' ) {
+		return $this->get_prop( 'sender_address', $context );
 	}
 
 	/**
@@ -110,6 +126,11 @@ class ReturnShipment extends Shipment {
 		$this->order_shipment = $order_shipment;
 	}
 
+	/**
+	 * Returns shipment order.
+	 *
+	 * @return Order|null The order shipment.
+	 */
 	public function get_order_shipment() {
 		return $this->order_shipment;
 	}
@@ -132,6 +153,11 @@ class ReturnShipment extends Shipment {
 		return $this->parent;
 	}
 
+	/**
+	 * Returns the shippable item count.
+	 *
+	 * @return int
+	 */
 	public function get_shippable_item_count() {
 		if ( $parent = $this->get_parent() ) {
 			return $parent->get_item_count();
@@ -140,6 +166,11 @@ class ReturnShipment extends Shipment {
 		return 0;
 	}
 
+	/**
+	 * Set parent instance.
+	 *
+	 * @param $shipment
+	 */
 	public function set_parent( $shipment ) {
 		$this->parent = $shipment;
 	}
@@ -169,12 +200,8 @@ class ReturnShipment extends Shipment {
 		return $methods;
 	}
 
-	public function get_sender_address( $context = 'view' ) {
-		return $this->get_prop( 'sender_address', $context );
-	}
-
 	/**
-	 * Returns an address prop.
+	 * Returns a sender address prop.
 	 *
 	 * @param string $prop
 	 * @param string $context
@@ -184,8 +211,8 @@ class ReturnShipment extends Shipment {
 	protected function get_sender_address_prop( $prop, $context = 'view' ) {
 		$value = null;
 
-		if ( isset( $this->changes['sender_address'][ $prop ] ) || isset( $this->extra_data['sender_address'][ $prop ] ) ) {
-			$value = isset( $this->changes['sender_address'][ $prop ] ) ? $this->changes['sender_address'][ $prop ] : $this->extra_data['sender_address'][ $prop ];
+		if ( isset( $this->changes['sender_address'][ $prop ] ) || isset( $this->data['sender_address'][ $prop ] ) ) {
+			$value = isset( $this->changes['sender_address'][ $prop ] ) ? $this->changes['sender_address'][ $prop ] : $this->data['sender_address'][ $prop ];
 
 			if ( 'view' === $context ) {
 				/**
@@ -209,7 +236,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Returns the formatted shipping address.
+	 * Returns the formatted sender address.
 	 *
 	 * @param  string $empty_content Content to show if no address is present.
 	 * @return string
@@ -221,7 +248,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Returns the shipment address phone number.
+	 * Returns the sender address phone number.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
@@ -231,7 +258,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Returns the shipment address email.
+	 * Returns the sender address email.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
@@ -241,7 +268,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Returns the shipment address first line.
+	 * Returns the sender address first line.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
@@ -251,7 +278,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Returns the shipment address second line.
+	 * Returns the sender address second line.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
@@ -261,7 +288,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Returns the shipment address street number by splitting the address.
+	 * Returns the sender address street number by splitting the address.
 	 *
 	 * @param  string $type The address type e.g. address_1 or address_2.
 	 *
@@ -274,7 +301,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Returns the shipment address street without number by splitting the address.
+	 * Returns the sender address street without number by splitting the address.
 	 *
 	 * @param  string $type The address type e.g. address_1 or address_2.
 	 *
@@ -287,7 +314,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Returns the shipment address company.
+	 * Returns the sender address company.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
@@ -297,7 +324,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Returns the shipment address first name.
+	 * Returns the sender address first name.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
@@ -317,7 +344,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Returns the shipment address formatted full name.
+	 * Returns the sender address formatted full name.
 	 *
 	 * @return string
 	 */
@@ -326,7 +353,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Returns the shipment address postcode.
+	 * Returns the sender address postcode.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
@@ -336,7 +363,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Returns the shipment address city.
+	 * Returns the sender address city.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
@@ -346,7 +373,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Returns the shipment address state.
+	 * Returns the sender address state.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
@@ -356,7 +383,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Returns the shipment address country.
+	 * Returns the sender address country.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
@@ -366,7 +393,7 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Set shipment address.
+	 * Set sender address.
 	 *
 	 * @param string[] $address The address props.
 	 */
@@ -374,7 +401,15 @@ class ReturnShipment extends Shipment {
 		$this->set_prop( 'sender_address', empty( $address ) ? array() : (array) $address );
 	}
 
+	/**
+	 * Syncs the return shipment with the corresponding parent shipment.
+	 *
+	 * @param array $args
+	 *
+	 * @return bool
+	 */
 	public function sync( $args = array() ) {
+
 		try {
 
 			if ( ! $parent_shipment = $this->get_parent() ) {
@@ -418,6 +453,14 @@ class ReturnShipment extends Shipment {
 		return true;
 	}
 
+	/**
+	 * Keeps items in sync with the parent shipment items.
+	 * Limits quantities and removes non-existent items.
+	 *
+	 * @param array $args
+	 *
+	 * @return bool
+	 */
 	public function sync_items( $args = array() ) {
 		try {
 
@@ -503,15 +546,25 @@ class ReturnShipment extends Shipment {
 		return ( $this->is_editable() && ! $this->contains_item_parent( $available_items ) );
 	}
 
+	/**
+	 * Returns the edit shipment URL.
+	 *
+	 * @return mixed|string|void
+	 */
 	public function get_edit_shipment_url() {
 		/**
-		 * Filter to adjust the edit return shipment admin URL.
+		 * Filter to adjust the edit Shipment admin URL.
+		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type.
+		 *
+		 * Example hook name: woocommerce_gzd_shipment_get_edit_url
 		 *
 		 * @param string   $url  The URL.
 		 * @param Shipment $this The shipment object.
 		 *
 		 * @since 3.0.0
 		 */
-		return apply_filters( 'woocommerce_gzd_get_edit_return_shipment_url', get_admin_url( null, 'post.php?post=' . $this->get_order_id() . '&action=edit&shipment_id=' . $this->get_parent_id() . '&return_id=' . $this->get_id() ), $this );
+		return apply_filters( "{$this->get_hook_prefix()}edit_url", get_admin_url( null, 'post.php?post=' . $this->get_order_id() . '&action=edit&shipment_id=' . $this->get_parent_id() . '&return_id=' . $this->get_id() ), $this );
 	}
 }
