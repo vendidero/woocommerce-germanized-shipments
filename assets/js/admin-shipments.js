@@ -429,8 +429,6 @@ window.germanized.admin = window.germanized.admin || {};
                 $shipment = $( this ).parents( '.order-shipment:first' ),
                 isActive  = $shipment.hasClass( 'active' );
 
-            console.log($shipment);
-
             if ( ! $shipment.hasClass( 'shipment-return' ) ) {
                 self.closeShipments();
             } else {

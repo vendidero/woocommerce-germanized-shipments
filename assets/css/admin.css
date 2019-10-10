@@ -139,6 +139,8 @@
         content: "\e00f"; }
       .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.shipped::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.shipped::after {
         content: "\f147"; }
+      .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.delivered::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.delivered::after {
+        content: "\f147"; }
       .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.generate::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.generate::after {
         content: "\f502"; }
       .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.download::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.download::after {

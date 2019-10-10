@@ -188,12 +188,6 @@ function wc_gzd_get_shipment_selectable_statuses( $type ) {
 		unset( $shipment_statuses['gzd-returned'] );
 	}
 
-	if ( 'return' === $type ) {
-		if ( isset( $shipment_statuses['gzd-delivered'] ) ) {
-			$shipment_statuses['gzd-delivered'] = _x( 'Received', 'shipments', 'woocommerce-germanized-shipments' );
-		}
-	}
-
 	/**
 	 * Add or remove selectable Shipment statuses for a certain type.
 	 *

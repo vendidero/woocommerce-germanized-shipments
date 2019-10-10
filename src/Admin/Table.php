@@ -551,7 +551,7 @@ class Table extends WP_List_Table {
 			     *
 			     * @since 3.0.0
 			     */
-                do_action( "{$this->get_hook_prefix()}{$bulk_action}_handled", $handler, $bulk_action );
+                do_action( "{$this->get_hook_prefix()}bulk_action_{$bulk_action}_handled", $handler, $bulk_action );
                 $handler->reset();
                 ?>
             <?php endif; ?>

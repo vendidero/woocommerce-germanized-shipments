@@ -23,6 +23,8 @@ abstract class BulkActionHandler {
 	protected $ids = array();
 
 	protected $notices = array();
+	
+	protected $type = 'simple';
 
 	public function __construct() {
 		$this->notices = array_filter( (array) get_user_option( $this->get_notice_option_name() ) );
@@ -40,6 +42,24 @@ abstract class BulkActionHandler {
 		$action = sanitize_key( $this->get_action() );
 
 		return "woocommerce_gzd_shipments_{$action}";
+	}
+
+	public function get_shipment_type() {
+		return $this->type;
+	}
+
+	public function set_shipment_type( $type ) {
+		$this->type = $type;
+	}
+
+	public function get_success_redirect_url() {
+		$page = 'wc-gzd-shipments';
+
+		if ( 'simple' !== $this->get_shipment_type() ) {
+			$page = 'wc-gzd-' . $this->get_shipment_type() . '-shipments';
+		}
+
+		return admin_url( 'admin.php?page=' . $page . '&bulk_action_handling=finished&current_bulk_action=' . sanitize_key( $this->get_action() ) );
 	}
 
 	public function get_step() {

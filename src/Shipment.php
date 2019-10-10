@@ -1172,30 +1172,33 @@ abstract class Shipment extends WC_Data {
 	            /**
 	             * Action that fires before a shipment status transition happens.
 	             *
-	             * @param integer                                  $shipment_id The shipment id.
+	             * @param integer  $shipment_id The shipment id.
 	             * @param Shipment $shipment The shipment object.
+	             * @param array    $status_transition The status transition data.
 	             *
 	             * @since 3.0.0
 	             */
-	            do_action( 'woocommerce_gzd_shipment_before_status_change', $this->get_id(), $this );
+	            do_action( 'woocommerce_gzd_shipment_before_status_change', $this->get_id(), $this, $this->status_transition );
 
-                $status_to = $status_transition['to'];
+                $status_to          = $status_transition['to'];
+                $status_hook_prefix = 'woocommerce_gzd_' . ( 'simple' === $this->get_type() ? '' : $this->get_type() . '_' ) . 'shipment_status';
 
 	            /**
 	             * Action that indicates shipment status change to a specific status.
 	             *
-	             * The dynamic portion of the hook name, `$status_to` refers to the new shipment status.
+	             * The dynamic portion of the hook name, `$status_hook_prefix` constructs a unique prefix
+	             * based on the shipment type. `$status_to` refers to the new shipment status.
 	             *
-	             * Example hook name: `woocommerce_gzd_shipment_status_processing`
+	             * Example hook name: `woocommerce_gzd_return_shipment_status_processing`
 	             *
-	             * @param integer                                  $shipment_id The shipment id.
+	             * @param integer  $shipment_id The shipment id.
 	             * @param Shipment $shipment The shipment object.
 	             *
 	             * @see wc_gzd_get_shipment_statuses()
 	             *
 	             * @since 3.0.0
 	             */
-                do_action( 'woocommerce_gzd_shipment_status_' . $status_to, $this->get_id(), $this );
+                do_action( "{$status_hook_prefix}_$status_to", $this->get_id(), $this );
 
                 if ( ! empty( $status_transition['from'] ) ) {
                     $status_from = $status_transition['from'];
@@ -1203,19 +1206,20 @@ abstract class Shipment extends WC_Data {
 	                /**
 	                 * Action that indicates shipment status change from a specific status to a specific status.
 	                 *
-	                 * The dynamic portion of the hook name, `$status_from` refers to the old shipment status.
+	                 * The dynamic portion of the hook name, `$status_hook_prefix` constructs a unique prefix
+	                 * based on the shipment type. `$status_from` refers to the old shipment status.
 	                 * `$status_to` refers to the new status.
 	                 *
-	                 * Example hook name: `woocommerce_gzd_shipment_status_processing_to_shipped`
+	                 * Example hook name: `woocommerce_gzd_return_shipment_status_processing_to_shipped`
 	                 *
-	                 * @param integer                                  $shipment_id The shipment id.
+	                 * @param integer  $shipment_id The shipment id.
 	                 * @param Shipment $shipment The shipment object.
 	                 *
 	                 * @see wc_gzd_get_shipment_statuses()
 	                 *
 	                 * @since 3.0.0
 	                 */
-                    do_action( 'woocommerce_gzd_shipment_status_' . $status_from . '_to_' . $status_to, $this->get_id(), $this );
+                    do_action( "{$status_hook_prefix}_{$status_from}_to_{$status_to}", $this->get_id(), $this );
 
 	                /**
 	                 * Action that indicates shipment status change.

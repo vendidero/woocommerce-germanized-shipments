@@ -35,11 +35,13 @@ class ReturnTable extends Table {
 			unset( $actions['shipped'] );
 		}
 
-		$actions['received'] = array(
-			'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_update_shipment_status&status=delivered&shipment_id=' . $shipment->get_id() ), 'update-shipment-status' ),
-			'name'   => __( 'Received', 'woocommerce-germanized-shipments' ),
-			'action' => 'received',
-		);
+		if ( ! $shipment->has_status( 'delivered' ) ) {
+			$actions['received'] = array(
+				'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_update_shipment_status&status=delivered&shipment_id=' . $shipment->get_id() ), 'update-shipment-status' ),
+				'name'   => __( 'Delivered', 'woocommerce-germanized-shipments' ),
+				'action' => 'delivered',
+			);
+		}
 
 		return $actions;
 	}
@@ -49,11 +51,6 @@ class ReturnTable extends Table {
 	}
 
 	protected function get_custom_bulk_actions( $actions ) {
-
-		if ( isset( $actions['mark_delivered'] ) ) {
-			$actions['mark_delivered']  = _x( 'Change status to received', 'shipments', 'woocommerce-germanized-shipments' );
-		}
-
 		return $actions;
 	}
 

@@ -206,6 +206,10 @@ $layout-spacing: 1rem;
           content: "\f147";
         }
 
+        &.delivered::after {
+          content: "\f147";
+        }
+
         &.generate::after {
           content: "\f502";
         }

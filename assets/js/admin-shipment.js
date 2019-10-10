@@ -42,8 +42,6 @@ window.germanized.admin = window.germanized.admin || {};
         this.refreshDom = function() {
             this.vars.$shipment  = $( '#order-shipments-list' ).find( '#shipment-' + this.getId() );
 
-            console.log( this.getShipmentContent() );
-
             this.setNeedsItems( this.vars.$shipment.hasClass( 'needs-items' ) );
             this.setIsEditable( this.vars.$shipment.hasClass( 'is-editable' ) );
             this.setIsReturnable( this.vars.$shipment.hasClass( 'is-returnable' ) );
@@ -74,8 +72,6 @@ window.germanized.admin = window.germanized.admin || {};
                 $item       = $quantity.parents( '.shipment-item' ),
                 itemId      = $item.data( 'id' ),
                 newQuantity = $quantity.val();
-
-            console.log(this.getId());
 
             this.blockItems();
 

@@ -193,6 +193,8 @@ class Admin {
                 <?php $wp_list_table->search_box( _x( 'Search shipments', 'shipments', 'woocommerce-germanized-shipments' ), 'shipment' ); ?>
 
                 <input type="hidden" name="shipment_status" class="shipment_status_page" value="<?php echo ! empty( $_REQUEST['shipment_status'] ) ? esc_attr( $_REQUEST['shipment_status'] ) : 'all'; ?>" />
+                <input type="hidden" name="shipment_type" class="shipment_type" value="simple" />
+
                 <input type="hidden" name="type" class="type_page" value="shipment" />
                 <input type="hidden" name="page" value="wc-gzd-shipments" />
 
@@ -225,8 +227,10 @@ class Admin {
 				<?php $wp_list_table->search_box( _x( 'Search returns', 'shipments', 'woocommerce-germanized-shipments' ), 'shipment' ); ?>
 
                 <input type="hidden" name="shipment_status" class="shipment_status_page" value="<?php echo ! empty( $_REQUEST['shipment_status'] ) ? esc_attr( $_REQUEST['shipment_status'] ) : 'all'; ?>" />
+                <input type="hidden" name="shipment_type" class="shipment_type" value="return" />
+
                 <input type="hidden" name="type" class="type_page" value="shipment" />
-                <input type="hidden" name="page" value="wc-gzd-shipment-returns" />
+                <input type="hidden" name="page" value="wc-gzd-return-shipments" />
 
 				<?php $wp_list_table->display(); ?>
             </form>
@@ -329,7 +333,7 @@ class Admin {
 	         *
 	         * @since 3.0.0
 	         */
-	        $handlers = apply_filters( 'woocommerce_gzd_shipments_bulk_action_handlers', array() );
+	        $handlers = apply_filters( 'woocommerce_gzd_shipments_table_bulk_action_handlers', array() );
 
 	        foreach( $handlers as $key => $handler ) {
 		        self::$bulk_handlers[ $key ] = new $handler();

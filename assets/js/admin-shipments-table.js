@@ -29,6 +29,7 @@ window.germanized.admin = window.germanized.admin || {};
         onBulkSubmit: function() {
             var self   = germanized.admin.shipments_table,
                 action = $( this ).parents( '.bulkactions' ).find( 'select[name=action]' ).val(),
+                type   = $( this ).parents( '#posts-filter' ).find( 'input.shipment_type' ).val(),
                 ids    = [];
 
             $( '#posts-filter' ).find( 'input[name="shipment[]"]:checked' ).each( function() {
@@ -44,13 +45,13 @@ window.germanized.admin = window.germanized.admin || {};
                 $( '#posts-filter' ).find( '.bulkactions button' ).prop( 'disabled', true );
 
                 // Handle bulk action processing
-                self.handleBulkAction( action, 1, ids );
+                self.handleBulkAction( action, 1, ids, type );
 
                 return false;
             }
         },
 
-        handleBulkAction: function( action, step, ids ) {
+        handleBulkAction: function( action, step, ids, type ) {
             var self       = germanized.admin.shipments_table,
                 actionData = self.params.bulk_actions[ action ];
 
@@ -61,6 +62,7 @@ window.germanized.admin = window.germanized.admin || {};
                     action           : 'woocommerce_gzd_shipments_bulk_action_handle',
                     bulk_action      : action,
                     step             : step,
+                    type             : type,
                     ids              : ids,
                     security         : actionData['nonce']
                 },
@@ -79,7 +81,7 @@ window.germanized.admin = window.germanized.admin || {};
                             }, 2000 );
                         } else {
                             $( '.bulk-action-wrapper' ).find( '.woocommerce-shimpents-bulk-progress' ).val( response.data.percentage );
-                            self.handleBulkAction( action, parseInt( response.data.step, 10 ), response.data.ids );
+                            self.handleBulkAction( action, parseInt( response.data.step, 10 ), response.data.ids, response.data.type );
                         }
                     }
                 }

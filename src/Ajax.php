@@ -51,6 +51,7 @@ class Ajax {
 
     public static function shipments_bulk_action_handle() {
     	$action = isset( $_POST['bulk_action'] ) ? wc_clean( $_POST['bulk_action'] ) : '';
+	    $type   = isset( $_POST['type'] ) ? wc_clean( $_POST['type'] ) : 'simple';
 
 	    check_ajax_referer( "woocommerce_gzd_shipments_{$action}", 'security' );
 
@@ -85,6 +86,7 @@ class Ajax {
 
 		$handler->set_step( $step );
 		$handler->set_ids( $ids );
+		$handler->set_shipment_type( $type );
 
 	    $handler->handle();
 
@@ -100,7 +102,8 @@ class Ajax {
 			    array(
 				    'step'       => 'done',
 				    'percentage' => 100,
-				    'url'        => admin_url( 'admin.php?page=wc-gzd-shipments&bulk_action_handling=finished&current_bulk_action=' . sanitize_key( $handler->get_action() ) ),
+				    'url'        => $handler->get_success_redirect_url(),
+				    'type'       => $handler->get_shipment_type(),
 			    )
 		    );
 	    } else {
@@ -109,6 +112,7 @@ class Ajax {
 				    'step'       => ++$step,
 				    'percentage' => $handler->get_percent_complete(),
 				    'ids'        => $handler->get_ids(),
+				    'type'       => $handler->get_shipment_type(),
 			    )
 		    );
 	    }
