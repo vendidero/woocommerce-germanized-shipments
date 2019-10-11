@@ -34,6 +34,8 @@ class Emails {
 	    add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_tracking' ), 10, 4 );
         add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_address' ), 20, 4 );
         add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_details' ), 30, 4 );
+
+	    add_action( 'woocommerce_gzd_email_return_shipment_details', array( __CLASS__, 'email_details' ), 30, 4 );
     }
 
     public static function register_email_notifications( $actions ) {
@@ -64,7 +66,7 @@ class Emails {
 	public static function email_tracking( $shipment, $sent_to_admin = false, $plain_text = false, $email = '' ) {
 
 		// Do only include shipment tracking if estimated delivery date or tracking instruction or tracking url exists
-		if ( ! $shipment->get_est_delivery_date() && ! $shipment->has_tracking_instruction() && ! $shipment->get_tracking_url() ) {
+		if ( ! $shipment->has_tracking() ) {
 			return;
 		}
 

@@ -62,3 +62,53 @@ if ( ! function_exists( 'wc_gzd_get_email_shipment_items' ) ) {
         return apply_filters( 'woocommerce_gzd_email_shipment_items_table', ob_get_clean(), $shipment );
     }
 }
+
+if ( ! function_exists( 'woocommerce_gzd_shipments_template_customer_order' ) ) {
+
+	function woocommerce_gzd_shipments_template_customer_order( $order_id ) {
+		$shipments_order = wc_gzd_get_shipment_order( $order_id );
+		$shipments       = $shipments_order->get_simple_shipments();
+
+		wc_get_template( 'myaccount/order-shipments.php', array(
+			'order_id'      => $order_id,
+			'has_shipments' => ( ! empty( $shipments ) ? true : false ),
+			'shipments'     => $shipments,
+		) );
+	}
+}
+
+if ( ! function_exists( 'woocommerce_gzd_shipments_template_view_shipment' ) ) {
+
+	function woocommerce_gzd_shipments_template_view_shipment( $shipment_id ) {
+
+		if ( ( ! ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) ) || ( ! current_user_can( 'view_order', $shipment->get_order_id() ) ) ) {
+			echo '<div class="woocommerce-error">' . esc_html__( 'Invalid shipment.', 'woocommerce-germanized-shipments' ) . ' <a href="' . esc_url( wc_get_page_permalink( 'myaccount' ) ) . '" class="wc-forward">' . esc_html__( 'My account', 'woocommerce-germanized-shipments' ) . '</a></div>';
+
+			return;
+		}
+
+		wc_get_template(
+			'myaccount/view-shipment.php',
+			array(
+				'shipment'    => $shipment,
+				'shipment_id' => $shipment_id,
+			)
+		);
+ 	}
+}
+
+if ( ! function_exists( 'woocommerce_gzd_shipment_details_table' ) ) {
+
+	function woocommerce_gzd_shipment_details_table( $shipment_id ) {
+		if ( ! $shipment_id ) {
+			return;
+		}
+
+		wc_get_template(
+			'shipment/shipment-details.php',
+			array(
+				'shipment_id' => $shipment_id,
+			)
+		);
+	}
+}

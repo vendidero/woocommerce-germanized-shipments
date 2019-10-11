@@ -478,6 +478,14 @@ abstract class Shipment extends WC_Data {
         return $this->get_prop( 'total', $context );
     }
 
+    public function has_tracking() {
+	    if ( ! $this->has_tracking_instruction() && ! $this->get_tracking_url() ) {
+		    return false;
+	    }
+
+	    return true;
+    }
+
 	/**
 	 * Returns the shipment tracking id.
 	 *
@@ -1083,6 +1091,10 @@ abstract class Shipment extends WC_Data {
      * @return string
      */
     abstract public function get_edit_shipment_url();
+
+    public function get_view_shipment_url() {
+	    return apply_filters( "{$this->get_hook_prefix()}_view_shipment_url", wc_get_endpoint_url( 'view-shipment', $this->get_id(), wc_get_page_permalink( 'myaccount' ) ), $this );
+    }
 
     /**
      * Get an item object.

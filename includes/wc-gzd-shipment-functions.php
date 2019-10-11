@@ -662,3 +662,48 @@ function wc_gzd_format_shipment_weight( $weight ) {
 	 */
     return apply_filters( 'woocommerce_gzd_format_shipment_weight', $weight_string, $weight );
 }
+
+/**
+ * Get My Account > Shipments columns.
+ *
+ * @since 3.0.0
+ * @return array
+ */
+function wc_gzd_get_account_shipments_columns() {
+	$columns = apply_filters(
+		'woocommerce_gzd_account_shipments_columns',
+		array(
+			'shipment-number'   => __( 'Shipment', 'woocommerce-germanized-shipments' ),
+			'shipment-date'     => __( 'Date', 'woocommerce-germanized-shipments' ),
+			'shipment-status'   => __( 'Status', 'woocommerce-germanized-shipments' ),
+			'shipment-tracking' => __( 'Tracking', 'woocommerce-germanized-shipments' ),
+			'shipment-actions'  => __( 'Actions', 'woocommerce-germanized-shipments' ),
+		)
+	);
+
+	return $columns;
+}
+
+/**
+ * Get account shipments actions.
+ *
+ * @since  3.2.0
+ * @param  int|Shipment $shipment Shipment instance or ID.
+ * @return array
+ */
+function wc_gzd_get_account_shipments_actions( $shipment ) {
+
+	if ( ! is_object( $shipment ) ) {
+		$shipment_id = absint( $shipment );
+		$shipment    = wc_gzd_get_shipment( $shipment_id );
+	}
+
+	$actions = array(
+		'view'   => array(
+			'url'  => $shipment->get_view_shipment_url(),
+			'name' => __( 'View', 'woocommerce-germanized-shipments' ),
+		),
+	);
+
+	return apply_filters( 'woocommerce_gzd_account_shipments_actions', $actions, $shipment );
+}

@@ -445,8 +445,25 @@ $layout-spacing: 1rem;
         }
 
         label {
+          color: #999;
+
           .woocommerce-help-tip {
             float: none;
+          }
+        }
+      }
+
+      .columns {
+        .column {
+          &.column-spaced {
+            margin: 5px 0;
+          }
+
+          h4 {
+            margin-bottom: .7em;
+            text-transform: uppercase;
+            color: #999;
+            font-size: .9em;
           }
         }
       }
@@ -499,7 +516,7 @@ $layout-spacing: 1rem;
       }
 
       .shipment-returns {
-        margin-top: 1.5em;
+        margin-top: .5em;
 
         .shipment-return {
           .shipment-header {

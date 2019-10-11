@@ -36,6 +36,14 @@ class Package {
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
 
 	    add_action( 'admin_init', array( __CLASS__, 'test' ) );
+
+	    add_filter( 'woocommerce_get_query_vars', array( __CLASS__, 'register_endpoints' ), 10, 1 );
+    }
+
+    public static function register_endpoints( $query_vars ) {
+    	$query_vars['view-shipment'] = get_option( 'woocommerce_myaccount_view_shipment_endpoint', 'view-shipment' );
+
+    	return $query_vars;
     }
 
 	public static function install() {
@@ -62,7 +70,15 @@ class Package {
         Validation::init();
         Api::init();
 
+        if ( self::is_frontend_request() ) {
+        	include_once self::get_path() . '/includes/wc-gzd-shipment-template-hooks.php';
+        }
+
         include_once self::get_path() . '/includes/wc-gzd-shipment-functions.php';
+    }
+
+    private static function is_frontend_request() {
+	    return ( ! is_admin() || defined( 'DOING_AJAX' ) ) && ! defined( 'DOING_CRON' );
     }
 
     /**

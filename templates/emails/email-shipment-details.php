@@ -42,7 +42,7 @@ do_action( 'woocommerce_gzd_email_before_shipment_table', $shipment, $sent_to_ad
         $after  = '';
     }
     /* translators: %s: Order ID. */
-    echo wp_kses_post( $before . _x( 'Details to your shipment', 'shipments', 'woocommerce-germanized-shipments' ) . $after );
+    echo wp_kses_post( $before . sprintf( _x( 'Details to your %s', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label( $shipment->get_type() ) ) . $after );
     ?>
 </h2>
 

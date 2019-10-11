@@ -62,7 +62,7 @@ foreach ( $items as $item_id => $item ) :
             }
 
             /**
-             * Filter to adjust the ShipmentItem name in emails.
+             * Filter to adjust the ShipmentItem name.
              *
              * @param string                                       $name The ShipmentItem name.
              * @param ShipmentItem $item The ShipmentItem object.
