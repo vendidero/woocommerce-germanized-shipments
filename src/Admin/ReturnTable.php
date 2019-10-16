@@ -38,7 +38,7 @@ class ReturnTable extends Table {
 		if ( ! $shipment->has_status( 'delivered' ) ) {
 			$actions['received'] = array(
 				'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_update_shipment_status&status=delivered&shipment_id=' . $shipment->get_id() ), 'update-shipment-status' ),
-				'name'   => __( 'Delivered', 'woocommerce-germanized-shipments' ),
+				'name'   => _x( 'Delivered', 'shipments', 'woocommerce-germanized-shipments' ),
 				'action' => 'delivered',
 			);
 		}

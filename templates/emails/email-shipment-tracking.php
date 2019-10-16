@@ -27,11 +27,11 @@ $text_align = is_rtl() ? 'right' : 'left';
 			<h2><?php echo esc_html_x( 'Delivery:', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
 			<?php if ( $shipment->get_est_delivery_date() ) : ?>
-				<p class="est-delivery-date"><?php _e( 'Estimated date:', 'woocommerce-germanized-shipments' ); ?> <span class="date"><?php echo wc_format_datetime( $shipment->get_est_delivery_date(), wc_date_format() ); ?></span></p>
+				<p class="est-delivery-date"><?php _ex(  'Estimated date:', 'shipments', 'woocommerce-germanized-shipments' ); ?> <span class="date"><?php echo wc_format_datetime( $shipment->get_est_delivery_date(), wc_date_format() ); ?></span></p>
 			<?php endif; ?>
 
 			<?php if ( $shipment->get_tracking_url() ) : ?>
-				<p class="tracking-button-wrapper"><a class="button email-button btn" href="<?php echo esc_url( $shipment->get_tracking_url() ); ?>"><?php _e( 'Track your shipment', 'woocommerce-germanized-shipments' ); ?></a></p>
+				<p class="tracking-button-wrapper"><a class="button email-button btn" href="<?php echo esc_url( $shipment->get_tracking_url() ); ?>"><?php _ex(  'Track your shipment', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
 			<?php endif; ?>
 
 			<?php if ( $shipment->has_tracking_instruction() ) : ?>

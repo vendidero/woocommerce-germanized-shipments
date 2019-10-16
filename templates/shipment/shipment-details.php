@@ -39,14 +39,14 @@ $shipment_items        = $shipment->get_items();
 	 */
     do_action( 'woocommerce_gzd_shipment_details_before_shipment_table', $shipment ); ?>
 
-	<h2 class="woocommerce-shipment-details__title"><?php esc_html_e( 'Shipment details', 'woocommerce-germanized-shipments' ); ?></h2>
+	<h2 class="woocommerce-shipment-details__title"><?php echo esc_html_x(  'Shipment details', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
 	<table class="woocommerce-table woocommerce-table--shipment-details shop_table shipment_details">
 
 		<thead>
 		<tr>
-			<th class="woocommerce-table__product-name product-name"><?php esc_html_e( 'Product', 'woocommerce-germanized-shipments' ); ?></th>
-			<th class="woocommerce-table__product-table product-quantity"><?php esc_html_e( 'Quantity', 'woocommerce-germanized-shipments' ); ?></th>
+			<th class="woocommerce-table__product-name product-name"><?php echo esc_html_x(  'Product', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+			<th class="woocommerce-table__product-table product-quantity"><?php echo esc_html_x(  'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
 		</tr>
 		</thead>
 

@@ -516,7 +516,7 @@ class Table extends WP_List_Table {
 	    if ( 'top' === $which ) {
 	        ?>
             <div class="bulk-action-wrapper">
-                <h4 class="bulk-title"><?php _e( 'Processing bulk actions...', 'woocommerce-germanized-shipments' ); ?></h4>
+                <h4 class="bulk-title"><?php _ex(  'Processing bulk actions...', 'shipments', 'woocommerce-germanized-shipments' ); ?></h4>
                 <div class="bulk-notice-wrapper"></div>
                 <progress class="woocommerce-shimpents-bulk-progress" max="100" value="0"></progress>
             </div>
@@ -728,7 +728,7 @@ class Table extends WP_List_Table {
      * @param Shipment $shipment The current shipment object.
      */
     public function column_title( $shipment ) {
-        $title = sprintf( _x( '%s #%s', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label( $shipment->get_type() ), $shipment->get_id() );
+        $title = sprintf( _x( '%s #%s', 'shipment title', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label( $shipment->get_type() ), $shipment->get_id() );
 
         if ( $order = $shipment->get_order() ) {
             echo '<a href="' . $shipment->get_edit_shipment_url() . '">' . $title . '</a>';
@@ -770,7 +770,7 @@ class Table extends WP_List_Table {
 		if ( $shipment->has_status( array( 'draft' ) ) ) {
 			$actions['processing'] = array(
 				'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_update_shipment_status&status=processing&shipment_id=' . $shipment->get_id() ), 'update-shipment-status' ),
-				'name'   => __( 'Processing', 'woocommerce-germanized-shipments' ),
+				'name'   => _x( 'Processing', 'shipments', 'woocommerce-germanized-shipments' ),
 				'action' => 'processing',
 			);
 		}
@@ -778,7 +778,7 @@ class Table extends WP_List_Table {
 		if ( $shipment->has_status( array( 'draft', 'processing' ) ) ) {
 			$actions['shipped'] = array(
 				'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_update_shipment_status&status=shipped&shipment_id=' . $shipment->get_id() ), 'update-shipment-status' ),
-				'name'   => __( 'Shipped', 'woocommerce-germanized-shipments' ),
+				'name'   => _x( 'Shipped', 'shipments', 'woocommerce-germanized-shipments' ),
 				'action' => 'shipped',
 			);
 		}

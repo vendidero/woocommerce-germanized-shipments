@@ -82,7 +82,7 @@ if ( ! function_exists( 'woocommerce_gzd_shipments_template_view_shipment' ) ) {
 	function woocommerce_gzd_shipments_template_view_shipment( $shipment_id ) {
 
 		if ( ( ! ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) ) || ( ! current_user_can( 'view_order', $shipment->get_order_id() ) ) ) {
-			echo '<div class="woocommerce-error">' . esc_html__( 'Invalid shipment.', 'woocommerce-germanized-shipments' ) . ' <a href="' . esc_url( wc_get_page_permalink( 'myaccount' ) ) . '" class="wc-forward">' . esc_html__( 'My account', 'woocommerce-germanized-shipments' ) . '</a></div>';
+			echo '<div class="woocommerce-error">' . esc_html_x( 'Invalid shipment.', 'shipments', 'woocommerce-germanized-shipments' ) . ' <a href="' . esc_url( wc_get_page_permalink( 'myaccount' ) ) . '" class="wc-forward">' . esc_html_x( 'My account', 'shipments', 'woocommerce-germanized-shipments' ) . '</a></div>';
 
 			return;
 		}

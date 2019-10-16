@@ -39,7 +39,7 @@ class Admin {
 
 	public static function add_template_check( $check ) {
 		$check['shipments'] = array(
-			'title'             => __( 'Shipments', 'woocommerce-germanized-shipments' ),
+			'title'             => _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ),
 			'path'              => Package::get_path() . '/templates',
 			'template_path'     => $check['germanized']['template_path'],
 			'outdated_help_url' => $check['germanized']['outdated_help_url'],
@@ -93,7 +93,7 @@ class Admin {
     }
 
 	public static function define_order_bulk_actions( $actions ) {
-        $actions['gzd_create_shipments'] = __( 'Create shipments', 'woocommerce-germanized-shipments' );
+        $actions['gzd_create_shipments'] = _x( 'Create shipments', 'shipments', 'woocommerce-germanized-shipments' );
 
         return $actions;
 	}

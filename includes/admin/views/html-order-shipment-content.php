@@ -54,7 +54,7 @@ defined( 'ABSPATH' ) || exit;
 
         <div class="column col-6">
             <p class="form-row">
-                <label for="shipment-status-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Status', 'x', 'woocommerce-germanized-shipments' ); ?></label>
+                <label for="shipment-status-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' ); ?></label>
                 <select class="shipment-status-select" id="shipment-status-<?php echo esc_attr( $shipment->get_id() ); ?>" name="shipment_status[<?php echo esc_attr( $shipment->get_id() ); ?>]">
 				    <?php foreach( wc_gzd_get_shipment_selectable_statuses( $shipment->get_type() ) as $status => $title ) : ?>
                         <option value="<?php echo esc_attr( $status ); ?>" <?php selected( $status, 'gzd-' . $shipment->get_status(), true ); ?>><?php echo $title; ?></option>
@@ -64,7 +64,7 @@ defined( 'ABSPATH' ) || exit;
 
 		    <?php if ( sizeof( $shipment->get_available_shipping_methods() ) > 1 ) : ?>
                 <p class="form-row">
-                    <label for="shipment-shipping-method-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Shipping method', 'x', 'woocommerce-germanized-shipments' ); ?></label>
+                    <label for="shipment-shipping-method-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Shipping method', 'shipments', 'woocommerce-germanized-shipments' ); ?></label>
                     <select class="shipment-shipping-method-select" id="shipment-shipping-method-<?php echo esc_attr( $shipment->get_id() ); ?>" name="shipment_shipping_method[<?php echo esc_attr( $shipment->get_id() ); ?>]">
 					    <?php foreach( $shipment->get_available_shipping_methods() as $method => $title ) : ?>
                             <option value="<?php echo esc_attr( $method ); ?>" <?php selected( $method, $shipment->get_shipping_method(), true ); ?>><?php echo $title; ?></option>
@@ -238,7 +238,7 @@ defined( 'ABSPATH' ) || exit;
 
         <div class="column col-12 shipment-footer" id="shipment-footer-<?php echo esc_attr( $shipment->get_id() ); ?>">
 	        <?php if ( 'simple' === $shipment->get_type() ) : ?>
-                <a class="add-shipment-return" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Add return', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+                <a class="add-shipment-return" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Add Return', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 	        <?php endif; ?>
 
             <?php if ( $shipment->is_editable() ) : ?>

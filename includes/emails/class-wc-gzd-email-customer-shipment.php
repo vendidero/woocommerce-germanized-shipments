@@ -47,7 +47,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
             $this->customer_email = true;
             $this->id             = 'customer_shipment';
             $this->title          = _x( 'Order shipped', 'shipments', 'woocommerce-germanized-shipments' );
-            $this->description    = __( 'Shipment notifications are sent to the customer when a shipment gets shipped.', 'woocommerce-germanized-shipments' );
+            $this->description    = _x( 'Shipment notifications are sent to the customer when a shipment gets shipped.', 'shipments', 'woocommerce-germanized-shipments' );
 
             $this->template_html  = 'emails/customer-shipment.php';
             $this->template_plain = 'emails/plain/customer-shipment.php';

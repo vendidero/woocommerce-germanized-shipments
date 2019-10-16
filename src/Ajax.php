@@ -452,7 +452,7 @@ class Ajax {
         foreach ( $ids as $id ) {
             if ( $order = wc_get_order( $id ) ) {
                 $found_orders[ $id ] = sprintf(
-                    esc_html_x( 'Order #%s', 'shipments', 'woocomemrce-germanized' ),
+                    esc_html_x( 'Order #%s', 'shipments', 'woocommerce-germanized-shipments' ),
                     $order->get_order_number()
                 );
             }

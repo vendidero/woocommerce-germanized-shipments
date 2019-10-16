@@ -21,11 +21,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 echo "\n" . esc_html_x( 'Delivery:', 'shipments', 'woocommerce-germanized-shipments' ) . "\n\n";
 
 if ( $shipment->get_est_delivery_date() ) {
-	echo esc_html( __( 'Estimated date:', 'woocommerce-germanized-shipments' ) ) . ' ' . wc_format_datetime( $shipment->get_est_delivery_date(), wc_date_format() ) . "\n\n";
+	echo esc_html( _x( 'Estimated date:', 'shipments', 'woocommerce-germanized-shipments' ) ) . ' ' . wc_format_datetime( $shipment->get_est_delivery_date(), wc_date_format() ) . "\n\n";
 }
 
 if ( $shipment->get_tracking_url() ) {
-	echo esc_html( __( 'Track your shipment', 'woocommerce-germanized-shipments' ) ) . ': ' . esc_url( $shipment->get_tracking_url() ) . "\n";
+	echo esc_html( _x( 'Track your shipment', 'shipments', 'woocommerce-germanized-shipments' ) ) . ': ' . esc_url( $shipment->get_tracking_url() ) . "\n";
 }
 
 if ( $shipment->has_tracking_instruction() ) {

@@ -22,10 +22,10 @@ defined( 'ABSPATH' ) || exit;
 
 	<section class="woocommerce-columns--addresses addresses">
 
-		<h2 class="woocommerce-column__title"><?php esc_html_e( 'Shipment receiver', 'woocommerce-germanized-shipments' ); ?></h2>
+		<h2 class="woocommerce-column__title"><?php echo esc_html_x(  'Shipment receiver', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
 		<address>
-			<?php echo wp_kses_post( $shipment->get_formatted_address( esc_html__( 'N/A', 'woocommerce-germanized-shipments' ) ) ); ?>
+			<?php echo wp_kses_post( $shipment->get_formatted_address( esc_html_x( 'N/A', 'shipments', 'woocommerce-germanized-shipments' ) ) ); ?>
 
 			<?php if ( $shipment->get_phone() ) : ?>
 				<p class="woocommerce-customer-details--phone"><?php echo esc_html( $shipment->get_phone() ); ?></p>

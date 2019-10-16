@@ -20,10 +20,10 @@ defined( 'ABSPATH' ) || exit;
 ?>
 <section class="woocommerce-shipment-tracking-details">
 
-	<h2 class="woocommerce-column__title"><?php esc_html_e( 'Tracking', 'woocommerce-germanized-shipments' ); ?></h2>
+	<h2 class="woocommerce-column__title"><?php echo esc_html_x(  'Tracking', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
 	<?php if ( $shipment->get_tracking_url() ) : ?>
-		<p class="tracking-button-wrapper"><a class="woocommerce-button button btn" target="_blank" href="<?php echo esc_url( $shipment->get_tracking_url() ); ?>"><?php _e( 'Track your shipment', 'woocommerce-germanized-shipments' ); ?></a></p>
+		<p class="tracking-button-wrapper"><a class="woocommerce-button button btn" target="_blank" href="<?php echo esc_url( $shipment->get_tracking_url() ); ?>"><?php _ex(  'Track your shipment', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
 	<?php endif; ?>
 
 	<?php if ( $shipment->has_tracking_instruction() ) : ?>

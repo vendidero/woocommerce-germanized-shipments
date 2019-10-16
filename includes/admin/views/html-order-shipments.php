@@ -33,11 +33,11 @@ $active_shipment = isset( $active_shipment ) ? $active_shipment : false;
         <div class="panel-footer panel-inner">
             <div class="order-shipments-actions">
                 <div class="order-shipment-add">
-                    <a class="button button-secondary add-shipment" id="order-shipment-add" href="#"><?php echo _x( 'Add shipment', 'shipments', 'woocommere-germanized' ); ?></a>
+                    <a class="button button-secondary add-shipment" id="order-shipment-add" href="#"><?php echo _x( 'Add shipment', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
                 </div>
 
                 <div class="order-shipment-save">
-                    <button id="order-shipments-save" class="button button-primary" type="submit"><?php echo _x( 'Save', 'shipments', 'woocommere-germanized' ); ?></button>
+                    <button id="order-shipments-save" class="button button-primary" type="submit"><?php echo _x( 'Save', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
                 </div>
 
 	            <?php

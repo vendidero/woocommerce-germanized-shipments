@@ -1,11 +1,11 @@
 <?php
 /**
- * Plugin Name: Germanized for WooCommerce Shipments
+ * Plugin Name: Germanized Shipments for WooCommerce
  * Plugin URI: https://github.com/vendidero/woocommerce-germanized-shipments
  * Description: The Germanized Shipments integration, installed as a feature plugin for development and testing purposes.
  * Author: vendidero
  * Author URI: https://vendidero.de
- * Version: 0.0.1-dev
+ * Version: 0.0.1
  * Requires PHP: 5.6
  * License: GPLv3
  *
@@ -37,7 +37,7 @@ if ( is_readable( $autoloader ) ) {
         error_log(  // phpcs:ignore
             sprintf(
             /* translators: 1: composer command. 2: plugin directory */
-                esc_html__( 'Your installation of the Germanized for WooCommerce Shipments feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'woocommerce-germanized-shipments' ),
+                esc_html_x( 'Your installation of the Germanized Shipments feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'shipments', 'woocommerce-germanized-shipments' ),
                 '`composer install`',
                 '`' . esc_html( str_replace( ABSPATH, '', __DIR__ ) ) . '`'
             )
@@ -55,7 +55,7 @@ if ( is_readable( $autoloader ) ) {
                     <?php
                     printf(
                     /* translators: 1: composer command. 2: plugin directory */
-                        esc_html__( 'Your installation of the Germanized for WooCommerce Shipments feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'woocommerce-germanized-shipments' ),
+                        esc_html_x( 'Your installation of the Germanized Shipments feature plugin is incomplete. Please run %1$s within the %2$s directory.', 'shipments', 'woocommerce-germanized-shipments' ),
                         '<code>composer install</code>',
                         '<code>' . esc_html( str_replace( ABSPATH, '', __DIR__ ) ) . '</code>'
                     );

@@ -527,7 +527,7 @@ abstract class Shipment extends WC_Data {
 		$instruction = '';
 
 		if ( $this->get_shipping_provider() && $this->get_tracking_id() ) {
-			$instruction = sprintf( __( 'Your shipment is being processed by %s. If you want to track the shipment, please use the following tracking number: %s. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_provider_title( $this->get_shipping_provider() ), $this->get_tracking_id() );
+			$instruction = sprintf( _x( 'Your shipment is being processed by %s. If you want to track the shipment, please use the following tracking number: %s. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_provider_title( $this->get_shipping_provider() ), $this->get_tracking_id() );
 		}
 
 		/**

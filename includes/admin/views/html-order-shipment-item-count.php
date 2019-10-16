@@ -13,6 +13,6 @@ defined( 'ABSPATH' ) || exit;
     <?php if ( ( $shippable_item_count = $shipment->get_shippable_item_count() ) > 0 ) :
         $item_count = $shipment->get_item_count();
         ?>
-        <?php printf( _nx( '%d of %d piece', '%d of %d pieces', $shippable_item_count, 'shipments', 'woocommerce-germanized-shipments' ), $item_count, $shippable_item_count ); ?>
+        <?php printf( _nx( '%d of %d item', '%d of %d items', $shippable_item_count, 'shipments', 'woocommerce-germanized-shipments' ), $item_count, $shippable_item_count ); ?>
     <?php endif; ?>
 </span>

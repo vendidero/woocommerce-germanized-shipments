@@ -15,7 +15,7 @@ do_action( 'woocommerce_gzd_before_account_order_shipments', $has_shipments, $sh
 
 <?php if ( $has_shipments ) : ?>
 
-    <h2 class="woocommerce-shipments-list__title"><?php _e( 'Shipments', 'woocommerce-germanized-shipments' ); ?></h2>
+    <h2 class="woocommerce-shipments-list__title"><?php _ex(  'Shipments', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
 	<table class="woocommerce-shipments-table woocommerce-MyAccount-shipments shop_table shop_table_responsive my_account_shipments account-shipments-table">
 		<thead>
@@ -50,7 +50,7 @@ do_action( 'woocommerce_gzd_before_account_order_shipments', $has_shipments, $sh
 
 						<?php elseif ( 'shipment-tracking' === $column_id && $shipment->get_tracking_url() ) : ?>
                             <a href="<?php echo esc_url( $shipment->get_tracking_url() ); ?>" target="_blank">
-								<?php echo esc_html( __( 'track now', 'woocommerce-germanized-shipments' ) ); ?>
+								<?php echo esc_html( _x( 'track now', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>
                             </a>
 
 						<?php elseif ( 'shipment-actions' === $column_id ) : ?>

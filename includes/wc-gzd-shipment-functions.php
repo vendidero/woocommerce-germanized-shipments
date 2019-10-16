@@ -57,15 +57,15 @@ function wc_gzd_get_shipment_type_data( $type = false ) {
 		'simple' => array(
 			'class_name' => '\Vendidero\Germanized\Shipments\SimpleShipment',
 			'labels'     => array(
-				'singular' => __( 'Shipment', 'woocommerce-germanized-shipments' ),
-				'plural'   => __( 'Shipments', 'woocommerce-germanized-shipments' ),
+				'singular' => _x( 'Shipment', 'shipments', 'woocommerce-germanized-shipments' ),
+				'plural'   => _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ),
 			),
 		),
 		'return' => array(
 			'class_name' => '\Vendidero\Germanized\Shipments\ReturnShipment',
 			'labels'     => array(
-				'singular' => __( 'Return', 'woocommerce-germanized-shipments' ),
-				'plural'   => __( 'Returns', 'woocommerce-germanized-shipments' ),
+				'singular' => _x( 'Return', 'shipments', 'woocommerce-germanized-shipments' ),
+				'plural'   => _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ),
 			),
 		),
 	) );
@@ -673,11 +673,11 @@ function wc_gzd_get_account_shipments_columns() {
 	$columns = apply_filters(
 		'woocommerce_gzd_account_shipments_columns',
 		array(
-			'shipment-number'   => __( 'Shipment', 'woocommerce-germanized-shipments' ),
-			'shipment-date'     => __( 'Date', 'woocommerce-germanized-shipments' ),
-			'shipment-status'   => __( 'Status', 'woocommerce-germanized-shipments' ),
-			'shipment-tracking' => __( 'Tracking', 'woocommerce-germanized-shipments' ),
-			'shipment-actions'  => __( 'Actions', 'woocommerce-germanized-shipments' ),
+			'shipment-number'   => _x( 'Shipment', 'shipments', 'woocommerce-germanized-shipments' ),
+			'shipment-date'     => _x( 'Date', 'shipments', 'woocommerce-germanized-shipments' ),
+			'shipment-status'   => _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' ),
+			'shipment-tracking' => _x( 'Tracking', 'shipments', 'woocommerce-germanized-shipments' ),
+			'shipment-actions'  => _x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' ),
 		)
 	);
 
@@ -701,7 +701,7 @@ function wc_gzd_get_account_shipments_actions( $shipment ) {
 	$actions = array(
 		'view'   => array(
 			'url'  => $shipment->get_view_shipment_url(),
-			'name' => __( 'View', 'woocommerce-germanized-shipments' ),
+			'name' => _x( 'View', 'shipments', 'woocommerce-germanized-shipments' ),
 		),
 	);
 

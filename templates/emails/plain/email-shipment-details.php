@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
 do_action( 'woocommerce_gzd_email_before_shipment_table', $shipment, $sent_to_admin, $plain_text, $email );
 
 /* translators: %1$s: Order ID. %2$s: Order date */
-echo wp_kses_post( wc_strtoupper( _x( 'Details to your shipment', 'shipments', 'woocommerce-germanized-shipments' ) ) ) . "\n";
+echo wp_kses_post( wc_strtoupper( sprintf( _x( 'Details to your %s', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label( $shipment->get_type() ) ) ) ) . "\n";
 echo "\n" . wc_gzd_get_email_shipment_items( // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		$shipment,
 		array(
@@ -35,7 +35,7 @@ echo "==========\n\n";
 
 if ( $sent_to_admin ) {
 	/* translators: %s: Shipment link. */
-	echo "\n" . sprintf( esc_html__( 'View shipment: %s', 'woocommerce-germanized-shipments' ), esc_url( $shipment->get_edit_shipment_url() ) ) . "\n";
+	echo "\n" . sprintf( esc_html_x( 'View shipment: %s', 'shipments', 'woocommerce-germanized-shipments' ), esc_url( $shipment->get_edit_shipment_url() ) ) . "\n";
 }
 
 do_action( 'woocommerce_gzd_email_after_shipment_table', $shipment, $sent_to_admin, $plain_text, $email );

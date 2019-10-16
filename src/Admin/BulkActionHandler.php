@@ -77,7 +77,7 @@ abstract class BulkActionHandler {
 	}
 
 	public function get_success_message() {
-		return __( 'Successfully processed shipments.', 'woocommerce-germanized-shipments' );
+		return _x( 'Successfully processed shipments.', 'shipments', 'woocommerce-germanized-shipments' );
 	}
 
 	public function add_notice( $notice, $type = 'error' ) {

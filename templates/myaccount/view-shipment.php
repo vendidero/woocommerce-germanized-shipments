@@ -23,7 +23,7 @@ defined( 'ABSPATH' ) || exit;
 	<?php
 	printf(
 	/* translators: 1: order number 2: order date 3: order status */
-		esc_html__( 'Shipment #%1$s was created on %2$s and is currently %3$s.', 'woocommerce-germanized-shipments' ),
+		esc_html_x( 'Shipment #%1$s was created on %2$s and is currently %3$s.', 'shipments', 'woocommerce-germanized-shipments' ),
 		'<mark class="shipment-numbner">' . $shipment->get_shipment_number() . '</mark>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		'<mark class="shipment-date">' . wc_format_datetime( $shipment->get_date_created() ) . '</mark>', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		'<mark class="shipment-status">' . wc_gzd_get_shipment_status_name( $shipment->get_status() ) . '</mark>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
