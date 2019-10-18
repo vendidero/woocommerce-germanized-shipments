@@ -194,13 +194,14 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
         public function get_content_html() {
             return wc_get_template_html(
                 $this->template_html, array(
-                    'shipment'         => $this->shipment,
-                    'order'            => $this->object,
-                    'partial_shipment' => $this->partial_shipment,
-                    'email_heading'    => $this->get_heading(),
-                    'sent_to_admin'    => false,
-                    'plain_text'       => false,
-                    'email'            => $this,
+                    'shipment'           => $this->shipment,
+                    'order'              => $this->object,
+                    'partial_shipment'   => $this->partial_shipment,
+                    'email_heading'      => $this->get_heading(),
+                    'additional_content' => $this->get_additional_content(),
+                    'sent_to_admin'      => false,
+                    'plain_text'         => false,
+                    'email'              => $this,
                 )
             );
         }
@@ -213,13 +214,14 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
         public function get_content_plain() {
             return wc_get_template_html(
                 $this->template_plain, array(
-                    'shipment'         => $this->shipment,
-                    'order'            => $this->object,
-                    'partial_shipment' => $this->partial_shipment,
-                    'email_heading'    => $this->get_heading(),
-                    'sent_to_admin'    => false,
-                    'plain_text'       => true,
-                    'email'            => $this,
+                    'shipment'            => $this->shipment,
+                    'order'              => $this->object,
+                    'partial_shipment'   => $this->partial_shipment,
+                    'email_heading'      => $this->get_heading(),
+                    'additional_content' => $this->get_additional_content(),
+                    'sent_to_admin'      => false,
+                    'plain_text'         => true,
+                    'email'              => $this,
                 )
             );
         }
@@ -228,7 +230,10 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
          * Initialise settings form fields.
          */
         public function init_form_fields() {
-            $this->form_fields = array(
+	        /* translators: %s: list of placeholders */
+	        $placeholder_text  = sprintf( __( 'Available placeholders: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>' . esc_html( implode( '</code>, <code>', array_keys( $this->placeholders ) ) ) . '</code>' );
+
+	        $this->form_fields = array(
                 'enabled'         => array(
                     'title'   => _x( 'Enable/Disable', 'shipments', 'woocommerce-germanized-shipments' ),
                     'type'    => 'checkbox',
@@ -270,6 +275,15 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
                     'description' => sprintf( _x( 'Available placeholders: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>{site_title}, {order_date}, {order_number}, {shipment_number}, {date_sent}</code>' ),
                     'placeholder' => $this->get_default_heading( true ),
                     'default'     => '',
+                ),
+                'additional_content' => array(
+	                'title'       => _x( 'Additional content', 'shipments', 'woocommerce-germanized-shipments' ),
+	                'description' => _x( 'Text to appear below the main email content.', 'shipments', 'woocommerce-germanized-shipments' ) . ' ' . $placeholder_text,
+	                'css'         => 'width:400px; height: 75px;',
+	                'placeholder' => _x( 'N/A', 'shipments', 'woocommerce-germanized-shipments' ),
+	                'type'        => 'textarea',
+	                'default'     => $this->get_default_additional_content(),
+	                'desc_tip'    => true,
                 ),
                 'email_type'      => array(
                     'title'       => _x( 'Email type', 'shipments', 'woocommerce-germanized-shipments' ),
