@@ -21,7 +21,7 @@ class Settings {
 
 			array(
 				'title' 	        => _x( 'Notify', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc' 		        => _x( 'Notify customers about new shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Notify customers by email as soon as a shipment is marked as shipped. %s the notification email.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=email&section=wc_gzd_email_customer_shipment' ) . '" target="_blank">' . _x( 'Manage', 'shipments', 'woocommerce-germanized-shipments' ) .'</a>' ) . '</div>',
+				'desc' 		        => _x( 'Notify customers about new shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Notify customers by email as soon as a shipment is marked as shipped. %s the notification email.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=email&section=wc_gzd_email_customer_shipment' ) . '" target="_blank">' . _x( 'Manage', 'shipments notification', 'woocommerce-germanized-shipments' ) .'</a>' ) . '</div>',
 				'id' 		        => 'woocommerce_gzd_shipments_notify_enable',
 				'default'	        => 'yes',
 				'type' 		        => 'gzd_toggle',
@@ -115,7 +115,7 @@ class Settings {
 			array(
 				'title'             => _x( 'Country / State', 'shipments', 'woocommerce-germanized-shipments' ),
 				'id'                => 'woocommerce_gzd_shipments_return_address_country',
-				'default'           => get_option( 'woocommerce_store_country' ),
+				'default'           => get_option( 'woocommerce_default_country' ),
 				'type'              => 'single_select_country',
 				'desc_tip'          => true,
 			),

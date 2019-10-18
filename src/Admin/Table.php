@@ -363,9 +363,7 @@ class Table extends WP_List_Table {
             _nx(
                 'All <span class="count">(%s)</span>',
                 'All <span class="count">(%s)</span>',
-                $total_shipments,
-                'shipments',
-                'woocommerce-germanized-shipments'
+                $total_shipments, 'shipments', 'woocommerce-germanized-shipments'
             ),
             number_format_i18n( $total_shipments )
         );

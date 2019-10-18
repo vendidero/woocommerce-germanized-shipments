@@ -51,7 +51,7 @@ do_action( 'woocommerce_gzd_email_before_shipment_table', $shipment, $sent_to_ad
         <thead>
         <tr>
             <th class="td" scope="col" style="text-align:<?php echo esc_attr( $text_align ); ?>;"><?php echo esc_html_x( 'Product', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
-            <th class="td" scope="col" style="text-align:<?php echo esc_attr( $text_align ); ?>;"><?php echo esc_html_x( 'Quantity', 'shipments','woocommerce-germanized-shipments' ); ?></th>
+            <th class="td" scope="col" style="text-align:<?php echo esc_attr( $text_align ); ?>;"><?php echo esc_html_x( 'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
         </tr>
         </thead>
         <tbody>

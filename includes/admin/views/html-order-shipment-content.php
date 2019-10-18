@@ -134,7 +134,7 @@ defined( 'ABSPATH' ) || exit;
                                         <thead>
                                         <tr>
                                             <th><?php echo esc_html_x( 'Item', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
-                                            <th><?php echo esc_html_x( 'Quantity', 'shipments','woocommerce-germanized-shipments' ); ?></th>
+                                            <th><?php echo esc_html_x( 'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
                                         </tr>
                                         </thead>
 									    <?php
@@ -152,7 +152,7 @@ defined( 'ABSPATH' ) || exit;
                             </article>
                             <footer>
                                 <div class="inner">
-                                    <button id="btn-ok" class="button button-primary button-large"><?php echo esc_html_x( 'Add', 'shipments','woocommerce-germanized-shipments' ); ?></button>
+                                    <button id="btn-ok" class="button button-primary button-large"><?php echo esc_html_x( 'Add', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
                                 </div>
                             </footer>
                         </section>
@@ -190,7 +190,7 @@ defined( 'ABSPATH' ) || exit;
                                         <thead>
                                         <tr>
                                             <th><?php echo esc_html_x( 'Item', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
-                                            <th><?php echo esc_html_x( 'Quantity', 'shipments','woocommerce-germanized-shipments' ); ?></th>
+                                            <th><?php echo esc_html_x( 'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
                                         </tr>
                                         </thead>
                                         <tbody id="wc-gzd-return-shipment-items" data-row="<?php echo esc_attr( $row ); ?>"></tbody>
@@ -199,7 +199,7 @@ defined( 'ABSPATH' ) || exit;
                             </article>
                             <footer>
                                 <div class="inner">
-                                    <button id="btn-ok" class="button button-primary button-large"><?php echo esc_html_x( 'Add', 'shipments','woocommerce-germanized-shipments' ); ?></button>
+                                    <button id="btn-ok" class="button button-primary button-large"><?php echo esc_html_x( 'Add', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
                                 </div>
                             </footer>
                         </section>
