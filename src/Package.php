@@ -13,7 +13,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '0.0.1-beta-2';
+    const VERSION = '0.0.1-beta-3';
 
     /**
      * Init the package - load the REST API Server class.
@@ -47,6 +47,7 @@ class Package {
     }
 
 	public static function install() {
+    	self::includes();
 		Install::install();
 	}
 
