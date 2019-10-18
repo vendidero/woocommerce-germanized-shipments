@@ -3,6 +3,7 @@
 /node_modules* export-ignore
 /tests export-ignore
 /bin export-ignore
+/composer.* export-ignore
 /phpcs.xml export-ignore
 /phpunit.* export-ignore
 /renovate.json export-ignore
