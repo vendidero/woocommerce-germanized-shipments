@@ -14,6 +14,66 @@ class Settings {
 		return '';
 	}
 
+	public static function get_pointers( $section ) {
+		$pointers = array();
+		$next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-emails&tutorial=yes' );
+
+		if ( \Vendidero\Germanized\DHL\Package::has_dependencies() ) {
+			$next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&tutorial=yes' );
+		}
+
+		if ( '' === $section ) {
+			$pointers = array(
+				'pointers' => array(
+					'menu'             => array(
+						'target'       => '.wc-gzd-settings-breadcrumb .page-title-action',
+						'next'         => 'default',
+						'next_url'     => '',
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Manage shipments', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3>' .
+							              '<p>' . esc_html_x( 'To view all your existing shipments in a list you might follow this link or click on the shipments link within the WooCommerce sub-menu.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+					'default'          => array(
+						'target'       => '#woocommerce_gzd_shipments_notify_enable-toggle',
+						'next'         => 'auto',
+						'next_url'     => '',
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'E-Mail Notification', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3>' .
+							              '<p>' . esc_html_x( 'By enabling this option customers receive an email notification as soon as a shipment is marked as shipped.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+					'auto'          => array(
+						'target'       => '#woocommerce_gzd_shipments_auto_enable-toggle',
+						'next'         => '',
+						'next_url'     => $next_url,
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3>' .
+							              '<p>' . esc_html_x( 'Decide whether you want to automatically create shipments to orders reaching a specific status. You can always adjust your shipments by manually editing the shipment within the edit order screen.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+				),
+			);
+		}
+
+		return $pointers;
+	}
+
 	protected static function get_general_settings() {
 
 		$settings = array(
