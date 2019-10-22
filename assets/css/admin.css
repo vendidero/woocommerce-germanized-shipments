@@ -22,6 +22,12 @@
   font-size: 14px;
   vertical-align: middle;
   margin: 1px 6px 4px 1px; }
+  .woocommerce_page_wc-gzd-shipments .tablenav .select2-container .select2-selection--single, .woocommerce_page_wc-gzd-return-shipments .tablenav .select2-container .select2-selection--single {
+    height: 32px; }
+    .woocommerce_page_wc-gzd-shipments .tablenav .select2-container .select2-selection--single .select2-selection__rendered, .woocommerce_page_wc-gzd-return-shipments .tablenav .select2-container .select2-selection--single .select2-selection__rendered {
+      line-height: 29px; }
+    .woocommerce_page_wc-gzd-shipments .tablenav .select2-container .select2-selection--single .select2-selection__arrow, .woocommerce_page_wc-gzd-return-shipments .tablenav .select2-container .select2-selection--single .select2-selection__arrow {
+      height: 30px; }
 
 .woocommerce_page_wc-gzd-shipments .tablenav select, .woocommerce_page_wc-gzd-shipments .tablenav input, .woocommerce_page_wc-gzd-return-shipments .tablenav select, .woocommerce_page_wc-gzd-return-shipments .tablenav input {
   line-height: 1;
@@ -145,7 +151,7 @@
         content: "\f502"; }
       .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.download::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.download::after {
         content: "\f103"; }
-  .woocommerce_page_wc-gzd-shipments .wp-list-table .column-address, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-address {
+  .woocommerce_page_wc-gzd-shipments .wp-list-table .column-address, .woocommerce_page_wc-gzd-shipments .wp-list-table .column-sender, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-address, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-sender {
     width: 20ch; }
   .woocommerce_page_wc-gzd-shipments .wp-list-table .column-items, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-items {
     width: 25ch; }
@@ -264,6 +270,9 @@
   .germanized-shipments #panel-order-shipments .order-shipment p.form-row {
     margin-bottom: 1.5em; }
     .germanized-shipments #panel-order-shipments .order-shipment p.form-row input[type=text], .germanized-shipments #panel-order-shipments .order-shipment p.form-row input[type=number], .germanized-shipments #panel-order-shipments .order-shipment p.form-row input[type=email] {
+      height: 30px; }
+    .germanized-shipments #panel-order-shipments .order-shipment p.form-row select {
+      line-height: 30px;
       height: 30px; }
     .germanized-shipments #panel-order-shipments .order-shipment p.form-row label {
       color: #999; }
