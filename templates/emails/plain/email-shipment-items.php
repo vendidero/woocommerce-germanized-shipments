@@ -23,20 +23,23 @@ foreach ( $items as $item_id => $item ) :
 	$sku           = $item->get_sku();
 	$purchase_note = '';
 
+	/* This filter is documented in templates/emails/email-shipment-items.php */
 	if ( ! apply_filters( 'woocommerce_gzd_shipment_item_visible', true, $item ) ) {
 		continue;
 	}
 
+	/* This filter is documented in templates/emails/email-shipment-items.php */
 	echo apply_filters( 'woocommerce_gzd_shipment_item_name', $item->get_name(), $item, false );
 
 	if ( $show_sku && $sku ) {
 		echo ' (#' . $sku . ')';
 	}
 
+	/* This filter is documented in templates/emails/email-shipment-items.php */
 	echo ' X ' . apply_filters( 'woocommerce_gzd_email_shipment_item_quantity', $item->get_quantity(), $item );
 	echo "\n";
 
-	// allow other plugins to add additional product information here.
+	/* This hook is documented in templates/emails/email-shipment-items.php */
 	do_action( 'woocommerce_gzd_shipment_item_meta', $item_id, $item, $shipment, $plain_text );
 
 	echo "\n\n";

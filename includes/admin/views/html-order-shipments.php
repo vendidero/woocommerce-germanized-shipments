@@ -47,6 +47,7 @@ $active_shipment = isset( $active_shipment ) ? $active_shipment : false;
 	             * @param Order $order_shipment The shipment order object.
 	             *
 	             * @since 3.0.0
+                 * @package Vendidero/Germanized/Shipments
 	             */
                 do_action( 'woocommerce_gzd_shipments_meta_box_actions', $order_shipment ); ?>
             </div>

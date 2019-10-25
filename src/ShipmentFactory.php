@@ -50,6 +50,7 @@ class ShipmentFactory {
 		 * @param string  $shipment_type The shipment type.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
 		 */
 		$classname = apply_filters( 'woocommerce_gzd_shipment_class', $classname, $shipment_id, $shipment_type );
 

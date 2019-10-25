@@ -3,7 +3,7 @@
  * Return shipment. Counterparts to simple shipments. Return
  * shipments serve to handle retoure/return shipments from customers to the shop owner.
  *
- * @package Vendidero\Germanized\Shipments
+ * @package Vendidero/Germanized/Shipments
  * @version 1.0.0
  */
 namespace Vendidero\Germanized\Shipments;
@@ -227,6 +227,7 @@ class ReturnShipment extends Shipment {
 				 * @param Shipment $this The shipment object.
 				 *
 				 * @since 3.0.0
+				 * @package Vendidero/Germanized/Shipments
 				 */
 				$value = apply_filters( "{$this->get_hook_prefix()}sender_address_{$prop}", $value, $this );
 			}
@@ -443,6 +444,7 @@ class ReturnShipment extends Shipment {
 			 * @param array          $args Array containing properties in key => value pairs to be updated.
 			 *
 			 * @since 3.0.0
+			 * @package Vendidero/Germanized/Shipments
 			 */
 			do_action( 'woocommerce_gzd_return_shipment_synced', $this, $parent_shipment, $args );
 
@@ -520,6 +522,7 @@ class ReturnShipment extends Shipment {
 			 * @param array          $args Array containing additional data e.g. items.
 			 *
 			 * @since 3.0.0
+			 * @package Vendidero/Germanized/Shipments
 			 */
 			do_action( 'woocommerce_gzd_return_shipment_items_synced', $this, $parent, $args );
 
@@ -564,6 +567,7 @@ class ReturnShipment extends Shipment {
 		 * @param Shipment $this The shipment object.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( "{$this->get_hook_prefix()}edit_url", get_admin_url( null, 'post.php?post=' . $this->get_order_id() . '&action=edit&shipment_id=' . $this->get_parent_id() . '&return_id=' . $this->get_id() ), $this );
 	}

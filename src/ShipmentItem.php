@@ -319,6 +319,7 @@ class ShipmentItem extends WC_Data {
 	     * @param array                       $args Array containing props in key => value pairs which have been updated.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
 	    do_action( 'woocommerce_gzd_shipment_item_synced', $this, $item, $args );
     }

@@ -2,7 +2,7 @@
 /**
  * Regular shipment
  *
- * @package Vendidero\Germanized\Shipments
+ * @package Vendidero/Germanized/Shipments
  * @version 1.0.0
  */
 namespace Vendidero\Germanized\Shipments;
@@ -218,6 +218,7 @@ abstract class Shipment extends WC_Data {
 	         * @param string $status Default fallback status.
 	         *
 	         * @since 3.0.0
+	         * @package Vendidero/Germanized/Shipments
 	         */
             $status = apply_filters( "{$this->get_hook_prefix()}}default_shipment_status", 'draft' );
         }
@@ -240,6 +241,7 @@ abstract class Shipment extends WC_Data {
 	     * @param string                                   $status The status to be checked against.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         return apply_filters( 'woocommerce_gzd_shipment_has_status', ( is_array( $status ) && in_array( $this->get_status(), $status, true ) ) || $this->get_status() === $status, $this, $status );
     }
@@ -514,6 +516,7 @@ abstract class Shipment extends WC_Data {
 		 * @param Shipment $this The shipment object.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( "{$this->get_hook_prefix()}tracking_url", '', $this );
 	}
@@ -542,6 +545,7 @@ abstract class Shipment extends WC_Data {
 		 * @param Shipment $this The shipment object.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( "{$this->get_hook_prefix()}tracking_instruction", $instruction, $this );
 	}
@@ -743,6 +747,7 @@ abstract class Shipment extends WC_Data {
 	     * @param Shipment $this The shipment object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         return apply_filters( 'woocommerce_gzd_shipment_send_to_external_pickup', false, $types, $this );
     }
@@ -774,6 +779,7 @@ abstract class Shipment extends WC_Data {
 	             * @param Shipment $this The shipment object.
 	             *
 	             * @since 3.0.0
+	             * @package Vendidero/Germanized/Shipments
 	             */
                 $value = apply_filters( "{$this->get_hook_prefix()}address_{$prop}", $value, $this );
             }
@@ -808,6 +814,7 @@ abstract class Shipment extends WC_Data {
 	     * @param Shipment $this The shipment object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         return apply_filters( 'woocommerce_gzd_shipment_is_editable', $this->has_status( wc_gzd_get_shipment_editable_statuses() ), $this );
     }
@@ -834,6 +841,7 @@ abstract class Shipment extends WC_Data {
 	     * @param Shipment $this The shipment object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         return (string) apply_filters( "{$this->get_hook_prefix()}shipment_number", $this->get_id(), $this );
     }
@@ -877,6 +885,7 @@ abstract class Shipment extends WC_Data {
 	             * @param string  $status The new shipment status.
 	             *
 	             * @since 3.0.0
+	             * @package Vendidero/Germanized/Shipments
 	             */
                 do_action( 'woocommerce_gzd_shipment_edit_status', $this->get_id(), $result['to'] );
             }
@@ -896,7 +905,7 @@ abstract class Shipment extends WC_Data {
     public function maybe_set_date_sent() {
         // This logic only runs if the date_sent prop has not been set yet.
         if ( ! $this->get_date_sent( 'edit' ) ) {
-            $sent_stati = wc_gzd_get_shipment_sent_stati();
+            $sent_stati = wc_gzd_get_shipment_sent_statuses();
 
             if ( $this->has_status( $sent_stati ) ) {
 
@@ -1081,6 +1090,7 @@ abstract class Shipment extends WC_Data {
 	     * @param Shipment $this The shipment object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         return apply_filters( "{$this->get_hook_prefix()}items", $items, $this );
     }
@@ -1093,6 +1103,20 @@ abstract class Shipment extends WC_Data {
     abstract public function get_edit_shipment_url();
 
     public function get_view_shipment_url() {
+	    /**
+	     * Filter to adjust the URL being used to access the view shipment page on the customer account page.
+	     *
+	     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+	     * unique hook for a shipment type.
+	     *
+	     * Example hook name: woocommerce_gzd_shipment_view_shipment_url
+	     *
+	     * @param string   $url The URL pointing to the view page.
+	     * @param Shipment $this The shipment object.
+	     *
+	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
+	     */
 	    return apply_filters( "{$this->get_hook_prefix()}_view_shipment_url", wc_get_endpoint_url( 'view-shipment', $this->get_id(), wc_get_page_permalink( 'myaccount' ) ), $this );
     }
 
@@ -1189,6 +1213,7 @@ abstract class Shipment extends WC_Data {
 	             * @param array    $status_transition The status transition data.
 	             *
 	             * @since 3.0.0
+	             * @package Vendidero/Germanized/Shipments
 	             */
 	            do_action( 'woocommerce_gzd_shipment_before_status_change', $this->get_id(), $this, $this->status_transition );
 
@@ -1209,6 +1234,7 @@ abstract class Shipment extends WC_Data {
 	             * @see wc_gzd_get_shipment_statuses()
 	             *
 	             * @since 3.0.0
+	             * @package Vendidero/Germanized/Shipments
 	             */
                 do_action( "{$status_hook_prefix}_$status_to", $this->get_id(), $this );
 
@@ -1230,6 +1256,7 @@ abstract class Shipment extends WC_Data {
 	                 * @see wc_gzd_get_shipment_statuses()
 	                 *
 	                 * @since 3.0.0
+	                 * @package Vendidero/Germanized/Shipments
 	                 */
                     do_action( "{$status_hook_prefix}_{$status_from}_to_{$status_to}", $this->get_id(), $this );
 
@@ -1244,6 +1271,7 @@ abstract class Shipment extends WC_Data {
 	                 * @see wc_gzd_get_shipment_statuses()
 	                 *
 	                 * @since 3.0.0
+	                 * @package Vendidero/Germanized/Shipments
 	                 */
                     do_action( 'woocommerce_gzd_shipment_status_changed', $this->get_id(), $status_from, $status_to, $this );
                 }
@@ -1364,6 +1392,7 @@ abstract class Shipment extends WC_Data {
 		 * @param Shipment $this The shipment object.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( 'woocommerce_gzd_shipment_contains_order_item', $contains, $item_id, $this );
 	}
@@ -1440,6 +1469,7 @@ abstract class Shipment extends WC_Data {
 		 * @param Shipment $this The shipment object.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( 'woocommerce_gzd_shipment_contains_item_parent', $contains, $item_parent_id, $this );
 	}

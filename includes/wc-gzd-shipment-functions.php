@@ -51,6 +51,8 @@ function wc_gzd_get_shipment_types() {
  *
  * @param  string $type type name.
  * @return bool|array Details about the shipment type.
+ *
+ * @package Vendidero/Germanized/Shipments
  */
 function wc_gzd_get_shipment_type_data( $type = false ) {
 	$types = apply_filters( 'woocommerce_gzd_shipment_type_data', array(
@@ -103,6 +105,7 @@ function wc_gzd_get_shipment_order_shipping_statuses() {
 	 * @param array $shipment_statuses Available order shipping statuses.
 	 *
 	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
 	 */
     return apply_filters( 'woocommerce_gzd_order_shipping_statuses', $shipment_statuses );
 }
@@ -128,6 +131,7 @@ function wc_gzd_get_shipment_order_shipping_status_name( $status ) {
 	 * @param string $status The shipping status.
 	 *
 	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
 	 */
     return apply_filters( 'woocommerce_gzd_order_shipping_status_name', $status_name, $status );
 }
@@ -177,6 +181,7 @@ function wc_gzd_get_shipment_statuses() {
 	 * @param array $shipment_statuses The available shipment statuses.
 	 *
 	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
 	 */
     return apply_filters( 'woocommerce_gzd_shipment_statuses', $shipment_statuses );
 }
@@ -195,6 +200,7 @@ function wc_gzd_get_shipment_selectable_statuses( $type ) {
 	 * @param string $type The shipment type e.g. return.
 	 *
 	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
 	 */
 	return apply_filters( 'woocommerce_gzd_shipment_selectable_statuses', $shipment_statuses, $type );
 }
@@ -331,6 +337,7 @@ function wc_gzd_get_shipment_editable_statuses() {
 	 * @param array $statuses Statuses which should be considered as editable.
 	 *
 	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
 	 */
     return apply_filters( 'woocommerce_gzd_shipment_editable_statuses', array( 'draft', 'processing' ) );
 }
@@ -359,6 +366,7 @@ function wc_gzd_get_shipping_providers() {
 	 * @param array $providers Array containing key => value pairs of providers and their title or description.
 	 *
 	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
 	 */
 	return apply_filters( 'woocommerce_gzd_shipping_providers', array() );
 }
@@ -379,6 +387,7 @@ function wc_gzd_get_shipping_provider_title( $slug ) {
 	 * @param string  $slug The shipping provider slug.
 	 *
 	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
 	 */
 	return apply_filters( 'woocommerce_gzd_shipping_provider_title', $title, $slug );
 }
@@ -445,6 +454,7 @@ function wc_gzd_get_shipment_order_shipping_method_id( $order ) {
 	 * @param WC_Order $order The order object.
 	 *
 	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
 	 */
 	return apply_filters( 'woocommerce_gzd_shipment_order_shipping_method_id', $id, $order );
 }
@@ -484,19 +494,21 @@ function wc_gzd_get_shipment_status_name( $status ) {
 	 * @param integer $status The status slug.
 	 *
 	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
 	 */
     return apply_filters( 'woocommerce_gzd_shipment_status_name', $status_name, $status );
 }
 
-function wc_gzd_get_shipment_sent_stati() {
+function wc_gzd_get_shipment_sent_statuses() {
 	/**
 	 * Filter to adjust which Shipment statuses should be considered as sent.
 	 *
 	 * @param array $statuses An array of statuses considered as shipped,
 	 *
 	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
 	 */
-    return apply_filters( 'woocommerce_gzd_shipment_sent_stati', array(
+    return apply_filters( 'woocommerce_gzd_shipment_sent_statuses', array(
         'shipped',
         'delivered',
         'returned'
@@ -575,6 +587,7 @@ function wc_gzd_get_shipment_item( $the_item = false ) {
 	 * @param integer $item_id The shipment item id.
 	 *
 	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
 	 */
     $classname = apply_filters( 'woocommerce_gzd_shipment_item_class', 'Vendidero\Germanized\Shipments\ShipmentItem', $item_id );
 
@@ -632,6 +645,7 @@ function wc_gzd_format_shipment_dimensions( $dimensions ) {
 	 * @param array   $dimensions Array containing the dimensions.
 	 *
 	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
 	 */
     return apply_filters( 'woocommerce_gzd_format_shipment_dimensions', $dimension_string, $dimensions );
 }
@@ -659,6 +673,7 @@ function wc_gzd_format_shipment_weight( $weight ) {
 	 * @param string  $weight The Shipment weight.
 	 *
 	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
 	 */
     return apply_filters( 'woocommerce_gzd_format_shipment_weight', $weight_string, $weight );
 }
@@ -670,6 +685,15 @@ function wc_gzd_format_shipment_weight( $weight ) {
  * @return array
  */
 function wc_gzd_get_account_shipments_columns() {
+	/**
+	 * Filter to adjust columns being used to display shipments in a table view on the customer
+	 * account page.
+	 *
+	 * @param string[] $columns The columns in key => value pairs.
+	 *
+	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
 	$columns = apply_filters(
 		'woocommerce_gzd_account_shipments_columns',
 		array(
@@ -705,5 +729,15 @@ function wc_gzd_get_account_shipments_actions( $shipment ) {
 		),
 	);
 
+	/**
+	 * Filter to adjust available actions in the shipments table view on the customer account page
+	 * for a specific shipment.
+	 *
+	 * @param string[] $actions Available actions containing an id as key and a URL and name.
+	 * @param Shipment $shipment The shipment instance.
+	 *
+	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
 	return apply_filters( 'woocommerce_gzd_account_shipments_actions', $actions, $shipment );
 }

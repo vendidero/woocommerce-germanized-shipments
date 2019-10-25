@@ -39,5 +39,6 @@ defined( 'ABSPATH' ) || exit;
  * @param Shipment $shipment The shipment instance.
  *
  * @since 3.0.0
+ * @package Vendidero/Germanized/Shipments
  */
 do_action( 'woocommerce_gzd_shipment_details_after_tracking_details', $shipment ); ?>

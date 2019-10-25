@@ -50,7 +50,7 @@ class Order {
         if ( ! empty( $shipments ) ) {
             foreach( $shipments as $shipment ) {
 
-                if ( $shipment->has_status( wc_gzd_get_shipment_sent_stati() ) ) {
+                if ( $shipment->has_status( wc_gzd_get_shipment_sent_statuses() ) ) {
                     $status = 'partially-shipped';
                     break;
                 }
@@ -113,6 +113,7 @@ class Order {
 	                     * @param Shipment $shipment The shipment object.
 	                     *
 	                     * @since 3.0.0
+	                     * @package Vendidero/Germanized/Shipments
 	                     */
                         if ( ! apply_filters( 'woocommerce_gzd_shipment_order_keep_non_order_item', false, $item, $shipment ) ) {
                             $shipment->remove_item( $item->get_id() );
@@ -261,7 +262,7 @@ class Order {
 
             foreach( $this->get_simple_shipments() as $shipment ) {
 
-                if ( $args['sent_only'] && ! $shipment->has_status( wc_gzd_get_shipment_sent_stati() ) ) {
+                if ( $args['sent_only'] && ! $shipment->has_status( wc_gzd_get_shipment_sent_statuses() ) ) {
                     continue;
                 }
 
@@ -287,6 +288,7 @@ class Order {
 	     * @param Order $this The shipment order object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_item_quantity_left_for_shipping', $quantity_left, $order_item, $this );
     }
@@ -346,6 +348,7 @@ class Order {
 	     * @param Order $order The shipment order object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_item_needs_shipping', $needs_shipping, $order_item, $args, $this );
     }
@@ -380,6 +383,7 @@ class Order {
 	     * @param Order $order The shipment order object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_shippable_items', $items, $this->get_order(), $this );
     }
@@ -402,6 +406,7 @@ class Order {
 	     * @param Order $order The shipment order object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_item_shippable_quantity', $quantity_left, $order_item, $this );
     }
@@ -420,6 +425,7 @@ class Order {
 	     * @param Order $order The shipment order object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_shippable_item_count', $count, $this );
     }
@@ -456,6 +462,7 @@ class Order {
 	     * @param Order $order The shipment order object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_needs_shipping', $needs_shipping, $this->get_order(), $this );
     }

@@ -118,6 +118,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
 	         * @param WC_GZD_Email_Customer_Shipment $email The email instance.
 	         *
 	         * @since 3.0.0
+	         * @package Vendidero/Germanized/Shipments
 	         */
             return apply_filters( 'woocommerce_email_subject_customer_shipment', $this->format_string( $subject ), $this->object );
         }
@@ -141,6 +142,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
 	         * @param WC_GZD_Email_Customer_Shipment $email The email instance.
 	         *
 	         * @since 3.0.0
+	         * @package Vendidero/Germanized/Shipments
 	         */
             return apply_filters( 'woocommerce_email_heading_customer_shipment', $this->format_string( $heading ), $this->object );
         }

@@ -44,6 +44,7 @@ if ( ! function_exists( 'wc_gzd_get_email_shipment_items' ) ) {
 	         * @param array $args Array containing the arguments passed.
 	         *
 	         * @since 3.0.0
+	         * @package Vendidero/Germanized/Shipments
 	         */
             apply_filters(
                 'woocommerce_gzd_email_shipment_items_args',
@@ -59,6 +60,15 @@ if ( ! function_exists( 'wc_gzd_get_email_shipment_items' ) ) {
             )
         );
 
+	    /**
+	     * Filter that allows adjusting the HTML output of the shipment email item table.
+	     *
+	     * @param string   $html The HTML output.
+	     * @param Shipment $shipment The shipment instance.
+	     *
+	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
+	     */
         return apply_filters( 'woocommerce_gzd_email_shipment_items_table', ob_get_clean(), $shipment );
     }
 }

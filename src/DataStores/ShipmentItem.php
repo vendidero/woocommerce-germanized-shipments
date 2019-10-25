@@ -80,6 +80,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
 	     * @param integer                                      $shipment_id The shipment id.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         do_action( 'woocommerce_gzd_new_shipment_item', $item->get_id(), $item, $item->get_shipment_id() );
     }
@@ -121,6 +122,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
 	     * @param integer                                      $shipment_id The shipment id.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         do_action( 'woocommerce_gzd_shipment_item_updated', $item->get_id(), $item, $item->get_shipment_id() );
     }
@@ -142,6 +144,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
 	         * @param integer $shipment_item_id The shipment item id.
 	         *
 	         * @since 3.0.0
+	         * @package Vendidero/Germanized/Shipments
 	         */
             do_action( 'woocommerce_gzd_before_delete_shipment_item', $item->get_id() );
 
@@ -155,6 +158,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
 	         * @param \Vendidero\Germanized\Shipments\ShipmentItem $item The shipment item object.
 	         *
 	         * @since 3.0.0
+	         * @package Vendidero/Germanized/Shipments
 	         */
             do_action( 'woocommerce_gzd_delete_shipment_item', $item->get_id(), $item );
             $this->clear_cache( $item );
@@ -293,6 +297,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
 	     * @param array                                        $changed_props The updated properties.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         do_action( 'woocommerce_gzd_shipment_item_object_updated_props', $item, $updated_props );
     }

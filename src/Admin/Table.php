@@ -9,7 +9,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Class Table
- * @package Vendidero\Germanized\Shipments\Admin
+ * @package Vendidero/Germanized/Shipments\Admin
  */
 class Table extends WP_List_Table {
 
@@ -94,6 +94,7 @@ class Table extends WP_List_Table {
 	                     * @param string  $new_status The new shipment status.
 	                     *
 	                     * @since 3.0.0
+                         * @package Vendidero/Germanized/Shipments
 	                     */
                         do_action( 'woocommerce_gzd_shipment_edit_status', $id, $new_status );
                         $changed++;
@@ -118,6 +119,7 @@ class Table extends WP_List_Table {
          * @param Table $table The table instance.
 	     *
 	     * @since 3.0.0
+         * @package Vendidero/Germanized/Shipments
 	     */
         $changed = apply_filters( 'woocommerce_gzd_shipments_bulk_action', $changed, $action, $ids, $redirect_to, $this );
 
@@ -185,6 +187,7 @@ class Table extends WP_List_Table {
 	     * @param Table  $shipment_table The table object.
 	     *
 	     * @since 3.0.0
+         * @package Vendidero/Germanized/Shipments
 	     */
         do_action( "{$this->get_hook_prefix()}bulk_notice", $bulk_action, $this );
     }
@@ -234,6 +237,7 @@ class Table extends WP_List_Table {
 	     * @param string  $type The type in this case shipment.
 	     *
 	     * @since 3.0.0
+         * @package Vendidero/Germanized/Shipments
 	     */
         $per_page        = apply_filters( "{$this->get_hook_prefix()}edit_per_page", $per_page, 'shipment' );
         $this->stati     = wc_gzd_get_shipment_statuses();
@@ -548,6 +552,7 @@ class Table extends WP_List_Table {
 			     * @param string            $bulk_action The bulk action.
 			     *
 			     * @since 3.0.0
+                 * @package Vendidero/Germanized/Shipments
 			     */
                 do_action( "{$this->get_hook_prefix()}bulk_action_{$bulk_action}_handled", $handler, $bulk_action );
                 $handler->reset();
@@ -586,6 +591,7 @@ class Table extends WP_List_Table {
 	             * @param string $which top or bottom.
 	             *
 	             * @since 3.0.0
+                 * @package Vendidero/Germanized/Shipments
 	             */
                 do_action( "{$this->get_hook_prefix()}filters", $which );
 
@@ -661,6 +667,7 @@ class Table extends WP_List_Table {
 	     * @param string[] $columns An associative array of column headings.
 	     *
 	     * @since 3.0.0
+         * @package Vendidero/Germanized/Shipments
 	     */
         $columns = apply_filters( "{$this->get_hook_prefix()}columns", $columns );
 
@@ -710,6 +717,7 @@ class Table extends WP_List_Table {
 	     * @param integer $shipment_id The current shipment id.
 	     *
 	     * @since 3.0.0
+         * @package Vendidero/Germanized/Shipments
 	     */
         do_action( "{$this->get_hook_prefix()}custom_column", $column_name, $shipment->get_id() );
     }
@@ -760,6 +768,7 @@ class Table extends WP_List_Table {
 		 * @param Shipment $shipment The shipment object.
 		 *
 		 * @since 3.0.0
+         * @package Vendidero/Germanized/Shipments
 		 */
 		do_action( "{$this->get_hook_prefix()}actions_start", $shipment );
 
@@ -795,6 +804,7 @@ class Table extends WP_List_Table {
 		 * @param Shipment $shipment The shipment object.
 		 *
 		 * @since 3.0.0
+         * @package Vendidero/Germanized/Shipments
 		 */
 		$actions = apply_filters( "{$this->get_hook_prefix()}actions", $actions, $shipment );
 
@@ -811,6 +821,7 @@ class Table extends WP_List_Table {
 		 * @param Shipment $shipment The shipment object.
 		 *
 		 * @since 3.0.0
+         * @package Vendidero/Germanized/Shipments
 		 */
 		do_action( "{$this->get_hook_prefix()}actions_end", $shipment );
 
@@ -933,6 +944,7 @@ class Table extends WP_List_Table {
 	         * @param string $format The date format.
 	         *
 	         * @since 3.0.0
+             * @package Vendidero/Germanized/Shipments
 	         */
             $show_date = $shipment->get_date_created()->date_i18n( apply_filters( 'woocommerce_gzd_admin_shipment_date_format', _x( 'M j, Y', 'shipments', 'woocommerce-germanized-shipments' ) ) );
         }
@@ -1011,6 +1023,7 @@ class Table extends WP_List_Table {
 	     * @param array $actions Array containing key => value pairs.
 	     *
 	     * @since 3.0.0
+         * @package Vendidero/Germanized/Shipments
 	     */
         return apply_filters( "{$this->get_hook_prefix()}bulk_actions", $actions );
     }

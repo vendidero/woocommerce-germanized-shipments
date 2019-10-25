@@ -34,6 +34,7 @@ foreach ( $items as $item_id => $item ) :
 	 * @param ShipmentItem $item The ShipmentItem object.
 	 *
 	 * @since 3.0.0
+     * @package Vendidero/Germanized/Shipments
 	 */
     if ( ! apply_filters( 'woocommerce_gzd_shipment_item_visible', true, $item ) ) {
         continue;
@@ -57,6 +58,7 @@ foreach ( $items as $item_id => $item ) :
 	             * @param ShipmentItem $item The ShipmentItem object.
 	             *
 	             * @since 3.0.0
+                 * @package Vendidero/Germanized/Shipments
 	             */
                 echo wp_kses_post( apply_filters( 'woocommerce_gzd_shipment_item_thumbnail', $image, $item ) );
             }
@@ -69,6 +71,7 @@ foreach ( $items as $item_id => $item ) :
              * @param boolean                                      $is_plain Whether the email is sent in plain format or not.
              *
              * @since 3.0.0
+             * @package Vendidero/Germanized/Shipments
              */
             echo wp_kses_post( apply_filters( 'woocommerce_gzd_shipment_item_name', $item->get_name(), $item, false ) );
 
@@ -86,6 +89,7 @@ foreach ( $items as $item_id => $item ) :
              * @param boolean                                      $plain_text Whether this email is in plaintext format or not.
              *
              * @since 3.0.0
+             * @package Vendidero/Germanized/Shipments
              */
             do_action( 'woocommerce_gzd_shipment_item_meta', $item_id, $item, $shipment, $plain_text );
 
@@ -100,6 +104,7 @@ foreach ( $items as $item_id => $item ) :
              * @param ShipmentItem $item The ShipmentItem object.
              *
              * @since 3.0.0
+             * @package Vendidero/Germanized/Shipments
              */
             echo wp_kses_post( apply_filters( 'woocommerce_gzd_email_shipment_item_quantity', $item->get_quantity(), $item ) ); ?>
         </td>

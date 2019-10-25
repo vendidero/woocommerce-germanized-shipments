@@ -25,10 +25,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * This filter may adjust whether to show a certain shipment item within the shipment
  * detail table on customer account page or not.
  *
- * @param boolean                                      $show Whether to show or hide the item.
+ * @param boolean      $show Whether to show or hide the item.
  * @param ShipmentItem $item The shipment item instance.
  *
  * @since 3.0.0
+ * @package Vendidero/Germanized/Shipments
  */
 if ( ! apply_filters( 'woocommerce_gzd_shipment_item_visible', true, $item ) ) {
 	return;
@@ -42,6 +43,7 @@ if ( ! apply_filters( 'woocommerce_gzd_shipment_item_visible', true, $item ) ) {
  * @param Shipment     $shipment The shipment instance.
  *
  * @since 3.0.0
+ * @package Vendidero/Germanized/Shipments
  */
 $item_class = apply_filters( 'woocommerce_gzd_shipment_item_class', 'woocommerce-table__line-item shipment_item', $item, $shipment );
 ?>
@@ -59,6 +61,7 @@ $item_class = apply_filters( 'woocommerce_gzd_shipment_item_class', 'woocommerce
 		 * @param Shipment     $shipment The shipment instance.
 		 *
 		 * @since 3.0.0
+         * @package Vendidero/Germanized/Shipments
 		 */
 		$product_permalink = apply_filters( 'woocommerce_gzd_shipment_item_permalink', $is_visible ? $product->get_permalink() : '', $item, $shipment );
 
@@ -70,8 +73,8 @@ $item_class = apply_filters( 'woocommerce_gzd_shipment_item_class', 'woocommerce
 	<td class="woocommerce-table__product-quantity product-quantity">
 		<?php
 
-		$qty          = $item->get_quantity();
-		$qty_display  = esc_html( $qty );
+		$qty         = $item->get_quantity();
+		$qty_display = esc_html( $qty );
 
 		/**
 		 * This filter may adjust the shipment item quantity HTML on the customer account page.
@@ -80,6 +83,7 @@ $item_class = apply_filters( 'woocommerce_gzd_shipment_item_class', 'woocommerce
 		 * @param ShipmentItem $item The shipment item instance.
 		 *
 		 * @since 3.0.0
+         * @package Vendidero/Germanized/Shipments
 		 */
 		echo apply_filters( 'woocommerce_gzd_shipment_item_quantity_html', ' <strong class="product-quantity">' . sprintf( '&times; %s', $qty_display ) . '</strong>', $item ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 	</td>

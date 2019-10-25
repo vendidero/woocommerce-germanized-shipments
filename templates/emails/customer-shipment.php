@@ -52,6 +52,7 @@ do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
  * @param WC_Email                                 $email The email instance.
  *
  * @since 3.0.0
+ * @package Vendidero/Germanized/Shipments
  */
 do_action( 'woocommerce_gzd_email_shipment_details', $shipment, $sent_to_admin, $plain_text, $email );
 

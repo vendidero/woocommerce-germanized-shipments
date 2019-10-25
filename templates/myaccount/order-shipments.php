@@ -11,7 +11,17 @@
 
 use Vendidero\Germanized\Shipments\Shipment;
 
-do_action( 'woocommerce_gzd_before_account_order_shipments', $has_shipments, $shipments ); ?>
+/*
+ * Action that fires befoure outputting a list of shipments belonging to a specific order on the customer account page.
+ *
+ * @param boolean                                    $has_shipments Whether shipments are availabe for the order or not.
+ * @param \Vendidero\Germanized\Shipments\Shipment[] $shipments The shipment instances.
+ * @param WC_Order                                   $order The order instance.
+ *
+ * @since 3.0.0
+ * @package Vendidero/Germanized/Shipments
+ */
+do_action( 'woocommerce_gzd_before_account_order_shipments', $has_shipments, $shipments, $order ); ?>
 
 <?php if ( $has_shipments ) : ?>
 
@@ -35,7 +45,21 @@ do_action( 'woocommerce_gzd_before_account_order_shipments', $has_shipments, $sh
 				<?php foreach ( wc_gzd_get_account_shipments_columns() as $column_id => $column_name ) : ?>
 					<td class="woocommerce-shipments-table__cell woocommerce-shipments-table__cell-<?php echo esc_attr( $column_id ); ?>" data-title="<?php echo esc_attr( $column_name ); ?>">
 						<?php if ( has_action( 'woocommerce_gzd_my_account_order_shipments_column_' . $column_id ) ) : ?>
-							<?php do_action( 'woocommerce_gzd_my_account_order_shipments_column_' . $column_id, $order ); ?>
+							<?php
+							/*
+                             * Action that fires befoure outputting a specific column in the shipments table view
+							 * on the customer account page.
+							 *
+							 * The dynamic portion of the hook `$column_id` refers to the current column id being rendered
+							 * e.g. shipment-number.
+                             *
+                             * @param \Vendidero\Germanized\Shipments\Shipment $shipment The shipment instance.
+							 * @param WC_Order                                 $order The order instance.
+                             *
+                             * @since 3.0.0
+                             * @package Vendidero/Germanized/Shipments
+                             */
+                            do_action( 'woocommerce_gzd_my_account_order_shipments_column_' . $column_id, $shipment, $order ); ?>
 
 						<?php elseif ( 'shipment-number' === $column_id ) : ?>
 							<a href="<?php echo esc_url( $shipment->get_view_shipment_url() ); ?>">
@@ -80,9 +104,10 @@ do_action( 'woocommerce_gzd_before_account_order_shipments', $has_shipments, $sh
  * This action is executed after listing all available shipments for an order
  * on the customer account page.
  *
- * @param boolean                                    $has_shipments Whether there are shipments available or not.
+ * @param boolean    $has_shipments Whether there are shipments available or not.
  * @param Shipment[] $shipments Array of shipments.
  *
  * @since 3.0.0
+ * @package Vendidero/Germanized/Shipments
  */
 do_action( 'woocommerce_gzd_after_account_order_shipments', $has_shipments, $shipments ); ?>

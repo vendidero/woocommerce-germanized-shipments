@@ -36,6 +36,7 @@ $shipment_items        = $shipment->get_items();
 	 * @param Shipment $shipment The shipment instance.
 	 *
 	 * @since 3.0.0
+     * @package Vendidero/Germanized/Shipments
 	 */
     do_action( 'woocommerce_gzd_shipment_details_before_shipment_table', $shipment ); ?>
 
@@ -58,6 +59,7 @@ $shipment_items        = $shipment->get_items();
 		 * @param Shipment $shipment The shipment instance.
 		 *
 		 * @since 3.0.0
+         * @package Vendidero/Germanized/Shipments
 		 */
 		do_action( 'woocommerce_gzd_shipment_details_before_shipment_table_items', $shipment );
 
@@ -81,6 +83,7 @@ $shipment_items        = $shipment->get_items();
 		 * @param Shipment $shipment The shipment instance.
 		 *
 		 * @since 3.0.0
+         * @package Vendidero/Germanized/Shipments
 		 */
 		do_action( 'woocommerce_gzd_shipment_details_after_shipment_table_items', $shipment );
 		?>
@@ -94,6 +97,7 @@ $shipment_items        = $shipment->get_items();
 	 * @param Shipment $shipment The shipment instance.
 	 *
 	 * @since 3.0.0
+     * @package Vendidero/Germanized/Shipments
 	 */
     do_action( 'woocommerce_gzd_shipment_details_after_shipment_table', $shipment ); ?>
 </section>

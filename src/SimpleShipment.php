@@ -2,7 +2,7 @@
 /**
  * Regular shipment
  *
- * @package Vendidero\Germanized\Shipments
+ * @package Vendidero/Germanized/Shipments
  * @version 1.0.0
  */
 namespace Vendidero\Germanized\Shipments;
@@ -166,6 +166,7 @@ class SimpleShipment extends Shipment {
 			 * @param array          $args Array containing properties in key => value pairs to be updated.
 			 *
 			 * @since 3.0.0
+			 * @package Vendidero/Germanized/Shipments
 			 */
 			do_action( 'woocommerce_gzd_shipment_synced', $this, $order_shipment, $args );
 
@@ -245,6 +246,7 @@ class SimpleShipment extends Shipment {
 			 * @param array          $args Array containing additional data e.g. items.
 			 *
 			 * @since 3.0.0
+			 * @package Vendidero/Germanized/Shipments
 			 */
 			do_action( 'woocommerce_gzd_shipment_items_synced', $this, $order_shipment, $args );
 
@@ -444,6 +446,7 @@ class SimpleShipment extends Shipment {
 		 * @param Shipment $this The shipment object.
 		 *
 		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( "{$this->get_hook_prefix()}edit_url", get_admin_url( null, 'post.php?post=' . $this->get_order_id() . '&action=edit&shipment_id=' . $this->get_id() ), $this );
 	}

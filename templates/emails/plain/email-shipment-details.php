@@ -16,6 +16,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/* This hook is documented in templates/emails/customer-shipment.php */
 do_action( 'woocommerce_gzd_email_before_shipment_table', $shipment, $sent_to_admin, $plain_text, $email );
 
 /* translators: %1$s: Order ID. %2$s: Order date */
@@ -38,4 +39,5 @@ if ( $sent_to_admin ) {
 	echo "\n" . sprintf( esc_html_x( 'View shipment: %s', 'shipments', 'woocommerce-germanized-shipments' ), esc_url( $shipment->get_edit_shipment_url() ) ) . "\n";
 }
 
+/* This hook is documented in templates/emails/customer-shipment.php */
 do_action( 'woocommerce_gzd_email_after_shipment_table', $shipment, $sent_to_admin, $plain_text, $email );

@@ -122,6 +122,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	         * @param integer $shipment_id The shipment id.
 	         *
 	         * @since 3.0.0
+	         * @package Vendidero/Germanized/Shipments
 	         */
             do_action( "woocommerce_gzd_new_{$hook_postfix}shipment", $shipment_id );
         }
@@ -217,6 +218,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	     * @param integer $shipment_id The shipment id.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         do_action( "woocommerce_gzd_{$hook_postfix}shipment_updated", $shipment->get_id() );
     }
@@ -258,6 +260,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	     * @param \Vendidero\Germanized\Shipments\Shipment $shipment The shipment object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         do_action( "woocommerce_gzd_{$hook_postfix}shipment_deleted", $shipment->get_id(), $shipment );
     }
@@ -313,6 +316,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	         * @param \Vendidero\Germanized\Shipments\Shipment $shipment The shipment object.
 	         *
 	         * @since 3.0.0
+	         * @package Vendidero/Germanized/Shipments
 	         */
             do_action( "woocommerce_gzd_{$hook_postfix}shipment_loaded", $shipment );
         } else {
@@ -421,6 +425,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	     * @param array                                    $changed_props The updated properties.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         do_action( 'woocommerce_gzd_shipment_object_updated_props', $shipment, $updated_props );
     }
@@ -587,6 +592,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	     * @param Shipment $data_store The shipment data store object.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         return apply_filters( 'woocommerce_gzd_shipping_data_store_get_shipments_query', $wp_query_args, $query_vars, $this );
     }

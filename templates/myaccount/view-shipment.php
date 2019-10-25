@@ -39,5 +39,6 @@ defined( 'ABSPATH' ) || exit;
  * @param int $shipment_id The shipment id.
  *
  * @since 3.0.0
+ * @package Vendidero/Germanized/Shipments
  */
 do_action( 'woocommerce_gzd_view_shipment', $shipment_id ); ?>

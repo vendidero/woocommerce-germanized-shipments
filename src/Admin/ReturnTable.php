@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Class Table
- * @package Vendidero\Germanized\Shipments\Admin
+ * @package Vendidero/Germanized/Shipments\Admin
  */
 class ReturnTable extends Table {
 

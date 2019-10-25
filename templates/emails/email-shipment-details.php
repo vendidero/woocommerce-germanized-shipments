@@ -29,6 +29,7 @@ $text_align = is_rtl() ? 'right' : 'left';
  * @param WC_Email                                 $email The email instance.
  *
  * @since 3.0.0
+ * @package Vendidero/Germanized/Shipments
  */
 do_action( 'woocommerce_gzd_email_before_shipment_table', $shipment, $sent_to_admin, $plain_text, $email ); ?>
 
@@ -78,5 +79,6 @@ do_action( 'woocommerce_gzd_email_before_shipment_table', $shipment, $sent_to_ad
  * @param WC_Email                                 $email The email instance.
  *
  * @since 3.0.0
+ * @package Vendidero/Germanized/Shipments
  */
 do_action( 'woocommerce_gzd_email_after_shipment_table', $shipment, $sent_to_admin, $plain_text, $email ); ?>

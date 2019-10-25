@@ -75,6 +75,7 @@ class ShipmentQuery extends WC_Object_Query {
 	     * @param array $args The arguments passed.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         $args = apply_filters( 'woocommerce_gzd_shipment_query_args', $this->get_query_vars() );
         $args = WC_Data_Store::load( 'shipment' )->get_query_args( $args );
@@ -88,6 +89,7 @@ class ShipmentQuery extends WC_Object_Query {
 	     * @param array                                      $args The arguments passed.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         return apply_filters( 'woocommerce_gzd_shipment_query', $this->results, $args );
     }
@@ -321,9 +323,11 @@ class ShipmentQuery extends WC_Object_Query {
              *
              * @since 3.0.0
              *
-             * @param string[]                                      $search_columns Array of column names to be searched.
-             * @param string                                        $search         Text being searched.
+             * @param string[]      $search_columns Array of column names to be searched.
+             * @param string        $search         Text being searched.
              * @param ShipmentQuery $this The current ShipmentQuery instance.
+             *
+             * @package Vendidero/Germanized/Shipments
              */
             $search_columns = apply_filters( 'woocommerce_gzd_shipment_search_columns', $search_columns, $search, $this );
 

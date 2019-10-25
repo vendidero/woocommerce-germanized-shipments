@@ -154,6 +154,7 @@ class Ajax {
 			     * @param string  $status The status to be switched to.
 			     *
 			     * @since 3.0.0
+			     * @package Vendidero/Germanized/Shipments
 			     */
 			    do_action( 'woocommerce_gzd_updated_shipment_status', $shipment->get_id(), $status );
 		    }
@@ -464,6 +465,7 @@ class Ajax {
 	     * @param array $result The order search result.
 	     *
 	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
 	     */
         wp_send_json( apply_filters( 'woocommerce_gzd_json_search_found_shipment_orders', $found_orders ) );
     }

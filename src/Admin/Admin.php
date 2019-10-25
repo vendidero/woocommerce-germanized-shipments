@@ -332,6 +332,7 @@ class Admin {
 	         * @param array $handlers Array containing key => classname.
 	         *
 	         * @since 3.0.0
+             * @package Vendidero/Germanized/Shipments
 	         */
 	        $handlers = apply_filters( 'woocommerce_gzd_shipments_table_bulk_action_handlers', array() );
 
