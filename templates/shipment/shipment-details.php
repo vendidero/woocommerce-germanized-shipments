@@ -10,10 +10,10 @@
  * happen. When this occurs the version of the template file will be bumped and
  * the readme will list any important changes.
  *
+ * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Vendidero/Germanized/Shipments/Templates
  * @version 3.0.0
  */
-
 use Vendidero\Germanized\Shipments\Shipment;
 
 defined( 'ABSPATH' ) || exit;

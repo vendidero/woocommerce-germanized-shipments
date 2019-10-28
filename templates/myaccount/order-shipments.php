@@ -1,15 +1,22 @@
 <?php
 /**
- * This action is executed before listing all available shipments for an order
- * on the customer account page.
+ * The Template for displaying available shipments for an order on the myaccount page.
  *
- * @param boolean                                    $has_shipments Whether there are shipments available or not.
- * @param Shipment[] $shipments Array of shipments.
+ * This template can be overridden by copying it to yourtheme/woocommerce-germanized/myaccount/order-shipments.php.
  *
- * @since 3.0.0
+ * HOWEVER, on occasion Germanized will need to update template files and you
+ * (the theme developer) will need to copy the new files to your theme to
+ * maintain compatibility. We try to do this as little as possible, but it does
+ * happen. When this occurs the version of the template file will be bumped and
+ * the readme will list any important changes.
+ *
+ * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
+ * @package Germanized/Shipments/Templates/Emails/Plain
+ * @version 1.0.0
  */
-
 use Vendidero\Germanized\Shipments\Shipment;
+
+defined( 'ABSPATH' ) || exit;
 
 /*
  * Action that fires befoure outputting a list of shipments belonging to a specific order on the customer account page.

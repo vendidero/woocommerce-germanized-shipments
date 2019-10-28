@@ -1,6 +1,6 @@
 <?php
 /**
- * View Shipment
+ * The Template for displaying details for a shipment on the myaccount page.
  *
  * Shows the details of a particular shipment on the account page.
  *
@@ -13,11 +13,9 @@
  * the readme will list any important changes.
  *
  * @package Vendidero/Germanized/Shipments/Templates
- * @version 3.0.0
+ * @version 1.0.0
  */
-
 defined( 'ABSPATH' ) || exit;
-
 ?>
 <p>
 	<?php
