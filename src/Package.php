@@ -13,7 +13,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '0.0.1-beta-6';
+    const VERSION = '1.0.0';
 
     /**
      * Init the package - load the REST API Server class.
@@ -34,8 +34,6 @@ class Package {
 
 	    // Filter email templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
-
-	    add_action( 'admin_init', array( __CLASS__, 'test' ) );
 
 	    add_filter( 'woocommerce_get_query_vars', array( __CLASS__, 'register_endpoints' ), 10, 1 );
     }
@@ -123,39 +121,6 @@ class Package {
         $stores['shipment-item'] = 'Vendidero\Germanized\Shipments\DataStores\ShipmentItem';
 
         return $stores;
-    }
-
-    public static function test() {
-
-    	// wc_gzd_create_shipment( wc_gzd_get_shipment_order( 24662 ) );
-    	// exit();
-
-		// $shipment = wc_gzd_get_shipment( 72 );
-		// $return = wc_gzd_create_return_shipment( $shipment );
-		// var_dump($return);
-		// exit();
-
-		// var_dump($return);
-		// exit();
-
-        /*
-        $shipment = new WC_GZD_Shipment( 1 );
-        $shipment->set_country( 'DE' );
-        $shipment->set_address( '' );
-        $shipment->set_order_id( 21899 );
-
-        $item = $shipment->get_item( 1 );
-        var_dump($item);
-
-        $id = $shipment->save();
-
-        var_dump($id);
-
-        exit();
-        */
-
-        // $id = $shipment->save();
-        // var_dump($id);
     }
 
     /**
