@@ -228,6 +228,16 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
             );
         }
 
+	    /**
+	     * Default content to show below main email content.
+	     *
+	     * @since 1.0.1
+	     * @return string
+	     */
+	    public function get_default_additional_content() {
+		    return '';
+	    }
+
         /**
          * Initialise settings form fields.
          */
