@@ -302,10 +302,10 @@ class ShipmentItem extends WC_Data {
 			    'name'          => $item->get_name(),
 			    'sku'           => $product ? $product->get_sku() : '',
 			    'total'         => $total + $tax_total,
-			    'weight'        => $product ? wc_get_weight( $product->get_weight(), 'kg' ) : '',
-			    'length'        => $product ? wc_get_dimension( $product->get_length(), 'cm' ) : '',
-			    'width'         => $product ? wc_get_dimension( $product->get_width(), 'cm' ) : '',
-			    'height'        => $product ? wc_get_dimension( $product->get_height(), 'cm' ) : '',
+			    'weight'        => $product ? wc_get_weight( $product->get_weight(), $shipment->get_weight_unit() ) : '',
+			    'length'        => $product ? wc_get_dimension( $product->get_length(), $shipment->get_dimension_unit() ) : '',
+			    'width'         => $product ? wc_get_dimension( $product->get_width(), $shipment->get_dimension_unit() ) : '',
+			    'height'        => $product ? wc_get_dimension( $product->get_height(), $shipment->get_dimension_unit() ) : '',
 		    ) );
 	    }
 

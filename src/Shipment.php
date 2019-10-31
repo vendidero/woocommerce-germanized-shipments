@@ -304,7 +304,7 @@ abstract class Shipment extends WC_Data {
 		$unit = $this->get_prop( 'weight_unit', $context );
 
 		if ( 'view' === $context && '' === $unit ) {
-			return 'kg';
+			return get_option( 'woocommerce_weight_unit' );
 		}
 
 		return $unit;
@@ -320,7 +320,7 @@ abstract class Shipment extends WC_Data {
 		$unit = $this->get_prop( 'dimension_unit', $context );
 
 		if ( 'view' === $context && '' === $unit ) {
-			return 'cm';
+			return get_option( 'woocommerce_dimension_unit' );
 		}
 
 		return $unit;
