@@ -106,6 +106,8 @@ abstract class Shipment extends WC_Data {
         'width'                 => '',
         'height'                => '',
         'length'                => '',
+        'weight_unit'           => '',
+        'dimension_unit'        => '',
         'country'               => '',
         'address'               => array(),
         'tracking_id'           => '',
@@ -291,6 +293,38 @@ abstract class Shipment extends WC_Data {
 
         return $weight;
     }
+
+	/**
+	 * Returns the shipment weight unit.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
+	public function get_weight_unit( $context = 'view' ) {
+		$unit = $this->get_prop( 'weight_unit', $context );
+
+		if ( 'view' === $context && '' === $unit ) {
+			return 'kg';
+		}
+
+		return $unit;
+	}
+
+	/**
+	 * Returns the shipment dimension unit.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
+	public function get_dimension_unit( $context = 'view' ) {
+		$unit = $this->get_prop( 'dimension_unit', $context );
+
+		if ( 'view' === $context && '' === $unit ) {
+			return 'cm';
+		}
+
+		return $unit;
+	}
 
 	/**
 	 * Returns the shipment length. In case view context was chosen and length is not yet set, returns the content length.
@@ -964,7 +998,7 @@ abstract class Shipment extends WC_Data {
     }
 
 	/**
-	 * Set shipment weight.
+	 * Set shipment weight in kg.
 	 *
 	 * @param string $weight The weight.
 	 */
@@ -973,7 +1007,7 @@ abstract class Shipment extends WC_Data {
     }
 
 	/**
-	 * Set shipment width.
+	 * Set shipment width in cm.
 	 *
 	 * @param string $width The width.
 	 */
@@ -981,8 +1015,16 @@ abstract class Shipment extends WC_Data {
         $this->set_prop( 'width', '' === $width ? '' : wc_format_decimal( $width ) );
     }
 
+    public function set_weight_unit( $unit ) {
+	    $this->set_prop( 'weight_unit', $unit );
+    }
+
+	public function set_dimension_unit( $unit ) {
+		$this->set_prop( 'dimension_unit', $unit );
+	}
+
 	/**
-	 * Set shipment length.
+	 * Set shipment length in cm.
 	 *
 	 * @param string $length The length.
 	 */
@@ -991,7 +1033,7 @@ abstract class Shipment extends WC_Data {
     }
 
 	/**
-	 * Set shipment height.
+	 * Set shipment height in cm.
 	 *
 	 * @param string $height The height.
 	 */

@@ -142,6 +142,14 @@ class SimpleShipment extends Shipment {
 				throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
 			}
 
+			/**
+			 * Hotfix WCML infinite loop
+			 *
+			 */
+			if ( function_exists( 'wc_gzd_remove_class_filter' ) ) {
+				wc_gzd_remove_class_filter( 'woocommerce_order_get_items', 'WCML_Orders', 'woocommerce_order_get_items', 10 );
+			}
+
 			$order = $order_shipment->get_order();
 
 			$args = wp_parse_args( $args, array(

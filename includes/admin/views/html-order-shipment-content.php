@@ -26,12 +26,12 @@ defined( 'ABSPATH' ) || exit;
 
         <div class="column col-6">
             <p class="form-row">
-                <label for="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php printf( _x( 'Weight (%s)', 'shipments', 'woocommerce-germanized-shipments' ), get_option( 'woocommerce_weight_unit' ) ); ?></label>
+                <label for="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php printf( _x( 'Weight (%s)', 'shipments', 'woocommerce-germanized-shipments' ), $shipment->get_weight_unit() ); ?></label>
                 <input type="text" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_weight( 'edit' ) ) ); ?>" name="shipment_weight[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_weight() ) ); ?>" />
             </p>
 
             <p class="form-row dimensions_field">
-                <label for="shipment-length-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php printf( _x( 'Dimensions (%s)', 'shipments', 'woocommerce-germanized-shipments' ), get_option( 'woocommerce_dimension_unit' ) ); ?><?php echo wc_help_tip( _x( 'LxWxH in decimal form.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></label>
+                <label for="shipment-length-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php printf( _x( 'Dimensions (%s)', 'shipments', 'woocommerce-germanized-shipments' ), $shipment->get_dimension_unit() ); ?><?php echo wc_help_tip( _x( 'LxWxH in decimal form.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></label>
 
                 <span class="wrap">
                     <input type="text" size="6" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_length( 'edit' ) ) ); ?>" name="shipment_length[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-length-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_length() ) ); ?>" />

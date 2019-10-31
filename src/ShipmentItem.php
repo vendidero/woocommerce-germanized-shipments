@@ -414,18 +414,38 @@ class ShipmentItem extends WC_Data {
         $this->set_prop( 'sku', $sku );
     }
 
+	/**
+	 * Set weight in kg
+	 *
+	 * @param $weight
+	 */
     public function set_weight( $weight ) {
         $this->set_prop( 'weight', '' === $weight ? '' : wc_format_decimal( $weight ) );
     }
 
+	/**
+	 * Set width in cm
+	 *
+	 * @param $weight
+	 */
     public function set_width( $width ) {
         $this->set_prop( 'width', '' === $width ? '' : wc_format_decimal( $width ) );
     }
 
+	/**
+	 * Set length in cm
+	 *
+	 * @param $weight
+	 */
     public function set_length( $length ) {
         $this->set_prop( 'length', '' === $length ? '' : wc_format_decimal( $length ) );
     }
 
+	/**
+	 * Set height in cm
+	 *
+	 * @param $weight
+	 */
     public function set_height( $height ) {
         $this->set_prop( 'height', '' === $height ? '' : wc_format_decimal( $height ) );
     }

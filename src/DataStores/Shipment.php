@@ -35,7 +35,9 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         '_weight',
         '_address',
         '_total',
-	    '_sender_address'
+	    '_sender_address',
+	    '_weight_unit',
+	    '_dimension_unit'
     );
 
     protected $core_props = array(
@@ -70,6 +72,8 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         global $wpdb;
 
         $shipment->set_date_created( current_time( 'timestamp', true ) );
+        $shipment->set_weight_unit( get_option( 'woocommerce_weight_unit', 'kg' ) );
+	    $shipment->set_dimension_unit( get_option( 'woocommerce_dimension_unit', 'cm' ) );
 
         $data = array(
             'shipment_country'           => $shipment->get_country(),
@@ -165,6 +169,14 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         $core_props    = $this->core_props;
         $changed_props = array_keys( $shipment->get_changes() );
         $shipment_data = array();
+
+        if ( '' === $shipment->get_weight_unit( 'edit' ) ) {
+	        $shipment->set_weight_unit( get_option( 'woocommerce_weight_unit', 'kg' ) );
+        }
+
+        if ( '' === $shipment->get_dimension_unit( 'edit' ) ) {
+	        $shipment->set_dimension_unit( get_option( 'woocommerce_dimension_unit', 'cm' ) );
+        }
 
         foreach ( $changed_props as $prop ) {
 
