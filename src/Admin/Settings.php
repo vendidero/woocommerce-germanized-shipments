@@ -128,6 +128,18 @@ class Settings {
 
 			array( 'type' => 'sectionend', 'id' => 'shipments_auto_options' ),
 
+			array( 'title' => _x( 'Customer Account', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_customer_options' ),
+
+			array(
+				'title' 	        => _x( 'List', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc' 		        => _x( 'List shipments on customer account order screen.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'id' 		        => 'woocommerce_gzd_shipments_customer_account_enable',
+				'default'	        => 'yes',
+				'type' 		        => 'gzd_toggle',
+			),
+
+			array( 'type' => 'sectionend', 'id' => 'shipments_customer_options' ),
+
 			array( 'title' => _x( 'Return Address', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_return_options' ),
 
 			array(

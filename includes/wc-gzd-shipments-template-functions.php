@@ -77,12 +77,13 @@ if ( ! function_exists( 'woocommerce_gzd_shipments_template_customer_order' ) ) 
 
 	function woocommerce_gzd_shipments_template_customer_order( $order_id ) {
 		$shipments_order = wc_gzd_get_shipment_order( $order_id );
+		$order           = wc_get_order( $order_id );
 		$shipments       = $shipments_order->get_simple_shipments();
 
 		wc_get_template( 'myaccount/order-shipments.php', array(
-			'order_id'      => $order_id,
 			'has_shipments' => ( ! empty( $shipments ) ? true : false ),
 			'shipments'     => $shipments,
+			'order'         => $order,
 		) );
 	}
 }
