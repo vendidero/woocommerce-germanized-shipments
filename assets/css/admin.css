@@ -285,6 +285,9 @@
     text-transform: uppercase;
     color: #999;
     font-size: .9em; }
+    .germanized-shipments #panel-order-shipments .order-shipment .columns .column h4 a {
+      color: #999;
+      text-decoration: none; }
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item-action {
     text-align: right; }
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item-quantity input {

@@ -287,7 +287,9 @@ class ShipmentItem extends WC_Data {
 
 	    } elseif( is_a( $item, 'WC_Order_Item' ) ) {
 
-    		if ( is_callable( array( $item, 'get_product_id' ) ) ) {
+    		if ( is_callable( array( $item, 'get_variation_id' ) ) && is_callable( array( $item, 'get_product_id' ) ) ) {
+			    $this->set_product_id( $item->get_variation_id() ? $item->get_variation_id() : $item->get_product_id() );
+		    } elseif( is_callable( array( $item, 'get_product_id' ) ) ) {
 			    $this->set_product_id( $item->get_product_id() );
 		    }
 
@@ -340,6 +342,7 @@ class ShipmentItem extends WC_Data {
     }
 
     public function get_product() {
+
         if ( is_null( $this->product ) && 0 < $this->get_product_id() ) {
             $this->product = wc_get_product( $this->get_product_id() );
         }

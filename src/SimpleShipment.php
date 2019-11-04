@@ -284,6 +284,21 @@ class SimpleShipment extends Shipment {
 		return $methods;
 	}
 
+	public function needs_shipping_provider_select() {
+		$shipping_method = $this->get_shipping_method();
+
+		if ( ! empty( $shipping_method ) ) {
+			$expl = explode( ':', $shipping_method );
+
+			// If no instance id is availabe - show selection
+			if ( sizeof( $expl ) === 2 && empty( $expl[1] ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * Returns available items for return.
 	 *

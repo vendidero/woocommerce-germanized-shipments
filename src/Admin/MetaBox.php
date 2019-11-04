@@ -46,6 +46,15 @@ class MetaBox {
 		        $props['shipping_method'] = wc_clean( wp_unslash( $_POST['shipment_shipping_method'][ $id ] ) );
 	        }
 
+	        if ( isset( $_POST['shipment_shipping_provider'][ $id ] ) ) {
+	        	$provider  = wc_clean( wp_unslash( $_POST['shipment_shipping_provider'][ $id ] ) );
+	        	$providers = wc_gzd_get_shipping_providers();
+
+	        	if ( empty( $provider ) || array_key_exists( $provider, $providers ) ) {
+			        $props['shipping_provider'] = $provider;
+		        }
+	        }
+
 	        $new_status = isset( $_POST['shipment_status'][ $id ] ) ? str_replace( 'gzd-', '', wc_clean( wp_unslash( $_POST['shipment_status'][ $id ] ) ) ) : 'draft';
 
 	        // Sync the shipment - make sure gets refresh on status switch (e.g. from shipped to processing)

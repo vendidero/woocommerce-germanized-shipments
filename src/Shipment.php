@@ -167,6 +167,9 @@ abstract class Shipment extends WC_Data {
         $this->changes = array();
     }
 
+	/**
+	 * @return bool|Order
+	 */
     public function get_order_shipment() {
     	return false;
     }
@@ -604,6 +607,10 @@ abstract class Shipment extends WC_Data {
     public function get_shipping_provider( $context = 'view' ) {
 	    return $this->get_prop( 'shipping_provider', $context );
     }
+
+	public function needs_shipping_provider_select() {
+		return false;
+	}
 
 	/**
 	 * Returns the formatted shipping address.
@@ -1305,9 +1312,9 @@ abstract class Shipment extends WC_Data {
 	                /**
 	                 * Action that indicates shipment status change.
 	                 *
-	                 * @param integer                                  $shipment_id The shipment id.
-	                 * @param string                                   $status_from The old shipment status.
-	                 * @param string                                   $status_to The new shipment status.
+	                 * @param integer  $shipment_id The shipment id.
+	                 * @param string   $status_from The old shipment status.
+	                 * @param string   $status_to The new shipment status.
 	                 * @param Shipment $shipment The shipment object.
 	                 *
 	                 * @see wc_gzd_get_shipment_statuses()

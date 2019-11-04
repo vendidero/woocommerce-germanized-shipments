@@ -361,11 +361,17 @@ window.germanized.admin = window.germanized.admin || {};
                     self.$wrapper.find( '#order-shipments-list' ).append( data.new_shipment );
 
                     self.initShipments();
+
+                    // Init tiptip
+                    self.initTiptip();
                     self.unblock();
                 });
             } else {
                 self.$wrapper.find( '#order-shipments-list' ).append( data.new_shipment );
                 self.initShipments();
+
+                // Init tiptip
+                self.initTiptip();
                 self.unblock();
             }
         },

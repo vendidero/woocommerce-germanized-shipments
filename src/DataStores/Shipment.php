@@ -178,6 +178,11 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	        $shipment->set_dimension_unit( get_option( 'woocommerce_dimension_unit', 'cm' ) );
         }
 
+        // Make sure country in core props is updated as soon as the address changes
+        if ( in_array( 'address', $changed_props ) ) {
+        	$changed_props[] = 'country';
+        }
+
         foreach ( $changed_props as $prop ) {
 
             if ( ! in_array( $prop, $core_props, true ) ) {

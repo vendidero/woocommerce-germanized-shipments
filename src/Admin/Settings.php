@@ -126,6 +126,14 @@ class Settings {
 				),
 			),
 
+			array(
+				'title' 	        => _x( 'Update status', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc' 		        => _x( 'Mark order as completed after order is fully shipped.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . _x( 'This option will automatically update the order status to completed as soon as all required shipments have been marked as shipped.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
+				'id' 		        => 'woocommerce_gzd_shipments_auto_order_shipped_completed_enable',
+				'default'	        => 'yes',
+				'type' 		        => 'gzd_toggle',
+			),
+
 			array( 'type' => 'sectionend', 'id' => 'shipments_auto_options' ),
 
 			array( 'title' => _x( 'Customer Account', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_customer_options' ),

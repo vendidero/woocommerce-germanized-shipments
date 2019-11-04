@@ -75,6 +75,19 @@ defined( 'ABSPATH' ) || exit;
                 </p>
 		    <?php endif; ?>
 
+		    <?php if( $shipment->needs_shipping_provider_select() ) : ?>
+                <p class="form-row">
+                    <label for="shipment-shipping-provider-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?></label>
+                    <select class="shipment-shipping-method-select" id="shipment-shipping-method-<?php echo esc_attr( $shipment->get_id() ); ?>" name="shipment_shipping_provider[<?php echo esc_attr( $shipment->get_id() ); ?>]">
+                        <option value=""><?php echo _x( 'None', 'shipments', 'woocommerce-germanized-shipments' ); ?></option>
+
+                        <?php foreach( wc_gzd_get_shipping_providers() as $provider => $title ) : ?>
+                            <option value="<?php echo esc_attr( $provider ); ?>" <?php selected( $provider, $shipment->get_shipping_provider(), true ); ?>><?php echo $title; ?></option>
+					    <?php endforeach; ?>
+                    </select>
+                </p>
+            <?php endif; ?>
+
             <div class="shipment-items" id="shipment-items-<?php echo esc_attr( $shipment->get_id() ); ?>">
                 <div class="shipment-item-list-wrapper">
                     <div class="shipment-item-heading">

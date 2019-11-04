@@ -26,6 +26,29 @@ class Automation {
 		        add_action( 'woocommerce_new_order', array( __CLASS__, 'maybe_create_shipments' ), 10, 1 );
 	        }
         }
+
+        if ( 'yes' === Package::get_setting( 'auto_order_shipped_completed_enable' ) ) {
+	        add_action( 'woocommerce_gzd_shipment_status_changed', array( __CLASS__, 'maybe_mark_order_completed' ), 150, 4 );
+        }
+    }
+
+	/**
+	 * Maybe mark the order as completed if the order is fully shipped.
+	 *
+	 * @param $shipment_id
+	 * @param $old_status
+	 * @param $new_status
+	 * @param Shipment $shipment
+	 */
+    public static function maybe_mark_order_completed( $shipment_id, $old_status, $new_status, $shipment ) {
+		if ( 'simple' === $shipment->get_type() ) {
+			if ( $shipment_order = $shipment->get_order_shipment() ) {
+
+				if ( 'shipped' === $shipment_order->get_shipping_status() ) {
+					$shipment_order->get_order()->update_status( 'completed', _x( 'Order is fully shipped.', 'shipments', 'woocommerce-germanized-shipments' ) );
+				}
+			}
+		}
     }
 
     public static function create_shipments( $order_id ) {
