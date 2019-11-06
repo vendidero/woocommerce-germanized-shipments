@@ -188,6 +188,22 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
             $this->restore_locale();
         }
 
+	    /**
+	     * Return content from the additional_content field.
+	     *
+	     * Displayed above the footer.
+	     *
+	     * @since 2.0.4
+	     * @return string
+	     */
+	    public function get_additional_content() {
+		    if ( is_callable( 'parent::get_additional_content' ) ) {
+			    return parent::get_additional_content();
+		    }
+
+		    return '';
+	    }
+
         /**
          * Get content html.
          *

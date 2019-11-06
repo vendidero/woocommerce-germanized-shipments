@@ -77,6 +77,11 @@ if ( ! function_exists( 'woocommerce_gzd_shipments_template_customer_order' ) ) 
 
 	function woocommerce_gzd_shipments_template_customer_order( $order_id ) {
 		$shipments_order = wc_gzd_get_shipment_order( $order_id );
+
+		if ( ! $shipments_order ) {
+			return;
+		}
+
 		$order           = wc_get_order( $order_id );
 		$shipments       = $shipments_order->get_simple_shipments();
 

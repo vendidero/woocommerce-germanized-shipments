@@ -251,7 +251,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         global $wpdb;
 
         $wpdb->delete( $wpdb->gzd_shipments, array( 'shipment_id' => $shipment->get_id() ), array( '%d' ) );
-        $wpdb->delete( $wpdb->gzd_shipmentmeta, array( 'shipment_id' => $shipment->get_id() ), array( '%d' ) );
+        $wpdb->delete( $wpdb->gzd_shipmentmeta, array( 'gzd_shipment_id' => $shipment->get_id() ), array( '%d' ) );
 
         $this->delete_items( $shipment );
 

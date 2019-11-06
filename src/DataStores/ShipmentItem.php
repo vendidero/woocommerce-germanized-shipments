@@ -149,7 +149,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
             do_action( 'woocommerce_gzd_before_delete_shipment_item', $item->get_id() );
 
             $wpdb->delete( $wpdb->gzd_shipment_items, array( 'shipment_item_id' => $item->get_id() ) );
-            $wpdb->delete( $wpdb->gzd_shipment_itemmeta, array( 'shipment_item_id' => $item->get_id() ) );
+            $wpdb->delete( $wpdb->gzd_shipment_itemmeta, array( 'gzd_shipment_item_id' => $item->get_id() ) );
 
 	        /**
 	         * Action that indicates that a ShipmentItem has been deleted from the DB.
