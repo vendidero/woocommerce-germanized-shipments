@@ -78,6 +78,14 @@ class SimpleShipment extends Shipment {
 		return $this->get_prop( 'order_id', $context );
 	}
 
+	public function get_order_number() {
+		if ( $order = $this->get_order() ) {
+			return $order->get_order_number();
+		}
+
+		return $this->get_order_id();
+	}
+
 	/**
 	 * Set shipment order id.
 	 *

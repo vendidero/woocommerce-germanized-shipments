@@ -326,6 +326,8 @@ class Admin {
     public static function get_bulk_action_handlers() {
         if ( is_null( self::$bulk_handlers ) ) {
 
+	        self::$bulk_handlers = array();
+
 	        /**
 	         * Filter to register new BulkActionHandler for certain Shipment bulk actions.
 	         *
