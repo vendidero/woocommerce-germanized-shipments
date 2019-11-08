@@ -13,7 +13,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.0.4';
+    const VERSION = '1.0.5';
 
     /**
      * Init the package - load the REST API Server class.
@@ -104,10 +104,12 @@ class Package {
 
         // List of tables without prefixes.
         $tables = array(
-            'gzd_shipment_itemmeta' => 'woocommerce_gzd_shipment_itemmeta',
-            'gzd_shipmentmeta'      => 'woocommerce_gzd_shipmentmeta',
-            'gzd_shipments'         => 'woocommerce_gzd_shipments',
-            'gzd_shipment_items'    => 'woocommerce_gzd_shipment_items',
+            'gzd_shipment_itemmeta'     => 'woocommerce_gzd_shipment_itemmeta',
+            'gzd_shipmentmeta'          => 'woocommerce_gzd_shipmentmeta',
+            'gzd_shipments'             => 'woocommerce_gzd_shipments',
+            'gzd_shipment_items'        => 'woocommerce_gzd_shipment_items',
+            'gzd_shipping_provider'     => 'woocommerce_gzd_shipping_provider',
+            'gzd_shipping_providermeta' => 'woocommerce_gzd_shipping_providermeta',
         );
 
         foreach ( $tables as $name => $table ) {
@@ -117,8 +119,9 @@ class Package {
     }
 
     public static function register_data_stores( $stores ) {
-        $stores['shipment']      = 'Vendidero\Germanized\Shipments\DataStores\Shipment';
-        $stores['shipment-item'] = 'Vendidero\Germanized\Shipments\DataStores\ShipmentItem';
+        $stores['shipment']          = 'Vendidero\Germanized\Shipments\DataStores\Shipment';
+        $stores['shipment-item']     = 'Vendidero\Germanized\Shipments\DataStores\ShipmentItem';
+	    $stores['shipping-provider'] = 'Vendidero\Germanized\Shipments\DataStores\ShippingProvider';
 
         return $stores;
     }

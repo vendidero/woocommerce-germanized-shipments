@@ -1,7 +1,11 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\Admin;
+use Exception;
 use Vendidero\Germanized\Shipments\Package;
+use Vendidero\Germanized\Shipments\ShippingProvider;
+use Vendidero\Germanized\Shipments\ShippingProviders;
+use WC_Admin_Settings;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -213,17 +217,109 @@ class Settings {
 		return $settings;
 	}
 
+	public static function save_provider( $provider_name = '' ) {
+		$helper = ShippingProviders::instance();
+
+		$helper->load_shipping_providers();
+
+		if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
+			$provider = $helper->get_shipping_provider( $provider_name );
+		} else {
+			$provider = new ShippingProvider();
+		}
+
+		$settings = $provider->get_settings();
+
+		foreach ( $settings as $setting ) {
+
+			if ( ! isset( $setting['id'] ) || empty( $setting['id'] ) ) {
+				continue;
+			}
+
+			add_filter( 'woocommerce_admin_settings_sanitize_option_' . $setting['id'], function( $value, $option, $raw_value ) use( &$provider ) {
+				$option_name = str_replace( 'shipping_provider_', '', $option['id'] );
+				$setter      = 'set_' . $option_name;
+
+				try {
+					if ( is_callable( array( $provider, $setter ) ) ) {
+						$provider->{$setter}( $value );
+					}
+				} catch( Exception $e ) {}
+
+				return null;
+			}, 10, 3 );
+		}
+
+		WC_Admin_Settings::save_fields( $settings );
+
+		$provider->save();
+	}
+
 	public static function get_settings( $current_section = '' ) {
 		$settings = array();
 
 		if ( '' === $current_section ) {
 			$settings = self::get_general_settings();
+		} elseif( 'provider' === $current_section && isset( $_GET['provider'] ) ) {
+
+			$provider_name = wc_clean( wp_unslash( $_GET['provider'] ) );
+			$helper        = ShippingProviders::instance();
+
+			$helper->load_shipping_providers();
+
+			if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
+				$provider = $helper->get_shipping_provider( $provider_name );
+			} else {
+				$provider = new ShippingProvider();
+			}
+
+			$settings = $provider->get_settings();
 		}
 
 		return $settings;
 	}
 
 	public static function get_sections() {
-		return array();
+		return array(
+			''          => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' ),
+			'provider'  => _x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' )
+		);
+	}
+
+	/**
+	 * Handles output of the shipping zones page in admin.
+	 */
+	public static function output_providers() {
+		global $hide_save_button;
+
+		$hide_save_button = true;
+		self::provider_screen();
+	}
+
+	/*protected static function edit_provider_screen( $provider_name = '' ) {
+
+
+
+		if ( ! empty( $_POST['save'] ) ) { // WPCS: input var ok, sanitization ok.
+
+			if ( empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( wp_unslash( $_REQUEST['_wpnonce'] ), 'woocommerce-settings' ) ) { // WPCS: input var ok, sanitization ok.
+				echo '<div class="updated error"><p>' . esc_html__( 'Edit failed. Please try again.', 'woocommerce-germanized' ) . '</p></div>';
+			}
+
+			if ( $provider ) {
+				// $provider->save();
+			}
+		}
+
+		\WC_Admin_Settings::output();
+	}
+	*/
+
+	protected static function provider_screen() {
+
+		$helper    = ShippingProviders::instance();
+		$providers = $helper->get_shipping_providers();
+
+		include_once Package::get_path() . '/includes/admin/views/html-settings-provider-list.php';
 	}
 }

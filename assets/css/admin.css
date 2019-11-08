@@ -1,3 +1,35 @@
+table.wc-gzd-shipping-providers {
+  margin-top: 1.5em; }
+  table.wc-gzd-shipping-providers th, table.wc-gzd-shipping-providers td {
+    display: table-cell !important;
+    padding: 1em !important;
+    vertical-align: top;
+    line-height: 1.75em;
+    font-size: 14px; }
+  table.wc-gzd-shipping-providers th {
+    font-weight: 600; }
+  table.wc-gzd-shipping-providers td.wc-gzd-shipping-provider-activated, table.wc-gzd-shipping-providers th.wc-gzd-shipping-provider-activated {
+    width: 1%;
+    text-align: center; }
+    table.wc-gzd-shipping-providers td.wc-gzd-shipping-provider-activated .status-disabled, table.wc-gzd-shipping-providers td.wc-gzd-shipping-provider-activated .status-enabled, table.wc-gzd-shipping-providers th.wc-gzd-shipping-provider-activated .status-disabled, table.wc-gzd-shipping-providers th.wc-gzd-shipping-provider-activated .status-enabled {
+      display: inline-block;
+      margin-top: 3px; }
+  table.wc-gzd-shipping-providers td.wc-gzd-shipping-provider-actions, table.wc-gzd-shipping-providers th.wc-gzd-shipping-provider-actions {
+    width: 15%;
+    text-align: right; }
+  table.wc-gzd-shipping-providers td.wc-gzd-shipping-provider-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap; }
+    table.wc-gzd-shipping-providers td.wc-gzd-shipping-provider-actions .button {
+      margin-right: 5px; }
+      table.wc-gzd-shipping-providers td.wc-gzd-shipping-provider-actions .button:last-child {
+        margin-right: 0; }
+  table.wc-gzd-shipping-providers td.wc-gzd-shipping-provider-title, table.wc-gzd-shipping-providers th.wc-gzd-shipping-provider-title {
+    width: 30ch; }
+  table.wc-gzd-shipping-providers tr:nth-child(odd) td {
+    background: #f9f9f9; }
+
 .shipment-status, .order-shipping-status {
   background: #eee;
   padding: .2em .5em;

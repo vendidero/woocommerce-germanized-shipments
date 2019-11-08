@@ -62,8 +62,10 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
             );
 
             // Triggers for this email.
-            add_action( 'woocommerce_gzd_shipment_status_draft_to_shipped_notification', array( $this, 'trigger' ), 10 );
-            add_action( 'woocommerce_gzd_shipment_status_processing_to_shipped_notification', array( $this, 'trigger' ), 10 );
+	        if ( 'yes' === Package::get_setting( 'notify_enable' ) ) {
+		        add_action( 'woocommerce_gzd_shipment_status_draft_to_shipped_notification', array( $this, 'trigger' ), 10 );
+		        add_action( 'woocommerce_gzd_shipment_status_processing_to_shipped_notification', array( $this, 'trigger' ), 10 );
+	        }
 
             // Call parent constructor.
             parent::__construct();

@@ -263,6 +263,10 @@ class Admin {
         if ( in_array( $screen_id, self::get_screen_ids() ) ) {
             wp_enqueue_style( 'woocommerce_gzd_shipments_admin' );
         }
+
+        if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'germanized-shipments' === $_GET['tab'] ) {
+	        wp_enqueue_style( 'woocommerce_gzd_shipments_admin' );
+        }
     }
 
     public static function admin_scripts() {
@@ -353,9 +357,10 @@ class Admin {
     }
 
     public static function get_screen_ids() {
+
         $screen_ids = array(
             'woocommerce_page_wc-gzd-shipments',
-            'woocommerce_page_wc-gzd-return-shipments'
+            'woocommerce_page_wc-gzd-return-shipments',
         );
 
         foreach ( wc_get_order_types() as $type ) {

@@ -2,6 +2,59 @@
 
 $layout-spacing: 1rem;
 
+table.wc-gzd-shipping-providers {
+  margin-top: 1.5em;
+
+  th, td {
+    display: table-cell !important;
+    padding: 1em !important;
+    vertical-align: top;
+    line-height: 1.75em;
+    font-size: 14px;
+  }
+
+  th {
+    font-weight: 600;
+  }
+
+  td.wc-gzd-shipping-provider-activated, th.wc-gzd-shipping-provider-activated {
+    width: 1%;
+    text-align: center;
+
+    .status-disabled, .status-enabled {
+      display: inline-block;
+      margin-top: 3px;
+    }
+  }
+
+  td.wc-gzd-shipping-provider-actions, th.wc-gzd-shipping-provider-actions {
+    width: 15%;
+    text-align: right;
+  }
+
+  td.wc-gzd-shipping-provider-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+
+    .button {
+      margin-right: 5px;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+
+  td.wc-gzd-shipping-provider-title, th.wc-gzd-shipping-provider-title {
+    width: 30ch;
+  }
+
+  tr:nth-child(odd) td {
+    background: #f9f9f9;
+  }
+}
+
 .shipment-status, .order-shipping-status {
   background: #eee;
   padding: .2em .5em;

@@ -12,7 +12,7 @@ use WC_Data_Store;
 
 defined( 'ABSPATH' ) || exit;
 
-abstract class ShippingProvider extends WC_Data  {
+class ShippingProvider extends WC_Data  {
 
 	/**
 	 * This is the name of this object type.
@@ -45,9 +45,10 @@ abstract class ShippingProvider extends WC_Data  {
 	 * @var array
 	 */
 	protected $data = array(
-		'is_activated'              => true,
+		'activated'                 => true,
 		'title'                     => '',
 		'name'                      => '',
+		'description'               => '',
 		'tracking_url_placeholder'  => '',
 		'tracking_desc_placeholder' => '',
 	);
@@ -93,13 +94,17 @@ abstract class ShippingProvider extends WC_Data  {
 		return true;
 	}
 
+	public function get_edit_link() {
+		return $this->get_id() > 0 ? admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=' . esc_attr( $this->get_name() ) ) : '';
+	}
+
 	/**
 	 * Returns whether the shipping provider is active for usage or not.
 	 *
 	 * @return bool
 	 */
 	public function is_activated() {
-		return $this->get_is_activated() === true;
+		return $this->get_activated() === true;
 	}
 
 	/**
@@ -124,6 +129,29 @@ abstract class ShippingProvider extends WC_Data  {
 		return $this->get_prop( 'name', $context );
 	}
 
+	protected function get_hook_name() {
+		$name = isset( $this->data['name'] ) ? $this->data['name'] : '';
+
+		return $name;
+	}
+
+	/**
+	 * Returns a description for the provider.
+	 *
+	 * @param string $context
+	 *
+	 * @return string
+	 */
+	public function get_description( $context = 'view' ) {
+		$desc = $this->get_prop( 'description', $context );
+
+		if ( 'view' === $context && empty( $desc ) ) {
+			return '-';
+		}
+
+		return $desc;
+	}
+
 	/**
 	 * Returns whether the shipping provider is activated or not.
 	 *
@@ -131,8 +159,8 @@ abstract class ShippingProvider extends WC_Data  {
 	 *
 	 * @return string
 	 */
-	public function get_is_activated( $context = 'view' ) {
-		return $this->get_prop( 'is_activated', $context );
+	public function get_activated( $context = 'view' ) {
+		return $this->get_prop( 'activated', $context );
 	}
 
 	/**
@@ -164,8 +192,35 @@ abstract class ShippingProvider extends WC_Data  {
 	 *
 	 * @param bool $is_activated
 	 */
-	public function set_is_activated( $is_activated ) {
-		$this->set_prop( 'is_activated', wc_string_to_bool( $is_activated ) );
+	public function set_activated( $is_activated ) {
+		$this->set_prop( 'activated', wc_string_to_bool( $is_activated ) );
+	}
+
+	/**
+	 * Set the name of the current shipping provider.
+	 *
+	 * @param string $name
+	 */
+	public function set_name( $name ) {
+		$this->set_prop( 'name', $name );
+	}
+
+	/**
+	 * Set the title of the current shipping provider.
+	 *
+	 * @param string $title
+	 */
+	public function set_title( $title ) {
+		$this->set_prop( 'title', $title );
+	}
+
+	/**
+	 * Set the description of the current shipping provider.
+	 *
+	 * @param string $title
+	 */
+	public function set_description( $description ) {
+		$this->set_prop( 'description', $description );
 	}
 
 	/**
@@ -187,9 +242,9 @@ abstract class ShippingProvider extends WC_Data  {
 		 * This filter returns the tracking url provided by the shipping provider for a certain shipment.
 		 *
 		 * The dynamic portion of the hook `$this->get_hook_prefix()` refers to the
-		 * current implementation.
+		 * current provider name.
 		 *
-		 * Example hook name: woocommerce_gzd_shipping_provider_get_tracking_url
+		 * Example hook name: woocommerce_gzd_shipping_provider_dhl_get_tracking_url
 		 *
 		 * @param string           $tracking_url The tracking url.
 		 * @param Shipment         $shipment The shipment used to build the url.
@@ -220,9 +275,9 @@ abstract class ShippingProvider extends WC_Data  {
 		 * This filter returns the tracking description provided by the shipping provider for a certain shipment.
 		 *
 		 * The dynamic portion of the hook `$this->get_hook_prefix()` refers to the
-		 * current implementation.
+		 * current provider name.
 		 *
-		 * Example hook name: woocommerce_gzd_shipping_provider_get_tracking_description
+		 * Example hook name: woocommerce_gzd_shipping_provider_dhl_get_tracking_description
 		 *
 		 * @param string           $tracking_url The tracking description.
 		 * @param Shipment         $shipment The shipment used to build the url.
@@ -249,7 +304,43 @@ abstract class ShippingProvider extends WC_Data  {
 	 * @return string
 	 */
 	protected function get_hook_prefix() {
-		return 'woocommerce_gzd_shipping_provider_get_';
+		$name = $this->get_hook_name();
+		$suffix = ( ! empty( $name ) ? $name . '_' : '' );
+
+		return "woocommerce_gzd_shipping_provider_{$suffix}get_";
+	}
+
+	public function get_settings() {
+		$settings = array(
+			array( 'title' => '', 'type' => 'title', 'id' => 'shipping_provider_options' ),
+
+			array(
+				'title' 	        => _x( 'Title', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc_tip' 		    => _x( 'Choose a title for the shipping provider.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'id' 		        => 'shipping_provider_title',
+				'value'             => $this->get_title(),
+				'default'	        => '',
+				'type' 		        => 'text',
+			),
+
+			array( 'type' => 'sectionend', 'id' => 'shipping_provider_options' ),
+		);
+
+		/**
+		 * This filter returns the admin settings available for a certain shipping provider.
+		 *
+		 * The dynamic portion of the hook `$this->get_hook_prefix()` refers to the
+		 * current provider name.
+		 *
+		 * Example hook name: woocommerce_gzd_shipping_provider_dhl_get_settings
+		 *
+		 * @param array            $settings Available settings.
+		 * @param ShippingProvider $provider The shipping provider.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( $this->get_hook_prefix() . 'settings', $settings, $this );
 	}
 
 	public function save() {

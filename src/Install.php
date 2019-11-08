@@ -78,6 +78,22 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipmentmeta (
   PRIMARY KEY  (meta_id),
   KEY gzd_shipment_id (gzd_shipment_id),
   KEY meta_key (meta_key(32))
+) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_provider (
+  shipping_provider_id BIGINT UNSIGNED NOT NULL auto_increment,
+  shipping_provider_activated TINYINT(1) NOT NULL default 1,
+  shipping_provider_title varchar(200) NOT NULL DEFAULT '',
+  shipping_provider_name varchar(200) NOT NULL DEFAULT '',
+  PRIMARY KEY  (shipping_provider_id)
+) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_providermeta (
+  meta_id BIGINT UNSIGNED NOT NULL auto_increment,
+  gzd_shipping_provider_id BIGINT UNSIGNED NOT NULL,
+  meta_key varchar(255) default NULL,
+  meta_value longtext NULL,
+  PRIMARY KEY  (meta_id),
+  KEY gzd_shipping_provider_id (gzd_shipping_provider_id),
+  KEY meta_key (meta_key(32))
 ) $collate;";
 
 		return $tables;
