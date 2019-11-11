@@ -351,8 +351,9 @@ function wc_gzd_split_shipment_street( $streetStr ) {
 	try {
 		$split = AddressSplitter::splitAddress( $streetStr );
 
-		$return['street'] = $split['streetName'];
-		$return['number'] = $split['houseNumber'];
+		$return['street']   = $split['streetName'];
+		$return['number']   = $split['houseNumber'];
+		$return['addition'] = isset( $split['additionToAddress2'] ) ? $split['additionToAddress2'] : '';
 		
 	} catch( Exception $e ) {}
 

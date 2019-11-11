@@ -377,6 +377,14 @@ abstract class Shipment extends WC_Data {
         return $height;
     }
 
+    public function has_dimensions() {
+    	$width  = $this->get_width();
+    	$length = $this->get_length();
+    	$height = $this->get_height();
+
+    	return ( ! empty( $width ) && ! empty( $length ) && ! empty( $height ) );
+    }
+
 	/**
 	 * Returns the calculated weights for included items.
 	 *
@@ -688,6 +696,12 @@ abstract class Shipment extends WC_Data {
 		$split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
 
 		return $split['street'];
+	}
+
+	public function get_address_street_addition( $type = 'address_1' ) {
+		$split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
+
+		return $split['addition'];
 	}
 
 	/**
