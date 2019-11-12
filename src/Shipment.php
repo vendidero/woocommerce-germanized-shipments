@@ -9,6 +9,7 @@ namespace Vendidero\Germanized\Shipments;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
+use WC_Data_Store_WP;
 use WC_DateTime;
 use WC_Order;
 
@@ -1558,6 +1559,7 @@ abstract class Shipment extends WC_Data {
     public function save() {
         try {
             $this->calculate_totals();
+            $is_new = false;
 
             if ( $this->data_store ) {
                 // Trigger action before saving to the DB. Allows you to adjust object props before save.
@@ -1567,12 +1569,45 @@ abstract class Shipment extends WC_Data {
                     $this->data_store->update( $this );
                 } else {
                     $this->data_store->create( $this );
+	                $is_new = true;
                 }
             }
 
             $this->save_items();
+
+	        /**
+	         * Trigger action after saving shipment to the DB.
+	         *
+	         * @param Shipment          $shipment The shipment object being saved.
+	         * @param WC_Data_Store_WP $data_store THe data store persisting the data.
+	         */
+	        do_action( 'woocommerce_after_' . $this->object_type . '_object_save', $this, $this->data_store );
+
+	        $hook_postfix = '';
+
+	        if ( 'simple' !== $this->get_type() ) {
+		        $hook_postfix = $this->get_type() . '_';
+	        }
+
+	        /**
+	         * Trigger action after saving shipment to the DB.
+	         *
+	         * The dynamic portion of this hook, `$hook_postfix` is used to construct a
+	         * unique hook for a shipment type.
+	         *
+	         * Example hook name: woocommerce_gzd_shipment_after_save
+	         *
+	         * @param Shipment $shipment The shipment object being saved.
+	         * @param boolean  $is_new Indicator to determine whether this is a new shipment or not.
+	         *
+	         * @since 3.0.0
+	         * @package Vendidero/Germanized/Shipments
+	         */
+	        do_action( "woocommerce_gzd_{$hook_postfix}shipment_after_save", $this, $is_new );
+
             $this->status_transition();
             $this->reset_content_data();
+
         } catch ( Exception $e ) {
             $logger = wc_get_logger();
             $logger->error(

@@ -123,12 +123,13 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	         * The dynamic portion of this hook, `$hook_postfix` refers to the
 	         * shipment type in case it is not a simple shipment.
 	         *
-	         * @param integer $shipment_id The shipment id.
+	         * @param integer  $shipment_id The shipment id.
+	         * @param Shipment $shipment The shipment instance.
 	         *
 	         * @since 3.0.0
 	         * @package Vendidero/Germanized/Shipments
 	         */
-            do_action( "woocommerce_gzd_new_{$hook_postfix}shipment", $shipment_id );
+            do_action( "woocommerce_gzd_new_{$hook_postfix}shipment", $shipment_id, $shipment );
         }
     }
 
@@ -232,12 +233,13 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	     * The dynamic portion of this hook, `$hook_postfix` refers to the
 	     * shipment type in case it is not a simple shipment.
 	     *
-	     * @param integer $shipment_id The shipment id.
+	     * @param integer  $shipment_id The shipment id.
+	     * @param Shipment $shipment The shipment instance.
 	     *
 	     * @since 3.0.0
 	     * @package Vendidero/Germanized/Shipments
 	     */
-        do_action( "woocommerce_gzd_{$hook_postfix}shipment_updated", $shipment->get_id() );
+        do_action( "woocommerce_gzd_{$hook_postfix}shipment_updated", $shipment->get_id(), $shipment );
     }
 
     /**
