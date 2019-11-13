@@ -273,7 +273,9 @@
       height: 30px; }
     .germanized-shipments #panel-order-shipments .order-shipment p.form-row select {
       line-height: 30px;
-      height: 30px; }
+      height: 30px;
+      padding-top: 0;
+      padding-bottom: 0; }
     .germanized-shipments #panel-order-shipments .order-shipment p.form-row label {
       color: #999; }
       .germanized-shipments #panel-order-shipments .order-shipment p.form-row label .woocommerce-help-tip {

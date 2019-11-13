@@ -459,6 +459,8 @@ $layout-spacing: 1rem;
         select {
           line-height: 30px;
           height: 30px;
+          padding-top: 0;
+          padding-bottom: 0;
         }
 
         label {

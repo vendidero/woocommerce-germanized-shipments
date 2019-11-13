@@ -161,14 +161,15 @@ class SimpleShipment extends Shipment {
 			$order = $order_shipment->get_order();
 
 			$args = wp_parse_args( $args, array(
-				'order_id'        => $order->get_id(),
-				'country'         => $order->get_shipping_country(),
-				'shipping_method' => wc_gzd_get_shipment_order_shipping_method_id( $order ),
-				'address'         => array_merge( $order->get_address( 'shipping' ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) ),
-				'weight'          => $this->get_weight( 'edit' ),
-				'length'          => $this->get_length( 'edit' ),
-				'width'           => $this->get_width( 'edit' ),
-				'height'          => $this->get_height( 'edit' ),
+				'order_id'         => $order->get_id(),
+				'country'          => $order->get_shipping_country(),
+				'shipping_method'  => wc_gzd_get_shipment_order_shipping_method_id( $order ),
+				'address'          => array_merge( $order->get_address( 'shipping' ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) ),
+				'weight'           => $this->get_weight( 'edit' ),
+				'length'           => $this->get_length( 'edit' ),
+				'width'            => $this->get_width( 'edit' ),
+				'height'           => $this->get_height( 'edit' ),
+				'additional_total' => $this->calculate_additional_total( $order ),
 			) );
 
 			$this->set_props( $args );
@@ -191,6 +192,23 @@ class SimpleShipment extends Shipment {
 		}
 
 		return true;
+	}
+
+	/**
+	 * @param WC_Order $order
+	 */
+	protected function calculate_additional_total( $order ) {
+		$fees_total       = 0;
+		$additional_total = 0;
+
+		// Sum fee costs.
+		foreach ( $order->get_fees() as $item ) {
+			$fees_total += ( $item->get_total() + $item->get_total_tax() );
+		}
+
+		$additional_total = $fees_total + $order->get_shipping_total() + $order->get_shipping_tax();
+
+		return $additional_total;
 	}
 
 	/**

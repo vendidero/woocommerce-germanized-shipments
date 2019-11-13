@@ -115,6 +115,7 @@ abstract class Shipment extends WC_Data {
         'shipping_provider'     => '',
         'shipping_method'       => '',
         'total'                 => 0,
+	    'additional_total'      => 0,
     );
 
 	/**
@@ -525,6 +526,17 @@ abstract class Shipment extends WC_Data {
     public function get_total( $context = 'view' ) {
         return $this->get_prop( 'total', $context );
     }
+
+	/**
+	 * Returns the additional total amount containing shipping and fee costs.
+	 * Only one of the shipments related to an order should include additional total.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return float
+	 */
+	public function get_additional_total( $context = 'view' ) {
+		return $this->get_prop( 'additional_total', $context );
+	}
 
     public function has_tracking() {
 	    if ( ! $this->has_tracking_instruction() && ! $this->get_tracking_url() ) {
@@ -1095,6 +1107,21 @@ abstract class Shipment extends WC_Data {
 
         $this->set_prop( 'total', $value );
     }
+
+	/**
+	 * Set shipment additional total.
+	 *
+	 * @param float|string $value The shipment total.
+	 */
+	public function set_additional_total( $value ) {
+		$value = wc_format_decimal( $value );
+
+		if ( ! is_numeric( $value ) ) {
+			$value = 0;
+		}
+
+		$this->set_prop( 'additional_total', $value );
+	}
 
 	/**
 	 * Set shipment shipping country.
