@@ -16,8 +16,8 @@ defined( 'ABSPATH' ) || exit;
 	</thead>
 	<tbody class="wc-gzd-setting-tab-rows">
 	<?php foreach ( $providers as $provider_name => $provider ) : ?>
-		<tr>
-			<td class="wc-gzd-shipping-provider-title" id="wc-gzd-shipping-provider-title-<?php echo esc_attr( $provider->get_name() ); ?>" data-shipping-provider="<?php echo esc_attr( $provider->get_name() ); ?>">
+		<tr data-shipping-provider="<?php echo esc_attr( $provider->get_name() ); ?>">
+			<td class="wc-gzd-shipping-provider-title" id="wc-gzd-shipping-provider-title-<?php echo esc_attr( $provider->get_name() ); ?>">
 				<a href="<?php echo esc_url( $provider->get_edit_link() ); ?>" class="wc-gzd-shipping-provider-edit-link"><?php echo $provider->get_title(); ?></a>
 			    <div class="row-actions">
                     <a href="<?php echo esc_url( $provider->get_edit_link() ); ?>"><?php _ex( 'Edit', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>

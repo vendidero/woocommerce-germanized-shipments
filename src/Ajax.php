@@ -41,12 +41,83 @@ class Ajax {
             'validate_shipment_item_quantities',
             'json_search_orders',
 	        'update_shipment_status',
-	        'shipments_bulk_action_handle'
+	        'shipments_bulk_action_handle',
+	        'remove_shipping_provider',
+	        'edit_shipping_provider_status',
         );
 
         foreach ( $ajax_events as $ajax_event ) {
             add_action( 'wp_ajax_woocommerce_gzd_' . $ajax_event, array( __CLASS__, $ajax_event ) );
         }
+    }
+
+    public static function edit_shipping_provider_status() {
+	    check_ajax_referer( 'edit-shipping-providers', 'security' );
+
+	    if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['provider'] ) || ! isset( $_POST['enable'] ) ) {
+		    wp_die( -1 );
+	    }
+
+	    $response_error = array(
+		    'success' => false,
+		    'message' => _x( 'There was an error while trying to save the shipping provider status.', 'shipments', 'woocommerce-germanized-shipments' ),
+	    );
+
+	    $provider = sanitize_key( wc_clean( $_POST['provider'] ) );
+	    $enable   = wc_clean( $_POST['enable'] );
+	    $helper   = ShippingProviders::instance();
+	    $response = array(
+		    'success'  => true,
+		    'provider' => $provider,
+		    'message'  => '',
+	    );
+
+	    $helper->load_shipping_providers();
+
+	    if ( $shipping_provider = $helper->get_shipping_provider( $provider ) ) {
+	    	if ( 'yes' === $enable ) {
+	    		$response['activated'] = 'yes';
+	    		$shipping_provider->set_activated( true );
+		    } else {
+			    $response['activated'] = 'no';
+			    $shipping_provider->set_activated( false );
+		    }
+
+	    	$shipping_provider->save();
+		    wp_send_json( $response );
+	    } else {
+		    wp_send_json( $response_error );
+	    }
+    }
+
+    public static function remove_shipping_provider() {
+	    check_ajax_referer( 'remove-shipping-provider', 'security' );
+
+	    if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['provider'] ) ) {
+		    wp_die( -1 );
+	    }
+
+	    $response_error = array(
+		    'success' => false,
+		    'message' => _x( 'There was an error while trying to delete the shipping provider.', 'shipments', 'woocommerce-germanized-shipments' ),
+	    );
+
+	    $provider = sanitize_key( wc_clean( $_POST['provider'] ) );
+	    $helper   = ShippingProviders::instance();
+	    $response = array(
+		    'success'  => true,
+		    'provider' => $provider,
+		    'message'  => '',
+	    );
+
+	    $helper->load_shipping_providers();
+
+	    if ( $shipping_provider = $helper->get_shipping_provider( $provider ) ) {
+	    	$shipping_provider->delete();
+		    wp_send_json( $response );
+	    } else {
+		    wp_send_json( $response_error );
+	    }
     }
 
     public static function shipments_bulk_action_handle() {

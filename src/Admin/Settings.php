@@ -265,7 +265,7 @@ class Settings {
 			$provider_name = wc_clean( wp_unslash( $_GET['provider'] ) );
 			$helper        = ShippingProviders::instance();
 
-			$helper->load_shipping_providers();
+			$helper->get_shipping_providers();
 
 			if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
 				$provider = $helper->get_shipping_provider( $provider_name );
@@ -277,6 +277,47 @@ class Settings {
 		}
 
 		return $settings;
+	}
+
+	public static function get_additional_breadcrumb_items( $breadcrumb ) {
+		if ( isset( $_GET['section'] ) && 'provider' === $_GET['section'] && isset( $_GET['provider'] ) ) {
+			$provider_name = wc_clean( wp_unslash( $_GET['provider'] ) );
+			$title         = 'new' === $provider_name ? _x( 'New provider', 'shipments', 'woocommerce-germanized-shipments' ) : '';
+			$helper        = ShippingProviders::instance();
+
+			$helper->get_shipping_providers();
+
+			if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
+				if ( $provider = $helper->get_shipping_provider( $provider_name ) ) {
+					$title = $provider->get_title();
+				}
+			}
+
+			if ( ! empty( $title ) ) {
+
+				foreach( $breadcrumb as $key => $breadcrumb_item ) {
+					if ( 'section' === $breadcrumb_item['class'] ) {
+						$breadcrumb[ $key ]['href'] = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider' );
+					}
+				}
+
+				$breadcrumb[] = array(
+					'class' => 'provider',
+					'href'  => '',
+					'title' => $title,
+				);
+			}
+		}
+
+		return $breadcrumb;
+	}
+
+	public static function get_section_title_link( $section ) {
+		if ( 'provider' === $section && ! isset( $_GET['provider'] ) ) {
+			return '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=new' ) . '" class="page-title-action">' . _x( 'Add provider', 'shipments', 'woocommerce-germanized' ) . '</a>';
+		}
+
+		return '';
 	}
 
 	public static function get_sections() {
