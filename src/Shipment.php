@@ -695,7 +695,16 @@ abstract class Shipment extends WC_Data {
     public function get_address_street_number( $type = 'address_1' ) {
 	    $split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
 
-	    return $split['number'];
+	    /**
+	     * Filter to adjust the shipment address street number.
+	     *
+	     * @param string   $number The shipment address street number.
+	     * @param Shipment $shipment The shipment object.
+	     *
+	     * @since 3.0.6
+	     * @package Vendidero/Germanized/Shipments
+	     */
+	    return apply_filters( 'woocommerce_gzd_get_shipment_address_street_number', $split['number'], $this );
     }
 
 	/**
@@ -708,13 +717,31 @@ abstract class Shipment extends WC_Data {
 	public function get_address_street( $type = 'address_1' ) {
 		$split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
 
-		return $split['street'];
+		/**
+		 * Filter to adjust the shipment address street.
+		 *
+		 * @param string   $street The shipment address street without street number.
+		 * @param Shipment $shipment The shipment object.
+		 *
+		 * @since 3.0.6
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_get_shipment_address_street', $split['street'], $this );
 	}
 
 	public function get_address_street_addition( $type = 'address_1' ) {
 		$split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
 
-		return $split['addition'];
+		/**
+		 * Filter to adjust the shipment address street addition.
+		 *
+		 * @param string   $addition The shipment address street addition e.g. EG14.
+		 * @param Shipment $shipment The shipment object.
+		 *
+		 * @since 3.0.6
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_get_shipment_address_street_addition', $split['addition'], $this );
 	}
 
 	/**
