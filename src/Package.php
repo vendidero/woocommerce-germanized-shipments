@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\Shipments;
 
+use WC_Shipping;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -14,6 +16,8 @@ class Package {
      * @var string
      */
     const VERSION = '1.0.5';
+
+	protected static $method_settings = null;
 
     /**
      * Init the package - load the REST API Server class.
@@ -36,7 +40,57 @@ class Package {
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
 
 	    add_filter( 'woocommerce_get_query_vars', array( __CLASS__, 'register_endpoints' ), 10, 1 );
+
+	    add_action( 'woocommerce_load_shipping_methods', array( __CLASS__, 'load_shipping_methods' ), 5, 1 );
+	    add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'set_method_filters' ), 200, 1 );
     }
+
+	public static function set_method_filters( $methods ) {
+
+		foreach ( $methods as $method => $class ) {
+			add_filter( 'woocommerce_shipping_instance_form_fields_' . $method, array( __CLASS__, 'add_method_settings' ), 10, 1 );
+			add_filter( 'woocommerce_shipping_' . $method . '_instance_settings_values', array( __CLASS__, 'filter_method_settings' ), 10, 2 );
+		}
+
+		return $methods;
+	}
+
+	protected static function get_method_settings() {
+
+		if ( is_null( self::$method_settings ) ) {
+			self::$method_settings = ShippingProviderMethod::get_admin_settings();
+		}
+
+		return self::$method_settings;
+	}
+
+	public static function filter_method_settings( $p_settings, $method ) {
+		$shipping_provider_settings = self::get_method_settings();
+
+		foreach( $p_settings as $setting => $value ) {
+			if ( array_key_exists( $setting, $shipping_provider_settings ) ) {
+				if ( self::get_setting( $setting ) === $value ) {
+					unset( $p_settings[ $setting ] );
+				}
+			}
+		}
+
+		return $p_settings;
+	}
+
+	public static function add_method_settings( $p_settings ) {
+		$shipping_provider_settings = self::get_method_settings();
+
+		return array_merge( $p_settings, $shipping_provider_settings );
+	}
+
+	public static function load_shipping_methods( $package ) {
+		$shipping = WC_Shipping::instance();
+
+		foreach( $shipping->shipping_methods as $key => $method ) {
+			$shipping_provider_method = new ShippingProviderMethod( $method );
+		}
+	}
 
     public static function register_endpoints( $query_vars ) {
     	$query_vars['view-shipment'] = get_option( 'woocommerce_myaccount_view_shipment_endpoint', 'view-shipment' );

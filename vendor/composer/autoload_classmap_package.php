@@ -98,9 +98,13 @@ return array(
 		'version' => 'dev-service-provider',
 		'path'    => $baseDir . '/src/ShippingProvider.php'
 	),
-	'Vendidero\\Germanized\\Shipments\\ShippingProviderFactory' => array(
+	'Vendidero\\Germanized\\Shipments\\ShippingProviderMethod' => array(
 		'version' => 'dev-service-provider',
-		'path'    => $baseDir . '/src/ShippingProviderFactory.php'
+		'path'    => $baseDir . '/src/ShippingProviderMethod.php'
+	),
+	'Vendidero\\Germanized\\Shipments\\ShippingProviderMethodPlaceholder' => array(
+		'version' => 'dev-service-provider',
+		'path'    => $baseDir . '/src/ShippingProviderMethodPlaceholder.php'
 	),
 	'Vendidero\\Germanized\\Shipments\\ShippingProviders' => array(
 		'version' => 'dev-service-provider',

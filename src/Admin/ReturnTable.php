@@ -62,7 +62,13 @@ class ReturnTable extends Table {
 	 * @param ReturnShipment $shipment The current shipment object.
 	 */
 	public function column_sender( $shipment ) {
-		echo '<address>' . $shipment->get_formatted_sender_address() . '</address>';
+		$address = $shipment->get_formatted_sender_address();
+
+		if ( $address ) {
+			echo '<a target="_blank" href="' . esc_url( $shipment->get_address_map_url( $shipment->get_sender_address() ) ) . '">' . esc_html( preg_replace( '#<br\s*/?>#i', ', ', $address ) ) . '</a>';
+		} else {
+			echo '&ndash;';
+		}
 	}
 
 	/**

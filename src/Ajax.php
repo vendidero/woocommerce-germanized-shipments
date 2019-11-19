@@ -77,13 +77,12 @@ class Ajax {
 	    if ( $shipping_provider = $helper->get_shipping_provider( $provider ) ) {
 	    	if ( 'yes' === $enable ) {
 	    		$response['activated'] = 'yes';
-	    		$shipping_provider->set_activated( true );
+	    		$shipping_provider->activate();
 		    } else {
 			    $response['activated'] = 'no';
-			    $shipping_provider->set_activated( false );
+			    $shipping_provider->deactivate();
 		    }
 
-	    	$shipping_provider->save();
 		    wp_send_json( $response );
 	    } else {
 		    wp_send_json( $response_error );

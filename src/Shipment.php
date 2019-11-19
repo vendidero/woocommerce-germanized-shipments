@@ -541,6 +541,12 @@ abstract class Shipment extends WC_Data {
 	 * @return string
 	 */
 	public function get_tracking_url() {
+		$tracking_url = '';
+
+		if ( $provider = $this->get_shipping_provider_instance() ) {
+			$tracking_url = $provider->get_tracking_url( $this );
+		}
+
 		/**
 		 * Filter to adjust a Shipment's tracking URL.
 		 *
@@ -549,13 +555,13 @@ abstract class Shipment extends WC_Data {
 		 *
 		 * Example hook name: woocommerce_gzd_shipment_get_tracking_url
 		 *
-		 * @param string                                   $tracking_url The tracking URL.
-		 * @param Shipment $this The shipment object.
+		 * @param string   $tracking_url The tracking URL.
+		 * @param Shipment $shipment The shipment object.
 		 *
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( "{$this->get_hook_prefix()}tracking_url", '', $this );
+		return apply_filters( "{$this->get_hook_prefix()}tracking_url", $tracking_url, $this );
 	}
 
 	/**
@@ -566,8 +572,9 @@ abstract class Shipment extends WC_Data {
 	public function get_tracking_instruction() {
 		$instruction = '';
 
-		if ( $this->get_shipping_provider() && $this->get_tracking_id() ) {
-			$instruction = sprintf( _x( 'Your shipment is being processed by %s. If you want to track the shipment, please use the following tracking number: %s. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_provider_title( $this->get_shipping_provider() ), $this->get_tracking_id() );
+		if ( $provider = $this->get_shipping_provider_instance() ) {
+			// $instruction = sprintf( _x( 'Your shipment is being processed by %s. If you want to track the shipment, please use the following tracking number: %s. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_provider_title( $this->get_shipping_provider() ), $this->get_tracking_id() );
+			$instruction = $provider->get_tracking_desc( $this );
 		}
 
 		/**
@@ -608,9 +615,15 @@ abstract class Shipment extends WC_Data {
 	    return $this->get_prop( 'shipping_provider', $context );
     }
 
-	public function needs_shipping_provider_select() {
-		return false;
-	}
+    public function get_shipping_provider_instance() {
+    	$provider = $this->get_shipping_provider();
+
+    	if ( ! empty( $provider ) ) {
+    		return wc_gzd_get_shipping_provider( $provider );
+	    }
+
+    	return false;
+    }
 
 	/**
 	 * Returns the formatted shipping address.
@@ -623,6 +636,49 @@ abstract class Shipment extends WC_Data {
 
         return $address ? $address : $empty_content;
     }
+
+	/**
+	 * Get a formatted shipping address for the order.
+	 *
+	 * @return string
+	 */
+	public function get_address_map_url( $address ) {
+		// Remove name and company before generate the Google Maps URL.
+		unset( $address['first_name'], $address['last_name'], $address['company'], $address['email'], $address['phone'], $address['title'] );
+
+		/**
+		 * Filter to adjust a Shipment's address parts used for constructing the Google maps URL.
+		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type.
+		 *
+		 * Example hook name: woocommerce_gzd_shipment_get_address_map_url_parts
+		 *
+		 * @param string[] $address The address parts used.
+		 * @param Shipment $this The shipment object.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		$address = apply_filters( "{$this->get_hook_prefix()}address_map_url_parts", $address, $this );
+		$address = array_filter( $address );
+
+		/**
+		 * Filter to adjust a Shipment's address Google maps URL.
+		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type.
+		 *
+		 * Example hook name: woocommerce_gzd_shipment_get_address_map_url
+		 *
+		 * @param string   $url The address url.
+		 * @param Shipment $this The shipment object.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( "{$this->get_hook_prefix()}address_map_url", 'https://maps.google.com/maps?&q=' . rawurlencode( implode( ', ', $address ) ) . '&z=16', $this );
+	}
 
 	/**
 	 * Returns the shipment address phone number.
@@ -1400,8 +1456,21 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @return bool|WC_Order|null
 	 */
-	public function get_order() {
-		return false;
+	abstract public function get_order();
+
+	abstract public function get_order_id();
+
+	/**
+	 * Returns the formatted order number.
+	 *
+	 * @return string
+	 */
+	public function get_order_number() {
+		if ( $order = $this->get_order() ) {
+			return $order->get_order_number();
+		}
+
+		return $this->get_order_id();
 	}
 
 	/**

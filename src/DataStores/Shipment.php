@@ -237,7 +237,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	     * @since 3.0.0
 	     * @package Vendidero/Germanized/Shipments
 	     */
-        do_action( "woocommerce_gzd_{$hook_postfix}shipment_updated", $shipment->get_id() );
+        do_action( "woocommerce_gzd_{$hook_postfix}shipment_updated", $shipment->get_id(), $shipment );
     }
 
     /**

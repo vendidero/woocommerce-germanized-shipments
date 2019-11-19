@@ -221,10 +221,31 @@ table.wc-gzd-shipping-providers {
 
     td.column-title {
       font-weight: bold;
+
+      .shipment-title-meta {
+        margin-top: 0;
+        font-weight: normal;
+        color: #999;
+        font-style: italic;
+
+        .shipment-tracking-id {
+          color: #999;
+        }
+      }
     }
 
-    .column-status, .column-date, .column-title {
+    .column-title, .column-actions {
       width: 15ch;
+    }
+
+    .column-order {
+      width: 10ch;
+    }
+
+    .column-address, .column-sender {
+      a {
+        color: #32373c;
+      }
     }
 
     .shipment-status {
@@ -290,7 +311,7 @@ table.wc-gzd-shipping-providers {
     }
 
     .column-items {
-      width: 25ch;
+      width: 20ch;
     }
 
     #the-list {
@@ -432,6 +453,10 @@ table.wc-gzd-shipping-providers {
             content: "\f140";
           }
         }
+      }
+
+      .show-if {
+        display: none;
       }
 
       &.active {

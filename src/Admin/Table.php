@@ -4,6 +4,7 @@ namespace Vendidero\Germanized\Shipments\Admin;
 use Vendidero\Germanized\Shipments\Shipment;
 use WP_List_Table;
 use Vendidero\Germanized\Shipments\ShipmentQuery;
+use WP_Query;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -215,10 +216,10 @@ class Table extends WP_List_Table {
     }
 
     /**
-     * @global array    $avail_post_stati
+     * @global array     $avail_post_stati
      * @global WP_Query $wp_query
-     * @global int      $per_page
-     * @global string   $mode
+     * @global int       $per_page
+     * @global string    $mode
      */
     public function prepare_items() {
         global $per_page;
@@ -734,13 +735,32 @@ class Table extends WP_List_Table {
      * @param Shipment $shipment The current shipment object.
      */
     public function column_title( $shipment ) {
+
         $title = sprintf( _x( '%s #%s', 'shipment title', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label( $shipment->get_type() ), $shipment->get_id() );
 
         if ( $order = $shipment->get_order() ) {
-            echo '<a href="' . $shipment->get_edit_shipment_url() . '">' . $title . '</a>';
+            echo '<a href="' . $shipment->get_edit_shipment_url() . '">' . $title . '</a> ';
         } else {
-            echo $title;
+            echo $title . ' ';
         }
+
+        echo '<p class="shipment-title-meta">';
+
+        $provider = $shipment->get_shipping_provider();
+
+        if ( ! empty( $provider ) ) {
+	        echo '<span class="shipment-shipping-provider">' . sprintf( _x( 'via %s', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_provider_title( $provider ) ) . '</span> ';
+        }
+
+	    if ( $tracking_id = $shipment->get_tracking_id() ) {
+		    if ( $tracking_url = $shipment->get_tracking_url() ) {
+			    echo '<a class="shipment-tracking-id" href="' . esc_url( $tracking_url ) . '">' . $tracking_id . '</a>';
+		    } else {
+			    echo '<span class="shipment-tracking-id">' . $tracking_id . '</span>';
+		    }
+	    }
+
+	    echo '</p>';
     }
 
     protected function get_custom_actions( $shipment, $actions ) {
@@ -879,7 +899,13 @@ class Table extends WP_List_Table {
      * @param Shipment $shipment The current shipment object.
      */
     public function column_address( $shipment ) {
-        echo '<address>' . $shipment->get_formatted_address() . '</address>';
+	    $address = $shipment->get_formatted_address();
+
+	    if ( $address ) {
+		    echo '<a target="_blank" href="' . esc_url( $shipment->get_address_map_url( $shipment->get_address() ) ) . '">' . esc_html( preg_replace( '#<br\s*/?>#i', ', ', $address ) ) . '</a>';
+	    } else {
+		    echo '&ndash;';
+	    }
     }
 
     /**

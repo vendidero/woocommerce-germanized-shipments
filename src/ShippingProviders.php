@@ -79,6 +79,7 @@ class ShippingProviders {
 	 */
 	public function register_shipping_provider( $provider ) {
 		if ( ! is_object( $provider ) ) {
+
 			if ( ! class_exists( $provider ) ) {
 				return false;
 			}
@@ -137,10 +138,10 @@ class ShippingProviders {
 		 *
 		 * @param ShippingProviders $providers The shipping providers instance
 		 *
-		 * @since 1.0.5
+		 * @since 3.1.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		do_action( 'woocommerce_load_shipping_providers', $this );
+		do_action( 'woocommerce_gzd_load_shipping_providers', $this );
 
 		// Return loaded methods.
 		return $this->get_shipping_providers();

@@ -197,6 +197,22 @@ class ShippingProvider extends WC_Data  {
 	}
 
 	/**
+	 * Activate current ShippingProvider instance.
+	 */
+	public function activate() {
+		$this->set_activated( true );
+		$this->save();
+	}
+
+	/**
+	 * Deactivate current ShippingProvider instance.
+	 */
+	public function deactivate() {
+		$this->set_activated( false );
+		$this->save();
+	}
+
+	/**
 	 * Set the name of the current shipping provider.
 	 *
 	 * @param string $name
@@ -233,9 +249,10 @@ class ShippingProvider extends WC_Data  {
 	public function get_tracking_url( $shipment ) {
 
 		$tracking_url = '';
+		$tracking_id  = $shipment->get_tracking_id();
 
-		if ( '' !== $this->get_tracking_url_placeholder() ) {
-			$tracking_url = str_replace( '{shipment_number}', $shipment->get_shipment_number(), $this->get_tracking_url_placeholder() );
+		if ( '' !== $this->get_tracking_url_placeholder() && ! empty( $tracking_id ) ) {
+			$tracking_url = str_replace( array_keys( $this->get_tracking_placeholders() ), array_values( $this->get_tracking_placeholders() ), $this->get_tracking_url_placeholder() );
 		}
 
 		/**
@@ -266,9 +283,10 @@ class ShippingProvider extends WC_Data  {
 	public function get_tracking_desc( $shipment ) {
 
 		$tracking_desc = '';
+		$tracking_id   = $shipment->get_tracking_id();
 
-		if ( '' !== $this->get_tracking_desc_placeholder() ) {
-			$tracking_desc = str_replace( '{shipment_number}', $shipment->get_shipment_number(), $this->get_tracking_desc_placeholder() );
+		if ( '' !== $this->get_tracking_desc_placeholder() && ! empty( $tracking_id ) ) {
+			$tracking_desc = str_replace( array_keys( $this->get_tracking_placeholders() ), array_values( $this->get_tracking_placeholders() ), $this->get_tracking_desc_placeholder() );
 		}
 
 		/**
@@ -298,6 +316,36 @@ class ShippingProvider extends WC_Data  {
 	}
 
 	/**
+	 * @param bool|Shipment $shipment
+	 *
+	 * @return array
+	 */
+	public function get_tracking_placeholders( $shipment = false ) {
+		/**
+		 * This filter may be used to add or manipulate tracking placeholder data
+		 * for a certain shipping provider.
+		 *
+		 * The dynamic portion of the hook `$this->get_hook_prefix()` refers to the
+		 * current provider name.
+		 *
+		 * Example hook name: woocommerce_gzd_shipping_provider_dhl_get_tracking_placeholders
+		 *
+		 * @param array            $placeholders Placeholders in key => value pairs.
+		 * @param ShippingProvider $provider The shipping provider.
+		 * @param Shipment|bool    $shipment The shipment instance if available.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( "{$this->get_hook_prefix()}tracking_placeholders", array(
+			'{shipment_number}'   => $shipment ? $shipment->get_shipment_number() : '',
+			'{order_number}'      => $shipment ? $shipment->get_order_number() : '',
+			'{tracking_id}'       => $shipment ? $shipment->get_tracking_id() : '',
+			'{shipping_provider}' => $this->get_title()
+		), $this, $shipment );
+	}
+
+	/**
 	 * Prefix for action and filter hooks on data.
 	 *
 	 * @since  3.0.0
@@ -321,6 +369,38 @@ class ShippingProvider extends WC_Data  {
 				'value'             => $this->get_title(),
 				'default'	        => '',
 				'type' 		        => 'text',
+			),
+
+			array(
+				'title' 	        => _x( 'Description', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc_tip' 		    => _x( 'Choose a description for the shipping provider.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'id' 		        => 'shipping_provider_description',
+				'value'             => $this->get_description(),
+				'default'	        => '',
+				'type' 		        => 'textarea',
+				'css'               => 'width: 100%;',
+			),
+
+			array(
+				'title' 	        => _x( 'Tracking URL', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Adjust the placeholder used to construct the tracking URL for this shipping provider. You may use on of the following placeholders to insert the tracking id or other dynamic data: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>' . implode( ', ', array_keys( $this->get_tracking_placeholders() ) ) . '</code>' ) . '</div>',
+				'id' 		        => 'shipping_provider_tracking_url_placeholder',
+				'placeholder'       => 'https://www.dhl.de/privatkunden/pakete-empfangen/verfolgen.html?idc={tracking_id}',
+				'value'             => $this->get_tracking_url_placeholder(),
+				'default'	        => '',
+				'type' 		        => 'text',
+				'css'               => 'width: 100%;',
+			),
+
+			array(
+				'title' 	        => _x( 'Tracking description', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Adjust the placeholder used to construct the tracking description for this shipping provider (e.g. used within notification emails). You may use on of the following placeholders to insert the tracking id or other dynamic data: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>' . implode( ', ', array_keys( $this->get_tracking_placeholders() ) ) . '</code>' ) . '</div>',
+				'id' 		        => 'shipping_provider_tracking_url_placeholder',
+				'placeholder'       => '',
+				'value'             => $this->get_tracking_desc_placeholder(),
+				'default'	        => _x( 'Your shipment is being processed by {shipping_provider}. If you want to track the shipment, please use the following tracking number: {tracking_id}. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type' 		        => 'textarea',
+				'css'               => 'width: 100%; min-height: 60px; margin-top: 1em;',
 			),
 
 			array( 'type' => 'sectionend', 'id' => 'shipping_provider_options' ),
