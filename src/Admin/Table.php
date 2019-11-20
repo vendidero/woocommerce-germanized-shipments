@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments\Admin;
 use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Germanized\Shipments\Package;
 use WP_List_Table;
 use Vendidero\Germanized\Shipments\ShipmentQuery;
 use WP_Query;
@@ -808,6 +809,29 @@ class Table extends WP_List_Table {
 				'name'   => _x( 'Shipped', 'shipments', 'woocommerce-germanized-shipments' ),
 				'action' => 'shipped',
 			);
+		}
+
+		if ( $shipment->supports_label() ) {
+
+		    if ( $shipment->has_label() ) {
+
+			    $actions['download_label'] = array(
+				    'url'    => $shipment->get_label_download_url(),
+				    'name'   => _x( 'Download label', 'shipments', 'woocommerce-germanized-shipments' ),
+				    'action' => 'download-label download',
+				    'target' => '_blank'
+			    );
+
+            } elseif( $shipment->needs_label() ) {
+
+			    $actions['generate_label'] = array(
+				    'url'    => '#',
+				    'name'   => _x( 'Generate label', 'shipments', 'woocommerce-germanized-shipments' ),
+				    'action' => 'generate-label generate',
+			    );
+
+                include Package::get_path() . '/includes/admin/views/label/html-shipment-label-backbone.php';
+            }
 		}
 
 		$actions = $this->get_custom_actions( $shipment, $actions );

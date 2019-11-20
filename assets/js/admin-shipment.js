@@ -49,6 +49,7 @@ window.germanized.admin = window.germanized.admin || {};
             $( '#shipment-' + this.vars.id + ' #shipment-items-' + this.vars.id ).off();
             $( '#shipment-' + this.vars.id + ' #shipment-footer-' + this.vars.id ).off();
             $( '#shipment-' + this.vars.id + ' #shipment-shipping-provider-' + this.vars.id ).off();
+            $( '#shipment-' + this.vars.id + ' .wc-gzd-shipment-label' ).off();
 
             $( '#shipment-' + this.vars.id + ' #shipment-shipping-provider-' + this.vars.id ).on( 'change', this.onChangeProvider.bind( this ) );
             $( '#shipment-' + this.vars.id + ' #shipment-shipping-provider-' + this.vars.id ).trigger( 'change' );
@@ -61,6 +62,41 @@ window.germanized.admin = window.germanized.admin || {};
 
             $( '#shipment-' + this.vars.id + ' #shipment-footer-' + this.vars.id )
                 .on( 'click', 'a.add-shipment-return', this.onAddReturn.bind( this ) );
+
+            $( '#shipment-' + this.vars.id + ' .wc-gzd-shipment-label' )
+                .on( 'click', '.create-shipment-label:not(.disabled)', this.onCreateLabel.bind( this ) )
+                .on( 'click', '.remove-shipment-label', this.onRemoveLabel.bind( this ) );
+        };
+
+        this.onRemoveLabel = function() {
+            var answer = window.confirm( germanized.admin.shipments.getParams().i18n_remove_label_notice );
+
+            if ( answer ) {
+                this.removeLabel();
+            }
+
+            return false;
+        };
+
+        this.removeLabel = function() {
+            var params = {
+                'action'       : 'woocommerce_gzd_remove_shipment_label',
+                'shipment_id'  : this.getId(),
+                'security'     : germanized.admin.shipments.getParams().remove_label_nonce
+            };
+
+            this.block();
+            germanized.admin.shipments.doAjax( params, this.unblock.bind( this ), this.unblock.bind( this ) );
+        };
+
+        this.onCreateLabel = function() {
+            var $shipment = this.getShipment();
+
+            $shipment.WCBackboneModal({
+                template: 'wc-gzd-modal-create-shipment-label-' + this.getId()
+            });
+
+            return false;
         };
 
         this.onChangeProvider = function( e ) {

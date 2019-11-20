@@ -66,6 +66,10 @@ return array(
 		'version' => 'dev-service-provider',
 		'path'    => $baseDir . '/src/Install.php'
 	),
+	'Vendidero\\Germanized\\Shipments\\Interfaces\\ShipmentLabel' => array(
+		'version' => 'dev-service-provider',
+		'path'    => $baseDir . '/src/Interfaces/ShipmentLabel.php'
+	),
 	'Vendidero\\Germanized\\Shipments\\Order' => array(
 		'version' => 'dev-service-provider',
 		'path'    => $baseDir . '/src/Order.php'

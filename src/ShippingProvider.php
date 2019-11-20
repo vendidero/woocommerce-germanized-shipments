@@ -94,6 +94,17 @@ class ShippingProvider extends WC_Data  {
 		return true;
 	}
 
+	/**
+	 * Whether or not this instance supports a certain label type.
+	 *
+	 * @param string $label_type The label type e.g. simple or return.
+	 *
+	 * @return bool
+	 */
+	public function supports_labels( $label_type ) {
+		return false;
+	}
+
 	public function get_edit_link() {
 		return $this->get_id() > 0 ? admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=' . esc_attr( $this->get_name() ) ) : '';
 	}
@@ -252,7 +263,8 @@ class ShippingProvider extends WC_Data  {
 		$tracking_id  = $shipment->get_tracking_id();
 
 		if ( '' !== $this->get_tracking_url_placeholder() && ! empty( $tracking_id ) ) {
-			$tracking_url = str_replace( array_keys( $this->get_tracking_placeholders() ), array_values( $this->get_tracking_placeholders() ), $this->get_tracking_url_placeholder() );
+			$placeholders = $this->get_tracking_placeholders( $shipment );
+			$tracking_url = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $this->get_tracking_url_placeholder() );
 		}
 
 		/**
@@ -286,7 +298,8 @@ class ShippingProvider extends WC_Data  {
 		$tracking_id   = $shipment->get_tracking_id();
 
 		if ( '' !== $this->get_tracking_desc_placeholder() && ! empty( $tracking_id ) ) {
-			$tracking_desc = str_replace( array_keys( $this->get_tracking_placeholders() ), array_values( $this->get_tracking_placeholders() ), $this->get_tracking_desc_placeholder() );
+			$placeholders  = $this->get_tracking_placeholders( $shipment );
+			$tracking_desc = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $this->get_tracking_desc_placeholder() );
 		}
 
 		/**

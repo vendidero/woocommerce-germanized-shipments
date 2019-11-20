@@ -42,6 +42,15 @@ defined( 'ABSPATH' ) || exit;
 
             <div class="columns">
 	            <?php
+
+                if ( $shipment->supports_label() ) :
+                    $label = $shipment->get_label();
+
+                    include 'label/html-shipment-label.php';
+                endif;
+                ?>
+
+	            <?php
 	            /**
 	             * Action that fires after the right column of a Shipment's meta box admin view.
 	             *
