@@ -26,7 +26,7 @@ class ShippingProviderMethodPlaceholder extends ShippingProviderMethod {
 
 		if ( ! is_numeric( $id ) ) {
 			$expl        = explode( ':', $id );
-			$instance_id = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? (int) $expl[1] : $id );
+			$instance_id = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? $expl[1] : $id );
 			$id          = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? $expl[0] : $id );
 		} else {
 			$instance_id = $id;
