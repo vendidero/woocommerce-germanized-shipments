@@ -315,6 +315,19 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
+	 * Returns the sender address street addition by splitting the address.
+	 *
+	 * @param  string $type The address type e.g. address_1 or address_2.
+	 *
+	 * @return string
+	 */
+	public function get_sender_address_street_addition( $type = 'address_1' ) {
+		$split = wc_gzd_split_shipment_street( $this->{"get_sender_$type"}() );
+
+		return $split['addition'];
+	}
+
+	/**
 	 * Returns the sender address company.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.

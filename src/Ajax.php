@@ -46,13 +46,64 @@ class Ajax {
 	        'edit_shipping_provider_status',
 	        'create_shipment_label_form',
 	        'create_shipment_label',
-	        'remove_shipment_label'
+	        'remove_shipment_label',
+	        'send_shipment_return_label_email'
         );
 
         foreach ( $ajax_events as $ajax_event ) {
             add_action( 'wp_ajax_woocommerce_gzd_' . $ajax_event, array( __CLASS__, $ajax_event ) );
         }
     }
+
+	public static function send_shipment_return_label_email() {
+		$success = false;
+
+		if ( current_user_can( 'edit_shop_orders' ) && isset( $_REQUEST['shipment_id'] ) ) {
+
+			if ( isset( $_GET['shipment_id'] ) ) {
+				$referrer = check_admin_referer( 'send-shipment-return-label' );
+			} else {
+				$referrer = check_ajax_referer( 'send-shipment-return-label', 'security' );
+			}
+
+			if ( $referrer ) {
+				$shipment_id = absint( wp_unslash( $_REQUEST['shipment_id'] ) );
+
+				if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
+					if ( 'return' === $shipment->get_type() && $shipment->has_label() ) {
+						$label = $shipment->get_label();
+
+						if ( 'return' === $label->get_type() ) {
+							if ( $label->send_to_customer( true ) ) {
+								$success = true;
+							}
+						}
+					}
+				}
+			}
+
+			if ( isset( $_GET['shipment_id'] ) ) {
+				wp_safe_redirect( wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=wc-gzd-return-shipments' ) );
+				exit;
+			} else {
+				if ( $success ) {
+					wp_send_json( array(
+						'success'  => true,
+						'messages' => array(
+							_x( 'Label successfully sent to customer.', 'shipments', 'woocommerce-germanized-shipments' )
+						),
+					) );
+				} else {
+					wp_send_json( array(
+						'success'  => false,
+						'messages' => array(
+							_x( 'There was an error while sending the label.', 'shipments', 'woocommerce-germanized-shipments' )
+						),
+					) );
+				}
+			}
+		}
+	}
 
     public static function create_shipment_label_form() {
 	    check_ajax_referer( 'create-shipment-label-form', 'security' );

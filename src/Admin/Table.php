@@ -538,27 +538,29 @@ class Table extends WP_List_Table {
                     <div class="updated">
                         <p><?php echo $handler->get_success_message(); ?></p>
                     </div>
+
+                    <?php
+                    $handler->admin_handled();
+                    /**
+                     * Action that fires after a certain bulk action result has been rendered.
+                     *
+                     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+                     * unique hook for a shipment type e.g. return. In case of simple shipments the type is omitted.
+                     * `$bulk_action` refers to the bulk action handled.
+                     *
+                     * Example hook name: woocommerce_gzd_return_shipments_table_mark_processing_handled
+                     *
+                     * @param BulkActionHandler $bulk_action_handler The bulk action handler.
+                     * @param string            $bulk_action The bulk action.
+                     *
+                     * @since 3.0.0
+                     * @package Vendidero/Germanized/Shipments
+                     */
+                    do_action( "{$this->get_hook_prefix()}bulk_action_{$bulk_action}_handled", $handler, $bulk_action );
+                    ?>
                 <?php endif; ?>
 
-                <?php
-			    /**
-			     * Action that fires after a certain bulk action result has been rendered.
-			     *
-			     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
-			     * unique hook for a shipment type e.g. return. In case of simple shipments the type is omitted.
-                 * `$bulk_action` refers to the bulk action handled.
-			     *
-			     * Example hook name: woocommerce_gzd_return_shipments_table_mark_processing_handled
-			     *
-			     * @param BulkActionHandler $bulk_action_handler The bulk action handler.
-			     * @param string            $bulk_action The bulk action.
-			     *
-			     * @since 3.0.0
-                 * @package Vendidero/Germanized/Shipments
-			     */
-                do_action( "{$this->get_hook_prefix()}bulk_action_{$bulk_action}_handled", $handler, $bulk_action );
-                $handler->reset();
-                ?>
+                <?php $handler->reset(); ?>
             <?php endif; ?>
             <?php
         }
@@ -1059,6 +1061,7 @@ class Table extends WP_List_Table {
         $actions['mark_processing'] = _x( 'Change status to processing', 'shipments', 'woocommerce-germanized-shipments' );
         $actions['mark_shipped']    = _x( 'Change status to shipped', 'shipments', 'woocommerce-germanized-shipments' );
         $actions['mark_delivered']  = _x( 'Change status to delivered', 'shipments', 'woocommerce-germanized-shipments' );
+	    $actions['labels']          = _x( 'Generate and download labels', 'shipments', 'woocommerce-germanized-shipments' );
 
         $actions = $this->get_custom_bulk_actions( $actions );
 

@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\Shipments\Interfaces;
 
+use Vendidero\Germanized\Shipments\PDFMerger;
+
 /**
  * Shipment Label Interface
  *
@@ -32,6 +34,13 @@ interface ShipmentLabel {
 	 * @return mixed
 	 */
 	public function download( $args = array() );
+
+	/**
+	 * Merges the label into an existing document for export purposes.
+	 *
+	 * @param PDFMerger $merger The merger instance as reference.
+	 */
+	public function merge( PDFMerger &$pdf );
 
 	/**
 	 * Returns the label number which is used as a tracking id for the corresponding shipment.

@@ -251,6 +251,24 @@ class ShippingProvider extends WC_Data  {
 	}
 
 	/**
+	 * Set the tracking url placeholder of the current shipping provider.
+	 *
+	 * @param string $placeholder
+	 */
+	public function set_tracking_url_placeholder( $placeholder ) {
+		$this->set_prop( 'tracking_url_placeholder', $placeholder );
+	}
+
+	/**
+	 * Set the tracking description placeholder of the current shipping provider.
+	 *
+	 * @param string $placeholder
+	 */
+	public function set_tracking_desc_placeholder( $placeholder ) {
+		$this->set_prop( 'tracking_desc_placeholder', $placeholder );
+	}
+
+	/**
 	 * Returns the tracking url for a specific shipment.
 	 *
 	 * @param Shipment $shipment
@@ -408,7 +426,7 @@ class ShippingProvider extends WC_Data  {
 			array(
 				'title' 	        => _x( 'Tracking description', 'shipments', 'woocommerce-germanized-shipments' ),
 				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Adjust the placeholder used to construct the tracking description for this shipping provider (e.g. used within notification emails). You may use on of the following placeholders to insert the tracking id or other dynamic data: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>' . implode( ', ', array_keys( $this->get_tracking_placeholders() ) ) . '</code>' ) . '</div>',
-				'id' 		        => 'shipping_provider_tracking_url_placeholder',
+				'id' 		        => 'shipping_provider_tracking_desc_placeholder',
 				'placeholder'       => '',
 				'value'             => $this->get_tracking_desc_placeholder(),
 				'default'	        => _x( 'Your shipment is being processed by {shipping_provider}. If you want to track the shipment, please use the following tracking number: {tracking_id}. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'shipments', 'woocommerce-germanized-shipments' ),

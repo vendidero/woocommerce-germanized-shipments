@@ -56,6 +56,16 @@ class Admin {
                     }
                 }
 			}
+		} elseif( isset( $_GET['action'] ) && 'wc-gzd-download-export-shipment-label' === $_GET['action'] ) {
+			if ( wp_verify_nonce( $_REQUEST['_wpnonce'], 'download-export-shipment-label' ) ) {
+
+				$args = wp_parse_args( $_GET, array(
+					'force'  => 'no',
+					'print'  => 'no',
+				) );
+
+				DownloadHandler::download_export( $args );
+			}
 		}
 	}
 
@@ -340,7 +350,7 @@ class Admin {
                     'i18n_remove_shipment_notice'     => _x( 'Do you really want to delete the shipment?', 'shipments', 'woocommerce-germanized-shipments' ),
                     'remove_label_nonce'              => wp_create_nonce( 'remove-shipment-label' ),
                     'edit_label_nonce'                => wp_create_nonce( 'edit-shipment-label' ),
-                    'send_label_nonce'                => wp_create_nonce( 'email-shipment-label' ),
+                    'send_label_nonce'                => wp_create_nonce( 'send-shipment-return-label' ),
                     'i18n_remove_label_notice'        => _x( 'Do you really want to delete the label?', 'shipments', 'woocommerce-germanized-shipments' ),
                     'i18n_create_label_enabled'       => _x( 'Create new label', 'shipments', 'woocommerce-germanized-shipments' ),
                     'i18n_create_label_disabled'      => _x( 'Please save the shipment before creating a new label', 'shipments', 'woocommerce-germanized-shipments' ),
@@ -420,7 +430,9 @@ class Admin {
 	         * @since 3.0.0
              * @package Vendidero/Germanized/Shipments
 	         */
-	        $handlers = apply_filters( 'woocommerce_gzd_shipments_table_bulk_action_handlers', array() );
+	        $handlers = apply_filters( 'woocommerce_gzd_shipments_table_bulk_action_handlers', array(
+		        'labels' => '\Vendidero\Germanized\Shipments\Admin\BulkLabel'
+            ) );
 
 	        foreach( $handlers as $key => $handler ) {
 		        self::$bulk_handlers[ $key ] = new $handler();

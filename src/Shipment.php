@@ -7,6 +7,7 @@
  */
 namespace Vendidero\Germanized\Shipments;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
+use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
@@ -1578,7 +1579,7 @@ abstract class Shipment extends WC_Data {
 	/**
 	 * Returns a label
 	 *
-	 * @return boolean|ShipmentLabel
+	 * @return boolean|ShipmentLabel|ShipmentReturnLabel
 	 */
 	public function get_label() {
 
@@ -1636,7 +1637,7 @@ abstract class Shipment extends WC_Data {
 		do_action( "{$hook_prefix}print_{$provider}label_admin_fields", $this );
 	}
 
-	public function create_label( $props, $raw_data ) {
+	public function create_label( $props = array(), $raw_data = array() ) {
 		$provider    = $this->get_shipping_provider();
 		// Cut away _get from prefix
 		$hook_prefix = substr( $this->get_hook_prefix(), 0, -4 );
@@ -1656,8 +1657,8 @@ abstract class Shipment extends WC_Data {
 		 *
 		 * Example hook name: `woocommerce_gzd_return_shipment_create_dhl_label`
 		 *
-		 * @param array     $props Array containing props extracted from post data and sanitized via `wc_clean`.
-		 * @param WP_Error $error An WP_Error instance useful for returning errors while creating the label.
+		 * @param array     $props Array containing props extracted from post data (if created manually) and sanitized via `wc_clean`.
+		 * @param WP_Error  $error An WP_Error instance useful for returning errors while creating the label.
 		 * @param Shipment  $shipment The current shipment instance.
 		 * @param array     $raw_data Raw post data unsanitized.
 		 *
@@ -1745,6 +1746,13 @@ abstract class Shipment extends WC_Data {
 		$label = $this->get_label();
 
 		if ( $label && is_a( $label, '\Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel' ) ) {
+
+			if ( 'return' === $label->get_type() ) {
+				if ( ! is_a( $label, '\Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel' ) ) {
+					return false;
+				}
+			}
+
 			return true;
 		} else {
 			return false;

@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\Admin;
+use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ReturnShipment;
 use WP_List_Table;
@@ -29,6 +30,12 @@ class ReturnTable extends Table {
 		return $columns;
 	}
 
+	/**
+	 * @param ReturnShipment $shipment
+	 * @param $actions
+	 *
+	 * @return mixed
+	 */
 	protected function get_custom_actions( $shipment, $actions ) {
 
 		if ( isset( $actions['shipped'] ) ) {
@@ -41,6 +48,17 @@ class ReturnTable extends Table {
 				'name'   => _x( 'Delivered', 'shipments', 'woocommerce-germanized-shipments' ),
 				'action' => 'delivered',
 			);
+		}
+
+		if ( $shipment->supports_label() ) {
+
+			if ( $shipment->has_label() ) {
+				$actions['email_label'] = array(
+					'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_send_shipment_return_label_email&shipment_id=' . $shipment->get_id() ), 'send-shipment-return-label' ),
+					'name'   => _x( 'Send label to customer', 'shipments', 'woocommerce-germanized-shipments' ),
+					'action' => 'send-label email',
+				);
+			}
 		}
 
 		return $actions;

@@ -442,6 +442,9 @@ function wc_gzd_get_shipping_provider_select() {
 	);
 
 	foreach( $providers as $provider ) {
+		if ( ! $provider->is_activated() ) {
+			continue;
+		}
 		$select[ $provider->get_name() ] = $provider->get_title();
 	}
 
@@ -481,6 +484,38 @@ function wc_gzd_get_shipping_provider_slug( $provider ) {
 	}
 
 	return $slug;
+}
+
+function _wc_gzd_shipments_keep_force_filename( $new_filename ) {
+	return isset( $GLOBALS['gzd_shipments_unique_filename'] ) ? $GLOBALS['gzd_shipments_unique_filename'] : $new_filename;
+}
+
+function wc_gzd_shipments_upload_data( $filename, $bits, $relative = true ) {
+	try {
+		Package::set_upload_dir_filter();
+		$GLOBALS['gzd_shipments_unique_filename'] = $filename;
+		add_filter( 'wp_unique_filename', '_wc_gzd_shipments_keep_force_filename', 10, 1 );
+
+		$tmp = wp_upload_bits( $filename,null, $bits );
+
+		unset( $GLOBALS['gzd_shipments_unique_filename'] );
+		remove_filter( 'wp_unique_filename', '_wc_gzd_shipments_keep_force_filename', 10 );
+		Package::unset_upload_dir_filter();
+
+		if ( isset( $tmp['file'] ) ) {
+			$path = $tmp['file'];
+
+			if ( $relative ) {
+				$path = Package::get_relative_upload_dir( $path );
+			}
+
+			return $path;
+		} else {
+			throw new Exception( _x( 'Error while uploading file.', 'shipments', 'woocommerce-germanized-shipments' ) );
+		}
+	} catch ( Exception $e ) {
+		return false;
+	}
 }
 
 /**

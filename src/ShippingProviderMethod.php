@@ -23,7 +23,7 @@ class ShippingProviderMethod {
 	 *
 	 * @var WC_Shipping_Method
 	 */
-	protected $method;
+	protected $method = false;
 
 	protected $instance_form_fields = array();
 
@@ -88,11 +88,26 @@ class ShippingProviderMethod {
 		return $this->method->id;
 	}
 
-	public function has_option( $key ) {
-		$fields = $this->instance_form_fields;
-		$key    = $this->maybe_prefix_key( $key );
+	public function get_instance_id() {
+		return $this->method->get_instance_id();
+	}
 
-		return array_key_exists( $key, $fields ) ? true : false;
+	public function has_option( $key ) {
+		$fields     = $this->instance_form_fields;
+		$key        = $this->maybe_prefix_key( $key );
+		$has_option = array_key_exists( $key, $fields ) ? true : false;
+
+		/**
+		 * Filter that allows checking whether a shipping provider method has a specific option or not.
+		 *
+		 * @param boolean                $has_option Whether or not the option exists.
+		 * @param string                 $key The setting key.
+		 * @param ShippingProviderMethod $method The method instance.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_shipping_provider_method_setting_prefix', $has_option, $key, $this );
 	}
 
 	public function is_enabled( $provider ) {
@@ -100,7 +115,44 @@ class ShippingProviderMethod {
 	}
 
 	public function get_provider() {
-		return $this->method->get_option( 'shipping_provider' );
+		$provider_slug = $this->method ? $this->method->get_option( 'shipping_provider' ) : '';
+		$id            = sanitize_key( $this->get_id() );
+
+		if ( ! empty( $provider_slug ) ) {
+			if ( $provider = wc_gzd_get_shipping_provider( $provider_slug ) ) {
+
+				if ( ! $provider->is_activated() ) {
+					$provider_slug = '';
+				}
+			}
+		}
+
+		/**
+		 * Filter that allows adjusting the shipping provider chosen for a specific shipping method.
+		 *
+		 * @param string                 $provider_slug The shipping provider.
+		 * @param string                 $method_id The shipping method id.
+		 * @param ShippingProviderMethod $method The method instance.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		$provider_slug = apply_filters( 'woocommerce_gzd_shipping_provider_method_provider', $provider_slug, $this->get_id(), $this );
+
+		/**
+		 * Filter that allows choosing a shipping provider for a specific shipping method.
+		 *
+		 * The dynamic portion of this hook, `$id` refers to the shipping method id.
+		 *
+		 * Example hook name: `woocommerce_gzd_shipping_provider_method_flat_rate_provider`
+		 *
+		 * @param string                 $provider_slug The shipping provider name to be used.
+		 * @param ShippingProviderMethod $method The method instance.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( "woocommerce_gzd_shipping_provider_method_{$id}_provider", $provider_slug, $this );
 	}
 
 	public function get_provider_instance() {

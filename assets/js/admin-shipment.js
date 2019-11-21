@@ -45,6 +45,7 @@ window.germanized.admin = window.germanized.admin || {};
             this.setNeedsItems( this.vars.$shipment.hasClass( 'needs-items' ) );
             this.setIsEditable( this.vars.$shipment.hasClass( 'is-editable' ) );
             this.setIsReturnable( this.vars.$shipment.hasClass( 'is-returnable' ) );
+            this.onChangeProvider();
 
             $( '#shipment-' + this.vars.id + ' #shipment-items-' + this.vars.id ).off();
             $( '#shipment-' + this.vars.id + ' #shipment-footer-' + this.vars.id ).off();
@@ -52,7 +53,6 @@ window.germanized.admin = window.germanized.admin || {};
             $( '#shipment-' + this.vars.id + ' .wc-gzd-shipment-label' ).off();
 
             $( '#shipment-' + this.vars.id + ' #shipment-shipping-provider-' + this.vars.id ).on( 'change', this.onChangeProvider.bind( this ) );
-            $( '#shipment-' + this.vars.id + ' #shipment-shipping-provider-' + this.vars.id ).trigger( 'change' );
 
             $( '#shipment-' + this.vars.id + ' #shipment-items-' + this.vars.id )
                 .on( 'change', '.item-quantity', this.onChangeQuantity.bind( this ) )
@@ -65,7 +65,21 @@ window.germanized.admin = window.germanized.admin || {};
 
             $( '#shipment-' + this.vars.id + ' .wc-gzd-shipment-label' )
                 .on( 'click', '.create-shipment-label:not(.disabled)', this.onCreateLabel.bind( this ) )
+                .on( 'click', '.send-shipment-label', this.onSendLabel.bind( this ) )
                 .on( 'click', '.remove-shipment-label', this.onRemoveLabel.bind( this ) );
+        };
+
+        this.onSendLabel = function() {
+            var params = {
+                'action'       : 'woocommerce_gzd_send_shipment_return_label_email',
+                'shipment_id'  : this.getId(),
+                'security'     : germanized.admin.shipments.getParams().send_label_nonce
+            };
+
+            this.block();
+            germanized.admin.shipments.doAjax( params, this.unblock.bind( this ), this.unblock.bind( this ) );
+
+            return false;
         };
 
         this.onRemoveLabel = function() {
@@ -99,9 +113,9 @@ window.germanized.admin = window.germanized.admin || {};
             return false;
         };
 
-        this.onChangeProvider = function( e ) {
-            var $select   = $( e.target ),
-                $shipment = this.getShipment(),
+        this.onChangeProvider = function() {
+            var $shipment = this.getShipment(),
+                $select   = $shipment.find( '#shipment-shipping-provider-' + this.getId() ),
                 $selected = $select.find( 'option:selected' );
 
             $shipment.find( '.show-if-provider' ).hide();
