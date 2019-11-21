@@ -36,6 +36,8 @@ Thumbs.db
 /vendor/*
 /vendor/composer/*
 
+composer.lock
+
 # Packages
 /packages/*
 !/packages/README.md
