@@ -803,21 +803,6 @@ abstract class Shipment extends WC_Data {
 		return apply_filters( 'woocommerce_gzd_get_shipment_address_street_addition', $split['addition'], $this );
 	}
 
-	public function get_address_street_addition( $type = 'address_1' ) {
-		$split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
-
-		/**
-		 * Filter to adjust the shipment address street addition.
-		 *
-		 * @param string   $addition The shipment address street addition e.g. EG14.
-		 * @param Shipment $shipment The shipment object.
-		 *
-		 * @since 3.0.6
-		 * @package Vendidero/Germanized/Shipments
-		 */
-		return apply_filters( 'woocommerce_gzd_get_shipment_address_street_addition', $split['addition'], $this );
-	}
-
 	/**
 	 * Returns the shipment address company.
 	 *
