@@ -435,10 +435,25 @@ function wc_gzd_get_shipping_provider( $name ) {
 	return ShippingProviders::instance()->get_shipping_provider( $name );
 }
 
+function wc_gzd_get_default_shipping_provider() {
+	$default = Package::get_setting( 'default_shipping_provider' );
+
+	/**
+	 * Filter to adjust the default shipping provider used as a fallback for shipments
+	 * for which no provider could be determined automatically (e.g. by the chosen shipping methid).
+	 *
+	 * @param string  $title The shipping provider slug.
+	 *
+	 * @since 3.1.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
+	return apply_filters( 'woocommerce_gzd_default_shipping_provider', $default );
+}
+
 function wc_gzd_get_shipping_provider_select() {
 	$providers = wc_gzd_get_shipping_providers();
 	$select    = array(
-		''     => _x( 'None', 'shipments', 'woocommerce-germanized-shipments' ),
+		'' => _x( 'None', 'shipments', 'woocommerce-germanized-shipments' ),
 	);
 
 	foreach( $providers as $provider ) {

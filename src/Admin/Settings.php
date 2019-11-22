@@ -91,6 +91,16 @@ class Settings {
 				'type' 		        => 'gzd_toggle',
 			),
 
+			array(
+				'title' 	        => _x( 'Default provider', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc_tip' 		    => _x( 'Select a default shipping provider which will be selected by default in case no provider could be determined automatically.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'id' 		        => 'woocommerce_gzd_shipments_default_shipping_provider',
+				'default'	        => '',
+				'type'              => 'select',
+				'options'           => wc_gzd_get_shipping_provider_select(),
+				'class'             => 'wc-enhanced-select',
+			),
+
 			array( 'type' => 'sectionend', 'id' => 'shipments_options' ),
 
 			array( 'title' => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_auto_options' ),
@@ -135,6 +145,14 @@ class Settings {
 				'desc' 		        => _x( 'Mark order as completed after order is fully shipped.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . _x( 'This option will automatically update the order status to completed as soon as all required shipments have been marked as shipped.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
 				'id' 		        => 'woocommerce_gzd_shipments_auto_order_shipped_completed_enable',
 				'default'	        => 'yes',
+				'type' 		        => 'gzd_toggle',
+			),
+
+			array(
+				'title' 	        => _x( 'Mark as shipped', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc' 		        => _x( 'Mark shipments as shipped after order completion.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . _x( 'This option will automatically update contained shipments to shipped (if possible, e.g. not yet delivered) as soon as the order was marked as completed.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
+				'id' 		        => 'woocommerce_gzd_shipments_auto_order_completed_shipped_enable',
+				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 			),
 

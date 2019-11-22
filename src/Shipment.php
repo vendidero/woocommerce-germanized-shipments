@@ -1794,6 +1794,14 @@ abstract class Shipment extends WC_Data {
 		return apply_filters( "{$this->get_hook_prefix()}{$provider}label_download_url", $download_url, $this );
 	}
 
+	public function add_note( $note, $added_by_user = false ) {
+		if ( $order = $this->get_order() ) {
+			if ( is_callable( array( $order, 'add_order_note' ) ) ) {
+				$order->add_order_note( $note, 0, $added_by_user );
+			}
+		}
+	}
+
 	/**
 	 * Returns whether the Shipment contains an item with a certain parent id.
 	 *

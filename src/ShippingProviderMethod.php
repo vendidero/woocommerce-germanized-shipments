@@ -127,6 +127,10 @@ class ShippingProviderMethod {
 			}
 		}
 
+		if ( empty( $provider_slug ) ) {
+			$provider_slug = wc_gzd_get_default_shipping_provider();
+		}
+
 		/**
 		 * Filter that allows adjusting the shipping provider chosen for a specific shipping method.
 		 *

@@ -24,7 +24,7 @@ class Admin {
 	    add_action( 'admin_init', array( __CLASS__, 'download_label' ) );
 
         add_action( 'add_meta_boxes', array( __CLASS__, 'add_meta_boxes' ), 35 );
-        add_action( 'woocommerce_process_shop_order_meta', 'Vendidero\Germanized\Shipments\Admin\MetaBox::save', 50, 2 );
+        add_action( 'woocommerce_process_shop_order_meta', 'Vendidero\Germanized\Shipments\Admin\MetaBox::save', 60, 2 );
 
         add_action( 'admin_menu', array( __CLASS__, 'shipments_menu' ), 15 );
         add_action( 'load-woocommerce_page_wc-gzd-shipments', array( __CLASS__, 'setup_shipments_table' ), 0 );
