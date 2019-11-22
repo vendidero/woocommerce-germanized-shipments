@@ -35,6 +35,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         '_weight',
         '_address',
         '_total',
+	    '_additional_total',
 	    '_sender_address',
 	    '_weight_unit',
 	    '_dimension_unit'
@@ -123,7 +124,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	         * The dynamic portion of this hook, `$hook_postfix` refers to the
 	         * shipment type in case it is not a simple shipment.
 	         *
-	         * @param integer $shipment_id The shipment id.
+	         * @param integer  $shipment_id The shipment id.
 	         * @param Shipment $shipment The shipment instance.
 	         *
 	         * @since 3.0.0
@@ -233,7 +234,8 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	     * The dynamic portion of this hook, `$hook_postfix` refers to the
 	     * shipment type in case it is not a simple shipment.
 	     *
-	     * @param integer $shipment_id The shipment id.
+	     * @param integer  $shipment_id The shipment id.
+	     * @param Shipment $shipment The shipment instance.
 	     *
 	     * @since 3.0.0
 	     * @package Vendidero/Germanized/Shipments
@@ -520,7 +522,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
     public function delete_items( $shipment ) {
         global $wpdb;
 
-        $wpdb->query( $wpdb->prepare( "DELETE FROM itemmeta USING {$wpdb->gzd_shipment_itemmeta} itemmeta INNER JOIN {$wpdb->gzd_shipment_items} items WHERE itemmeta.shipment_item_id = items.shipment_item_id and items.shipment_id = %d", $shipment->get_id() ) );
+        $wpdb->query( $wpdb->prepare( "DELETE FROM itemmeta USING {$wpdb->gzd_shipment_itemmeta} itemmeta INNER JOIN {$wpdb->gzd_shipment_items} items WHERE itemmeta.gzd_shipment_item_id = items.shipment_item_id and items.shipment_id = %d", $shipment->get_id() ) );
         $wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->gzd_shipment_items} WHERE shipment_id = %d", $shipment->get_id() ) );
 
         $this->clear_caches( $shipment );

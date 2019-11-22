@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments\Admin;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\Package;
+use Vendidero\Germanized\Shipments\ShipmentItem;
 use WP_List_Table;
 use Vendidero\Germanized\Shipments\ShipmentQuery;
 use WP_Query;
@@ -906,6 +907,19 @@ class Table extends WP_List_Table {
                         <?php endif; ?>
 
                         <?php echo ( $item->get_sku() ? '<br/><small>' . esc_html_x( 'SKU:', 'shipments', 'woocommerce-germanized-shipments' ) . ' ' . esc_html( $item->get_sku() ) . '</small>' : '' ); ?>
+
+	                    <?php
+	                    /**
+	                     * Action that fires after outputting the shipment item data in admin table view.
+	                     *
+                         * @param integer                                      $item_id The shipment item id.
+	                     * @param ShipmentItem $shipment_item The shipment item instance.
+	                     * @param Shipment $shipment The shipment instance.
+	                     *
+	                     * @since 3.1.0
+	                     * @package Vendidero/Germanized/Shipments
+	                     */
+	                    do_action( "{$this->get_hook_prefix()}item_after_name", $item->get_id(), $item, $shipment ); ?>
                     </td>
                     <td class="wc-gzd-shipment-item-column-quantity">
                         <?php echo $item->get_quantity(); ?>x

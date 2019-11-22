@@ -168,6 +168,7 @@ class SimpleShipment extends Shipment {
 				'length'            => $this->get_length( 'edit' ),
 				'width'             => $this->get_width( 'edit' ),
 				'height'            => $this->get_height( 'edit' ),
+				'additional_total' => $this->calculate_additional_total( $order ),
 			) );
 
 			$this->set_props( $args );
@@ -190,6 +191,23 @@ class SimpleShipment extends Shipment {
 		}
 
 		return true;
+	}
+
+	/**
+	 * @param WC_Order $order
+	 */
+	protected function calculate_additional_total( $order ) {
+		$fees_total       = 0;
+		$additional_total = 0;
+
+		// Sum fee costs.
+		foreach ( $order->get_fees() as $item ) {
+			$fees_total += ( $item->get_total() + $item->get_total_tax() );
+		}
+
+		$additional_total = $fees_total + $order->get_shipping_total() + $order->get_shipping_tax();
+
+		return $additional_total;
 	}
 
 	/**

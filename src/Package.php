@@ -15,11 +15,12 @@ class Package {
      *
      * @var string
      */
+
     const VERSION = '1.0.7';
 
-	public static $upload_dir_suffix = '';
+	  public static $upload_dir_suffix = '';
 
-	protected static $method_settings = null;
+	  protected static $method_settings = null;
 
     /**
      * Init the package - load the REST API Server class.

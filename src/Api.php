@@ -317,6 +317,8 @@ class Api {
 				),
 			),
 		);
+
+		return $schema;
 	}
 
 	public static function register_controllers( $controller ) {

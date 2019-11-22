@@ -11,6 +11,7 @@ use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
+use WC_Data_Store_WP;
 use WC_DateTime;
 use WC_Order;
 use WP_Error;
@@ -117,6 +118,7 @@ abstract class Shipment extends WC_Data {
         'shipping_provider'     => '',
         'shipping_method'       => '',
         'total'                 => 0,
+	    'additional_total'      => 0,
     );
 
 	/**
@@ -380,13 +382,13 @@ abstract class Shipment extends WC_Data {
         return $height;
     }
 
-	public function has_dimensions() {
-		$width  = $this->get_width();
-		$length = $this->get_length();
-		$height = $this->get_height();
+    public function has_dimensions() {
+    	$width  = $this->get_width();
+    	$length = $this->get_length();
+    	$height = $this->get_height();
 
-		return ( ! empty( $width ) && ! empty( $length ) && ! empty( $height ) );
-	}
+    	return ( ! empty( $width ) && ! empty( $length ) && ! empty( $height ) );
+    }
 
 	/**
 	 * Returns the calculated weights for included items.
@@ -527,6 +529,17 @@ abstract class Shipment extends WC_Data {
     public function get_total( $context = 'view' ) {
         return $this->get_prop( 'total', $context );
     }
+
+	/**
+	 * Returns the additional total amount containing shipping and fee costs.
+	 * Only one of the shipments related to an order should include additional total.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return float
+	 */
+	public function get_additional_total( $context = 'view' ) {
+		return $this->get_prop( 'additional_total', $context );
+	}
 
     public function has_tracking() {
 	    if ( ! $this->has_tracking_instruction() && ! $this->get_tracking_url() ) {
@@ -741,7 +754,16 @@ abstract class Shipment extends WC_Data {
     public function get_address_street_number( $type = 'address_1' ) {
 	    $split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
 
-	    return $split['number'];
+	    /**
+	     * Filter to adjust the shipment address street number.
+	     *
+	     * @param string   $number The shipment address street number.
+	     * @param Shipment $shipment The shipment object.
+	     *
+	     * @since 3.0.6
+	     * @package Vendidero/Germanized/Shipments
+	     */
+	    return apply_filters( 'woocommerce_gzd_get_shipment_address_street_number', $split['number'], $this );
     }
 
 	/**
@@ -754,7 +776,31 @@ abstract class Shipment extends WC_Data {
 	public function get_address_street( $type = 'address_1' ) {
 		$split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
 
-		return $split['street'];
+		/**
+		 * Filter to adjust the shipment address street.
+		 *
+		 * @param string   $street The shipment address street without street number.
+		 * @param Shipment $shipment The shipment object.
+		 *
+		 * @since 3.0.6
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_get_shipment_address_street', $split['street'], $this );
+	}
+
+	public function get_address_street_addition( $type = 'address_1' ) {
+		$split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
+
+		/**
+		 * Filter to adjust the shipment address street addition.
+		 *
+		 * @param string   $addition The shipment address street addition e.g. EG14.
+		 * @param Shipment $shipment The shipment object.
+		 *
+		 * @since 3.0.6
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_get_shipment_address_street_addition', $split['addition'], $this );
 	}
 
 	public function get_address_street_addition( $type = 'address_1' ) {
@@ -1162,6 +1208,21 @@ abstract class Shipment extends WC_Data {
 
         $this->set_prop( 'total', $value );
     }
+
+	/**
+	 * Set shipment additional total.
+	 *
+	 * @param float|string $value The shipment total.
+	 */
+	public function set_additional_total( $value ) {
+		$value = wc_format_decimal( $value );
+
+		if ( ! is_numeric( $value ) ) {
+			$value = 0;
+		}
+
+		$this->set_prop( 'additional_total', $value );
+	}
 
 	/**
 	 * Set shipment shipping country.
@@ -1865,6 +1926,7 @@ abstract class Shipment extends WC_Data {
     public function save() {
         try {
             $this->calculate_totals();
+            $is_new = false;
 
             if ( $this->data_store ) {
                 // Trigger action before saving to the DB. Allows you to adjust object props before save.
@@ -1874,12 +1936,45 @@ abstract class Shipment extends WC_Data {
                     $this->data_store->update( $this );
                 } else {
                     $this->data_store->create( $this );
+	                $is_new = true;
                 }
             }
 
             $this->save_items();
+
+	        /**
+	         * Trigger action after saving shipment to the DB.
+	         *
+	         * @param Shipment          $shipment The shipment object being saved.
+	         * @param WC_Data_Store_WP $data_store THe data store persisting the data.
+	         */
+	        do_action( 'woocommerce_after_' . $this->object_type . '_object_save', $this, $this->data_store );
+
+	        $hook_postfix = '';
+
+	        if ( 'simple' !== $this->get_type() ) {
+		        $hook_postfix = $this->get_type() . '_';
+	        }
+
+	        /**
+	         * Trigger action after saving shipment to the DB.
+	         *
+	         * The dynamic portion of this hook, `$hook_postfix` is used to construct a
+	         * unique hook for a shipment type.
+	         *
+	         * Example hook name: woocommerce_gzd_shipment_after_save
+	         *
+	         * @param Shipment $shipment The shipment object being saved.
+	         * @param boolean  $is_new Indicator to determine whether this is a new shipment or not.
+	         *
+	         * @since 3.0.0
+	         * @package Vendidero/Germanized/Shipments
+	         */
+	        do_action( "woocommerce_gzd_{$hook_postfix}shipment_after_save", $this, $is_new );
+
             $this->status_transition();
             $this->reset_content_data();
+
         } catch ( Exception $e ) {
             $logger = wc_get_logger();
             $logger->error(
