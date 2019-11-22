@@ -10,11 +10,31 @@ defined( 'ABSPATH' ) || exit;
 class Install {
 
 	public static function install() {
+		self::create_upload_dir();
+
 		global $wpdb;
 
 		$wpdb->hide_errors();
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( self::get_schema() );
+	}
+
+	private static function create_upload_dir() {
+		Package::maybe_set_upload_dir();
+
+		$dir = Package::get_upload_dir();
+
+		if ( ! @is_dir( $dir['basedir'] ) ) {
+			@mkdir( $dir['basedir'] );
+		}
+
+		if ( ! file_exists( trailingslashit( $dir['basedir'] ) . '.htaccess' ) ) {
+			@file_put_contents( trailingslashit( $dir['basedir'] ) . '.htaccess', 'deny from all' );
+		}
+
+		if ( ! file_exists( trailingslashit( $dir['basedir'] ) . 'index.php' ) ) {
+			@touch( trailingslashit( $dir['basedir'] ) . 'index.php' );
+		}
 	}
 
 	private static function get_schema() {
@@ -77,6 +97,22 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipmentmeta (
   meta_value longtext NULL,
   PRIMARY KEY  (meta_id),
   KEY gzd_shipment_id (gzd_shipment_id),
+  KEY meta_key (meta_key(32))
+) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_provider (
+  shipping_provider_id BIGINT UNSIGNED NOT NULL auto_increment,
+  shipping_provider_activated TINYINT(1) NOT NULL default 1,
+  shipping_provider_title varchar(200) NOT NULL DEFAULT '',
+  shipping_provider_name varchar(200) NOT NULL DEFAULT '',
+  PRIMARY KEY  (shipping_provider_id)
+) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_providermeta (
+  meta_id BIGINT UNSIGNED NOT NULL auto_increment,
+  gzd_shipping_provider_id BIGINT UNSIGNED NOT NULL,
+  meta_key varchar(255) default NULL,
+  meta_value longtext NULL,
+  PRIMARY KEY  (meta_id),
+  KEY gzd_shipping_provider_id (gzd_shipping_provider_id),
   KEY meta_key (meta_key(32))
 ) $collate;";
 

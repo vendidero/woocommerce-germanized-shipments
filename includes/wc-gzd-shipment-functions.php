@@ -15,6 +15,9 @@ use Vendidero\Germanized\Shipments\ShipmentFactory;
 use Vendidero\Germanized\Shipments\ShipmentItem;
 use Vendidero\Germanized\Shipments\SimpleShipment;
 use Vendidero\Germanized\Shipments\ReturnShipment;
+use Vendidero\Germanized\Shipments\ShippingProviders;
+use Vendidero\Germanized\Shipments\ShippingProviderMethod;
+use Vendidero\Germanized\Shipments\ShippingProviderMethodPlaceholder;
 use Vendidero\Germanized\Shipments\Package;
 
 defined( 'ABSPATH' ) || exit;
@@ -108,6 +111,71 @@ function wc_gzd_get_shipment_order_shipping_statuses() {
 	 * @package Vendidero/Germanized/Shipments
 	 */
     return apply_filters( 'woocommerce_gzd_order_shipping_statuses', $shipment_statuses );
+}
+
+/**
+ * @param $instance_id
+ *
+ * @return ShippingProviderMethod
+ */
+function wc_gzd_get_shipping_provider_method( $instance_id ) {
+
+	$original_id = $instance_id;
+
+	if ( ! is_numeric( $instance_id ) ) {
+		$expl        = explode( ':', $instance_id );
+		$instance_id = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? (int) $expl[1] : $instance_id );
+	}
+
+	if ( ! empty( $instance_id ) ) {
+		// Make sure shipping zones are loaded
+		include_once WC_ABSPATH . 'includes/class-wc-shipping-zones.php';
+
+		if ( $method = WC_Shipping_Zones::get_shipping_method( $instance_id ) ) {
+
+			/**
+			 * Filter to adjust the classname used to construct the shipping provider method
+			 * which contains additional provider related settings useful for shipments.
+			 *
+			 * @param string              $classname The classname.
+			 * @param WC_Shipping_Method $method The shipping method instance.
+			 *
+			 * @since 3.1.0
+			 * @package Vendidero/Germanized/Shipments
+			 */
+			$classname = apply_filters( 'woocommerce_gzd_shipping_provider_method_classname', 'Vendidero\Germanized\Shipments\ShippingProviderMethod', $method );
+
+			return new $classname( $method );
+		}
+	}
+
+	// Load placeholder
+	$placeholder = new ShippingProviderMethodPlaceholder( $original_id );
+
+	/**
+	 * Filter to adjust the fallback shipping method to be loaded if no real
+	 * shipping method was able to be constructed (e.g. a custom plugin is being used which
+	 * replaces the default Woo shipping zones integration).
+	 *
+	 * @param ShippingProviderMethod $placeholder The placeholder impl.
+	 * @param string                 $original_id The shipping method id.
+	 *
+	 * @since 3.1.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
+	return apply_filters( 'woocommerce_gzd_shipping_provider_method_fallback', $placeholder, $original_id );
+}
+
+function wc_gzd_get_current_shipping_provider_method() {
+	$chosen_shipping_methods = WC()->session ? WC()->session->get( 'chosen_shipping_methods' ) : array();
+
+	if ( ! empty( $chosen_shipping_methods ) ) {
+		$method = wc_gzd_get_shipping_provider_method( $chosen_shipping_methods[0] );
+
+		return $method;
+	}
+
+	return false;
 }
 
 function wc_gzd_get_shipment_order_shipping_status_name( $status ) {
@@ -361,22 +429,49 @@ function wc_gzd_split_shipment_street( $streetStr ) {
 }
 
 function wc_gzd_get_shipping_providers() {
+	return ShippingProviders::instance()->get_shipping_providers();
+}
+
+function wc_gzd_get_shipping_provider( $name ) {
+	return ShippingProviders::instance()->get_shipping_provider( $name );
+}
+
+function wc_gzd_get_default_shipping_provider() {
+	$default = Package::get_setting( 'default_shipping_provider' );
+
 	/**
-	 * Filter that allows third-parties to add custom shipping providers (e.g. DHL) to Shipments.
+	 * Filter to adjust the default shipping provider used as a fallback for shipments
+	 * for which no provider could be determined automatically (e.g. by the chosen shipping methid).
 	 *
-	 * @param array $providers Array containing key => value pairs of providers and their title or description.
+	 * @param string  $title The shipping provider slug.
 	 *
-	 * @since 3.0.0
+	 * @since 3.1.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-	return apply_filters( 'woocommerce_gzd_shipping_providers', array() );
+	return apply_filters( 'woocommerce_gzd_default_shipping_provider', $default );
+}
+
+function wc_gzd_get_shipping_provider_select() {
+	$providers = wc_gzd_get_shipping_providers();
+	$select    = array(
+		'' => _x( 'None', 'shipments', 'woocommerce-germanized-shipments' ),
+	);
+
+	foreach( $providers as $provider ) {
+		if ( ! $provider->is_activated() ) {
+			continue;
+		}
+		$select[ $provider->get_name() ] = $provider->get_title();
+	}
+
+	return $select;
 }
 
 function wc_gzd_get_shipping_provider_title( $slug ) {
 	$providers = wc_gzd_get_shipping_providers();
 
 	if ( array_key_exists( $slug, $providers ) ) {
-		$title = $providers[ $slug ];
+		$title = $providers[ $slug ]->get_title();
 	} else {
 		$title = $slug;
 	}
@@ -407,6 +502,38 @@ function wc_gzd_get_shipping_provider_slug( $provider ) {
 	return $slug;
 }
 
+function _wc_gzd_shipments_keep_force_filename( $new_filename ) {
+	return isset( $GLOBALS['gzd_shipments_unique_filename'] ) ? $GLOBALS['gzd_shipments_unique_filename'] : $new_filename;
+}
+
+function wc_gzd_shipments_upload_data( $filename, $bits, $relative = true ) {
+	try {
+		Package::set_upload_dir_filter();
+		$GLOBALS['gzd_shipments_unique_filename'] = $filename;
+		add_filter( 'wp_unique_filename', '_wc_gzd_shipments_keep_force_filename', 10, 1 );
+
+		$tmp = wp_upload_bits( $filename,null, $bits );
+
+		unset( $GLOBALS['gzd_shipments_unique_filename'] );
+		remove_filter( 'wp_unique_filename', '_wc_gzd_shipments_keep_force_filename', 10 );
+		Package::unset_upload_dir_filter();
+
+		if ( isset( $tmp['file'] ) ) {
+			$path = $tmp['file'];
+
+			if ( $relative ) {
+				$path = Package::get_relative_upload_dir( $path );
+			}
+
+			return $path;
+		} else {
+			throw new Exception( _x( 'Error while uploading file.', 'shipments', 'woocommerce-germanized-shipments' ) );
+		}
+	} catch ( Exception $e ) {
+		return false;
+	}
+}
+
 /**
  * @param SimpleShipment $parent_shipment
  *
@@ -430,6 +557,32 @@ function wc_gzd_get_shipment_return_address( $parent_shipment ) {
 	$address['email'] = get_option( 'admin_email' );
 
 	return $address;
+}
+
+/**
+ * @param WC_Order $order
+ */
+function wc_gzd_get_shipment_shipping_provider( $order ) {
+	$method_id          = wc_gzd_get_shipment_order_shipping_method_id( $order );
+	$shipping_provider  = '';
+
+	if ( $shipping_method = wc_gzd_get_shipping_provider_method( $method_id ) ) {
+
+		if ( $provider = $shipping_method->get_provider() ) {
+			$shipping_provider = $provider;
+		}
+	}
+
+	/**
+	 * Allows adjusting the shipping provider chosen for a shipment belonging to a certain order.
+	 *
+	 * @param string   $name The shipping provider name e.g. dhl.
+	 * @param WC_Order $order The order object.
+	 *
+	 * @since 3.1.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
+	return apply_filters( 'woocommerce_gzd_shipment_order_shipping_provider', $shipping_provider, $order );
 }
 
 /**

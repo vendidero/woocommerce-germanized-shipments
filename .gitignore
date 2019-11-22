@@ -33,6 +33,10 @@ Thumbs.db
 
 # Composer
 /vendor/
+/vendor/*
+/vendor/composer/*
+
+composer.lock
 
 # Packages
 /packages/*

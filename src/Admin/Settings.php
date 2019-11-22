@@ -1,7 +1,11 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\Admin;
+use Exception;
 use Vendidero\Germanized\Shipments\Package;
+use Vendidero\Germanized\Shipments\ShippingProvider;
+use Vendidero\Germanized\Shipments\ShippingProviders;
+use WC_Admin_Settings;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -87,6 +91,16 @@ class Settings {
 				'type' 		        => 'gzd_toggle',
 			),
 
+			array(
+				'title' 	        => _x( 'Default provider', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc_tip' 		    => _x( 'Select a default shipping provider which will be selected by default in case no provider could be determined automatically.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'id' 		        => 'woocommerce_gzd_shipments_default_shipping_provider',
+				'default'	        => '',
+				'type'              => 'select',
+				'options'           => wc_gzd_get_shipping_provider_select(),
+				'class'             => 'wc-enhanced-select',
+			),
+
 			array( 'type' => 'sectionend', 'id' => 'shipments_options' ),
 
 			array( 'title' => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_auto_options' ),
@@ -131,6 +145,14 @@ class Settings {
 				'desc' 		        => _x( 'Mark order as completed after order is fully shipped.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . _x( 'This option will automatically update the order status to completed as soon as all required shipments have been marked as shipped.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
 				'id' 		        => 'woocommerce_gzd_shipments_auto_order_shipped_completed_enable',
 				'default'	        => 'yes',
+				'type' 		        => 'gzd_toggle',
+			),
+
+			array(
+				'title' 	        => _x( 'Mark as shipped', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc' 		        => _x( 'Mark shipments as shipped after order completion.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . _x( 'This option will automatically update contained shipments to shipped (if possible, e.g. not yet delivered) as soon as the order was marked as completed.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
+				'id' 		        => 'woocommerce_gzd_shipments_auto_order_completed_shipped_enable',
+				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 			),
 
@@ -213,17 +235,150 @@ class Settings {
 		return $settings;
 	}
 
+	public static function save_provider( $provider_name = '' ) {
+		$helper = ShippingProviders::instance();
+
+		$helper->load_shipping_providers();
+
+		if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
+			$provider = $helper->get_shipping_provider( $provider_name );
+		} else {
+			$provider = new ShippingProvider();
+		}
+
+		$settings = $provider->get_settings();
+
+		foreach ( $settings as $setting ) {
+
+			if ( ! isset( $setting['id'] ) || empty( $setting['id'] ) ) {
+				continue;
+			}
+
+			add_filter( 'woocommerce_admin_settings_sanitize_option_' . $setting['id'], function( $value, $option, $raw_value ) use( &$provider ) {
+				$option_name = str_replace( 'shipping_provider_', '', $option['id'] );
+				$setter      = 'set_' . $option_name;
+
+				try {
+					if ( is_callable( array( $provider, $setter ) ) ) {
+						$provider->{$setter}( $value );
+					}
+				} catch( Exception $e ) {}
+
+				return null;
+			}, 10, 3 );
+		}
+
+		WC_Admin_Settings::save_fields( $settings );
+
+		$provider->save();
+	}
+
 	public static function get_settings( $current_section = '' ) {
 		$settings = array();
 
 		if ( '' === $current_section ) {
 			$settings = self::get_general_settings();
+		} elseif( 'provider' === $current_section && isset( $_GET['provider'] ) ) {
+
+			$provider_name = wc_clean( wp_unslash( $_GET['provider'] ) );
+			$helper        = ShippingProviders::instance();
+
+			$helper->get_shipping_providers();
+
+			if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
+				$provider = $helper->get_shipping_provider( $provider_name );
+			} else {
+				$provider = new ShippingProvider();
+			}
+
+			$settings = $provider->get_settings();
 		}
 
 		return $settings;
 	}
 
+	public static function get_additional_breadcrumb_items( $breadcrumb ) {
+		if ( isset( $_GET['section'] ) && 'provider' === $_GET['section'] && isset( $_GET['provider'] ) ) {
+			$provider_name = wc_clean( wp_unslash( $_GET['provider'] ) );
+			$title         = 'new' === $provider_name ? _x( 'New provider', 'shipments', 'woocommerce-germanized-shipments' ) : '';
+			$helper        = ShippingProviders::instance();
+
+			$helper->get_shipping_providers();
+
+			if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
+				if ( $provider = $helper->get_shipping_provider( $provider_name ) ) {
+					$title = $provider->get_title();
+				}
+			}
+
+			if ( ! empty( $title ) ) {
+
+				foreach( $breadcrumb as $key => $breadcrumb_item ) {
+					if ( 'section' === $breadcrumb_item['class'] ) {
+						$breadcrumb[ $key ]['href'] = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider' );
+					}
+				}
+
+				$breadcrumb[] = array(
+					'class' => 'provider',
+					'href'  => '',
+					'title' => $title,
+				);
+			}
+		}
+
+		return $breadcrumb;
+	}
+
+	public static function get_section_title_link( $section ) {
+		if ( 'provider' === $section && ! isset( $_GET['provider'] ) ) {
+			return '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=new' ) . '" class="page-title-action">' . _x( 'Add provider', 'shipments', 'woocommerce-germanized' ) . '</a>';
+		}
+
+		return '';
+	}
+
 	public static function get_sections() {
-		return array();
+		return array(
+			''          => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' ),
+			'provider'  => _x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' )
+		);
+	}
+
+	/**
+	 * Handles output of the shipping zones page in admin.
+	 */
+	public static function output_providers() {
+		global $hide_save_button;
+
+		$hide_save_button = true;
+		self::provider_screen();
+	}
+
+	/*protected static function edit_provider_screen( $provider_name = '' ) {
+
+
+
+		if ( ! empty( $_POST['save'] ) ) { // WPCS: input var ok, sanitization ok.
+
+			if ( empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( wp_unslash( $_REQUEST['_wpnonce'] ), 'woocommerce-settings' ) ) { // WPCS: input var ok, sanitization ok.
+				echo '<div class="updated error"><p>' . esc_html__( 'Edit failed. Please try again.', 'woocommerce-germanized' ) . '</p></div>';
+			}
+
+			if ( $provider ) {
+				// $provider->save();
+			}
+		}
+
+		\WC_Admin_Settings::output();
+	}
+	*/
+
+	protected static function provider_screen() {
+
+		$helper    = ShippingProviders::instance();
+		$providers = $helper->get_shipping_providers();
+
+		include_once Package::get_path() . '/includes/admin/views/html-settings-provider-list.php';
 	}
 }

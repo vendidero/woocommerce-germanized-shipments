@@ -78,14 +78,6 @@ class SimpleShipment extends Shipment {
 		return $this->get_prop( 'order_id', $context );
 	}
 
-	public function get_order_number() {
-		if ( $order = $this->get_order() ) {
-			return $order->get_order_number();
-		}
-
-		return $this->get_order_id();
-	}
-
 	/**
 	 * Set shipment order id.
 	 *
@@ -158,17 +150,24 @@ class SimpleShipment extends Shipment {
 				wc_gzd_remove_class_filter( 'woocommerce_order_get_items', 'WCML_Orders', 'woocommerce_order_get_items', 10 );
 			}
 
-			$order = $order_shipment->get_order();
+			$order            = $order_shipment->get_order();
+
+			/**
+			 * Make sure that manually adjusted providers are not overridden by syncing.
+			 */
+			$default_provider = wc_gzd_get_shipment_shipping_provider( $order );
+			$provider         = $this->get_shipping_provider( 'edit' );
 
 			$args = wp_parse_args( $args, array(
-				'order_id'         => $order->get_id(),
-				'country'          => $order->get_shipping_country(),
-				'shipping_method'  => wc_gzd_get_shipment_order_shipping_method_id( $order ),
-				'address'          => array_merge( $order->get_address( 'shipping' ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) ),
-				'weight'           => $this->get_weight( 'edit' ),
-				'length'           => $this->get_length( 'edit' ),
-				'width'            => $this->get_width( 'edit' ),
-				'height'           => $this->get_height( 'edit' ),
+				'order_id'          => $order->get_id(),
+				'country'           => $order->get_shipping_country(),
+				'shipping_method'   => wc_gzd_get_shipment_order_shipping_method_id( $order ),
+				'shipping_provider' => ( ! empty( $provider ) ) ? $provider : $default_provider,
+				'address'           => array_merge( $order->get_address( 'shipping' ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) ),
+				'weight'            => $this->get_weight( 'edit' ),
+				'length'            => $this->get_length( 'edit' ),
+				'width'             => $this->get_width( 'edit' ),
+				'height'            => $this->get_height( 'edit' ),
 				'additional_total' => $this->calculate_additional_total( $order ),
 			) );
 
@@ -308,21 +307,6 @@ class SimpleShipment extends Shipment {
 		}
 
 		return $methods;
-	}
-
-	public function needs_shipping_provider_select() {
-		$shipping_method = $this->get_shipping_method();
-
-		if ( ! empty( $shipping_method ) ) {
-			$expl = explode( ':', $shipping_method );
-
-			// If no instance id is availabe - show selection
-			if ( sizeof( $expl ) === 2 && empty( $expl[1] ) ) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	/**

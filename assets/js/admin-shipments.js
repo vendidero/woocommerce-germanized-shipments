@@ -111,6 +111,16 @@ window.germanized.admin = window.germanized.admin || {};
             self.doAjax( params, self.onSaveSuccess );
         },
 
+        initShipment: function( id ) {
+            var self = germanized.admin.shipments;
+
+            if ( ! self.shipments.hasOwnProperty( id ) ) {
+                self.shipments[ id ] = new $.GermanizedShipment( id );
+            } else {
+                self.shipments[ id ].refreshDom();
+            }
+        },
+
         onSaveSuccess: function( data ) {
             var self = germanized.admin.shipments;
 
@@ -233,6 +243,10 @@ window.germanized.admin = window.germanized.admin || {};
                                 shipment.setHeight( shipmentData[ shipmentId ].height );
                             }
                         });
+
+                        if ( data.hasOwnProperty( 'needs_refresh' ) && data.hasOwnProperty( 'shipment_id' ) ) {
+                            self.initShipment( data.shipment_id );
+                        }
 
                     } else {
                         cError.apply( $wrapper, [ data ] );
@@ -381,7 +395,11 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         setNeedsSaving: function( needsSaving ) {
-            var self = germanized.admin.shipments;
+            var self      = germanized.admin.shipments,
+                $shipment = self.getShipment( self.getActiveShipmentId() ).getShipment();
+
+            console.log( needsSaving );
+            console.log( $( this ) );
 
             if ( typeof needsSaving !== "boolean" ) {
                 needsSaving = true;
@@ -395,9 +413,39 @@ window.germanized.admin = window.germanized.admin || {};
                 self.$wrapper.find( '#order-shipments-save' ).hide();
             }
 
+            console.log(self.needsSaving);
+
+            if ( self.needsSaving ) {
+                self.disableCreateLabel( $shipment );
+            } else {
+                self.enableCreateLabel( $shipment );
+            }
+
             self.hideOrShowFooter();
 
             $( document.body ).trigger( 'woocommerce_gzd_shipments_needs_saving', [ self.needsSaving, self.getActiveShipmentId() ] );
+
+            self.initTiptip();
+        },
+
+        disableCreateLabel: function( $shipment ) {
+            var self    = germanized.admin.shipments,
+                $button = $shipment.find( '.create-shipment-label' );
+
+            if ( $button.length > 0 ) {
+                $button.addClass( 'disabled button-disabled' );
+                $button.prop( 'title', self.params.i18n_create_label_disabled );
+            }
+        },
+
+        enableCreateLabel: function( $shipment ) {
+            var self    = germanized.admin.shipments,
+                $button = $shipment.find( '.create-shipment-label' );
+
+            if ( $button.length > 0 ) {
+                $button.removeClass( 'disabled button-disabled' );
+                $button.prop( 'title', self.params.i18n_create_label_enabled );
+            }
         },
 
         setNeedsShipments: function( needsShipments ) {
@@ -470,11 +518,7 @@ window.germanized.admin = window.germanized.admin || {};
             self.$wrapper.find( '.order-shipment' ).each( function() {
                 var id = $( this ).data( 'shipment' );
 
-                if ( ! self.shipments.hasOwnProperty( id ) ) {
-                    self.shipments[ id ] = new $.GermanizedShipment( id );
-                } else {
-                    self.shipments[ id ].refreshDom();
-                }
+                self.initShipment( id );
             });
         },
 
@@ -519,6 +563,12 @@ window.germanized.admin = window.germanized.admin || {};
                 'fadeOut': 50,
                 'delay': 200
             });
+
+            self.$wrapper.find( '.create-shipment-label' ).tipTip( {
+                'fadeIn': 50,
+                'fadeOut': 50,
+                'delay': 200
+            } );
         }
     };
 

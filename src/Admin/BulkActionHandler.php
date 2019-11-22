@@ -80,6 +80,10 @@ abstract class BulkActionHandler {
 		return _x( 'Successfully processed shipments.', 'shipments', 'woocommerce-germanized-shipments' );
 	}
 
+	public function admin_handled() {
+
+	}
+
 	public function add_notice( $notice, $type = 'error' ) {
 		if ( ! isset( $this->notices[ $type ] ) ) {
 			$this->notices[ $type ] = array();

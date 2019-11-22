@@ -46,6 +46,10 @@ class MetaBox {
 		        $props['shipping_method'] = wc_clean( wp_unslash( $_POST['shipment_shipping_method'][ $id ] ) );
 	        }
 
+	        if ( isset( $_POST['shipment_tracking_id'][ $id ] ) ) {
+		        $props['tracking_id'] = wc_clean( wp_unslash( $_POST['shipment_tracking_id'][ $id ] ) );
+	        }
+
 	        if ( isset( $_POST['shipment_shipping_provider'][ $id ] ) ) {
 	        	$provider  = wc_clean( wp_unslash( $_POST['shipment_shipping_provider'][ $id ] ) );
 	        	$providers = wc_gzd_get_shipping_providers();

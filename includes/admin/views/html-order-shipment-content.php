@@ -42,6 +42,15 @@ defined( 'ABSPATH' ) || exit;
 
             <div class="columns">
 	            <?php
+
+                if ( $shipment->supports_label() ) :
+                    $label = $shipment->get_label();
+
+                    include 'label/html-shipment-label.php';
+                endif;
+                ?>
+
+	            <?php
 	            /**
 	             * Action that fires after the right column of a Shipment's meta box admin view.
 	             *
@@ -75,18 +84,21 @@ defined( 'ABSPATH' ) || exit;
                 </p>
 		    <?php endif; ?>
 
-		    <?php if( $shipment->needs_shipping_provider_select() ) : ?>
-                <p class="form-row">
-                    <label for="shipment-shipping-provider-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?></label>
-                    <select class="shipment-shipping-method-select" id="shipment-shipping-method-<?php echo esc_attr( $shipment->get_id() ); ?>" name="shipment_shipping_provider[<?php echo esc_attr( $shipment->get_id() ); ?>]">
-                        <option value=""><?php echo _x( 'None', 'shipments', 'woocommerce-germanized-shipments' ); ?></option>
+            <p class="form-row">
+                <label for="shipment-shipping-provider-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?></label>
+                <select class="shipment-shipping-provider-select" id="shipment-shipping-provider-<?php echo esc_attr( $shipment->get_id() ); ?>" name="shipment_shipping_provider[<?php echo esc_attr( $shipment->get_id() ); ?>]">
+                    <?php foreach( wc_gzd_get_shipping_provider_select() as $provider => $title ) :
+                        $provider_instance = wc_gzd_get_shipping_provider( $provider );
+                        ?>
+                        <option data-is-manual="<?php echo ( ( $provider_instance && $provider_instance->is_manual_integration() ) ? 'yes' : 'no' ); ?>" value="<?php echo esc_attr( $provider ); ?>" <?php selected( $provider, $shipment->get_shipping_provider(), true ); ?>><?php echo $title; ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </p>
 
-                        <?php foreach( wc_gzd_get_shipping_providers() as $provider => $title ) : ?>
-                            <option value="<?php echo esc_attr( $provider ); ?>" <?php selected( $provider, $shipment->get_shipping_provider(), true ); ?>><?php echo $title; ?></option>
-					    <?php endforeach; ?>
-                    </select>
-                </p>
-            <?php endif; ?>
+            <p class="form-row show-if show-if-provider show-if-provider-is-manual">
+                <label for="shipment-tracking-id-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Tracking Number', 'shipments', 'woocommerce-germanized-shipments' ); ?></label>
+                <input type="text" value="<?php echo esc_attr( $shipment->get_tracking_id() ); ?>" name="shipment_tracking_id[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-tracking-id-<?php echo esc_attr( $shipment->get_id() ); ?>" />
+            </p>
 
             <div class="shipment-items" id="shipment-items-<?php echo esc_attr( $shipment->get_id() ); ?>">
                 <div class="shipment-item-list-wrapper">

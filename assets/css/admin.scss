@@ -2,6 +2,152 @@
 
 $layout-spacing: 1rem;
 
+.germanized-create-label {
+  .notice-wrapper {
+    .notice {
+      margin: 0;
+      margin-bottom: 1em;
+
+      p {
+        margin: 0.5em 0 !important;
+        padding: 2px !important;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+    }
+  }
+
+  p.form-field {
+    &:first-child, &:last-child {
+      margin-bottom: 5px !important;
+      margin-top: 5px !important;
+    }
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 5px !important;
+    margin-top: 5px !important;
+  }
+
+  .columns {
+    margin-left: -.5rem !important;
+    margin-right: -.5rem !important;
+  }
+
+  .column {
+    padding-left: .5rem !important;
+    padding-right: .5rem !important;
+  }
+
+  .show-if, .hide-default {
+    display: none;
+  }
+
+  .show-if {
+    label {
+      color: #777;
+    }
+  }
+
+  p.form-field {
+    label {
+      width: 100%;
+      display: block;
+      margin-bottom: 5px;
+    }
+    select, input[type=text], input[type=email] {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    &.form-field-checkbox {
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: row;
+      justify-content: flex-start;
+      margin-top: 10px !important;
+      margin-bottom: 10px !important;
+      align-items: center;
+
+      label {
+        width: auto;
+        margin-left: .5em;
+        order: 2;
+        margin-bottom: 0;
+      }
+
+      input[type=checkbox] {
+        order: 1;
+      }
+
+      .woocommerce-help-tip {
+        order: 3;
+        margin-left: 3px;
+      }
+
+      .description {
+        width: 100%;
+        margin-top: 5px;
+        color: #777;
+        order: 4;
+        font-style: normal;
+      }
+    }
+  }
+}
+
+table.wc-gzd-shipping-providers {
+  margin-top: 1.5em;
+
+  th, td {
+    display: table-cell !important;
+    padding: 1em !important;
+    vertical-align: top;
+    line-height: 1.75em;
+    font-size: 14px;
+  }
+
+  th {
+    font-weight: 600;
+  }
+
+  td.wc-gzd-shipping-provider-activated, th.wc-gzd-shipping-provider-activated {
+    width: 1%;
+    text-align: center;
+
+    .status-disabled, .status-enabled {
+      display: inline-block;
+      margin-top: 3px;
+    }
+  }
+
+  td.wc-gzd-shipping-provider-actions, th.wc-gzd-shipping-provider-actions {
+    width: 15%;
+    text-align: right;
+  }
+
+  td.wc-gzd-shipping-provider-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+
+    .button {
+      margin-right: 5px;
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
+
+  td.wc-gzd-shipping-provider-title, th.wc-gzd-shipping-provider-title {
+    width: 30ch;
+  }
+
+  tr:nth-child(odd) td {
+    background: #f9f9f9;
+  }
+}
+
 .shipment-status, .order-shipping-status {
   background: #eee;
   padding: .2em .5em;
@@ -168,10 +314,36 @@ $layout-spacing: 1rem;
 
     td.column-title {
       font-weight: bold;
+
+      .shipment-title-meta {
+        margin-top: 0;
+        font-weight: normal;
+        color: #999;
+        font-style: italic;
+
+        .shipment-tracking-id {
+          color: #999;
+          display: block;
+        }
+      }
     }
 
-    .column-status, .column-date, .column-title {
+    .column-title {
+      width: 20ch;
+    }
+
+    .column-actions {
       width: 15ch;
+    }
+
+    .column-order {
+      width: 10ch;
+    }
+
+    .column-address, .column-sender {
+      a {
+        color: #32373c;
+      }
     }
 
     .shipment-status {
@@ -237,7 +409,7 @@ $layout-spacing: 1rem;
     }
 
     .column-items {
-      width: 25ch;
+      width: 20ch;
     }
 
     #the-list {
@@ -379,6 +551,30 @@ $layout-spacing: 1rem;
             content: "\f140";
           }
         }
+      }
+
+      .wc-gzd-shipment-label {
+        h4 {
+          margin-top: 0;
+        }
+
+        .shipment-label-actions {
+          .shipment-label-actions-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            margin-bottom: 1em;
+            align-items: center;
+
+            a {
+              margin-right: 1em;
+            }
+          }
+        }
+      }
+
+      .show-if {
+        display: none;
       }
 
       &.active {

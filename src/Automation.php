@@ -7,6 +7,7 @@
 namespace Vendidero\Germanized\Shipments;
 
 use Vendidero\Germanized\Shipments\Admin\MetaBox;
+use WC_Order;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -30,6 +31,58 @@ class Automation {
         if ( 'yes' === Package::get_setting( 'auto_order_shipped_completed_enable' ) ) {
 	        add_action( 'woocommerce_gzd_shipment_status_changed', array( __CLASS__, 'maybe_mark_order_completed' ), 150, 4 );
         }
+
+	    if ( 'yes' === Package::get_setting( 'auto_order_completed_shipped_enable' ) ) {
+		    add_action( 'woocommerce_order_status_changed', array( __CLASS__, 'maybe_mark_shipments_shipped' ), 150, 4 );
+	    }
+    }
+
+	/**
+	 * @param $order_id
+	 * @param $old_status
+	 * @param $new_status
+	 * @param WC_Order $order
+	 */
+    public static function maybe_mark_shipments_shipped( $order_id, $old_status, $new_status, $order ) {
+
+	    /**
+	     * Filter to decide which order status is used to determine if a order
+	     * is completed or not to update contained shipment statuses to shipped.
+	     * Does only take effect if the automation option has been set within the shipment settings.
+	     *
+	     * @param string $status The current order status.
+	     * @param integer $order_id The order id.
+	     *
+	     * @since 3.0.5
+	     * @package Vendidero/Germanized/Shipments
+	     */
+    	if ( apply_filters( 'woocommerce_gzd_shipments_order_completed_status', 'completed', $order_id ) === $new_status ) {
+
+		    // Make sure that MetaBox is saved before we process automation
+		    if ( self::is_admin_edit_order_request() ) {
+			    add_action( 'woocommerce_process_shop_order_meta', array( __CLASS__, 'mark_shipments_shipped' ), 70 );
+		    } else {
+			    self::mark_shipments_shipped( $order_id );
+		    }
+	    }
+    }
+
+    private static function is_admin_edit_order_request() {
+	    return ( isset( $_POST['action'] ) && 'editpost' === $_POST['action'] && isset( $_POST['post_type'] ) && 'shop_order' === $_POST['post_type'] );
+    }
+
+    public static function mark_shipments_shipped( $order_id ) {
+
+    	if ( $order = wc_get_order( $order_id ) ) {
+		    if ( $shipment_order = wc_gzd_get_shipment_order( $order ) ) {
+			    foreach( $shipment_order->get_simple_shipments() as $shipment ) {
+
+				    if ( ! $shipment->has_status( array( 'shipped', 'delivered', 'returned' ) ) ) {
+					    $shipment->update_status( 'shipped' );
+				    }
+			    }
+		    }
+	    }
     }
 
 	/**
@@ -46,11 +99,11 @@ class Automation {
 
 				if ( 'shipped' === $shipment_order->get_shipping_status() ) {
 					/**
-					 * Filter to adjust the status of an order after all it's required
-					 * shipments has been marked as shipped. Does only take effect if the automation option has been set
+					 * Filter to adjust the new status of an order after all it's required
+					 * shipments have been marked as shipped. Does only take effect if the automation option has been set
 					 * within the shipment settings.
 					 *
-					 * @param boolean $status The order status to be used.
+					 * @param string  $status The order status to be used.
 					 * @param integer $shipment_id The shipment id.
 					 *
 					 * @since 3.0.5
@@ -73,10 +126,10 @@ class Automation {
 		    $shipments = $order_shipment->get_simple_shipments();
 
 		    foreach( $shipments as $shipment ) {
-			    if ( $shipment->is_editable() ) {
+
+		    	if ( $shipment->is_editable() ) {
 			    	$shipment->sync();
 			    	$shipment->sync_items();
-				    $shipment->set_status( $shipment_status );
 				    $shipment->save();
 			    }
 		    }
@@ -94,7 +147,7 @@ class Automation {
     public static function maybe_create_shipments( $order_id ) {
 
     	// Make sure that MetaBox is saved before we process automation
-    	if ( isset( $_POST['action'] ) && 'editpost' === $_POST['action'] && isset( $_POST['post_type'] ) && 'shop_order' === $_POST['post_type'] ) {
+    	if ( self::is_admin_edit_order_request() ) {
 			add_action( 'woocommerce_process_shop_order_meta', array( __CLASS__, 'create_shipments' ), 70 );
 	    } else {
     		self::create_shipments( $order_id );

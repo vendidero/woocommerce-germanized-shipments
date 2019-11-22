@@ -41,12 +41,313 @@ class Ajax {
             'validate_shipment_item_quantities',
             'json_search_orders',
 	        'update_shipment_status',
-	        'shipments_bulk_action_handle'
+	        'shipments_bulk_action_handle',
+	        'remove_shipping_provider',
+	        'edit_shipping_provider_status',
+	        'create_shipment_label_form',
+	        'create_shipment_label',
+	        'remove_shipment_label',
+	        'send_shipment_return_label_email'
         );
 
         foreach ( $ajax_events as $ajax_event ) {
             add_action( 'wp_ajax_woocommerce_gzd_' . $ajax_event, array( __CLASS__, $ajax_event ) );
         }
+    }
+
+	public static function send_shipment_return_label_email() {
+		$success = false;
+
+		if ( current_user_can( 'edit_shop_orders' ) && isset( $_REQUEST['shipment_id'] ) ) {
+
+			if ( isset( $_GET['shipment_id'] ) ) {
+				$referrer = check_admin_referer( 'send-shipment-return-label' );
+			} else {
+				$referrer = check_ajax_referer( 'send-shipment-return-label', 'security' );
+			}
+
+			if ( $referrer ) {
+				$shipment_id = absint( wp_unslash( $_REQUEST['shipment_id'] ) );
+
+				if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
+					if ( 'return' === $shipment->get_type() && $shipment->has_label() ) {
+						$label = $shipment->get_label();
+
+						if ( 'return' === $label->get_type() ) {
+							if ( $label->send_to_customer( true ) ) {
+								$success = true;
+							}
+						}
+					}
+				}
+			}
+
+			if ( isset( $_GET['shipment_id'] ) ) {
+				wp_safe_redirect( wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=wc-gzd-return-shipments' ) );
+				exit;
+			} else {
+				if ( $success ) {
+					wp_send_json( array(
+						'success'  => true,
+						'messages' => array(
+							_x( 'Label successfully sent to customer.', 'shipments', 'woocommerce-germanized-shipments' )
+						),
+					) );
+				} else {
+					wp_send_json( array(
+						'success'  => false,
+						'messages' => array(
+							_x( 'There was an error while sending the label.', 'shipments', 'woocommerce-germanized-shipments' )
+						),
+					) );
+				}
+			}
+		}
+	}
+
+    public static function create_shipment_label_form() {
+	    check_ajax_referer( 'create-shipment-label-form', 'security' );
+
+	    if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['shipment_id'] ) ) {
+		    wp_die( -1 );
+	    }
+
+	    $shipment_id    = absint( $_POST['shipment_id'] );
+	    $response       = array();
+	    $response_error = array(
+		    'success'  => false,
+		    'messages' => array(
+			    _x( 'There was an error creating the label.', 'shipments', 'woocommerce-germanized-shipments' )
+		    ),
+	    );
+
+	    if ( ! $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
+		    wp_send_json( $response_error );
+	    }
+
+	    if ( $shipment->supports_label() && $shipment->needs_label() ) {
+		    ob_start();
+		    $shipment->print_label_admin_fields();
+		    $html = ob_get_clean();
+	    }
+
+	    $response = array(
+		    'fragments' => array(
+			    '.wc-gzd-shipment-create-label' => '<div class="wc-gzd-shipment-create-label">' . $html . '</div>',
+		    ),
+		    'shipment_id' => $shipment_id,
+		    'success'     => true,
+	    );
+
+	    wp_send_json( $response );
+    }
+
+	public static function remove_shipment_label() {
+		check_ajax_referer( 'remove-shipment-label', 'security' );
+
+		if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['shipment_id'] ) ) {
+			wp_die( -1 );
+		}
+
+		$response       = array();
+		$response_error = array(
+			'success'  => false,
+			'messages' => array(
+				_x( 'There was an error deleting the label.', 'shipments', 'woocommerce-germanized-shipments' )
+			),
+		);
+
+		$shipment_id = absint( $_POST['shipment_id'] );
+
+		if ( ! $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
+			wp_send_json( $response_error );
+		}
+
+		if ( ! $label = $shipment->get_label() ) {
+			wp_send_json( $response_error );
+		}
+
+		if ( $label->delete( true ) ) {
+			$response = array(
+				'success'       => true,
+				'shipment_id'   => $shipment->get_id(),
+				'needs_refresh' => true,
+				'fragments'     => array(
+					'div#shipment-' . $shipment_id => self::get_shipment_html( $shipment ),
+				),
+			);
+		} else {
+			wp_send_json( $response_error );
+		}
+
+		wp_send_json( $response );
+	}
+
+    public static function create_shipment_label() {
+	    check_ajax_referer( 'create-shipment-label', 'security' );
+
+	    if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['shipment_id'] ) ) {
+		    wp_die( -1 );
+	    }
+
+	    $response       = array();
+	    $response_error = array(
+		    'success'  => false,
+		    'messages' => array(
+			    _x( 'There was an error processing the label.', 'shipments', 'woocommerce-germanized-shipments' )
+		    ),
+	    );
+
+	    $shipment_id = absint( $_POST['shipment_id'] );
+	    $result      = false;
+
+	    if ( ! $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
+		    wp_send_json( $response_error );
+	    }
+
+	    if ( $shipment->supports_label() && $shipment->needs_label() ) {
+
+	    	$data     = array();
+		    $raw_data = $_POST;
+	    	$prefix   = "{$shipment->get_shipping_provider()}_label_";
+
+		    foreach( $_POST as $key => $value ) {
+			    if ( substr( $key, 0, strlen( $prefix ) ) === $prefix ) {
+				    $new_key           = substr( $key, ( strlen( $prefix ) ) );
+				    $data[ $new_key ]  = wc_clean( wp_unslash( $value ) );
+			    }
+		    }
+
+	    	$result = $shipment->create_label( $data, $raw_data );
+	    }
+
+	    if ( is_wp_error( $result ) ) {
+		    $response = array(
+			    'success'  => false,
+			    'messages' => $result->get_error_messages(),
+		    );
+	    } elseif ( $label = $shipment->get_label() ) {
+
+	    	$order_shipment = wc_gzd_get_shipment_order( $shipment->get_order() );
+
+		    $response = array(
+			    'success'       => true,
+			    'label_id'      => $label->get_id(),
+			    'shipment_id'   => $shipment_id,
+			    'needs_refresh' => true,
+			    'fragments'     => array(
+				    'div#shipment-' . $shipment_id => self::get_shipment_html( $shipment ),
+				    '.order-shipping-status' => $order_shipment ? self::get_order_status_html( $order_shipment ) : '',
+				    'tr#shipment-' . $shipment_id . ' td.actions .wc-gzd-shipment-action-button-generate-label' => self::label_download_button_html( $shipment ),
+			    ),
+		    );
+	    } else {
+	    	$response = $response_error;
+	    }
+
+	    wp_send_json( $response );
+    }
+
+    protected static function get_shipment_html( $p_shipment, $p_is_active = true ) {
+	    $is_active = $p_is_active;
+	    $shipment  = $p_shipment;
+
+	    ob_start();
+	    include( Package::get_path() . '/includes/admin/views/html-order-shipment.php' );
+	    $html = ob_get_clean();
+
+	    return $html;
+    }
+
+	protected static function get_label_html( $p_shipment, $p_label = false ) {
+		$shipment = $p_shipment;
+
+		if ( $p_label ) {
+			$label = $p_label;
+		}
+
+		ob_start();
+		include( Package::get_path() . '/includes/admin/views/label/html-shipment-label.php' );
+		$html = ob_get_clean();
+
+		return $html;
+	}
+
+	/**
+	 * @param Shipment $shipment
+	 *
+	 * @return string
+	 */
+	protected static function label_download_button_html( $shipment ) {
+		return '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-download-label download" href="' . $shipment->get_label_download_url() .'" target="_blank" title="' . _x( 'Download label', 'shipments', 'woocommerce-germanized-shipments' ) . '">' . _x(  'Download label', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+	}
+
+    public static function edit_shipping_provider_status() {
+	    check_ajax_referer( 'edit-shipping-providers', 'security' );
+
+	    if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['provider'] ) || ! isset( $_POST['enable'] ) ) {
+		    wp_die( -1 );
+	    }
+
+	    $response_error = array(
+		    'success' => false,
+		    'message' => _x( 'There was an error while trying to save the shipping provider status.', 'shipments', 'woocommerce-germanized-shipments' ),
+	    );
+
+	    $provider = sanitize_key( wc_clean( $_POST['provider'] ) );
+	    $enable   = wc_clean( $_POST['enable'] );
+	    $helper   = ShippingProviders::instance();
+	    $response = array(
+		    'success'  => true,
+		    'provider' => $provider,
+		    'message'  => '',
+	    );
+
+	    $helper->load_shipping_providers();
+
+	    if ( $shipping_provider = $helper->get_shipping_provider( $provider ) ) {
+	    	if ( 'yes' === $enable ) {
+	    		$response['activated'] = 'yes';
+	    		$shipping_provider->activate();
+		    } else {
+			    $response['activated'] = 'no';
+			    $shipping_provider->deactivate();
+		    }
+
+		    wp_send_json( $response );
+	    } else {
+		    wp_send_json( $response_error );
+	    }
+    }
+
+    public static function remove_shipping_provider() {
+	    check_ajax_referer( 'remove-shipping-provider', 'security' );
+
+	    if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['provider'] ) ) {
+		    wp_die( -1 );
+	    }
+
+	    $response_error = array(
+		    'success' => false,
+		    'message' => _x( 'There was an error while trying to delete the shipping provider.', 'shipments', 'woocommerce-germanized-shipments' ),
+	    );
+
+	    $provider = sanitize_key( wc_clean( $_POST['provider'] ) );
+	    $helper   = ShippingProviders::instance();
+	    $response = array(
+		    'success'  => true,
+		    'provider' => $provider,
+		    'message'  => '',
+	    );
+
+	    $helper->load_shipping_providers();
+
+	    if ( $shipping_provider = $helper->get_shipping_provider( $provider ) ) {
+	    	$shipping_provider->delete();
+		    wp_send_json( $response );
+	    } else {
+		    wp_send_json( $response_error );
+	    }
     }
 
     public static function shipments_bulk_action_handle() {

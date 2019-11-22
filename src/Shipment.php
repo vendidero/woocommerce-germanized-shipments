@@ -6,12 +6,15 @@
  * @version 1.0.0
  */
 namespace Vendidero\Germanized\Shipments;
+use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
+use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
 use WC_Data_Store_WP;
 use WC_DateTime;
 use WC_Order;
+use WP_Error;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -562,6 +565,12 @@ abstract class Shipment extends WC_Data {
 	 * @return string
 	 */
 	public function get_tracking_url() {
+		$tracking_url = '';
+
+		if ( $provider = $this->get_shipping_provider_instance() ) {
+			$tracking_url = $provider->get_tracking_url( $this );
+		}
+
 		/**
 		 * Filter to adjust a Shipment's tracking URL.
 		 *
@@ -570,13 +579,13 @@ abstract class Shipment extends WC_Data {
 		 *
 		 * Example hook name: woocommerce_gzd_shipment_get_tracking_url
 		 *
-		 * @param string                                   $tracking_url The tracking URL.
-		 * @param Shipment $this The shipment object.
+		 * @param string   $tracking_url The tracking URL.
+		 * @param Shipment $shipment The shipment object.
 		 *
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( "{$this->get_hook_prefix()}tracking_url", '', $this );
+		return apply_filters( "{$this->get_hook_prefix()}tracking_url", $tracking_url, $this );
 	}
 
 	/**
@@ -587,8 +596,9 @@ abstract class Shipment extends WC_Data {
 	public function get_tracking_instruction() {
 		$instruction = '';
 
-		if ( $this->get_shipping_provider() && $this->get_tracking_id() ) {
-			$instruction = sprintf( _x( 'Your shipment is being processed by %s. If you want to track the shipment, please use the following tracking number: %s. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_provider_title( $this->get_shipping_provider() ), $this->get_tracking_id() );
+		if ( $provider = $this->get_shipping_provider_instance() ) {
+			// $instruction = sprintf( _x( 'Your shipment is being processed by %s. If you want to track the shipment, please use the following tracking number: %s. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_provider_title( $this->get_shipping_provider() ), $this->get_tracking_id() );
+			$instruction = $provider->get_tracking_desc( $this );
 		}
 
 		/**
@@ -629,9 +639,15 @@ abstract class Shipment extends WC_Data {
 	    return $this->get_prop( 'shipping_provider', $context );
     }
 
-	public function needs_shipping_provider_select() {
-		return false;
-	}
+    public function get_shipping_provider_instance() {
+    	$provider = $this->get_shipping_provider();
+
+    	if ( ! empty( $provider ) ) {
+    		return wc_gzd_get_shipping_provider( $provider );
+	    }
+
+    	return false;
+    }
 
 	/**
 	 * Returns the formatted shipping address.
@@ -644,6 +660,49 @@ abstract class Shipment extends WC_Data {
 
         return $address ? $address : $empty_content;
     }
+
+	/**
+	 * Get a formatted shipping address for the order.
+	 *
+	 * @return string
+	 */
+	public function get_address_map_url( $address ) {
+		// Remove name and company before generate the Google Maps URL.
+		unset( $address['first_name'], $address['last_name'], $address['company'], $address['email'], $address['phone'], $address['title'] );
+
+		/**
+		 * Filter to adjust a Shipment's address parts used for constructing the Google maps URL.
+		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type.
+		 *
+		 * Example hook name: woocommerce_gzd_shipment_get_address_map_url_parts
+		 *
+		 * @param string[] $address The address parts used.
+		 * @param Shipment $this The shipment object.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		$address = apply_filters( "{$this->get_hook_prefix()}address_map_url_parts", $address, $this );
+		$address = array_filter( $address );
+
+		/**
+		 * Filter to adjust a Shipment's address Google maps URL.
+		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type.
+		 *
+		 * Example hook name: woocommerce_gzd_shipment_get_address_map_url
+		 *
+		 * @param string   $url The address url.
+		 * @param Shipment $this The shipment object.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( "{$this->get_hook_prefix()}address_map_url", 'https://maps.google.com/maps?&q=' . rawurlencode( implode( ', ', $address ) ) . '&z=16', $this );
+	}
 
 	/**
 	 * Returns the shipment address phone number.
@@ -727,6 +786,21 @@ abstract class Shipment extends WC_Data {
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( 'woocommerce_gzd_get_shipment_address_street', $split['street'], $this );
+	}
+
+	public function get_address_street_addition( $type = 'address_1' ) {
+		$split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
+
+		/**
+		 * Filter to adjust the shipment address street addition.
+		 *
+		 * @param string   $addition The shipment address street addition e.g. EG14.
+		 * @param Shipment $shipment The shipment object.
+		 *
+		 * @since 3.0.6
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_get_shipment_address_street_addition', $split['addition'], $this );
 	}
 
 	public function get_address_street_addition( $type = 'address_1' ) {
@@ -1469,8 +1543,21 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @return bool|WC_Order|null
 	 */
-	public function get_order() {
-		return false;
+	abstract public function get_order();
+
+	abstract public function get_order_id();
+
+	/**
+	 * Returns the formatted order number.
+	 *
+	 * @return string
+	 */
+	public function get_order_number() {
+		if ( $order = $this->get_order() ) {
+			return $order->get_order_number();
+		}
+
+		return $this->get_order_id();
 	}
 
 	/**
@@ -1548,6 +1635,232 @@ abstract class Shipment extends WC_Data {
 
 	public function sync_items( $args = array() ) {
 		return false;
+	}
+
+	/**
+	 * Returns a label
+	 *
+	 * @return boolean|ShipmentLabel|ShipmentReturnLabel
+	 */
+	public function get_label() {
+
+		$provider = $this->get_shipping_provider();
+
+		if ( ! empty( $provider ) ) {
+			$provider = $provider . '_';
+		}
+
+		/**
+		 * Filter for shipping providers to retrieve the `ShipmentLabel` corresponding to a certain shipment.
+		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type. `$provider` is related to the current shipping provider
+		 * for the shipment (slug).
+		 *
+		 * Example hook name: `woocommerce_gzd_return_shipment_get_dhl_label`
+		 *
+		 * @param boolean|ShipmentLabel $label The label instance.
+		 * @param Shipment              $shipment The current shipment instance.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( "{$this->get_hook_prefix()}{$provider}label", false, $this );
+	}
+
+	/**
+	 * Output label admin fields.
+	 */
+	public function print_label_admin_fields() {
+
+		$provider    = $this->get_shipping_provider();
+		// Cut away _get from prefix
+		$hook_prefix = substr( $this->get_hook_prefix(), 0, -4 );
+
+		if ( ! empty( $provider ) ) {
+			$provider = $provider . '_';
+		}
+
+		/**
+		 * Action for shipping providers to output available admin settings while creating a label.
+		 *
+		 * The dynamic portion of this hook, `$hook_prefix` is used to construct a
+		 * unique hook for a shipment type. `$provider` is related to the current shipping provider
+		 * for the shipment (slug).
+		 *
+		 * Example hook name: `woocommerce_gzd_return_shipment_print_dhl_label_admin_fields`
+		 *
+		 * @param Shipment $shipment The current shipment instance.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		do_action( "{$hook_prefix}print_{$provider}label_admin_fields", $this );
+	}
+
+	public function create_label( $props = array(), $raw_data = array() ) {
+		$provider    = $this->get_shipping_provider();
+		// Cut away _get from prefix
+		$hook_prefix = substr( $this->get_hook_prefix(), 0, -4 );
+
+		if ( ! empty( $provider ) ) {
+			$provider = $provider . '_';
+		}
+
+		$error = new WP_Error();
+
+		/**
+		 * Action for shipping providers to create the `ShipmentLabel` corresponding to a certain shipment.
+		 *
+		 * The dynamic portion of this hook, `$hook_prefix` is used to construct a
+		 * unique hook for a shipment type. `$provider` is related to the current shipping provider
+		 * for the shipment (slug).
+		 *
+		 * Example hook name: `woocommerce_gzd_return_shipment_create_dhl_label`
+		 *
+		 * @param array     $props Array containing props extracted from post data (if created manually) and sanitized via `wc_clean`.
+		 * @param WP_Error  $error An WP_Error instance useful for returning errors while creating the label.
+		 * @param Shipment  $shipment The current shipment instance.
+		 * @param array     $raw_data Raw post data unsanitized.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		 do_action( "{$hook_prefix}create_{$provider}label", $props, $error, $this, $raw_data );
+
+		 if ( $error->has_errors() ) {
+		 	return $error;
+		 } else {
+		 	return true;
+		 }
+	}
+
+	/**
+	 * Whether or not the current shipments supports labels or not.
+	 *
+	 * @return bool
+	 */
+	public function supports_label() {
+		if ( $provider = $this->get_shipping_provider_instance() ) {
+
+			if ( $provider->supports_labels( $this->get_type() ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Whether or not the current shipments needs a label or not.
+	 *
+	 * @return bool
+	 */
+	public function needs_label( $check_status = true ) {
+		$needs_label = true;
+		$provider    = $this->get_shipping_provider();
+		// Cut away _get from prefix
+		$hook_prefix = substr( $this->get_hook_prefix(), 0, -4 );
+
+		if ( ! empty( $provider ) ) {
+			$provider = $provider . '_';
+		}
+
+		if ( $this->has_label() ) {
+			$needs_label = false;
+		}
+
+		if ( ! $this->supports_label() ) {
+			$needs_label = false;
+		}
+
+		// If shipment is already delivered
+		if ( $check_status && $this->has_status( array( 'delivered', 'shipped', 'returned' ) ) ) {
+			$needs_label = false;
+		}
+
+		/**
+		 * Filter for shipping providers to decide whether the shipment needs a label or not.
+		 *
+		 * The dynamic portion of this hook, `$hook_prefix` is used to construct a
+		 * unique hook for a shipment type. `$provider` is related to the current shipping provider
+		 * for the shipment (slug).
+		 *
+		 * Example hook name: `woocommerce_gzd_return_shipment_needs_dhl_label`
+		 *
+		 * @param boolean   $needs_label Whether or not the shipment needs a label.
+		 * @param boolean   $check_status Whether or not checking the shipment status is needed.
+		 * @param Shipment  $shipment The current shipment instance.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( "{$hook_prefix}needs_{$provider}label", $needs_label, $check_status, $this );
+	}
+
+	/**
+	 * Whether or not the current shipment has a valid label or not.
+	 *
+	 * @return bool
+	 */
+	public function has_label() {
+		$label = $this->get_label();
+
+		if ( $label && is_a( $label, '\Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel' ) ) {
+
+			if ( 'return' === $label->get_type() ) {
+				if ( ! is_a( $label, '\Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel' ) ) {
+					return false;
+				}
+			}
+
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public function get_label_download_url( $args = array() ) {
+		$provider = $this->get_shipping_provider();
+
+		if ( ! empty( $provider ) ) {
+			$provider = $provider . '_';
+		}
+
+		$download_url = add_query_arg( array( 'action' => 'wc-gzd-download-shipment-label', 'shipment_id' => $this->get_id() ), wp_nonce_url( admin_url(), 'download-shipment-label' ) );
+
+		foreach( $args as $arg => $val ) {
+			if ( is_bool( $val ) ) {
+				$args[ $arg ] = wc_bool_to_string( $val );
+			}
+		}
+
+		$download_url = add_query_arg( $args, $download_url );
+
+		/**
+		 * Filter for shipping providers to adjust the label download URL.
+		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type. `$provider` is related to the current shipping provider
+		 * for the shipment (slug).
+		 *
+		 * Example hook name: `woocommerce_gzd_return_shipment_get_dhl_label_download_url`
+		 *
+		 * @param string   $url The download URL.
+		 * @param Shipment $shipment The current shipment instance.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( "{$this->get_hook_prefix()}{$provider}label_download_url", $download_url, $this );
+	}
+
+	public function add_note( $note, $added_by_user = false ) {
+		if ( $order = $this->get_order() ) {
+			if ( is_callable( array( $order, 'add_order_note' ) ) ) {
+				$order->add_order_note( $note, 0, $added_by_user );
+			}
+		}
 	}
 
 	/**
