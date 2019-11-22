@@ -40,28 +40,37 @@
   max-width: 100%; }
 
 .germanized-create-label p.form-field.form-field-checkbox {
+  display: -webkit-box;
   display: flex;
   flex-wrap: wrap;
-  flex-direction: row;
-  justify-content: flex-start;
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: normal;
+          flex-direction: row;
+  -webkit-box-pack: start;
+          justify-content: flex-start;
   margin-top: 10px !important;
   margin-bottom: 10px !important;
-  align-items: center; }
+  -webkit-box-align: center;
+          align-items: center; }
   .germanized-create-label p.form-field.form-field-checkbox label {
     width: auto;
     margin-left: .5em;
-    order: 2;
+    -webkit-box-ordinal-group: 3;
+            order: 2;
     margin-bottom: 0; }
   .germanized-create-label p.form-field.form-field-checkbox input[type=checkbox] {
-    order: 1; }
+    -webkit-box-ordinal-group: 2;
+            order: 1; }
   .germanized-create-label p.form-field.form-field-checkbox .woocommerce-help-tip {
-    order: 3;
+    -webkit-box-ordinal-group: 4;
+            order: 3;
     margin-left: 3px; }
   .germanized-create-label p.form-field.form-field-checkbox .description {
     width: 100%;
     margin-top: 5px;
     color: #777;
-    order: 4;
+    -webkit-box-ordinal-group: 5;
+            order: 4;
     font-style: normal; }
 
 table.wc-gzd-shipping-providers {
@@ -84,8 +93,10 @@ table.wc-gzd-shipping-providers {
     width: 15%;
     text-align: right; }
   table.wc-gzd-shipping-providers td.wc-gzd-shipping-provider-actions {
+    display: -webkit-box;
     display: flex;
-    justify-content: flex-end;
+    -webkit-box-pack: end;
+            justify-content: flex-end;
     flex-wrap: wrap; }
     table.wc-gzd-shipping-providers td.wc-gzd-shipping-provider-actions .button {
       margin-right: 5px; }
@@ -167,19 +178,23 @@ table.wc-gzd-shipping-providers {
     border-radius: 3px;
     box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.4);
     background: #a46497;
+    background: -webkit-gradient(linear, left top, left bottom, from(#a46497), to(#66405f)), #a46497;
     background: linear-gradient(to bottom, #a46497, #66405f), #a46497;
+    -webkit-transition: width 1s ease;
     transition: width 1s ease; }
   .woocommerce_page_wc-gzd-shipments #posts-filter .bulk-action-wrapper progress::-moz-progress-bar, .woocommerce_page_wc-gzd-return-shipments #posts-filter .bulk-action-wrapper progress::-moz-progress-bar {
     border-radius: 3px;
     box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.4);
     background: #a46497;
     background: linear-gradient(to bottom, #a46497, #66405f), #a46497;
+    -webkit-transition: width 1s ease;
     transition: width 1s ease; }
   .woocommerce_page_wc-gzd-shipments #posts-filter .bulk-action-wrapper progress::-ms-fill, .woocommerce_page_wc-gzd-return-shipments #posts-filter .bulk-action-wrapper progress::-ms-fill {
     border-radius: 3px;
     box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.4);
     background: #a46497;
     background: linear-gradient(to bottom, #a46497, #66405f), #a46497;
+    -webkit-transition: width 1s ease;
     transition: width 1s ease; }
 
 .woocommerce_page_wc-gzd-shipments #posts-filter.bulk-action-processing .bulk-action-wrapper, .woocommerce_page_wc-gzd-return-shipments #posts-filter.bulk-action-processing .bulk-action-wrapper {
@@ -320,9 +335,11 @@ table.wc-gzd-shipping-providers {
     border-top: 1px solid #dfdfdf;
     display: none; }
     .germanized-shipments #panel-order-shipments .panel-footer .order-shipments-actions {
+      display: -webkit-box;
       display: flex;
       flex-wrap: nowrap;
-      justify-content: space-between; }
+      -webkit-box-pack: justify;
+              justify-content: space-between; }
     .germanized-shipments #panel-order-shipments .panel-footer #order-shipments-save {
       display: none; }
   .germanized-shipments #panel-order-shipments #order-shipment-add {
@@ -348,11 +365,14 @@ table.wc-gzd-shipping-providers {
   .germanized-shipments #panel-order-shipments .order-shipment .wc-gzd-shipment-label h4 {
     margin-top: 0; }
   .germanized-shipments #panel-order-shipments .order-shipment .wc-gzd-shipment-label .shipment-label-actions .shipment-label-actions-wrapper {
+    display: -webkit-box;
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-start;
+    -webkit-box-pack: start;
+            justify-content: flex-start;
     margin-bottom: 1em;
-    align-items: center; }
+    -webkit-box-align: center;
+            align-items: center; }
     .germanized-shipments #panel-order-shipments .order-shipment .wc-gzd-shipment-label .shipment-label-actions .shipment-label-actions-wrapper a {
       margin-right: 1em; }
   .germanized-shipments #panel-order-shipments .order-shipment .show-if {
@@ -364,9 +384,11 @@ table.wc-gzd-shipping-providers {
   .germanized-shipments #panel-order-shipments .order-shipment .item-count {
     margin-right: 1em; }
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-footer {
+    display: -webkit-box;
     display: flex;
     flex-wrap: nowrap;
-    justify-content: flex-end; }
+    -webkit-box-pack: end;
+            justify-content: flex-end; }
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-header {
     color: #999;
     background: #f8f8f8;
@@ -425,8 +447,10 @@ table.wc-gzd-shipping-providers {
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item {
     padding: .7em .5em; }
     .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item .columns {
-      align-items: center; }
+      -webkit-box-align: center;
+              align-items: center; }
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-item-actions {
+    display: -webkit-box;
     display: flex;
     padding: .7em .5em;
     flex-wrap: nowrap;
@@ -452,6 +476,7 @@ table.wc-gzd-shipping-providers {
     display: block; }
   .germanized-shipments #panel-order-shipments .form-row .wrap {
     margin: 0;
+    display: -webkit-box;
     display: flex;
     flex-wrap: nowrap; }
     .germanized-shipments #panel-order-shipments .form-row .wrap input {
@@ -460,13 +485,18 @@ table.wc-gzd-shipping-providers {
         margin-right: 0; }
 
 .germanized-shipments .title-spread {
+  display: -webkit-box;
   display: flex;
   flex-wrap: nowrap;
-  justify-content: space-between;
-  align-items: center; }
+  -webkit-box-pack: justify;
+          justify-content: space-between;
+  -webkit-box-align: center;
+          align-items: center; }
   .germanized-shipments .title-spread .right, .germanized-shipments .title-spread .left {
+    display: -webkit-inline-box;
     display: inline-flex;
-    align-items: center; }
+    -webkit-box-align: center;
+            align-items: center; }
 
 .germanized-shipments .show-xs,
 .germanized-shipments .show-sm,
@@ -476,6 +506,7 @@ table.wc-gzd-shipping-providers {
   display: none !important; }
 
 .germanized-shipments .columns {
+  display: -webkit-box;
   display: flex;
   flex-wrap: wrap;
   margin-left: -1rem;
@@ -491,12 +522,14 @@ table.wc-gzd-shipping-providers {
     overflow-x: auto; }
 
 .germanized-shipments .column {
-  flex: 1;
+  -webkit-box-flex: 1;
+          flex: 1;
   max-width: 100%;
   padding-left: 1rem;
   padding-right: 1rem; }
   .germanized-shipments .column.col-12, .germanized-shipments .column.col-11, .germanized-shipments .column.col-10, .germanized-shipments .column.col-9, .germanized-shipments .column.col-8, .germanized-shipments .column.col-7, .germanized-shipments .column.col-6, .germanized-shipments .column.col-5, .germanized-shipments .column.col-4, .germanized-shipments .column.col-3, .germanized-shipments .column.col-2, .germanized-shipments .column.col-1, .germanized-shipments .column.col-auto {
-    flex: none; }
+    -webkit-box-flex: 0;
+            flex: none; }
 
 .germanized-shipments .col-12 {
   width: 100%; }
@@ -535,7 +568,8 @@ table.wc-gzd-shipping-providers {
   width: 8.33333333%; }
 
 .germanized-shipments .col-auto {
-  flex: 0 0 auto;
+  -webkit-box-flex: 0;
+          flex: 0 0 auto;
   max-width: none;
   width: auto; }
 
@@ -563,7 +597,8 @@ table.wc-gzd-shipping-providers {
   .germanized-shipments .col-xl-2,
   .germanized-shipments .col-xl-1,
   .germanized-shipments .col-xl-auto {
-    flex: none; }
+    -webkit-box-flex: 0;
+            flex: none; }
   .germanized-shipments .col-xl-12 {
     width: 100%; }
   .germanized-shipments .col-xl-11 {
@@ -609,7 +644,8 @@ table.wc-gzd-shipping-providers {
   .germanized-shipments .col-lg-2,
   .germanized-shipments .col-lg-1,
   .germanized-shipments .col-lg-auto {
-    flex: none; }
+    -webkit-box-flex: 0;
+            flex: none; }
   .germanized-shipments .col-lg-12 {
     width: 100%; }
   .germanized-shipments .col-lg-11 {
@@ -655,7 +691,8 @@ table.wc-gzd-shipping-providers {
   .germanized-shipments .col-md-2,
   .germanized-shipments .col-md-1,
   .germanized-shipments .col-md-auto {
-    flex: none; }
+    -webkit-box-flex: 0;
+            flex: none; }
   .germanized-shipments .col-md-12 {
     width: 100%; }
   .germanized-shipments .col-md-11 {
@@ -701,7 +738,8 @@ table.wc-gzd-shipping-providers {
   .germanized-shipments .col-sm-2,
   .germanized-shipments .col-sm-1,
   .germanized-shipments .col-sm-auto {
-    flex: none; }
+    -webkit-box-flex: 0;
+            flex: none; }
   .germanized-shipments .col-sm-12 {
     width: 100%; }
   .germanized-shipments .col-sm-11 {
@@ -747,7 +785,8 @@ table.wc-gzd-shipping-providers {
   .germanized-shipments .col-xs-2,
   .germanized-shipments .col-xs-1,
   .germanized-shipments .col-xs-auto {
-    flex: none; }
+    -webkit-box-flex: 0;
+            flex: none; }
   .germanized-shipments .col-xs-12 {
     width: 100%; }
   .germanized-shipments .col-xs-11 {
