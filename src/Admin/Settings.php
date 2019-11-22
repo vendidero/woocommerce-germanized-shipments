@@ -269,8 +269,12 @@ class Settings {
 		}
 
 		WC_Admin_Settings::save_fields( $settings );
-
 		$provider->save();
+
+		if ( 'new' === $provider_name ) {
+			$url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=' . $provider->get_name() );
+			wp_safe_redirect( $url );
+		}
 	}
 
 	public static function get_settings( $current_section = '' ) {
@@ -332,7 +336,7 @@ class Settings {
 
 	public static function get_section_title_link( $section ) {
 		if ( 'provider' === $section && ! isset( $_GET['provider'] ) ) {
-			return '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=new' ) . '" class="page-title-action">' . _x( 'Add provider', 'shipments', 'woocommerce-germanized' ) . '</a>';
+			return '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=new' ) . '" class="page-title-action">' . _x( 'Add provider', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
 		}
 
 		return '';
@@ -354,25 +358,6 @@ class Settings {
 		$hide_save_button = true;
 		self::provider_screen();
 	}
-
-	/*protected static function edit_provider_screen( $provider_name = '' ) {
-
-
-
-		if ( ! empty( $_POST['save'] ) ) { // WPCS: input var ok, sanitization ok.
-
-			if ( empty( $_REQUEST['_wpnonce'] ) || ! wp_verify_nonce( wp_unslash( $_REQUEST['_wpnonce'] ), 'woocommerce-settings' ) ) { // WPCS: input var ok, sanitization ok.
-				echo '<div class="updated error"><p>' . esc_html__( 'Edit failed. Please try again.', 'woocommerce-germanized' ) . '</p></div>';
-			}
-
-			if ( $provider ) {
-				// $provider->save();
-			}
-		}
-
-		\WC_Admin_Settings::output();
-	}
-	*/
 
 	protected static function provider_screen() {
 

@@ -54,9 +54,11 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	public function create( &$provider ) {
 		global $wpdb;
 
+		$provider->set_name( $this->get_unqiue_name( $provider ) );
+
 		$data = array(
 			'shipping_provider_activated' => $provider->is_activated() ? 1 : 0,
-			'shipping_provider_name'      => $this->get_unqiue_name( $provider ),
+			'shipping_provider_name'      => $provider->get_name( 'edit' ),
 			'shipping_provider_title'     => $provider->get_title( 'edit' ),
 		);
 
