@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments;
 
 use WC_Shipping;
+use WC_Shipping_Method;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -16,7 +17,7 @@ class Package {
      * @var string
      */
 
-    const VERSION = '1.0.7';
+    const VERSION = '1.1.0';
 
 	  public static $upload_dir_suffix = '';
 
@@ -72,6 +73,7 @@ class Package {
 		$shipping_provider_settings = self::get_method_settings();
 
 		foreach( $p_settings as $setting => $value ) {
+
 			if ( array_key_exists( $setting, $shipping_provider_settings ) ) {
 				if ( self::get_setting( $setting ) === $value ) {
 					unset( $p_settings[ $setting ] );
@@ -79,7 +81,18 @@ class Package {
 			}
 		}
 
-		return $p_settings;
+		/**
+		 * Filter that returns shipping method settings cleaned from global shipping provider method settings.
+		 * This filter might be useful to remove some default setting values from
+		 * shipping provider method settings e.g. DHL settings.
+		 *
+		 * @param array               $p_settings The settings
+		 * @param WC_Shipping_Method $method The shipping method instance
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_shipping_provider_method_clean_settings', $p_settings, $method );
 	}
 
 	public static function add_method_settings( $p_settings ) {
