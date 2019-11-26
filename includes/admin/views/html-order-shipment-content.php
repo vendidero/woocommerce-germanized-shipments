@@ -104,10 +104,10 @@ defined( 'ABSPATH' ) || exit;
                 <div class="shipment-item-list-wrapper">
                     <div class="shipment-item-heading">
                         <div class="columns">
-                            <div class="column col-6 shipment-item-name">
+                            <div class="column col-7 shipment-item-name">
 							    <?php echo _x( 'Item', 'shipments', 'woocommerce-germanized-shipments' ); ?>
                             </div>
-                            <div class="column col-3 shipment-item-quantity">
+                            <div class="column col-2 shipment-item-quantity">
 							    <?php echo _x( 'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?>
                             </div>
                             <div class="column col-3 shipment-item-action">

@@ -333,7 +333,7 @@ table.wc-gzd-shipping-providers {
     }
 
     .column-actions {
-      width: 15ch;
+      width: 10ch;
     }
 
     .column-order {
@@ -697,6 +697,8 @@ table.wc-gzd-shipping-providers {
           .shipment-item-quantity {
             input {
               width: 100%;
+              text-align: center;
+              padding: 0 4px;
             }
           }
 

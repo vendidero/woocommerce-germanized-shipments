@@ -233,7 +233,7 @@ table.wc-gzd-shipping-providers {
   .woocommerce_page_wc-gzd-shipments .wp-list-table .column-title, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-title {
     width: 20ch; }
   .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions {
-    width: 15ch; }
+    width: 10ch; }
   .woocommerce_page_wc-gzd-shipments .wp-list-table .column-order, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-order {
     width: 10ch; }
   .woocommerce_page_wc-gzd-shipments .wp-list-table .column-address a, .woocommerce_page_wc-gzd-shipments .wp-list-table .column-sender a, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-address a, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-sender a {
@@ -439,7 +439,9 @@ table.wc-gzd-shipping-providers {
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item-action {
     text-align: right; }
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item-quantity input {
-    width: 100%; }
+    width: 100%;
+    text-align: center;
+    padding: 0 4px; }
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item-heading {
     padding: .5em;
     color: #999;
