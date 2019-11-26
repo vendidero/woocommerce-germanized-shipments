@@ -43,9 +43,7 @@ defined( 'ABSPATH' ) || exit;
             <div class="columns">
 	            <?php
 
-                if ( $shipment->supports_label() ) :
-                    $label = $shipment->get_label();
-
+                if ( $shipment->supports_label() && ( ( $label = $shipment->get_label() ) || $shipment->needs_label() ) ) :
                     include 'label/html-shipment-label.php';
                 endif;
                 ?>
