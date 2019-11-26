@@ -25,7 +25,7 @@ defined( 'ABSPATH' ) || exit;
              * @param ShipmentItem $shipment_item The shipment item instance.
              * @param Shipment     $shipment The shipment instance.
              *
-             * @since 3.1.0
+             * @since 3.0.6
              * @package Vendidero/Germanized/Shipments
              */
             do_action( 'woocommerce_gzd_shipments_meta_box_shipment_item_after_name', $item->get_id(), $item, $shipment ); ?>

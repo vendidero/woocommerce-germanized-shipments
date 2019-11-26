@@ -297,7 +297,7 @@ class ShippingProvider extends WC_Data  {
 		 * @param Shipment         $shipment The shipment used to build the url.
 		 * @param ShippingProvider $provider The shipping provider.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( $this->get_hook_prefix() . 'tracking_url', $tracking_url, $shipment, $this );
@@ -332,7 +332,7 @@ class ShippingProvider extends WC_Data  {
 		 * @param Shipment         $shipment The shipment used to build the url.
 		 * @param ShippingProvider $provider The shipping provider.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( $this->get_hook_prefix() . 'tracking_desc', $tracking_desc, $shipment, $this );
@@ -365,7 +365,7 @@ class ShippingProvider extends WC_Data  {
 		 * @param ShippingProvider $provider The shipping provider.
 		 * @param Shipment|bool    $shipment The shipment instance if available.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( "{$this->get_hook_prefix()}tracking_placeholders", array(
@@ -448,7 +448,7 @@ class ShippingProvider extends WC_Data  {
 		 * @param array            $settings Available settings.
 		 * @param ShippingProvider $provider The shipping provider.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( $this->get_hook_prefix() . 'settings', $settings, $this );

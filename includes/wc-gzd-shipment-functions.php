@@ -140,7 +140,7 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 			 * @param string              $classname The classname.
 			 * @param WC_Shipping_Method $method The shipping method instance.
 			 *
-			 * @since 3.1.0
+			 * @since 3.0.6
 			 * @package Vendidero/Germanized/Shipments
 			 */
 			$classname = apply_filters( 'woocommerce_gzd_shipping_provider_method_classname', 'Vendidero\Germanized\Shipments\ShippingProviderMethod', $method );
@@ -160,7 +160,7 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 	 * @param ShippingProviderMethod $placeholder The placeholder impl.
 	 * @param string                 $original_id The shipping method id.
 	 *
-	 * @since 3.1.0
+	 * @since 3.0.6
 	 * @package Vendidero/Germanized/Shipments
 	 */
 	return apply_filters( 'woocommerce_gzd_shipping_provider_method_fallback', $placeholder, $original_id );
@@ -445,7 +445,7 @@ function wc_gzd_get_default_shipping_provider() {
 	 *
 	 * @param string  $title The shipping provider slug.
 	 *
-	 * @since 3.1.0
+	 * @since 3.0.6
 	 * @package Vendidero/Germanized/Shipments
 	 */
 	return apply_filters( 'woocommerce_gzd_default_shipping_provider', $default );
@@ -579,7 +579,7 @@ function wc_gzd_get_shipment_shipping_provider( $order ) {
 	 * @param string   $name The shipping provider name e.g. dhl.
 	 * @param WC_Order $order The order object.
 	 *
-	 * @since 3.1.0
+	 * @since 3.0.6
 	 * @package Vendidero/Germanized/Shipments
 	 */
 	return apply_filters( 'woocommerce_gzd_shipment_order_shipping_provider', $shipping_provider, $order );

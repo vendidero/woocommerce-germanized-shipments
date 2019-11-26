@@ -531,7 +531,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
     /**
      * Get valid WP_Query args from a WC_Order_Query's query variables.
      *
-     * @since 3.1.0
+     * @since 3.0.6
      * @param array $query_vars query vars from a WC_Order_Query.
      * @return array
      */

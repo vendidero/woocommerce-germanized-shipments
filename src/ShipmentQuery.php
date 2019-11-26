@@ -430,7 +430,7 @@ class ShipmentQuery extends WC_Object_Query {
     /**
      * Used internally to generate an SQL string for searching across multiple columns
      *
-     * @since 3.1.0
+     * @since 3.0.6
      *
      * @global wpdb $wpdb WordPress database abstraction object.
      *

@@ -29,7 +29,7 @@ class Table extends WP_List_Table {
     /**
      * Constructor.
      *
-     * @since 3.1.0
+     * @since 3.0.6
      *
      * @see WP_List_Table::__construct() for more information on default arguments.
      *
@@ -451,7 +451,7 @@ class Table extends WP_List_Table {
     /**
      * Display a monthly dropdown for filtering items
      *
-     * @since 3.1.0
+     * @since 3.0.6
      *
      * @global wpdb      $wpdb
      * @global WP_Locale $wp_locale
@@ -511,7 +511,7 @@ class Table extends WP_List_Table {
 	/**
 	 * Generate the table navigation above or below the table
 	 *
-	 * @since 3.1.0
+	 * @since 3.0.6
 	 * @param string $which
 	 */
 	protected function display_tablenav( $which ) {
@@ -916,7 +916,7 @@ class Table extends WP_List_Table {
 	                     * @param ShipmentItem $shipment_item The shipment item instance.
 	                     * @param Shipment $shipment The shipment instance.
 	                     *
-	                     * @since 3.1.0
+	                     * @since 3.0.6
 	                     * @package Vendidero/Germanized/Shipments
 	                     */
 	                    do_action( "{$this->get_hook_prefix()}item_after_name", $item->get_id(), $item, $shipment ); ?>

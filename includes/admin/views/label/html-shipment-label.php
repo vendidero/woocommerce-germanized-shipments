@@ -31,7 +31,7 @@ use Vendidero\Germanized\Shipments\Shipment;
                      * @param ShipmentLabel $label The label object.
 	                 * @param Shipment                 $shipment The shipment object.
 	                 *
-	                 * @since 3.1.0
+	                 * @since 3.0.6
 	                 * @package Vendidero/Germanized/Shipments
 	                 */
 	                do_action( 'woocommerce_gzd_shipment_label_admin_after_download', $label, $shipment ); ?>

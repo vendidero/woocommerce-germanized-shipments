@@ -681,7 +681,7 @@ abstract class Shipment extends WC_Data {
 		 * @param string[] $address The address parts used.
 		 * @param Shipment $this The shipment object.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		$address = apply_filters( "{$this->get_hook_prefix()}address_map_url_parts", $address, $this );
@@ -698,7 +698,7 @@ abstract class Shipment extends WC_Data {
 		 * @param string   $url The address url.
 		 * @param Shipment $this The shipment object.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( "{$this->get_hook_prefix()}address_map_url", 'https://maps.google.com/maps?&q=' . rawurlencode( implode( ', ', $address ) ) . '&z=16', $this );
@@ -1647,7 +1647,7 @@ abstract class Shipment extends WC_Data {
 		 * @param boolean|ShipmentLabel $label The label instance.
 		 * @param Shipment              $shipment The current shipment instance.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( "{$this->get_hook_prefix()}{$provider}label", false, $this );
@@ -1677,7 +1677,7 @@ abstract class Shipment extends WC_Data {
 		 *
 		 * @param Shipment $shipment The current shipment instance.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		do_action( "{$hook_prefix}print_{$provider}label_admin_fields", $this );
@@ -1708,7 +1708,7 @@ abstract class Shipment extends WC_Data {
 		 * @param Shipment  $shipment The current shipment instance.
 		 * @param array     $raw_data Raw post data unsanitized.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		 do_action( "{$hook_prefix}create_{$provider}label", $props, $error, $this, $raw_data );
@@ -1777,7 +1777,7 @@ abstract class Shipment extends WC_Data {
 		 * @param boolean   $check_status Whether or not checking the shipment status is needed.
 		 * @param Shipment  $shipment The current shipment instance.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( "{$hook_prefix}needs_{$provider}label", $needs_label, $check_status, $this );
@@ -1834,7 +1834,7 @@ abstract class Shipment extends WC_Data {
 		 * @param string   $url The download URL.
 		 * @param Shipment $shipment The current shipment instance.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( "{$this->get_hook_prefix()}{$provider}label_download_url", $download_url, $this );

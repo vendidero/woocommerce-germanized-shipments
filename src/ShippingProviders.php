@@ -138,7 +138,7 @@ class ShippingProviders {
 		 *
 		 * @param ShippingProviders $providers The shipping providers instance
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		do_action( 'woocommerce_gzd_load_shipping_providers', $this );

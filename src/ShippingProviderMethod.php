@@ -42,7 +42,7 @@ class ShippingProviderMethod {
 		 *
 		 * @param array $settings Admin setting fields.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( 'woocommerce_gzd_shipping_provider_method_admin_settings', array(
@@ -60,7 +60,7 @@ class ShippingProviderMethod {
 				 *
 				 * @param string $provider_name The shipping provider name e.g. dhl.
 				 *
-				 * @since 3.1.0
+				 * @since 3.0.6
 				 * @package Vendidero/Germanized/Shipments
 				 */
 				'default'     => apply_filters( 'woocommerce_gzd_shipping_provider_method_default_provider', '' ),
@@ -104,7 +104,7 @@ class ShippingProviderMethod {
 		 * @param string                 $key The setting key.
 		 * @param ShippingProviderMethod $method The method instance.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( 'woocommerce_gzd_shipping_provider_method_setting_prefix', $has_option, $key, $this );
@@ -138,7 +138,7 @@ class ShippingProviderMethod {
 		 * @param string                 $method_id The shipping method id.
 		 * @param ShippingProviderMethod $method The method instance.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		$provider_slug = apply_filters( 'woocommerce_gzd_shipping_provider_method_provider', $provider_slug, $this->get_id(), $this );
@@ -153,7 +153,7 @@ class ShippingProviderMethod {
 		 * @param string                 $provider_slug The shipping provider name to be used.
 		 * @param ShippingProviderMethod $method The method instance.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( "woocommerce_gzd_shipping_provider_method_{$id}_provider", $provider_slug, $this );
@@ -188,7 +188,7 @@ class ShippingProviderMethod {
 		 * @param string                 $key The original setting key.
 		 * @param ShippingProviderMethod $method The method instance.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( 'woocommerce_gzd_shipping_provider_method_setting_prefix', $new_key, $key, $this );
@@ -205,7 +205,7 @@ class ShippingProviderMethod {
 		 * @param string                 $key The prefixed setting key.
 		 * @param ShippingProviderMethod $method The method instance.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( 'woocommerce_gzd_shipping_provider_method_setting_value', $option_value, $key, $this );

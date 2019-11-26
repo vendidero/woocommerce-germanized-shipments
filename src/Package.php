@@ -89,7 +89,7 @@ class Package {
 		 * @param array               $p_settings The settings
 		 * @param WC_Shipping_Method $method The shipping method instance
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( 'woocommerce_gzd_shipping_provider_method_clean_settings', $p_settings, $method );
@@ -211,7 +211,7 @@ class Package {
 		 *
 		 * @param string $path Path to the upload directory.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		$args['basedir'] = apply_filters( 'woocommerce_gzd_shipments_upload_path', $upload_base . 'wc-gzd-shipments-' . self::get_upload_dir_suffix() );
@@ -221,7 +221,7 @@ class Package {
 		 *
 		 * @param string $url URL to the upload directory.
 		 *
-		 * @since 3.1.0
+		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		$args['baseurl'] = apply_filters( 'woocommerce_gzd_shipments_upload_url', $upload_url . 'wc-gzd-shipments-' . self::get_upload_dir_suffix() );
