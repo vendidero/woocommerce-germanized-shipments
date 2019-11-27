@@ -121,6 +121,7 @@ class Package {
 	}
 
 	public static function install_integration() {
+    	self::init();
 		self::install();
 	}
 
