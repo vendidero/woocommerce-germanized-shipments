@@ -377,6 +377,21 @@ function wc_gzd_create_shipment_item( $shipment, $order_item, $args = array() ) 
     return $item;
 }
 
+/**
+ * @param WP_Error $error
+ *
+ * @return bool
+ */
+function wc_gzd_shipment_wp_error_has_errors( $error ) {
+	if ( is_callable( array( $error, 'has_errors' ) ) ) {
+		return $error->has_errors();
+	} else {
+		$errors = $error->errors;
+
+		return ( ! empty( $errors ) ? true : false );
+	}
+}
+
 function wc_gzd_create_return_shipment_item( $shipment, $parent_item, $args = array() ) {
 	try {
 
