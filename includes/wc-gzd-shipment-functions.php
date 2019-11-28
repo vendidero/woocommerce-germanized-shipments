@@ -9,6 +9,7 @@
  */
 
 use Vendidero\Germanized\Shipments\Order;
+use Vendidero\Germanized\Shipments\ReturnReason;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\AddressSplitter;
 use Vendidero\Germanized\Shipments\ShipmentFactory;
@@ -378,32 +379,74 @@ function wc_gzd_create_shipment_item( $shipment, $order_item, $args = array() ) 
     return $item;
 }
 
-function wc_gzd_get_shipment_return_reasons( $shipment, $allow_none = true ) {
+/**
+ * @param bool $allow_none
+ * @param bool $shipment
+ *
+ * @return ReturnReason[]
+ */
+function wc_gzd_get_shipment_return_reasons( $allow_none = true, $shipment = false ) {
 	$reasons = array();
 
 	if ( $allow_none ) {
 		$reasons = array(
-			'' => _x( 'None', 'shipments return reason', 'woocommerce-germanized-shipments' ),
+			array(
+				'code'   => '',
+				'reason' => _x( 'None', 'shipments return reason', 'woocommerce-germanized-shipments' ),
+				'order'  => 1,
+			),
 		);
 	}
 
 	$reasons = array_merge( $reasons, array(
-		'look'       => _x( 'Don\'t like the look', 'shipments', 'woocommerce-germanized-shipments' ),
-		'quality'    => _x( 'Of low quality', 'shipments', 'woocommerce-germanized-shipments' ),
-		'product'    => _x( 'Incorrect product or size ordered', 'shipments', 'woocommerce-germanized-shipments' ),
-		'not-needed' => _x( 'Product no longer needed', 'shipments', 'woocommerce-germanized-shipments' ),
+		array(
+			'code'   => 'look',
+			'reason' => _x( 'Don\'t like the look', 'shipments', 'woocommerce-germanized-shipments' ),
+			'order'  => 2,
+		),
+		array(
+			'code'   => 'quality',
+			'reason' => _x( 'Of low quality', 'shipments', 'woocommerce-germanized-shipments' ),
+			'order'  => 3,
+		),
+		array(
+			'code'   => 'product',
+			'reason' => _x( 'Incorrect product or size ordered', 'shipments', 'woocommerce-germanized-shipments' ),
+			'order'  => 4,
+		),
+		array(
+			'code'   => 'not-needed',
+			'reason' => _x( 'Product no longer needed', 'shipments', 'woocommerce-germanized-shipments' ),
+			'order'  => 5,
+		),
 	) );
+
+	$instances = array();
+
+	foreach( $reasons as $reason ) {
+		$instances[] = new ReturnReason( $reason );
+	}
+
+	usort( $instances, '_wc_gzd_sort_shipment_return_reasons' );
 
 	/**
 	 * Filter that allows to adjust available return reasons for a specific shipment.
 	 *
-	 * @param array          $reasons Available return reasons.
-	 * @param ReturnShipment $shipment The return shipment instance.
+	 * @param ReturnReason[] $reasons Available return reasons.
+	 * @param ReturnShipment|false                           $shipment The return shipment instance if available.
 	 *
 	 * @since 3.1.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-	return apply_filters( 'woocommerce_gzd_shipment_return_reasons', $reasons, $shipment );
+	return apply_filters( 'woocommerce_gzd_shipment_return_reasons', $instances, $shipment );
+}
+
+/**
+ * @param ReturnReason $a
+ * @param ReturnReason $b
+ */
+function _wc_gzd_sort_shipment_return_reasons( $a, $b ) {
+	return $a->get_order() == $b->get_order() ? 0 : ( $a->get_order() > $b->get_order() ) ? 1 : -1;
 }
 
 /**

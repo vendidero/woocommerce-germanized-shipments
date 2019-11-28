@@ -38,7 +38,71 @@ class Admin {
 
 	    // Template check
 	    add_filter( 'woocommerce_gzd_template_check', array( __CLASS__, 'add_template_check' ), 10, 1 );
+
+	    // Return reason options
+	    add_action( 'woocommerce_admin_field_shipment_return_reasons', array( __CLASS__, 'output_return_reasons_field' ) );
+	    // add_action( 'woocommerce_gzd_admin_settings_after_save_dhl_labels', array( __CLASS__, 'save_receiver_ids' ) );
     }
+
+	public static function output_return_reasons_field( $value ) {
+		ob_start();
+		?>
+        <tr valign="top">
+            <th scope="row" class="titledesc"><?php echo esc_html_x(  'Return reasons', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+            <td class="forminp" id="shipment_return_reasons">
+                <div class="wc_input_table_wrapper">
+                    <table class="widefat wc_input_table sortable" cellspacing="0">
+                        <thead>
+                        <tr>
+                            <th class="sort">&nbsp;</th>
+                            <th style="width: 10ch;"><?php echo esc_html_x(  'Reason code', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'The reason code is used to identify the reason.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
+                            <th><?php echo esc_html_x(  'Reason', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'Choose a reason text.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
+                        </tr>
+                        </thead>
+                        <tbody class="shipment_return_reasons">
+						<?php
+						$i = -1;
+                        foreach ( wc_gzd_get_shipment_return_reasons( false ) as $reason ) {
+                            $i++;
+
+                            echo '<tr class="reason">
+                                    <td class="sort"></td>
+                                    <td style="width: 10ch;"><input type="text" value="' . esc_attr( wp_unslash( $reason->get_code() ) ) . '" name="shipment_return_reason[' . esc_attr( $i ) . '][code]" /></td>
+                                    <td><input type="text" value="' . esc_attr( wp_unslash( $reason->get_reason() ) ) . '" name="shipment_return_reason[' . esc_attr( $i ) . '][reason]" /></td>
+                                </tr>';
+                        }
+						?>
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th colspan="7"><a href="#" class="add button"><?php echo esc_html_x(  '+ Add reason', 'shipments', 'woocommerce-germanized-shipments' ); ?></a> <a href="#" class="remove_rows button"><?php echo esc_html_x( 'Remove selected reason(s)', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <script type="text/javascript">
+                    jQuery(function() {
+                        jQuery('#shipment_return_reasons').on( 'click', 'a.add', function(){
+
+                            var size = jQuery('#shipment_return_reasons').find('tbody .reason').length;
+
+                            jQuery('<tr class="reason">\
+                                    <td class="sort"></td>\
+									<td style="width: 10ch;"><input type="text" name="shipment_return_reason[' + size + '][code]" /></td>\
+									<td><input type="text" name="shipment_return_reason[' + size + '][reason]" /></td>\
+								</tr>').appendTo('#shipment_return_reasons table tbody');
+
+                            return false;
+                        });
+                    });
+                </script>
+            </td>
+        </tr>
+		<?php
+		$html = ob_get_clean();
+
+		echo $html;
+	}
 
 	public static function download_label() {
 		if ( isset( $_GET['action'] ) && 'wc-gzd-download-shipment-label' === $_GET['action'] ) {
