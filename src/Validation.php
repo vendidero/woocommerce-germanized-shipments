@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments;
 use Exception;
 use WC_Order;
+use WC_Order_Item;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -11,7 +12,7 @@ class Validation {
     private static $current_refund_parent_order = false;
 
     public static function init() {
-        add_action( 'woocommerce_update_order_item', array( __CLASS__, 'update_order_item' ), 10, 3 );
+        add_action( 'woocommerce_update_order_item', array( __CLASS__, 'update_order_item' ), 10, 2 );
         add_action( 'woocommerce_new_order_item', array( __CLASS__, 'create_order_item' ), 10, 3 );
         add_action( 'woocommerce_before_delete_order_item', array( __CLASS__, 'delete_order_item' ), 10, 1 );
 
@@ -125,9 +126,16 @@ class Validation {
         }
     }
 
-    public static function update_order_item( $order_item_id, $order_item, $order_id ) {
-        if ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) {
-            $order_shipment->validate_shipments();
-        }
+	/**
+	 * @param $order_item_id
+	 * @param WC_Order_Item $order_item
+	 */
+    public static function update_order_item( $order_item_id, $order_item ) {
+    	if ( is_callable( array( $order_item, 'get_order_id' ) ) ) {
+
+    		if ( $order_shipment = wc_gzd_get_shipment_order( $order_item->get_order_id() ) ) {
+			    $order_shipment->validate_shipments();
+		    }
+	    }
     }
 }
