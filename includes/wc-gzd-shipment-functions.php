@@ -13,6 +13,7 @@ use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\AddressSplitter;
 use Vendidero\Germanized\Shipments\ShipmentFactory;
 use Vendidero\Germanized\Shipments\ShipmentItem;
+use Vendidero\Germanized\Shipments\ShipmentReturnItem;
 use Vendidero\Germanized\Shipments\SimpleShipment;
 use Vendidero\Germanized\Shipments\ReturnShipment;
 use Vendidero\Germanized\Shipments\ShippingProviders;
@@ -377,6 +378,41 @@ function wc_gzd_create_shipment_item( $shipment, $order_item, $args = array() ) 
     return $item;
 }
 
+function wc_gzd_get_shipment_return_reasons( $shipment, $allow_none = true ) {
+	$reasons = array();
+
+	if ( $allow_none ) {
+		$reasons = array(
+			'' => _x( 'None', 'shipments return reason', 'woocommerce-germanized-shipments' ),
+		);
+	}
+
+	$reasons = array_merge( $reasons, array(
+		'look'       => _x( 'Don\'t like the look', 'shipments', 'woocommerce-germanized-shipments' ),
+		'quality'    => _x( 'Of low quality', 'shipments', 'woocommerce-germanized-shipments' ),
+		'product'    => _x( 'Incorrect product or size ordered', 'shipments', 'woocommerce-germanized-shipments' ),
+		'not-needed' => _x( 'Product no longer needed', 'shipments', 'woocommerce-germanized-shipments' ),
+	) );
+
+	/**
+	 * Filter that allows to adjust available return reasons for a specific shipment.
+	 *
+	 * @param array          $reasons Available return reasons.
+	 * @param ReturnShipment $shipment The return shipment instance.
+	 *
+	 * @since 3.1.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
+	return apply_filters( 'woocommerce_gzd_shipment_return_reasons', $reasons, $shipment );
+}
+
+/**
+ * @param Shipment $shipment
+ * @param ShipmentItem $parent_item
+ * @param array $args
+ *
+ * @return ShipmentReturnItem|WP_Error
+ */
 function wc_gzd_create_return_shipment_item( $shipment, $parent_item, $args = array() ) {
 	try {
 
@@ -384,7 +420,7 @@ function wc_gzd_create_return_shipment_item( $shipment, $parent_item, $args = ar
 			throw new Exception( _x( 'Invalid shipment item', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
 
-		$item = new Vendidero\Germanized\Shipments\ShipmentItem();
+		$item = new Vendidero\Germanized\Shipments\ShipmentReturnItem();
 		$item->set_parent_id( $parent_item->get_id() );
 		$item->set_shipment( $shipment );
 		$item->sync( $args );
@@ -723,15 +759,22 @@ function wc_gzd_is_shipment_status( $maybe_status ) {
  *
  * @since  2.2
  *
- * @param  mixed $the_shipment Object or shipment item id.
+ * @param mixed $the_item Object or shipment item id.
+ * @param string $item_type The shipment item type.
  *
- * @return bool|WC_GZD_Shipment_Item
+ * @return bool|ShipmentItem
  */
-function wc_gzd_get_shipment_item( $the_item = false ) {
+function wc_gzd_get_shipment_item( $the_item = false, $item_type = 'simple' ) {
     $item_id = wc_gzd_get_shipment_item_id( $the_item );
 
     if ( ! $item_id ) {
         return false;
+    }
+
+    $item_class = 'Vendidero\Germanized\Shipments\ShipmentItem';
+
+    if ( 'return' === $item_type ) {
+	    $item_class = 'Vendidero\Germanized\Shipments\ShipmentReturnItem';
     }
 
 	/**
@@ -739,11 +782,12 @@ function wc_gzd_get_shipment_item( $the_item = false ) {
 	 *
 	 * @param string  $classname The classname to be used.
 	 * @param integer $item_id The shipment item id.
+	 * @param string  $item_type The shipment item type.
 	 *
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-    $classname = apply_filters( 'woocommerce_gzd_shipment_item_class', 'Vendidero\Germanized\Shipments\ShipmentItem', $item_id );
+    $classname = apply_filters( 'woocommerce_gzd_shipment_item_class', $item_class, $item_id, $item_type );
 
     if ( ! class_exists( $classname ) ) {
         return false;

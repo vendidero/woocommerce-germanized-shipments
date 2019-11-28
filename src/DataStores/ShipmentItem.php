@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\DataStores;
+use WC_Data;
 use WC_Data_Store_WP;
 use WC_Object_Data_Store_Interface;
 
@@ -25,7 +26,8 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
         '_height',
         '_weight',
         '_total',
-        '_sku'
+        '_sku',
+	    '_return_reason_code'
     );
 
     protected $core_props = array(
@@ -233,8 +235,8 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
      * Note: WordPress `get_metadata` function returns an empty string when meta data does not exist.
      *
      * @param WC_Data $object The WP_Data object (WC_Coupon for coupons, etc).
-     * @param string  $meta_key Meta key to update.
-     * @param mixed   $meta_value Value to save.
+     * @param string   $meta_key Meta key to update.
+     * @param mixed    $meta_value Value to save.
      *
      * @since 3.6.0 Added to prevent empty meta being stored unless required.
      *
@@ -276,12 +278,16 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
 
         foreach ( $props_to_update as $meta_key => $prop ) {
 
+        	$getter = "get_$prop";
+
+        	if ( ! is_callable( array( $item, $getter ) ) ) {
+        		continue;
+	        }
+
             $value = $item->{"get_$prop"}( 'edit' );
             $value = is_string( $value ) ? wp_slash( $value ) : $value;
 
-            switch ( $prop ) {
-
-            }
+            switch ( $prop ) {}
 
             $updated = $this->update_or_delete_meta( $item, $meta_key, $value );
 

@@ -17,6 +17,18 @@ defined( 'ABSPATH' ) || exit;
         <div class="column col-7 shipment-item-name">
             <?php echo wp_kses_post( $item->get_name() ); ?>
 
+            <?php if ( 'return' === $item->get_type() ) : ?>
+                <p class="form-row">
+                    <label for="shipment-item-return-reason-code-<?php echo esc_attr( $item->get_id() ); ?>"><?php _ex( 'Return reason', 'shipments', 'woocommerce-germanized-shipments' ); ?></label>
+
+                    <select class="item-return-reason-code" id="shipment-item-return-reason-code-<?php echo esc_attr( $item->get_id() ); ?>" name="shipment_item[<?php echo esc_attr( $shipment->get_id() ); ?>][return_reason_code][<?php echo esc_attr( $item->get_id() ); ?>]">
+		                <?php foreach( wc_gzd_get_shipment_return_reasons( $shipment ) as $code => $reason ) : ?>
+                            <option value="<?php echo esc_attr( $code ); ?>" <?php selected( $code, $item->get_return_reason_code() ); ?>><?php echo $reason; ?></option>
+		                <?php endforeach; ?>
+                    </select>
+                </p>
+            <?php endif; ?>
+
             <?php
             /**
              * Action that fires after outputting the shipment item name in admin meta box.

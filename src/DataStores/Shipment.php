@@ -480,7 +480,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
     /**
      * Read items from the database for this shipment.
      *
-     * @param  WC_GZD_Shipment $shipment Shipment object.
+     * @param \Vendidero\Germanized\Shipments\Shipment $shipment Shipment object.
      *
      * @return array
      */
@@ -506,7 +506,12 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         }
 
         if ( ! empty( $items ) ) {
-            $items = array_map( 'wc_gzd_get_shipment_item', array_combine( wp_list_pluck( $items, 'shipment_item_id' ), $items ) );
+
+        	$shipment_type = $shipment->get_type();
+
+        	$items = array_map( function( $item_id ) use ( $shipment_type ) {
+		        return wc_gzd_get_shipment_item( $item_id, $shipment_type );
+	        }, array_combine( wp_list_pluck( $items, 'shipment_item_id' ), $items ) );
         } else {
             $items = array();
         }

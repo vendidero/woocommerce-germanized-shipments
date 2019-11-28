@@ -120,6 +120,10 @@ class ShipmentItem extends WC_Data {
     |--------------------------------------------------------------------------
     */
 
+    public function get_type() {
+    	return 'simple';
+    }
+
     /**
      * Get order ID this meta belongs to.
      *

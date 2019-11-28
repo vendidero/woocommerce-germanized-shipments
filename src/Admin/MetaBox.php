@@ -96,6 +96,10 @@ class MetaBox {
                     $props['quantity'] = absint( wp_unslash( $_POST['shipment_item'][ $id ]['quantity'][ $item_id ] ) );
                 }
 
+	            if ( isset( $_POST['shipment_item'][ $id ]['return_reason_code'][ $item_id ] ) ) {
+		            $props['return_reason_code'] = wc_clean( wp_unslash( $_POST['shipment_item'][ $id ]['return_reason_code'][ $item_id ] ) );
+	            }
+
                 $item->sync( $props );
             }
         }
