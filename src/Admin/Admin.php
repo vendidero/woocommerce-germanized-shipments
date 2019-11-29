@@ -41,7 +41,38 @@ class Admin {
 
 	    // Return reason options
 	    add_action( 'woocommerce_admin_field_shipment_return_reasons', array( __CLASS__, 'output_return_reasons_field' ) );
-	    // add_action( 'woocommerce_gzd_admin_settings_after_save_dhl_labels', array( __CLASS__, 'save_receiver_ids' ) );
+	    add_action( 'woocommerce_gzd_admin_settings_after_save_shipments', array( __CLASS__, 'save_return_reasons' ) );
+    }
+
+    public static function save_return_reasons() {
+	    $reasons = array();
+
+	    // phpcs:disable WordPress.Security.NonceVerification.NoNonceVerification -- Nonce verification already handled in WC_Admin_Settings::save()
+	    if ( isset( $_POST['shipment_return_reason'] ) ) {
+
+		    $reasons_post = wc_clean( wp_unslash( $_POST['shipment_return_reason'] ) );
+		    $order   = 0;
+
+		    foreach( $reasons_post as $reason ) {
+		        $code        = isset( $reason['code'] ) ? $reason['code'] : '';
+		        $reason_text = isset( $reason['reason'] ) ? $reason['reason'] : '';
+
+		        if ( empty( $code ) ) {
+		            $code = sanitize_title( $reason_text );
+                }
+
+		        if ( ! empty( $reason_text ) ) {
+			        $reasons[] = array(
+				        'order'  => ++$order,
+				        'code'   => $code,
+                        'reason' => $reason_text,
+                    );
+                }
+            }
+	    }
+	    // phpcs:enable
+
+	    update_option( 'woocommerce_gzd_shipments_return_reasons', $reasons );
     }
 
 	public static function output_return_reasons_field( $value ) {
@@ -62,7 +93,7 @@ class Admin {
                         <tbody class="shipment_return_reasons">
 						<?php
 						$i = -1;
-                        foreach ( wc_gzd_get_shipment_return_reasons( false ) as $reason ) {
+                        foreach ( wc_gzd_get_shipment_return_reasons() as $reason ) {
                             $i++;
 
                             echo '<tr class="reason">

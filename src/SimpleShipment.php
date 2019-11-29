@@ -36,8 +36,7 @@ class SimpleShipment extends Shipment {
 	private $force_order_shipment_usage = false;
 
 	protected $extra_data = array(
-		'est_delivery_date'     => null,
-		'order_id'              => 0,
+		'order_id' => 0,
 	);
 
 	/**
@@ -47,25 +46,6 @@ class SimpleShipment extends Shipment {
 	 */
 	public function get_type() {
 		return 'simple';
-	}
-
-	/**
-	 * Return the date this shipment is estimated to be delivered.
-	 *
-	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
-	 * @return WC_DateTime|null object if the date is set or null if there is no date.
-	 */
-	public function get_est_delivery_date( $context = 'view' ) {
-		return $this->get_prop( 'est_delivery_date', $context );
-	}
-
-	/**
-	 * Set the date this shipment will be delivered.
-	 *
-	 * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
-	 */
-	public function set_est_delivery_date( $date = null ) {
-		$this->set_date_prop( 'est_delivery_date', $date );
 	}
 
 	/**
@@ -482,5 +462,23 @@ class SimpleShipment extends Shipment {
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( "{$this->get_hook_prefix()}edit_url", get_admin_url( null, 'post.php?post=' . $this->get_order_id() . '&action=edit&shipment_id=' . $this->get_id() ), $this );
+	}
+
+	public function get_add_return_shipment_url() {
+		/**
+		 * Filter to adjust the URL the customer might access to add a return to the current shipment.
+		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type.
+		 *
+		 * Example hook name: woocommerce_gzd_shipment_add_return_shipment_url
+		 *
+		 * @param string   $url The URL pointing to the add return page.
+		 * @param Shipment $this The shipment object.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( "{$this->get_hook_prefix()}_add_return_shipment_url", wc_get_endpoint_url( 'add-return-shipment', $this->get_id(), wc_get_page_permalink( 'myaccount' ) ), $this );
 	}
 }

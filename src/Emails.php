@@ -25,12 +25,14 @@ class Emails {
 	}
 
     public static function register_emails( $emails ) {
-        $emails['WC_GZD_Email_Customer_Shipment'] = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-shipment.php';
+        $emails['WC_GZD_Email_Customer_Shipment']        = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-shipment.php';
+	    $emails['WC_GZD_Email_Customer_Return_Shipment'] = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-return-shipment.php';
 
         return $emails;
     }
 
     public static function email_hooks() {
+	    add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_return_instructions' ), 5, 4 );
 	    add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_tracking' ), 10, 4 );
         add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_address' ), 20, 4 );
         add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_details' ), 30, 4 );
@@ -52,9 +54,51 @@ class Emails {
             'woocommerce_gzd_shipment_status_shipped_to_returned',
             'woocommerce_gzd_shipment_status_delivered_to_returned',
             'woocommerce_gzd_shipment_status_returned_to_processing',
+	        'woocommerce_gzd_return_shipment_status_draft_to_processing',
+	        'woocommerce_gzd_return_shipment_status_draft_to_shipped',
+	        'woocommerce_gzd_return_shipment_status_draft_to_delivered',
+	        'woocommerce_gzd_return_shipment_status_draft_to_requested',
+	        'woocommerce_gzd_return_shipment_status_processing_to_shipped',
+	        'woocommerce_gzd_return_shipment_status_processing_to_delivered',
+	        'woocommerce_gzd_return_shipment_status_shipped_to_delivered',
+	        'woocommerce_gzd_return_shipment_status_requested_to_processing',
+	        'woocommerce_gzd_return_shipment_status_requested_to_shipped',
         ) );
 
         return $actions;
+    }
+
+	/**
+	 * @param Shipment $shipment
+	 * @param bool $sent_to_admin
+	 * @param bool $plain_text
+	 * @param string $email
+	 */
+    public static function email_return_instructions( $shipment, $sent_to_admin = false, $plain_text = false, $email = '' ) {
+
+    	if ( 'return' !== $shipment->get_type() ) {
+    		return;
+	    }
+
+	    if ( $plain_text ) {
+		    wc_get_template(
+			    'emails/plain/email-return-shipment-instructions.php', array(
+				    'shipment'      => $shipment,
+				    'sent_to_admin' => $sent_to_admin,
+				    'plain_text'    => $plain_text,
+				    'email'         => $email,
+			    )
+		    );
+	    } else {
+		    wc_get_template(
+			    'emails/email-return-shipment-instructions.php', array(
+				    'shipment'      => $shipment,
+				    'sent_to_admin' => $sent_to_admin,
+				    'plain_text'    => $plain_text,
+				    'email'         => $email,
+			    )
+		    );
+	    }
     }
 
 	/**

@@ -119,6 +119,7 @@ abstract class Shipment extends WC_Data {
         'shipping_method'       => '',
         'total'                 => 0,
 	    'additional_total'      => 0,
+        'est_delivery_date'     => null,
     );
 
 	/**
@@ -883,6 +884,16 @@ abstract class Shipment extends WC_Data {
     }
 
 	/**
+	 * Return the date this shipment is estimated to be delivered.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return WC_DateTime|null object if the date is set or null if there is no date.
+	 */
+	public function get_est_delivery_date( $context = 'view' ) {
+		return $this->get_prop( 'est_delivery_date', $context );
+	}
+
+	/**
 	 * Decides whether the shipment is sent to an external pickup or not.
 	 *
 	 * @param string[] $types
@@ -1180,6 +1191,15 @@ abstract class Shipment extends WC_Data {
 	}
 
 	/**
+	 * Set the date this shipment will be delivered.
+	 *
+	 * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
+	 */
+	public function set_est_delivery_date( $date = null ) {
+		$this->set_date_prop( 'est_delivery_date', $date );
+	}
+
+	/**
 	 * Set shipment total.
 	 *
 	 * @param float|string $value The shipment total.
@@ -1296,6 +1316,10 @@ abstract class Shipment extends WC_Data {
 	     */
 	    return apply_filters( "{$this->get_hook_prefix()}_view_shipment_url", wc_get_endpoint_url( 'view-shipment', $this->get_id(), wc_get_page_permalink( 'myaccount' ) ), $this );
     }
+
+	public function get_add_return_shipment_url() {
+		return false;
+	}
 
     /**
      * Get an item object.
@@ -1716,8 +1740,24 @@ abstract class Shipment extends WC_Data {
 		 if ( $error->has_errors() ) {
 		 	return $error;
 		 } else {
+
+		 	if ( $label = $this->get_label() ) {
+		 		$this->set_tracking_id( $label->get_number() );
+		 		$this->save();
+		    }
+
 		 	return true;
 		 }
+	}
+
+	public function delete_label( $force = false ) {
+		if ( $this->supports_label() && $this->has_label() ) {
+			$label = $this->get_label();
+			$label->delete( $force );
+
+			$this->set_tracking_id( '' );
+			$this->save();
+		}
 	}
 
 	/**
@@ -1812,7 +1852,8 @@ abstract class Shipment extends WC_Data {
 			$provider = $provider . '_';
 		}
 
-		$download_url = add_query_arg( array( 'action' => 'wc-gzd-download-shipment-label', 'shipment_id' => $this->get_id() ), wp_nonce_url( admin_url(), 'download-shipment-label' ) );
+		$base_url     = is_admin() ? admin_url() : trailingslashit( home_url() );
+		$download_url = add_query_arg( array( 'action' => 'wc-gzd-download-shipment-label', 'shipment_id' => $this->get_id() ), wp_nonce_url( $base_url, 'download-shipment-label' ) );
 
 		foreach( $args as $arg => $val ) {
 			if ( is_bool( $val ) ) {
@@ -1903,7 +1944,13 @@ abstract class Shipment extends WC_Data {
         $this->set_total( $total );
     }
 
-    /**
+    public function delete( $force_delete = false ) {
+    	$this->delete_label( $force_delete );
+
+	    return parent::delete( $force_delete );
+    }
+
+	/**
      * Save data to the database.
      *
      * @return integer shipment id

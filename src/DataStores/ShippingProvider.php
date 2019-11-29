@@ -32,6 +32,9 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		'_tracking_url_placeholder',
 		'_tracking_desc_placeholder',
 		'_description',
+		'_return_manual_confirmation',
+		'_return_instructions',
+		'_supports_customer_returns'
 	);
 
 	protected $core_props = array(
@@ -313,7 +316,12 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 			$value = $provider->{"get_$prop"}( 'edit' );
 			$value = is_string( $value ) ? wp_slash( $value ) : $value;
 
-			switch ( $prop ) {}
+			switch ( $prop ) {
+				case "return_manual_confirmation":
+				case "supports_customer_returns":
+					$value = wc_bool_to_string( $value );
+					break;
+			}
 
 			$updated = $this->update_or_delete_meta( $provider, $meta_key, $value );
 

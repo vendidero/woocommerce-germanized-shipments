@@ -185,6 +185,14 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         	$changed_props[] = 'country';
         }
 
+        // Shipping provider has changed - lets remove existing label
+        if ( in_array( 'shipping_provider', $changed_props ) ) {
+
+			if ( $shipment->supports_label() && $shipment->has_label() ) {
+				$shipment->get_label()->delete();
+			}
+        }
+
         foreach ( $changed_props as $prop ) {
 
             if ( ! in_array( $prop, $core_props, true ) ) {

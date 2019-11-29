@@ -43,7 +43,6 @@ class Package {
 
 	    // Filter email templates
 	    add_filter( 'woocommerce_gzd_default_plugin_template', array( __CLASS__, 'filter_templates' ), 10, 3 );
-
 	    add_filter( 'woocommerce_get_query_vars', array( __CLASS__, 'register_endpoints' ), 10, 1 );
 
 	    add_action( 'woocommerce_load_shipping_methods', array( __CLASS__, 'load_shipping_methods' ), 5, 1 );
@@ -110,7 +109,8 @@ class Package {
 	}
 
     public static function register_endpoints( $query_vars ) {
-    	$query_vars['view-shipment'] = get_option( 'woocommerce_myaccount_view_shipment_endpoint', 'view-shipment' );
+    	$query_vars['view-shipment']       = get_option( 'woocommerce_myaccount_view_shipment_endpoint', 'view-shipment' );
+	    $query_vars['add-return-shipment'] = get_option( 'woocommerce_myaccount_add_return_shipment_endpoint', 'add-return-shipment' );
 
     	return $query_vars;
     }
@@ -248,6 +248,7 @@ class Package {
         Emails::init();
         Validation::init();
         Api::init();
+	    FormHandler::init();
 
         if ( self::is_frontend_request() ) {
         	include_once self::get_path() . '/includes/wc-gzd-shipment-template-hooks.php';

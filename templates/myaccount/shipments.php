@@ -2,7 +2,7 @@
 /**
  * The Template for displaying available shipments for an order on the myaccount page.
  *
- * This template can be overridden by copying it to yourtheme/woocommerce-germanized/myaccount/order-shipments.php.
+ * This template can be overridden by copying it to yourtheme/woocommerce-germanized/myaccount/shipments.php.
  *
  * HOWEVER, on occasion Germanized will need to update template files and you
  * (the theme developer) will need to copy the new files to your theme to
@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/Shipments/Templates/Emails/Plain
- * @version 1.0.0
+ * @version 1.1.0
  */
 use Vendidero\Germanized\Shipments\Shipment;
 
@@ -28,16 +28,16 @@ defined( 'ABSPATH' ) || exit;
  * @since 3.0.0
  * @package Vendidero/Germanized/Shipments
  */
-do_action( 'woocommerce_gzd_before_account_order_shipments', $has_shipments, $shipments, $order ); ?>
+do_action( 'woocommerce_gzd_before_account_shipments', $has_shipments, $shipments, $order ); ?>
 
 <?php if ( $has_shipments ) : ?>
 
-    <h2 class="woocommerce-shipments-list__title"><?php _ex(  'Shipments', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
+    <h2 class="woocommerce-shipments-list__title"><?php echo ( 'return' === $type ? _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ) : _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></h2>
 
-	<table class="woocommerce-shipments-table woocommerce-MyAccount-shipments shop_table shop_table_responsive my_account_shipments account-shipments-table">
+	<table class="woocommerce-shipments-table woocommerce-MyAccount-shipments woocommerce-MyAccount-<?php echo esc_attr( $type ); ?>-shipments shop_table shop_table_responsive my_account_shipments account-shipments-table">
 		<thead>
 		<tr>
-			<?php foreach ( wc_gzd_get_account_shipments_columns() as $column_id => $column_name ) : ?>
+			<?php foreach ( wc_gzd_get_account_shipments_columns( $type ) as $column_id => $column_name ) : ?>
 				<th class="woocommerce-shipments-table__header woocommerce-shipments-table__header-<?php echo esc_attr( $column_id ); ?>"><span class="nobr"><?php echo esc_html( $column_name ); ?></span></th>
 			<?php endforeach; ?>
 		</tr>
@@ -49,7 +49,7 @@ do_action( 'woocommerce_gzd_before_account_order_shipments', $has_shipments, $sh
 			$item_count = $shipment->get_item_count();
 			?>
 			<tr class="woocommerce-shipments-table__row woocommerce-shipments-table__row--status-<?php echo esc_attr( $shipment->get_status() ); ?> shipment">
-				<?php foreach ( wc_gzd_get_account_shipments_columns() as $column_id => $column_name ) : ?>
+				<?php foreach ( wc_gzd_get_account_shipments_columns( $shipment->get_type() ) as $column_id => $column_name ) : ?>
 					<td class="woocommerce-shipments-table__cell woocommerce-shipments-table__cell-<?php echo esc_attr( $column_id ); ?>" data-title="<?php echo esc_attr( $column_name ); ?>">
 						<?php if ( has_action( 'woocommerce_gzd_my_account_order_shipments_column_' . $column_id ) ) : ?>
 							<?php
@@ -66,7 +66,7 @@ do_action( 'woocommerce_gzd_before_account_order_shipments', $has_shipments, $sh
                              * @since 3.0.0
                              * @package Vendidero/Germanized/Shipments
                              */
-                            do_action( 'woocommerce_gzd_my_account_order_shipments_column_' . $column_id, $shipment, $order ); ?>
+                            do_action( 'woocommerce_gzd_my_account_shipments_column_' . $column_id, $shipment, $order ); ?>
 
 						<?php elseif ( 'shipment-number' === $column_id ) : ?>
 							<a href="<?php echo esc_url( $shipment->get_view_shipment_url() ); ?>">
@@ -117,4 +117,4 @@ do_action( 'woocommerce_gzd_before_account_order_shipments', $has_shipments, $sh
  * @since 3.0.0
  * @package Vendidero/Germanized/Shipments
  */
-do_action( 'woocommerce_gzd_after_account_order_shipments', $has_shipments, $shipments ); ?>
+do_action( 'woocommerce_gzd_after_account_shipments', $has_shipments, $shipments ); ?>

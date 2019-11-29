@@ -43,6 +43,13 @@ interface ShipmentLabel {
 	public function merge( PDFMerger &$pdf );
 
 	/**
+	 * Returns the (local) label file path. False in case the label is not stored locally.
+	 *
+	 * @return bool|string
+	 */
+	public function get_file();
+
+	/**
 	 * Returns the label number which is used as a tracking id for the corresponding shipment.
 	 *
 	 * @return string
