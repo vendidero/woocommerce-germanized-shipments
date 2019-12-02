@@ -242,7 +242,7 @@ function wc_gzd_get_shipment_customer_visible_statuses( $shipment_type = 'simple
  *
  * @param  mixed $the_shipment Object or shipment id.
  *
- * @return bool|SimpleShipment|Shipment
+ * @return bool|SimpleShipment|ReturnShipment|Shipment
  */
 function wc_gzd_get_shipment( $the_shipment ) {
     return ShipmentFactory::get_shipment( $the_shipment );
@@ -274,27 +274,33 @@ function wc_gzd_get_shipment_statuses() {
     return apply_filters( 'woocommerce_gzd_shipment_statuses', $shipment_statuses );
 }
 
-function wc_gzd_get_shipment_selectable_statuses( $type ) {
+/**
+ * @param Shipment $shipment
+ *
+ * @return mixed|void
+ */
+function wc_gzd_get_shipment_selectable_statuses( $shipment ) {
 	$shipment_statuses = wc_gzd_get_shipment_statuses();
 
-	if ( isset( $shipment_statuses['gzd-returned'] ) ) {
+	if ( ! $shipment->has_status( 'returned' ) && isset( $shipment_statuses['gzd-returned'] ) ) {
 		unset( $shipment_statuses['gzd-returned'] );
 	}
 
-	if ( isset( $shipment_statuses['gzd-requested'] ) ) {
+	if ( ! $shipment->has_status( 'requested' ) && isset( $shipment_statuses['gzd-requested'] ) ) {
 		unset( $shipment_statuses['gzd-requested'] );
 	}
 
 	/**
-	 * Add or remove selectable Shipment statuses for a certain type.
+	 * Add or remove selectable shipment statuses for a certain shipment and/or shipment type.
 	 *
-	 * @param array $shipment_statuses The available shipment statuses.
-	 * @param string $type The shipment type e.g. return.
+	 * @param array    $shipment_statuses The available shipment statuses.
+	 * @param string   $type The shipment type e.g. return.
+	 * @param Shipment $shipment The shipment instance.
 	 *
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-	return apply_filters( 'woocommerce_gzd_shipment_selectable_statuses', $shipment_statuses, $type );
+	return apply_filters( 'woocommerce_gzd_shipment_selectable_statuses', $shipment_statuses, $shipment->get_type(), $shipment );
 }
 
 /**
@@ -496,7 +502,7 @@ function wc_gzd_get_shipment_editable_statuses() {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-    return apply_filters( 'woocommerce_gzd_shipment_editable_statuses', array( 'draft', 'processing' ) );
+    return apply_filters( 'woocommerce_gzd_shipment_editable_statuses', array( 'draft', 'requested', 'processing' ) );
 }
 
 function wc_gzd_split_shipment_street( $streetStr ) {

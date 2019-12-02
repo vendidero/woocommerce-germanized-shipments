@@ -36,8 +36,6 @@ class Emails {
 	    add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_tracking' ), 10, 4 );
         add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_address' ), 20, 4 );
         add_action( 'woocommerce_gzd_email_shipment_details', array( __CLASS__, 'email_details' ), 30, 4 );
-
-	    add_action( 'woocommerce_gzd_email_return_shipment_details', array( __CLASS__, 'email_details' ), 30, 4 );
     }
 
     public static function register_email_notifications( $actions ) {
@@ -135,7 +133,22 @@ class Emails {
 		}
 	}
 
+	/**
+	 * @param Shipment $shipment
+	 * @param bool $sent_to_admin
+	 * @param bool $plain_text
+	 * @param string $email
+	 */
     public static function email_address( $shipment, $sent_to_admin = false, $plain_text = false, $email = '' ) {
+
+		if ( 'return' === $shipment->get_type() ) {
+			if ( $provider = $shipment->get_shipping_provider_instance() ) {
+				if ( $provider->hide_return_address() ) {
+					return;
+				}
+			}
+		}
+
         if ( $plain_text ) {
             wc_get_template(
                 'emails/plain/email-shipment-address.php', array(

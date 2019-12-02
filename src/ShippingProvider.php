@@ -108,6 +108,17 @@ class ShippingProvider extends WC_Data  {
 		return false;
 	}
 
+	/**
+	 * Some providers (e.g. DHL) create return labels automatically and the return
+	 * address is chosen dynamically depending on the country. For that reason the return address
+	 * might not show up within emails or in customer panel.
+	 *
+	 * @return bool
+	 */
+	public function hide_return_address() {
+		return $this->supports_labels( 'return' ) ? true : false;
+	}
+
 	public function get_edit_link() {
 		return $this->get_id() > 0 ? admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=' . esc_attr( $this->get_name() ) ) : '';
 	}

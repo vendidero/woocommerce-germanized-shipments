@@ -38,7 +38,8 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	    '_additional_total',
 	    '_sender_address',
 	    '_weight_unit',
-	    '_dimension_unit'
+	    '_dimension_unit',
+	    '_is_customer_requested',
     );
 
     protected $core_props = array(
@@ -437,7 +438,11 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
             $value = $shipment->{"get_$prop"}( 'edit' );
             $value = is_string( $value ) ? wp_slash( $value ) : $value;
 
-            switch ( $prop ) {}
+            switch ( $prop ) {
+	            case "is_customer_requested":
+		            $value = wc_bool_to_string( $value );
+		            break;
+            }
 
             $updated = $this->update_or_delete_meta( $shipment, $meta_key, $value );
 

@@ -40,9 +40,10 @@ class ReturnShipment extends Shipment {
 	private $order = null;
 
 	protected $extra_data = array(
-		'parent_id'      => 0,
-		'order_id'       => 0,
-		'sender_address' => array(),
+		'parent_id'             => 0,
+		'order_id'              => 0,
+		'is_customer_requested' => false,
+		'sender_address'        => array(),
 	);
 
 	/**
@@ -84,6 +85,46 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
+	 * Returns whether the current return was requested by a customer or not.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return boolean
+	 */
+	public function get_is_customer_requested( $context = 'view' ) {
+		return $this->get_prop( 'is_customer_requested', $context );
+	}
+
+	public function is_customer_requested() {
+		return $this->get_is_customer_requested();
+	}
+
+	public function confirm_customer_request() {
+		if ( $this->is_customer_requested() && $this->has_status( 'requested' ) ) {
+
+			$this->set_status( 'processing' );
+
+			if ( $this->save() ) {
+				/**
+				 * Action that fires after a return request has been confirmed to the customer.
+				 *
+				 * @param integer        $shipment_id The return shipment id.
+				 * @param ReturnShipment $shipment The return shipment object.
+				 *
+				 * @since 3.1.0
+				 * @package Vendidero/Germanized/Shipments
+				 */
+				do_action( 'woocommerce_gzd_return_shipment_customer_confirmed', $this->get_id(), $this );
+
+				return true;
+			} else {
+				return false;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Returns the address of the sender e.g. customer.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
@@ -115,6 +156,15 @@ class ReturnShipment extends Shipment {
 		$this->order = null;
 
 		$this->set_prop( 'order_id', absint( $order_id ) );
+	}
+
+	/**
+	 * Set if the current return was requested by the customer or not.
+	 *
+	 * @param string $is_requested Whether or not it is requested by the customer.
+	 */
+	public function set_is_customer_requested( $is_requested ) {
+		$this->set_prop( 'is_customer_requested', wc_string_to_bool( $is_requested ) );
 	}
 
 	/**

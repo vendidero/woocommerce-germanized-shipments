@@ -131,7 +131,8 @@ class FormHandler {
 				 * @since 3.1.0
 				 * @package Vendidero/Germanized/Shipments
 				 */
-				'status' => apply_filters( 'woocommerce_gzd_customer_new_return_shipment_request_status', $default_status, $shipment )
+				'status'                => apply_filters( 'woocommerce_gzd_customer_new_return_shipment_request_status', $default_status, $shipment ),
+				'is_customer_requested' => true,
 			),
 		) );
 

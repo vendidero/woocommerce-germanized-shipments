@@ -31,11 +31,11 @@ $shipment_items        = $shipment->get_items();
 
 if ( 'return' === $shipment->get_type() ) {
 
-    if ( $provider = $shipment->get_shipping_provider_instance() ) {
-        if ( ! $provider->is_manual_integration() ) {
-            $show_receiver_details = false;
-        }
-    }
+	if ( $provider = $shipment->get_shipping_provider_instance() ) {
+		if ( $provider->hide_return_address() ) {
+			$show_receiver_details = false;
+		}
+	}
 }
 ?>
 <section class="woocommerce-shipment-details">

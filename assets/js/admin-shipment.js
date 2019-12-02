@@ -61,19 +61,33 @@ window.germanized.admin = window.germanized.admin || {};
                 .on( 'click', 'a.sync-shipment-items', this.onSyncItems.bind( this ) );
 
             $( '#shipment-' + this.vars.id + ' #shipment-footer-' + this.vars.id )
-                .on( 'click', 'a.add-shipment-return', this.onAddReturn.bind( this ) );
+                .on( 'click', 'a.add-shipment-return', this.onAddReturn.bind( this ) )
+                .on( 'click', '.send-return-shipment-notification', this.onSendReturnNotification.bind( this ) )
+                .on( 'click', '.confirm-return-shipment', this.onConfirmReturnRequest.bind( this ) );
 
             $( '#shipment-' + this.vars.id + ' .wc-gzd-shipment-label' )
                 .on( 'click', '.create-shipment-label:not(.disabled)', this.onCreateLabel.bind( this ) )
-                .on( 'click', '.send-shipment-label', this.onSendLabel.bind( this ) )
                 .on( 'click', '.remove-shipment-label', this.onRemoveLabel.bind( this ) );
         };
 
-        this.onSendLabel = function() {
+        this.onSendReturnNotification = function() {
             var params = {
-                'action'       : 'woocommerce_gzd_send_shipment_return_label_email',
+                'action'       : 'woocommerce_gzd_send_return_shipment_notification_email',
                 'shipment_id'  : this.getId(),
-                'security'     : germanized.admin.shipments.getParams().send_label_nonce
+                'security'     : germanized.admin.shipments.getParams().send_return_notification_nonce
+            };
+
+            this.block();
+            germanized.admin.shipments.doAjax( params, this.unblock.bind( this ), this.unblock.bind( this ) );
+
+            return false;
+        };
+
+        this.onConfirmReturnRequest = function() {
+            var params = {
+                'action'       : 'woocommerce_gzd_confirm_return_request',
+                'shipment_id'  : this.getId(),
+                'security'     : germanized.admin.shipments.getParams().confirm_return_request_nonce
             };
 
             this.block();

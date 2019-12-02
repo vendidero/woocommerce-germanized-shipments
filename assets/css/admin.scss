@@ -154,7 +154,7 @@ table.wc-gzd-shipping-providers {
   font-size: .9em;
   border-radius: 3px;
 
-  &.status-draft, &.status-processing, &.status-partially-shipped {
+  &.status-draft, &.status-processing, &.status-requested, &.status-partially-shipped {
     background: #f8dda7;
     color: #94660c;
   }
@@ -394,6 +394,10 @@ table.wc-gzd-shipping-providers {
           content: "\f147";
         }
 
+        &.confirm::after {
+          content: "\f147";
+        }
+
         &.generate::after {
           content: "\f502";
         }
@@ -541,6 +545,19 @@ table.wc-gzd-shipping-providers {
     }
 
     .order-shipment {
+      a {
+        .woocommerce-help-tip {
+          margin-right: 3px;
+        }
+      }
+
+      &.shipment-return {
+        .shipment-footer-inner {
+          border-bottom: 1px solid #dfdfdf;
+          padding-bottom: 1em;
+        }
+      }
+
       .handlediv {
         display: inline-block;
         float: none;
@@ -594,9 +611,19 @@ table.wc-gzd-shipping-providers {
       }
 
       .shipment-footer {
-        display: flex;
-        flex-wrap: nowrap;
-        justify-content: flex-end;
+        .shipment-footer-inner {
+          display: flex;
+          flex-wrap: nowrap;
+          justify-content: flex-end;
+
+          a.shipment-footer-action {
+            margin-right: 1em;
+
+            &:last-child {
+              margin-right: 0;
+            }
+          }
+        }
       }
 
       .shipment-header {
@@ -699,6 +726,13 @@ table.wc-gzd-shipping-providers {
               width: 100%;
               text-align: center;
               padding: 0 4px;
+            }
+          }
+
+          .shipment-item-name {
+            p.form-row {
+              margin-bottom: 0;
+              margin-top: .5em;
             }
           }
 

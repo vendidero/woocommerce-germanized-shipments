@@ -47,7 +47,8 @@ class Ajax {
 	        'create_shipment_label_form',
 	        'create_shipment_label',
 	        'remove_shipment_label',
-	        'send_shipment_return_label_email'
+	        'send_return_shipment_notification_email',
+	        'confirm_return_request'
         );
 
         foreach ( $ajax_events as $ajax_event ) {
@@ -55,29 +56,25 @@ class Ajax {
         }
     }
 
-	public static function send_shipment_return_label_email() {
+	public static function send_return_shipment_notification_email() {
 		$success = false;
 
 		if ( current_user_can( 'edit_shop_orders' ) && isset( $_REQUEST['shipment_id'] ) ) {
 
 			if ( isset( $_GET['shipment_id'] ) ) {
-				$referrer = check_admin_referer( 'send-shipment-return-label' );
+				$referrer = check_admin_referer( 'send-return-shipment-notification' );
 			} else {
-				$referrer = check_ajax_referer( 'send-shipment-return-label', 'security' );
+				$referrer = check_ajax_referer( 'send-return-shipment-notification', 'security' );
 			}
 
 			if ( $referrer ) {
 				$shipment_id = absint( wp_unslash( $_REQUEST['shipment_id'] ) );
 
 				if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
-					if ( 'return' === $shipment->get_type() && $shipment->has_label() ) {
-						$label = $shipment->get_label();
 
-						if ( 'return' === $label->get_type() ) {
-							if ( $label->send_to_customer( true ) ) {
-								$success = true;
-							}
-						}
+					if ( 'return' === $shipment->get_type() ) {
+						WC()->mailer()->emails['WC_GZD_Email_Customer_Return_Shipment']->trigger( $shipment_id );
+						$success = true;
 					}
 				}
 			}
@@ -90,14 +87,66 @@ class Ajax {
 					wp_send_json( array(
 						'success'  => true,
 						'messages' => array(
-							_x( 'Label successfully sent to customer.', 'shipments', 'woocommerce-germanized-shipments' )
+							_x( 'Notification successfully sent to customer.', 'shipments', 'woocommerce-germanized-shipments' )
 						),
 					) );
 				} else {
 					wp_send_json( array(
 						'success'  => false,
 						'messages' => array(
-							_x( 'There was an error while sending the label.', 'shipments', 'woocommerce-germanized-shipments' )
+							_x( 'There was an error while sending the notification.', 'shipments', 'woocommerce-germanized-shipments' )
+						),
+					) );
+				}
+			}
+		}
+	}
+
+	public static function confirm_return_request() {
+		$success = false;
+
+		if ( current_user_can( 'edit_shop_orders' ) && isset( $_REQUEST['shipment_id'] ) ) {
+
+			if ( isset( $_GET['shipment_id'] ) ) {
+				$referrer = check_admin_referer( 'confirm-return-request' );
+			} else {
+				$referrer = check_ajax_referer( 'confirm-return-request', 'security' );
+			}
+
+			if ( $referrer ) {
+				$shipment_id = absint( wp_unslash( $_REQUEST['shipment_id'] ) );
+
+				if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
+					if ( 'return' === $shipment->get_type() ) {
+
+						if ( $shipment->confirm_customer_request() ) {
+							$success = true;
+						}
+					}
+				}
+			}
+
+			if ( isset( $_GET['shipment_id'] ) ) {
+				wp_safe_redirect( wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=wc-gzd-return-shipments' ) );
+				exit;
+			} else {
+				if ( $success ) {
+					wp_send_json( array(
+						'success'       => true,
+						'messages'      => array(
+							_x( 'Return request confirmed successfully.', 'shipments', 'woocommerce-germanized-shipments' )
+						),
+						'shipment_id'   => $shipment->get_id(),
+						'needs_refresh' => true,
+						'fragments'     => array(
+							'div#shipment-' . $shipment_id => self::get_shipment_html( $shipment ),
+						),
+					) );
+				} else {
+					wp_send_json( array(
+						'success'  => false,
+						'messages' => array(
+							_x( 'There was an error while confirming the request.', 'shipments', 'woocommerce-germanized-shipments' )
 						),
 					) );
 				}
@@ -167,7 +216,7 @@ class Ajax {
 			wp_send_json( $response_error );
 		}
 
-		if ( $label->delete( true ) ) {
+		if ( $shipment->delete_label( true ) ) {
 			$response = array(
 				'success'       => true,
 				'shipment_id'   => $shipment->get_id(),

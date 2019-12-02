@@ -24,7 +24,7 @@ $text_align = is_rtl() ? 'right' : 'left';
 <table id="tracking" cellspacing="0" cellpadding="0" style="width: 100%; vertical-align: top; margin-bottom: 40px; padding:0;" border="0">
 	<tr>
 		<td style="text-align:<?php echo esc_attr( $text_align ); ?>; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; border:0; padding:0;" valign="top">
-			<h2><?php echo esc_html_x( 'Delivery:', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
+			<h2><?php echo esc_html_x( 'Tracking:', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
 			<?php if ( $shipment->get_est_delivery_date() ) : ?>
 				<p class="est-delivery-date"><?php _ex(  'Estimated date:', 'shipments', 'woocommerce-germanized-shipments' ); ?> <span class="date"><?php echo wc_format_datetime( $shipment->get_est_delivery_date(), wc_date_format() ); ?></span></p>

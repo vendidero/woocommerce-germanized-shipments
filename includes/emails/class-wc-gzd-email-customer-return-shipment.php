@@ -99,6 +99,28 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Return_Shipment', false ) ) :
 		}
 
 		/**
+		 * Switch Woo and Germanized locale
+		 */
+		public function setup_locale() {
+			if ( $this->is_customer_email() && function_exists( 'wc_gzd_switch_to_site_locale' ) && apply_filters( 'woocommerce_email_setup_locale', true ) ) {
+				wc_gzd_switch_to_site_locale();
+			}
+
+			parent::setup_locale();
+		}
+
+		/**
+		 * Restore Woo and Germanized locale
+		 */
+		public function restore_locale() {
+			if ( $this->is_customer_email() && function_exists( 'wc_gzd_restore_locale' ) && apply_filters( 'woocommerce_email_restore_locale', true ) ) {
+				wc_gzd_restore_locale();
+			}
+
+			parent::restore_locale();
+		}
+
+		/**
 		 * Trigger.
 		 *
 		 * @param int $shipment_id Shipment ID.
@@ -116,6 +138,11 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Return_Shipment', false ) ) :
 
 				if ( ! $this->parent_shipment = $this->shipment->get_parent() ) {
 					return;
+				}
+
+				// Check if this is a customer request.
+				if ( $this->shipment->is_customer_requested() ) {
+					$this->is_confirmation = true;
 				}
 
 				$this->placeholders['{shipment_number}']        = $this->shipment->get_shipment_number();

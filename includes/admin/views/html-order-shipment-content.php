@@ -65,7 +65,7 @@ defined( 'ABSPATH' ) || exit;
             <p class="form-row">
                 <label for="shipment-status-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' ); ?></label>
                 <select class="shipment-status-select" id="shipment-status-<?php echo esc_attr( $shipment->get_id() ); ?>" name="shipment_status[<?php echo esc_attr( $shipment->get_id() ); ?>]">
-				    <?php foreach( wc_gzd_get_shipment_selectable_statuses( $shipment->get_type() ) as $status => $title ) : ?>
+				    <?php foreach( wc_gzd_get_shipment_selectable_statuses( $shipment ) as $status => $title ) : ?>
                         <option value="<?php echo esc_attr( $status ); ?>" <?php selected( $status, 'gzd-' . $shipment->get_status(), true ); ?>><?php echo $title; ?></option>
 				    <?php endforeach; ?>
                 </select>
@@ -127,8 +127,7 @@ defined( 'ABSPATH' ) || exit;
                     </div>
 
                     <div class="sync-items">
-                        <a class="sync-shipment-items" href="#"><?php echo _x( 'Sync items', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
-					    <?php echo wc_help_tip( _x( 'Automatically adjust items and quantities based on order item data.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>
+                        <a class="sync-shipment-items" href="#"><?php echo wc_help_tip( _x( 'Automatically adjust items and quantities based on order item data.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?><?php echo _x( 'Sync items', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
                     </div>
 
 				    <?php
@@ -265,24 +264,30 @@ defined( 'ABSPATH' ) || exit;
         do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_fields', $shipment ); ?>
 
         <div class="column col-12 shipment-footer" id="shipment-footer-<?php echo esc_attr( $shipment->get_id() ); ?>">
-	        <?php if ( 'simple' === $shipment->get_type() ) : ?>
-                <a class="add-shipment-return" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Add Return', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
-	        <?php endif; ?>
+            <div class="shipment-footer-inner">
+	            <?php if ( 'simple' === $shipment->get_type() ) : ?>
+                    <a class="shipment-footer-action add-shipment-return" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Add Return', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+	            <?php elseif( 'return' === $shipment->get_type() && $shipment->has_status( 'processing' ) ) : ?>
+                    <a class="shipment-footer-action send-return-shipment-notification email" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo wc_help_tip( _x( 'Send return instructions to your customer via email including return label as attachment (if available).', 'shipments', 'woocommerce-germanized-shipments' ) ); ?><?php echo ( $shipment->is_customer_requested() ? _x( 'Resend notification', 'shipments', 'woocommerce-germanized-shipments' ) : _x( 'Notify customer', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></a>
+	            <?php elseif( 'return' === $shipment->get_type() && $shipment->has_status( 'requested' ) ) : ?>
+                    <a class="shipment-footer-action confirm-return-shipment" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo wc_help_tip( _x( 'Confirm the return request to the customer. The customer receives an email notification possibly containing return instructions.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?><?php _ex( 'Confirm return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+	            <?php endif; ?>
 
-            <?php if ( $shipment->is_editable() ) : ?>
-                <a class="remove-shipment delete" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo sprintf( _x( 'Delete %s', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label( $shipment->get_type() ) ); ?></a>
-            <?php endif; ?>
+	            <?php if ( $shipment->is_editable() ) : ?>
+                    <a class="shipment-footer-action remove-shipment delete" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo sprintf( _x( 'Delete %s', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label( $shipment->get_type() ) ); ?></a>
+	            <?php endif; ?>
 
-	        <?php
-	        /**
-	         * Action that fires in the shipment action container of a Shipment's meta box admin view.
-	         *
-	         * @param Shipment $shipment The shipment object.
-	         *
-	         * @since 3.0.0
-             * @package Vendidero/Germanized/Shipments
-	         */
-            do_action( 'woocommerce_gzd_shipments_meta_box_shipment_actions', $shipment ); ?>
+	            <?php
+	            /**
+	             * Action that fires in the shipment action container of a Shipment's meta box admin view.
+	             *
+	             * @param Shipment $shipment The shipment object.
+	             *
+	             * @since 3.0.0
+	             * @package Vendidero/Germanized/Shipments
+	             */
+	            do_action( 'woocommerce_gzd_shipments_meta_box_shipment_actions', $shipment ); ?>
+            </div>
         </div>
     </div>
 </div>

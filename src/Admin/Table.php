@@ -111,6 +111,18 @@ class Table extends WP_List_Table {
                     $changed++;
                 }
             }
+        } elseif( 'confirm_requests' === $action ) {
+	        foreach ( $ids as $id ) {
+		        if ( $shipment = wc_gzd_get_shipment( $id ) ) {
+			        if ( 'return' === $shipment->get_type() ) {
+			            if ( $shipment->is_customer_requested() && $shipment->has_status( 'requested' ) ) {
+			                if ( $shipment->confirm_customer_request() ) {
+			                    $changed++;
+			                }
+                        }
+                    }
+		        }
+	        }
         }
 
 	    /**
