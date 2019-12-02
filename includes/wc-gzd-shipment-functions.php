@@ -1043,7 +1043,7 @@ function wc_gzd_get_account_shipments_actions( $shipment ) {
 	if ( 'simple' === $shipment->get_type() && wc_gzd_shipment_is_customer_returnable( $shipment ) ) {
 		$actions['add-return'] = array(
 			'url'  => $shipment->get_add_return_shipment_url(),
-			'name' => _x( 'Add return', 'shipments', 'woocommerce-germanized-shipments' ),
+			'name' => _x( 'Request return', 'shipments', 'woocommerce-germanized-shipments' ),
 		);
 	}
 
