@@ -398,9 +398,6 @@ window.germanized.admin = window.germanized.admin || {};
             var self      = germanized.admin.shipments,
                 $shipment = self.getShipment( self.getActiveShipmentId() ).getShipment();
 
-            console.log( needsSaving );
-            console.log( $( this ) );
-
             if ( typeof needsSaving !== "boolean" ) {
                 needsSaving = true;
             }
@@ -412,8 +409,6 @@ window.germanized.admin = window.germanized.admin || {};
             } else {
                 self.$wrapper.find( '#order-shipments-save' ).hide();
             }
-
-            console.log(self.needsSaving);
 
             if ( self.needsSaving ) {
                 self.disableCreateLabel( $shipment );
