@@ -303,7 +303,9 @@ class Settings {
 				$provider = new ShippingProvider();
 			}
 
-			$settings = $provider->get_settings();
+			if ( $provider ) {
+				$settings = $provider->get_settings();
+			}
 		}
 
 		return $settings;

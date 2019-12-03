@@ -586,8 +586,6 @@ class Table extends WP_List_Table {
      */
     protected function extra_tablenav( $which ) {
         ?>
-
-
         <div class="alignleft actions">
             <?php
             if ( 'top' === $which && ! is_singular() ) {
@@ -670,8 +668,7 @@ class Table extends WP_List_Table {
      * @return array
      */
     public function get_columns() {
-
-        $columns               = $this->get_custom_columns();
+        $columns = $this->get_custom_columns();
 
 	    /**
 	     * Filters the columns displayed in the Shipments list table.
