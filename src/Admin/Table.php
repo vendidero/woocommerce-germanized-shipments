@@ -39,7 +39,6 @@ class Table extends WP_List_Table {
      * @param array $args An associative array of arguments.
      */
     public function __construct( $args = array() ) {
-        add_action( 'admin_notices', array( $this, 'bulk_admin_notices' ) );
         add_filter( 'removable_query_args', array( $this, 'enable_query_removing' ) );
 
         $args = wp_parse_args( $args, array(
@@ -535,31 +534,33 @@ class Table extends WP_List_Table {
                             <p><?php echo $notice; ?></p>
                         </div>
                     <?php endforeach; ?>
+
+                    <?php $handler->admin_after_error(); ?>
                 <?php elseif ( $success ) : ?>
                     <div class="updated">
                         <p><?php echo $handler->get_success_message(); ?></p>
                     </div>
-
-                    <?php
-                    $handler->admin_handled();
-                    /**
-                     * Action that fires after a certain bulk action result has been rendered.
-                     *
-                     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
-                     * unique hook for a shipment type e.g. return. In case of simple shipments the type is omitted.
-                     * `$bulk_action` refers to the bulk action handled.
-                     *
-                     * Example hook name: woocommerce_gzd_return_shipments_table_mark_processing_handled
-                     *
-                     * @param BulkActionHandler $bulk_action_handler The bulk action handler.
-                     * @param string            $bulk_action The bulk action.
-                     *
-                     * @since 3.0.0
-                     * @package Vendidero/Germanized/Shipments
-                     */
-                    do_action( "{$this->get_hook_prefix()}bulk_action_{$bulk_action}_handled", $handler, $bulk_action );
-                    ?>
                 <?php endif; ?>
+
+			    <?php
+			    $handler->admin_handled();
+			    /**
+			     * Action that fires after a certain bulk action result has been rendered.
+			     *
+			     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+			     * unique hook for a shipment type e.g. return. In case of simple shipments the type is omitted.
+			     * `$bulk_action` refers to the bulk action handled.
+			     *
+			     * Example hook name: woocommerce_gzd_return_shipments_table_mark_processing_handled
+			     *
+			     * @param BulkActionHandler $bulk_action_handler The bulk action handler.
+			     * @param string            $bulk_action The bulk action.
+			     *
+			     * @since 3.0.0
+			     * @package Vendidero/Germanized/Shipments
+			     */
+			    do_action( "{$this->get_hook_prefix()}bulk_action_{$bulk_action}_handled", $handler, $bulk_action );
+			    ?>
 
                 <?php $handler->reset(); ?>
             <?php endif; ?>

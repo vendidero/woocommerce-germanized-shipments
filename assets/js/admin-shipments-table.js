@@ -40,7 +40,7 @@ window.germanized.admin = window.germanized.admin || {};
 
         onBulkSubmit: function() {
             var self   = germanized.admin.shipments_table,
-                action = $( this ).parents( '.bulkactions' ).find( 'select[name=action]' ).val(),
+                action = $( this ).parents( '.bulkactions' ).find( 'select[name^=action]' ).val(),
                 type   = $( this ).parents( '#posts-filter' ).find( 'input.shipment_type' ).val(),
                 ids    = [];
 

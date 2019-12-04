@@ -36,11 +36,9 @@ interface ShipmentLabel {
 	public function download( $args = array() );
 
 	/**
-	 * Merges the label into an existing document for export purposes.
-	 *
-	 * @param PDFMerger $merger The merger instance as reference.
+	 * Returns the local absolute path to the label file.
 	 */
-	public function merge( PDFMerger &$pdf );
+	public function get_file();
 
 	/**
 	 * Returns the label number which is used as a tracking id for the corresponding shipment.
