@@ -271,8 +271,10 @@ class ShipmentItem extends WC_Data {
 
 	    if ( $shipment = $this->get_shipment() ) {
 	    	if ( 'return' === $shipment->get_type() ) {
-	    		if ( $parent = $shipment->get_parent() ) {
-	    			$item = $parent->get_item( $this->get_parent_id() );
+	    		if ( $shipment = $this->get_shipment() ) {
+	    			if ( $order_shipment = $shipment->get_order_shipment() ) {
+					    $item = $order_shipment->get_simple_shipment_item( $this->get_order_item_id() );
+				    }
 			    }
 		    } else {
 	    		$item = $this->get_order_item();

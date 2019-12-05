@@ -984,10 +984,6 @@ abstract class Shipment extends WC_Data {
         return apply_filters( 'woocommerce_gzd_shipment_is_editable', $this->has_status( wc_gzd_get_shipment_editable_statuses() ), $this );
     }
 
-    public function is_returnable() {
-    	return false;
-    }
-
 	/**
 	 * Returns the shipment number.
 	 *
@@ -1804,7 +1800,7 @@ abstract class Shipment extends WC_Data {
 		}
 
 		// If shipment is already delivered
-		if ( $check_status && $this->has_status( array( 'delivered', 'shipped', 'returned' ) ) ) {
+		if ( $check_status && $this->has_status( array( 'delivered', 'shipped' ) ) ) {
 			$needs_label = false;
 		}
 

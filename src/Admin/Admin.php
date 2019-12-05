@@ -44,6 +44,49 @@ class Admin {
 	    add_action( 'woocommerce_gzd_admin_settings_after_save_shipments', array( __CLASS__, 'save_return_reasons' ) );
     }
 
+    public static function get_admin_shipment_item_columns( $shipment ) {
+	    $item_columns = array(
+		    'name' => array(
+			    'title' => _x( 'Item', 'shipments', 'woocommerce-germanized-shipments' ),
+			    'size'  => 6,
+			    'order' => 5,
+		    ),
+		    'quantity' => array(
+			    'title' => _x( 'Quantity', 'shipments', 'woocommerce-germanized-shipments' ),
+			    'size'  => 3,
+			    'order' => 10,
+		    ),
+		    'action' => array(
+			    'title' => _x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' ),
+			    'size'  => 3,
+			    'order' => 15,
+		    ),
+	    );
+
+	    if ( 'return' === $shipment->get_type() ) {
+	        $item_columns['return_reason'] = array(
+                'title' => _x( 'Reason', 'shipments', 'woocommerce-germanized-shipments' ),
+                'size'  => 3,
+                'order' => 7,
+            );
+
+		    $item_columns['name']['size']     = 5;
+		    $item_columns['quantity']['size'] = 2;
+		    $item_columns['action']['size']   = 2;
+        }
+
+	    uasort ( $item_columns, array( __CLASS__, '_sort_shipment_item_columns' ) );
+
+	    return apply_filters( 'woocommerce_gzd_shipments_meta_box_shipment_item_columns', $item_columns, $shipment );
+    }
+
+    public static function _sort_shipment_item_columns( $a, $b ) {
+	    if ( $a['order'] == $b['order'] ) {
+		    return 0;
+	    }
+	    return ( $a['order'] < $b['order'] ) ? -1 : 1;
+    }
+
     public static function save_return_reasons() {
 	    $reasons = array();
 

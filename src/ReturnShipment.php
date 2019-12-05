@@ -19,13 +19,6 @@ defined( 'ABSPATH' ) || exit;
 class ReturnShipment extends Shipment {
 
 	/**
-	 * The corresponding parent shipment.
-	 *
-	 * @var null|SimpleShipment
-	 */
-	private $parent = null;
-
-	/**
 	 * The corresponding order object.
 	 *
 	 * @var null|Order
@@ -40,7 +33,6 @@ class ReturnShipment extends Shipment {
 	private $order = null;
 
 	protected $extra_data = array(
-		'parent_id'             => 0,
 		'order_id'              => 0,
 		'is_customer_requested' => false,
 		'sender_address'        => array(),
@@ -62,16 +54,6 @@ class ReturnShipment extends Shipment {
 	 */
 	protected function get_hook_prefix() {
 		return 'woocommerce_gzd_return_shipment_get_';
-	}
-
-	/**
-	 * Returns the parent id belonging to the shipment.
-	 *
-	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
-	 * @return integer
-	 */
-	public function get_parent_id( $context = 'view' ) {
-		return $this->get_prop( 'parent_id', $context );
 	}
 
 	/**
@@ -135,18 +117,6 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Set shipment parent id.
-	 *
-	 * @param string $parent_id The parent id.
-	 */
-	public function set_parent_id( $parent_id ) {
-		// Reset parent object
-		$this->parent = null;
-
-		$this->set_prop( 'parent_id', absint( $parent_id ) );
-	}
-
-	/**
 	 * Set shipment order id.
 	 *
 	 * @param string $order_id The order id.
@@ -182,25 +152,12 @@ class ReturnShipment extends Shipment {
 	 * @return Order|null The order shipment.
 	 */
 	public function get_order_shipment() {
-		return $this->order_shipment;
-	}
-
-	/**
-	 * Tries to fetch the parent for the current shipment.
-	 *
-	 * @return bool|SimpleShipment|null
-	 */
-	public function get_parent() {
-		if ( is_null( $this->parent ) ) {
-
-			if ( $order_shipment = $this->get_order_shipment() ) {
-				$this->parent = ( $this->get_parent_id() > 0 ? $order_shipment->get_shipment( $this->get_parent_id() ) : false );
-			} else {
-				$this->parent = ( $this->get_parent_id() > 0 ? wc_gzd_get_shipment( $this->get_parent_id() ) : false );
-			}
+		if ( is_null( $this->order_shipment ) ) {
+			$order                = $this->get_order();
+			$this->order_shipment = ( $order ? wc_gzd_get_shipment_order( $order ) : false );
 		}
 
-		return $this->parent;
+		return $this->order_shipment;
 	}
 
 	/**
@@ -209,20 +166,12 @@ class ReturnShipment extends Shipment {
 	 * @return int
 	 */
 	public function get_shippable_item_count() {
-		if ( $parent = $this->get_parent() ) {
-			return $parent->get_item_count();
+
+		if ( $order_shipment = $this->get_order_shipment() ) {
+			return $order_shipment->get_returnable_item_count();
 		}
 
 		return 0;
-	}
-
-	/**
-	 * Set parent instance.
-	 *
-	 * @param $shipment
-	 */
-	public function set_parent( $shipment ) {
-		$this->parent = $shipment;
 	}
 
 	/**
@@ -476,19 +425,26 @@ class ReturnShipment extends Shipment {
 
 		try {
 
-			if ( ! $parent_shipment = $this->get_parent() ) {
-				throw new Exception( _x( 'Invalid shipment', 'shipments', 'woocommerce-germanized-shipments' ) );
+			if ( ! $order_shipment = $this->get_order_shipment() ) {
+				throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
 			}
 
-			$return_address = wc_gzd_get_shipment_return_address( $parent_shipment );
+			$return_address = wc_gzd_get_shipment_return_address( $order_shipment );
+			$order          = $order_shipment->get_order();
+
+			/**
+			 * Make sure that manually adjusted providers are not overridden by syncing.
+			 */
+			$default_provider = wc_gzd_get_shipment_shipping_provider( $order );
+			$provider         = $this->get_shipping_provider( 'edit' );
 
 			$args = wp_parse_args( $args, array(
-				'order_id'          => $parent_shipment->get_order_id(),
+				'order_id'          => $order->get_id(),
 				'country'           => $return_address['country'],
-				'shipping_method'   => $parent_shipment->get_shipping_method(),
-				'shipping_provider' => $parent_shipment->get_shipping_provider(),
+				'shipping_method'   => wc_gzd_get_shipment_order_shipping_method_id( $order ),
+				'shipping_provider' => ( ! empty( $provider ) ) ? $provider : $default_provider,
 				'address'           => $return_address,
-				'sender_address'    => $parent_shipment->get_address(),
+				'sender_address'    => array_merge( $order->get_address( 'shipping' ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) ),
 				'weight'            => $this->get_weight( 'edit' ),
 				'length'            => $this->get_length( 'edit' ),
 				'width'             => $this->get_width( 'edit' ),
@@ -496,20 +452,19 @@ class ReturnShipment extends Shipment {
 			) );
 
 			$this->set_props( $args );
-			$this->set_parent_id( $parent_shipment->get_id() );
 
 			/**
 			 * Action that fires after a return shipment has been synced. Syncing is used to
 			 * keep the shipment in sync with the corresponding parent shipment.
 			 *
 			 * @param ReturnShipment $shipment The return shipment object.
-			 * @param SimpleShipment $parent_shipment The parent shipment object.
+			 * @param Order          $order_shipment The shipment order object.
 			 * @param array          $args Array containing properties in key => value pairs to be updated.
 			 *
 			 * @since 3.0.0
 			 * @package Vendidero/Germanized/Shipments
 			 */
-			do_action( 'woocommerce_gzd_return_shipment_synced', $this, $parent_shipment, $args );
+			do_action( 'woocommerce_gzd_return_shipment_synced', $this, $order_shipment, $args );
 
 		} catch ( Exception $e ) {
 			return false;
@@ -529,22 +484,24 @@ class ReturnShipment extends Shipment {
 	public function sync_items( $args = array() ) {
 		try {
 
-			if ( ! $parent = $this->get_parent() ) {
-				throw new Exception( _x( 'Invalid shipment', 'shipments', 'woocommerce-germanized-shipments' ) );
+			if ( ! $order_shipment = $this->get_order_shipment() ) {
+				throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
 			}
+
+			$order = $order_shipment->get_order();
 
 			$args = wp_parse_args( $args, array(
 				'items' => array(),
 			) );
 
-			$available_items = $parent->get_available_items_for_return( array(
+			$available_items = $order_shipment->get_available_items_for_return( array(
 				'shipment_id'              => $this->get_id(),
 				'exclude_current_shipment' => true,
 			) );
 
 			foreach( $available_items as $item_id => $item_data ) {
 
-				if ( $parent_item = $parent->get_item( $item_id ) ) {
+				if ( $item = $order_shipment->get_simple_shipment_item( $item_id )  ) {
 					$quantity = $item_data['max_quantity'];
 
 					if ( ! empty( $args['items'] ) ) {
@@ -559,8 +516,8 @@ class ReturnShipment extends Shipment {
 						}
 					}
 
-					if ( ! $shipment_item = $this->get_item_by_item_parent_id( $item_id ) ) {
-						$shipment_item = wc_gzd_create_return_shipment_item( $this, $parent_item, array( 'quantity' => $quantity ) );
+					if ( ! $shipment_item = $this->get_item_by_order_item_id( $item_id ) ) {
+						$shipment_item = wc_gzd_create_return_shipment_item( $this, $item, array( 'quantity' => $quantity ) );
 
 						$this->add_item( $shipment_item );
 					} else {
@@ -572,7 +529,7 @@ class ReturnShipment extends Shipment {
 			foreach( $this->get_items() as $item ) {
 
 				// Remove non-existent items
-				if ( ! $parent_item = $parent->get_item( $item->get_parent_id() ) ) {
+				if ( ! $shipment_item = $order_shipment->get_simple_shipment_item( $item->get_order_item_id() ) ) {
 					$this->remove_item( $item->get_id() );
 				}
 			}
@@ -587,7 +544,7 @@ class ReturnShipment extends Shipment {
 			 * @since 3.0.0
 			 * @package Vendidero/Germanized/Shipments
 			 */
-			do_action( 'woocommerce_gzd_return_shipment_items_synced', $this, $parent, $args );
+			do_action( 'woocommerce_gzd_return_shipment_items_synced', $this, $order_shipment, $args );
 
 		} catch ( Exception $e ) {
 			return false;
@@ -605,11 +562,11 @@ class ReturnShipment extends Shipment {
 	 */
 	public function needs_items( $available_items = false ) {
 
-		if ( ! $available_items && ( $parent = $this->get_parent() ) ) {
-			$available_items = array_keys( $parent->get_available_items_for_return() );
+		if ( ! $available_items && ( $order_shipment = $this->get_order_shipment() ) ) {
+			$available_items = array_keys( $order_shipment->get_available_items_for_return() );
 		}
 
-		return ( $this->is_editable() && ! $this->contains_item_parent( $available_items ) );
+		return ( $this->is_editable() && ! $this->contains_order_item( $available_items ) );
 	}
 
 	/**
@@ -632,6 +589,6 @@ class ReturnShipment extends Shipment {
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( "{$this->get_hook_prefix()}edit_url", get_admin_url( null, 'post.php?post=' . $this->get_order_id() . '&action=edit&shipment_id=' . $this->get_parent_id() . '&return_id=' . $this->get_id() ), $this );
+		return apply_filters( "{$this->get_hook_prefix()}edit_url", get_admin_url( null, 'post.php?post=' . $this->get_order_id() . '&action=edit&shipment_id=' . $this->get_id() ), $this );
 	}
 }

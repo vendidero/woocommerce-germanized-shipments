@@ -115,6 +115,25 @@ function wc_gzd_get_shipment_order_shipping_statuses() {
     return apply_filters( 'woocommerce_gzd_order_shipping_statuses', $shipment_statuses );
 }
 
+function wc_gzd_get_shipment_order_return_statuses() {
+	$shipment_statuses = array(
+		'gzd-open'               => _x( 'Open', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-partially-returned' => _x( 'Partially returned', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-returned'           => _x( 'Returned', 'shipments', 'woocommerce-germanized-shipments' ),
+	);
+
+	/**
+	 * Filter to adjust or add order return statuses.
+	 * An order might retrieve a shipping status e.g. not shipped.
+	 *
+	 * @param array $shipment_statuses Available order return statuses.
+	 *
+	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
+	return apply_filters( 'woocommerce_gzd_order_return_statuses', $shipment_statuses );
+}
+
 /**
  * @param $instance_id
  *
@@ -206,6 +225,32 @@ function wc_gzd_get_shipment_order_shipping_status_name( $status ) {
     return apply_filters( 'woocommerce_gzd_order_shipping_status_name', $status_name, $status );
 }
 
+function wc_gzd_get_shipment_order_return_status_name( $status ) {
+	if ( 'gzd-' !== substr( $status, 0, 4 ) ) {
+		$status = 'gzd-' . $status;
+	}
+
+	$status_name = '';
+	$statuses    = wc_gzd_get_shipment_order_return_statuses();
+
+	if ( array_key_exists( $status, $statuses ) ) {
+		$status_name = $statuses[ $status ];
+	}
+
+	/**
+	 * Filter to adjust the status name for a certain order return status.
+	 *
+	 * @see wc_gzd_get_shipment_order_return_statuses()
+	 *
+	 * @param string $status_name The status name.
+	 * @param string $status The return status.
+	 *
+	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
+	return apply_filters( 'woocommerce_gzd_order_return_status_name', $status_name, $status );
+}
+
 /**
  * Standard way of retrieving shipments based on certain parameters.
  *
@@ -259,7 +304,6 @@ function wc_gzd_get_shipment_statuses() {
         'gzd-processing' => _x( 'Processing', 'shipments', 'woocommerce-germanized-shipments' ),
         'gzd-shipped'    => _x( 'Shipped', 'shipments', 'woocommerce-germanized-shipments' ),
         'gzd-delivered'  => _x( 'Delivered', 'shipments', 'woocommerce-germanized-shipments' ),
-        'gzd-returned'   => _x( 'Returned', 'shipments', 'woocommerce-germanized-shipments' ),
         'gzd-requested'  => _x( 'Requested', 'shipments', 'woocommerce-germanized-shipments' ),
     );
 
@@ -282,10 +326,6 @@ function wc_gzd_get_shipment_statuses() {
 function wc_gzd_get_shipment_selectable_statuses( $shipment ) {
 	$shipment_statuses = wc_gzd_get_shipment_statuses();
 
-	if ( ! $shipment->has_status( 'returned' ) && isset( $shipment_statuses['gzd-returned'] ) ) {
-		unset( $shipment_statuses['gzd-returned'] );
-	}
-
 	if ( ! $shipment->has_status( 'requested' ) && isset( $shipment_statuses['gzd-requested'] ) ) {
 		unset( $shipment_statuses['gzd-requested'] );
 	}
@@ -304,20 +344,20 @@ function wc_gzd_get_shipment_selectable_statuses( $shipment ) {
 }
 
 /**
- * @param SimpleShipment $parent_shipment
+ * @param Order $order_shipment
  * @param array $args
  *
  * @return ReturnShipment|WP_Error
  */
-function wc_gzd_create_return_shipment( $parent_shipment, $args = array() ) {
+function wc_gzd_create_return_shipment( $order_shipment, $args = array() ) {
 	try {
 
-		if ( ! $parent_shipment || ! is_a( $parent_shipment, 'Vendidero\Germanized\Shipments\Shipment' ) ) {
-			throw new Exception( _x( 'Invalid shipment.', 'shipments', 'woocommerce-germanized-shipments' ) );
+		if ( ! $order_shipment || ! is_a( $order_shipment, 'Vendidero\Germanized\Shipments\Order' ) ) {
+			throw new Exception( _x( 'Invalid order.', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
 
-		if ( $parent_shipment->has_complete_return() ) {
-			throw new Exception( _x( 'This shipment is already fully returned.', 'shipments', 'woocommerce-germanized-shipments' ) );
+		if ( ! $order_shipment->needs_return() ) {
+			throw new Exception( _x( 'This order is already fully returned.', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
 
 		$args = wp_parse_args( $args, array(
@@ -332,9 +372,7 @@ function wc_gzd_create_return_shipment( $parent_shipment, $args = array() ) {
 		}
 
 		// Make sure shipment knows its parent
-		$shipment->set_parent_id( $parent_shipment->get_id() );
-		$shipment->set_parent( $parent_shipment );
-
+		$shipment->set_order_shipment( $order_shipment );
 		$shipment->sync( $args['props'] );
 		$shipment->sync_items( $args );
 		$shipment->save();
@@ -467,20 +505,20 @@ function _wc_gzd_sort_shipment_return_reasons( $a, $b ) {
 
 /**
  * @param Shipment $shipment
- * @param ShipmentItem $parent_item
+ * @param ShipmentItem $shipment_item
  * @param array $args
  *
  * @return ShipmentReturnItem|WP_Error
  */
-function wc_gzd_create_return_shipment_item( $shipment, $parent_item, $args = array() ) {
+function wc_gzd_create_return_shipment_item( $shipment, $shipment_item, $args = array() ) {
 	try {
 
-		if ( ! $parent_item || ! is_a( $parent_item, '\Vendidero\Germanized\Shipments\ShipmentItem' ) ) {
+		if ( ! $shipment_item || ! is_a( $shipment_item, '\Vendidero\Germanized\Shipments\ShipmentItem' ) ) {
 			throw new Exception( _x( 'Invalid shipment item', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
 
 		$item = new Vendidero\Germanized\Shipments\ShipmentReturnItem();
-		$item->set_parent_id( $parent_item->get_id() );
+		$item->set_order_item_id( $shipment_item->get_order_item_id() );
 		$item->set_shipment( $shipment );
 		$item->sync( $args );
 		$item->save();
@@ -630,11 +668,11 @@ function wc_gzd_shipments_upload_data( $filename, $bits, $relative = true ) {
 }
 
 /**
- * @param SimpleShipment $parent_shipment
+ * @param Order $shipment_order
  *
  * @return array
  */
-function wc_gzd_get_shipment_return_address( $parent_shipment ) {
+function wc_gzd_get_shipment_return_address( $shipment_order ) {
 	$country_state = wc_format_country_state_string( Package::get_setting( 'return_address_country' ) );
 
 	$address = array(
@@ -760,7 +798,6 @@ function wc_gzd_get_shipment_sent_statuses() {
     return apply_filters( 'woocommerce_gzd_shipment_sent_statuses', array(
         'shipped',
         'delivered',
-        'returned'
     ) );
 }
 

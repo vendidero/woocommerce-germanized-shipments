@@ -6,6 +6,7 @@
  */
 
 use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Germanized\Shipments\Admin\Admin;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -39,26 +40,6 @@ defined( 'ABSPATH' ) || exit;
                     <input type="text" size="6" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_height( 'edit' ) ) ); ?>" name="shipment_height[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-height-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_height() ) ); ?>" />
                 </span>
             </p>
-
-            <div class="columns">
-	            <?php
-
-                if ( $shipment->supports_label() && ( ( $label = $shipment->get_label() ) || $shipment->needs_label() ) ) :
-                    include 'label/html-shipment-label.php';
-                endif;
-                ?>
-
-	            <?php
-	            /**
-	             * Action that fires after the right column of a Shipment's meta box admin view.
-	             *
-	             * @param Shipment $shipment The shipment object.
-	             *
-	             * @since 3.0.0
-                 * @package Vendidero/Germanized/Shipments
-	             */
-                do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_right_column', $shipment ); ?>
-            </div>
         </div>
 
         <div class="column col-6">
@@ -98,26 +79,63 @@ defined( 'ABSPATH' ) || exit;
                 <input type="text" value="<?php echo esc_attr( $shipment->get_tracking_id() ); ?>" name="shipment_tracking_id[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-tracking-id-<?php echo esc_attr( $shipment->get_id() ); ?>" />
             </p>
 
+		    <?php
+		    /**
+		     * Action that fires after the left column of a Shipment's meta box admin view.
+		     *
+		     * @param Shipment $shipment The shipment object.
+		     *
+		     * @since 3.0.0
+             * @package Vendidero/Germanized/Shipments
+		     */
+		    do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_left_column', $shipment ); ?>
+        </div>
+
+        <div class="column col-12 column-shipment-documents">
+            <div class="columns">
+                <div class="column col-6">
+                    <div class="columns">
+	                    <?php
+	                    if ( $shipment->supports_label() && ( ( $label = $shipment->get_label() ) || $shipment->needs_label() ) ) :
+		                    include 'label/html-shipment-label.php';
+	                    endif;
+	                    ?>
+                    </div>
+                </div>
+                <div class="column col-6">
+                    <div class="columns">
+                        <?php
+                        /**
+                         * Action that fires after the right column of a Shipment's meta box admin view.
+                         *
+                         * @param Shipment $shipment The shipment object.
+                         *
+                         * @since 3.0.0
+                         * @package Vendidero/Germanized/Shipments
+                         */
+                        do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_right_column', $shipment ); ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="column col-12">
             <div class="shipment-items" id="shipment-items-<?php echo esc_attr( $shipment->get_id() ); ?>">
                 <div class="shipment-item-list-wrapper">
                     <div class="shipment-item-heading">
                         <div class="columns">
-                            <div class="column col-7 shipment-item-name">
-							    <?php echo _x( 'Item', 'shipments', 'woocommerce-germanized-shipments' ); ?>
-                            </div>
-                            <div class="column col-2 shipment-item-quantity">
-							    <?php echo _x( 'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?>
-                            </div>
-                            <div class="column col-3 shipment-item-action">
-							    <?php echo _x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' ); ?>
-                            </div>
+                            <?php foreach( Admin::get_admin_shipment_item_columns( $shipment ) as $column_name => $column ) : ?>
+                                <div class="column col-<?php echo esc_attr( $column['size'] ); ?> shipment-item-<?php echo esc_attr( $column_name ); ?>">
+		                            <?php echo $column['title']; ?>
+                                </div>
+                            <?php endforeach; ?>
                         </div>
                     </div>
 
                     <div class="shipment-item-list">
-					    <?php foreach( $shipment->get_items() as $item ) : ?>
-						    <?php include 'html-order-shipment-item.php'; ?>
-					    <?php endforeach; ?>
+				        <?php foreach( $shipment->get_items() as $item ) : ?>
+					        <?php include 'html-order-shipment-item.php'; ?>
+				        <?php endforeach; ?>
                     </div>
                 </div>
 
@@ -130,19 +148,18 @@ defined( 'ABSPATH' ) || exit;
                         <a class="sync-shipment-items" href="#"><?php echo wc_help_tip( _x( 'Automatically adjust items and quantities based on order item data.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?><?php echo _x( 'Sync items', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
                     </div>
 
-				    <?php
-				    /**
-				     * Action that fires in the item action container of a Shipment's meta box admin view.
-				     *
-				     * @param Shipment $shipment The shipment object.
-				     *
-				     * @since 3.0.0
-                     * @package Vendidero/Germanized/Shipments
-				     */
-				    do_action( 'woocommerce_gzd_shipments_meta_box_shipment_item_actions', $shipment ); ?>
+			        <?php
+			        /**
+			         * Action that fires in the item action container of a Shipment's meta box admin view.
+			         *
+			         * @param Shipment $shipment The shipment object.
+			         *
+			         * @since 3.0.0
+			         * @package Vendidero/Germanized/Shipments
+			         */
+			        do_action( 'woocommerce_gzd_shipments_meta_box_shipment_item_actions', $shipment ); ?>
                 </div>
             </div>
-
             <script type="text/template" id="tmpl-wc-gzd-modal-add-shipment-item-<?php echo esc_attr( $shipment->get_id() ); ?>">
                 <div class="wc-backbone-modal">
                     <div class="wc-backbone-modal-content">
@@ -162,14 +179,14 @@ defined( 'ABSPATH' ) || exit;
                                             <th><?php echo esc_html_x( 'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
                                         </tr>
                                         </thead>
-									    <?php
-									    $row = '
+								        <?php
+								        $row = '
 									        <td><select id="wc-gzd-shipment-add-items-select" name="item_id"></select></td>
 									        <td><input id="wc-gzd-shipment-add-items-quantity" type="number" step="1" min="0" max="9999" autocomplete="off" name="item_qty" placeholder="1" size="4" class="quantity" /></td>';
-									    ?>
+								        ?>
                                         <tbody data-row="<?php echo esc_attr( $row ); ?>">
                                         <tr>
-										    <?php echo $row; // WPCS: XSS ok. ?>
+									        <?php echo $row; // WPCS: XSS ok. ?>
                                         </tr>
                                         </tbody>
                                     </table>
@@ -185,72 +202,7 @@ defined( 'ABSPATH' ) || exit;
                 </div>
                 <div class="wc-backbone-modal-backdrop modal-close"></div>
             </script>
-
-		    <?php
-		    /**
-		     * Action that fires after the left column of a Shipment's meta box admin view.
-		     *
-		     * @param Shipment $shipment The shipment object.
-		     *
-		     * @since 3.0.0
-             * @package Vendidero/Germanized/Shipments
-		     */
-		    do_action( 'woocommerce_gzd_shipments_meta_box_shipment_after_left_column', $shipment ); ?>
         </div>
-
-        <?php if ( 'simple' === $shipment->get_type() ) : ?>
-
-            <script type="text/template" id="tmpl-wc-gzd-modal-add-shipment-return-<?php echo esc_attr( $shipment->get_id() ); ?>">
-                <div class="wc-backbone-modal">
-                    <div class="wc-backbone-modal-content">
-                        <section class="wc-backbone-modal-main" role="main">
-                            <header class="wc-backbone-modal-header">
-                                <h1><?php echo esc_html_x( 'Add Return', 'shipments', 'woocommerce-germanized-shipments' ); ?></h1>
-                                <button class="modal-close modal-close-link dashicons dashicons-no-alt">
-                                    <span class="screen-reader-text">Close modal panel</span>
-                                </button>
-                            </header>
-                            <article>
-                                <form action="" method="post">
-                                    <table class="widefat">
-                                        <thead>
-                                        <tr>
-                                            <th><?php echo esc_html_x( 'Item', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
-                                            <th><?php echo esc_html_x( 'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
-                                        </tr>
-                                        </thead>
-                                        <tbody id="wc-gzd-return-shipment-items" data-row="<?php echo esc_attr( $row ); ?>"></tbody>
-                                    </table>
-                                </form>
-                            </article>
-                            <footer>
-                                <div class="inner">
-                                    <button id="btn-ok" class="button button-primary button-large"><?php echo esc_html_x( 'Add', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
-                                </div>
-                            </footer>
-                        </section>
-                    </div>
-                </div>
-                <div class="wc-backbone-modal-backdrop modal-close"></div>
-            </script>
-
-            <div class="column col-12 shipment-returns-data">
-                <div class="shipment-returns">
-                    <div class="shipment-return-list">
-                        <?php
-                        $global_shipment = $shipment;
-
-                        foreach( $shipment->get_returns() as $return ) :
-                            $shipment = $return;
-                            ?>
-                            <?php include 'html-order-shipment.php'; ?>
-                        <?php endforeach;
-                        $shipment = $global_shipment;
-                        ?>
-                    </div>
-                </div>
-            </div>
-        <?php endif; ?>
 
         <?php
         /**
@@ -265,9 +217,7 @@ defined( 'ABSPATH' ) || exit;
 
         <div class="column col-12 shipment-footer" id="shipment-footer-<?php echo esc_attr( $shipment->get_id() ); ?>">
             <div class="shipment-footer-inner">
-	            <?php if ( 'simple' === $shipment->get_type() ) : ?>
-                    <a class="shipment-footer-action add-shipment-return" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo _x( 'Add Return', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
-	            <?php elseif( 'return' === $shipment->get_type() && $shipment->has_status( 'processing' ) ) : ?>
+	            <?php if( 'return' === $shipment->get_type() && $shipment->has_status( 'processing' ) ) : ?>
                     <a class="shipment-footer-action send-return-shipment-notification email" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo wc_help_tip( _x( 'Send return instructions to your customer via email including return label as attachment (if available).', 'shipments', 'woocommerce-germanized-shipments' ) ); ?><?php echo ( $shipment->is_customer_requested() ? _x( 'Resend notification', 'shipments', 'woocommerce-germanized-shipments' ) : _x( 'Notify customer', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></a>
 	            <?php elseif( 'return' === $shipment->get_type() && $shipment->has_status( 'requested' ) ) : ?>
                     <a class="shipment-footer-action confirm-return-shipment" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo wc_help_tip( _x( 'Confirm the return request to the customer. The customer receives an email notification possibly containing return instructions.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?><?php _ex( 'Confirm return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>

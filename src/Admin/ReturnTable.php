@@ -24,7 +24,7 @@ class ReturnTable extends Table {
 		$columns['status']     = _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' );
 		$columns['items']      = _x( 'Items', 'shipments', 'woocommerce-germanized-shipments' );
 		$columns['sender']     = _x( 'Sender', 'shipments', 'woocommerce-germanized-shipments' );
-		$columns['shipment']   = _x( 'Shipment', 'shipments', 'woocommerce-germanized-shipments' );
+		$columns['order']      = _x( 'Order', 'shipments', 'woocommerce-germanized-shipments' );
 		$columns['actions']    = _x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' );
 
 		return $columns;
@@ -91,21 +91,6 @@ class ReturnTable extends Table {
 
 		if ( $address ) {
 			echo '<a target="_blank" href="' . esc_url( $shipment->get_address_map_url( $shipment->get_sender_address() ) ) . '">' . esc_html( preg_replace( '#<br\s*/?>#i', ', ', $address ) ) . '</a>';
-		} else {
-			echo '&ndash;';
-		}
-	}
-
-	/**
-	 * Handles the post author column output.
-	 *
-	 * @since 4.3.0
-	 *
-	 * @param ReturnShipment $shipment The current shipment object.
-	 */
-	public function column_shipment( $shipment ) {
-		if ( ( $parent = $shipment->get_parent() ) ) {
-			echo '<a href="' . $parent->get_edit_shipment_url() . '">' . $parent->get_shipment_number() . '</a>';
 		} else {
 			echo '&ndash;';
 		}

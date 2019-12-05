@@ -14,7 +14,6 @@ window.germanized.admin = window.germanized.admin || {};
             params       : {},
             id           : '',
             isEditable   : true,
-            isReturnable : true,
             needsItems   : true
         };
 
@@ -44,7 +43,6 @@ window.germanized.admin = window.germanized.admin || {};
 
             this.setNeedsItems( this.vars.$shipment.hasClass( 'needs-items' ) );
             this.setIsEditable( this.vars.$shipment.hasClass( 'is-editable' ) );
-            this.setIsReturnable( this.vars.$shipment.hasClass( 'is-returnable' ) );
             this.onChangeProvider();
 
             $( '#shipment-' + this.vars.id + ' #shipment-items-' + this.vars.id ).off();
@@ -61,7 +59,6 @@ window.germanized.admin = window.germanized.admin || {};
                 .on( 'click', 'a.sync-shipment-items', this.onSyncItems.bind( this ) );
 
             $( '#shipment-' + this.vars.id + ' #shipment-footer-' + this.vars.id )
-                .on( 'click', 'a.add-shipment-return', this.onAddReturn.bind( this ) )
                 .on( 'click', '.send-return-shipment-notification', this.onSendReturnNotification.bind( this ) )
                 .on( 'click', '.confirm-return-shipment', this.onConfirmReturnRequest.bind( this ) );
 
@@ -198,22 +195,6 @@ window.germanized.admin = window.germanized.admin || {};
             this.getShipment().find( '#shipment-height-' + this.getId() ).attr( 'placeholder', height );
         };
 
-        this.setIsReturnable = function( isReturnable ) {
-            var root = this;
-
-            if ( typeof isReturnable !== "boolean" ) {
-                isReturnable = true;
-            }
-
-            this.vars.isReturnable = isReturnable === true;
-
-            if ( ! this.vars.isReturnable ) {
-                this.getShipment().removeClass( 'is-returnable' );
-            } else {
-                this.getShipment().addClass( 'is-returnable' );
-            }
-        };
-
         this.setIsEditable = function( isEditable ) {
             var root = this;
 
@@ -290,15 +271,6 @@ window.germanized.admin = window.germanized.admin || {};
 
             this.getShipment().WCBackboneModal({
                 template: 'wc-gzd-modal-add-shipment-item-' + this.getId()
-            });
-
-            return false;
-        };
-
-        this.onAddReturn = function() {
-
-            this.getShipment().WCBackboneModal({
-                template: 'wc-gzd-modal-add-shipment-return-' + this.getId()
             });
 
             return false;
@@ -455,24 +427,6 @@ window.germanized.admin = window.germanized.admin || {};
                 });
             },
 
-            onAddReturnSuccess: function( data ) {
-                $( '#wc-gzd-return-shipment-items' ).html( data.html );
-                $( '.wc-backbone-modal-content article' ).unblock();
-
-                $( document.body ).on( 'change', 'input.wc-gzd-shipment-add-return-item-quantity', function() {
-                    var item_id  = $select.val(),
-                        quantity = $( this ).val();
-
-                    if ( $quantity.data( 'max-quantity-' + item_id ) ) {
-                        var maxQuantity = $quantity.data( 'max-quantity-' + item_id );
-
-                        if ( quantity > maxQuantity ) {
-                            $quantity.val( maxQuantity );
-                        }
-                    }
-                });
-            },
-
             init: function ( e, target ) {
                 var id = this.getId();
 
@@ -487,24 +441,9 @@ window.germanized.admin = window.germanized.admin || {};
                     });
 
                     germanized.admin.shipments.doAjax( {
-                        'action'     : 'woocommerce_gzd_get_shipment_available_items',
+                        'action'     : 'woocommerce_gzd_get_available_shipment_items',
                         'shipment_id': id
                     }, this.backbone.onAddItemSuccess.bind( this ) );
-
-                    return false;
-                } else if( ( 'wc-gzd-modal-add-shipment-return-' + id ) === target ) {
-                    $( '.wc-backbone-modal-content article' ).block({
-                        message: null,
-                        overlayCSS: {
-                            background: '#fff',
-                            opacity: 0.6
-                        }
-                    });
-
-                    germanized.admin.shipments.doAjax( {
-                        'action'     : 'woocommerce_gzd_get_shipment_available_return_items',
-                        'shipment_id': id
-                    }, this.backbone.onAddReturnSuccess.bind( this ) );
 
                     return false;
                 }
@@ -515,8 +454,6 @@ window.germanized.admin = window.germanized.admin || {};
 
                 if ( ( 'wc-gzd-modal-add-shipment-item-' + id ) === target ) {
                     this.addItem( data.item_id, data.item_qty );
-                } else if( ( 'wc-gzd-modal-add-shipment-return-' + id ) === target ) {
-                    this.addReturn( data );
                 }
             }
         };

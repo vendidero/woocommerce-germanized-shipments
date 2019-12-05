@@ -148,13 +148,13 @@ table.wc-gzd-shipping-providers {
   }
 }
 
-.shipment-status, .order-shipping-status {
+.shipment-status, .order-shipping-status, .order-return-status {
   background: #eee;
   padding: .2em .5em;
   font-size: .9em;
   border-radius: 3px;
 
-  &.status-draft, &.status-processing, &.status-requested, &.status-partially-shipped {
+  &.status-draft, &.status-processing, &.status-requested, &.status-partially-shipped, &.status-open, &.status-partially-returned {
     background: #f8dda7;
     color: #94660c;
   }
@@ -164,7 +164,7 @@ table.wc-gzd-shipping-providers {
     color: #761919;
   }
 
-  &.status-delivered, &.status-shipped, &.status-shipped {
+  &.status-delivered, &.status-shipped, &.status-shipped, &.status-returned {
     background: #c6e1c6;
     color: #5b841b;
   }
@@ -486,6 +486,12 @@ table.wc-gzd-shipping-providers {
       padding: 0 24px;
     }
 
+    .panel-title-inner {
+      padding-left: 0;
+      margin-top: 1em;
+      padding-right: 0;
+    }
+
     .panel-title {
       h2 {
         margin: 0;
@@ -518,7 +524,7 @@ table.wc-gzd-shipping-providers {
       }
     }
 
-    #order-shipment-add {
+    #order-shipment-add, #order-return-shipment-add {
       display: none;
     }
     
@@ -527,6 +533,15 @@ table.wc-gzd-shipping-providers {
         display: block;
       }
       #order-shipment-add {
+        display: block;
+      }
+    }
+
+    &.needs-returns {
+      .panel-footer {
+        display: block;
+      }
+      #order-return-shipment-add {
         display: block;
       }
     }
@@ -550,14 +565,6 @@ table.wc-gzd-shipping-providers {
           margin-right: 3px;
         }
       }
-
-      &.shipment-return {
-        .shipment-footer-inner {
-          border-bottom: 1px solid #dfdfdf;
-          padding-bottom: 1em;
-        }
-      }
-
       .handlediv {
         display: inline-block;
         float: none;
@@ -611,10 +618,13 @@ table.wc-gzd-shipping-providers {
       }
 
       .shipment-footer {
+        margin-top: 1em;
+
         .shipment-footer-inner {
           display: flex;
           flex-wrap: nowrap;
           justify-content: flex-end;
+          padding: 0 .5em;
 
           a.shipment-footer-action {
             margin-right: 1em;
@@ -715,6 +725,10 @@ table.wc-gzd-shipping-providers {
         }
       }
 
+      .column-shipment-documents {
+
+      }
+
       .shipment-items {
         .shipment-item-list-wrapper {
           .shipment-item-action {
@@ -723,9 +737,8 @@ table.wc-gzd-shipping-providers {
 
           .shipment-item-quantity {
             input {
-              width: 100%;
+              width: 50px;
               text-align: center;
-              padding: 0 4px;
             }
           }
 
@@ -743,7 +756,12 @@ table.wc-gzd-shipping-providers {
           }
 
           .shipment-item {
-            padding: .7em .5em;
+            padding: .5em;
+            border-bottom: 1px solid #dfdfdf;
+
+            &:nth-child(2n) {
+              background: #f8f8f8;
+            }
 
             .columns {
               align-items: center;
@@ -756,7 +774,7 @@ table.wc-gzd-shipping-providers {
         display: flex;
         padding: .7em .5em;
         flex-wrap: nowrap;
-        border-top: 1px solid #dfdfdf;
+        justify-content: flex-end;
 
         .add-items {
           margin-right: 1em;

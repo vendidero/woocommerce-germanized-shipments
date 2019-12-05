@@ -47,6 +47,20 @@ class Package {
 
 	    add_action( 'woocommerce_load_shipping_methods', array( __CLASS__, 'load_shipping_methods' ), 5, 1 );
 	    add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'set_method_filters' ), 200, 1 );
+
+	    // add_action( 'admin_init', array( __CLASS__, 'test' ) );
+    }
+
+    public static function test() {
+
+    	$return = wc_gzd_create_return_shipment( wc_gzd_get_shipment_order( 25966 ), array( 'items' => array(
+    		4561 => 1,
+		    4562 => 1,
+		    4563 => 1,
+	    ) ) );
+
+    	var_dump($return);
+    	exit();
     }
 
 	public static function set_method_filters( $methods ) {

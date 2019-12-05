@@ -77,7 +77,7 @@ class Automation {
 		    if ( $shipment_order = wc_gzd_get_shipment_order( $order ) ) {
 			    foreach( $shipment_order->get_simple_shipments() as $shipment ) {
 
-				    if ( ! $shipment->has_status( array( 'shipped', 'delivered', 'returned' ) ) ) {
+				    if ( ! $shipment->has_status( array( 'shipped', 'delivered' ) ) ) {
 					    $shipment->update_status( 'shipped' );
 				    }
 			    }
