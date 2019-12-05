@@ -35,13 +35,6 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Return_Shipment', false ) ) :
 		public $shipment;
 
 		/**
-		 * Parent shipment.
-		 *
-		 * @var Shipment|bool
-		 */
-		public $parent_shipment;
-
-		/**
 		 * Is this email a confirmation for the customer after manually reviewing the return?
 		 *
 		 * @var bool
@@ -136,17 +129,12 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Return_Shipment', false ) ) :
 					return;
 				}
 
-				if ( ! $this->parent_shipment = $this->shipment->get_parent() ) {
-					return;
-				}
-
 				// Check if this is a customer request.
 				if ( $this->shipment->is_customer_requested() ) {
 					$this->is_confirmation = true;
 				}
 
-				$this->placeholders['{shipment_number}']        = $this->shipment->get_shipment_number();
-				$this->placeholders['{shipment_parent_number}'] = $this->parent_shipment->get_shipment_number();
+				$this->placeholders['{shipment_number}'] = $this->shipment->get_shipment_number();
 
 				if ( $order_shipment = wc_gzd_get_shipment_order( $this->shipment->get_order() ) ) {
 
@@ -196,7 +184,6 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Return_Shipment', false ) ) :
 			return wc_get_template_html(
 				$this->template_html, array(
 					'shipment'           => $this->shipment,
-					'parent_shipment'    => $this->parent_shipment,
 					'order'              => $this->object,
 					'is_confirmation'    => $this->is_confirmation,
 					'email_heading'      => $this->get_heading(),
@@ -217,7 +204,6 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Return_Shipment', false ) ) :
 			return wc_get_template_html(
 				$this->template_plain, array(
 					'shipment'           => $this->shipment,
-					'parent_shipment'    => $this->parent_shipment,
 					'order'              => $this->object,
 					'is_confirmation'    => $this->is_confirmation,
 					'email_heading'      => $this->get_heading(),
