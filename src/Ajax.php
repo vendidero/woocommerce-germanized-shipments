@@ -1076,7 +1076,7 @@ class Ajax {
 	    }
 
 	    // Check max quantity
-	    $quantity_left = $order_shipment->get_item_quantity_left_for_returning( $shipment_item );
+	    $quantity_left = $order_shipment->get_item_quantity_left_for_returning( $shipment_item->get_order_item_id() );
 
 	    if ( $quantity ) {
 		    if ( $quantity > $quantity_left ) {
@@ -1248,7 +1248,7 @@ class Ajax {
         $quantity_max = 0;
 
 	    if ( 'return' === $shipment->get_type() ) {
-		    $quantity_max = $order_shipment->get_item_quantity_left_for_returning( $item, array(
+		    $quantity_max = $order_shipment->get_item_quantity_left_for_returning( $item->get_order_item_id(), array(
 			    'exclude_current_shipment' => true,
 			    'shipment_id'              => $shipment->get_id(),
 		    ) );

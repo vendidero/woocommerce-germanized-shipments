@@ -21,6 +21,7 @@ use Vendidero\Germanized\Shipments\ShippingProviders;
 use Vendidero\Germanized\Shipments\ShippingProviderMethod;
 use Vendidero\Germanized\Shipments\ShippingProviderMethodPlaceholder;
 use Vendidero\Germanized\Shipments\Package;
+use Vendidero\Germanized\Shipments\ShippingProvider;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -445,13 +446,17 @@ function wc_gzd_create_shipment_item( $shipment, $order_item, $args = array() ) 
     return $item;
 }
 
+function wc_gzd_allow_customer_return_empty_return_reason( $order ) {
+	return apply_filters( 'woocommerce_gzd_allow_customer_return_empty_return_reason', true, $order );
+}
+
 /**
  * @param bool $allow_none
- * @param bool $shipment
+ * @param bool|WC_Order_Item $order_item
  *
  * @return ReturnReason[]
  */
-function wc_gzd_get_shipment_return_reasons( $shipment = false ) {
+function wc_gzd_get_return_shipment_reasons( $order_item = false ) {
 	$reasons = Package::get_setting( 'return_reasons' );
 
 	if ( ! is_array( $reasons ) ) {
@@ -460,28 +465,38 @@ function wc_gzd_get_shipment_return_reasons( $shipment = false ) {
 		$reasons = array_filter( $reasons );
 	}
 
+	/**
+	 * Filter that allows adjusting raw return reasons for a specific shipment (e.g. array containing reason data with code, reason and order).
+	 *
+	 * @param array               $reasons Available return reasons.
+	 * @param WC_Order_Item|false $order_item The order item object if available to further filter reasons.
+	 *
+	 * @since 3.1.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
+	$reasons   = apply_filters( 'woocommerce_gzd_return_shipment_reasons_raw', $reasons, $order_item );
 	$instances = array();
 
 	foreach( $reasons as $reason ) {
 		$instances[] = new ReturnReason( $reason );
 	}
 
-	usort( $instances, '_wc_gzd_sort_shipment_return_reasons' );
+	usort( $instances, '_wc_gzd_sort_return_shipment_reasons' );
 
 	/**
 	 * Filter that allows to adjust available return reasons for a specific shipment.
 	 *
-	 * @param ReturnReason[] $reasons Available return reasons.
-	 * @param Shipment|false $shipment The return shipment instance if available.
+	 * @param ReturnReason[]         $reasons Available return reasons.
+	 * @param WC_Order_Item|false    $order_item The order item object if available to further filter reasons.
 	 *
 	 * @since 3.1.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-	return apply_filters( 'woocommerce_gzd_shipment_return_reasons', $instances, $shipment );
+	return apply_filters( 'woocommerce_gzd_return_shipment_reasons', $instances, $order_item );
 }
 
-function wc_gzd_shipment_return_reason_exists( $maybe_reason, $shipment = false ) {
-	$reasons = wc_gzd_get_shipment_return_reasons( $shipment );
+function wc_gzd_return_shipment_reason_exists( $maybe_reason, $shipment = false ) {
+	$reasons = wc_gzd_get_return_shipment_reasons( $shipment );
 	$exists  = false;
 
 	foreach( $reasons as $reason ) {
@@ -499,7 +514,7 @@ function wc_gzd_shipment_return_reason_exists( $maybe_reason, $shipment = false 
  * @param ReturnReason $a
  * @param ReturnReason $b
  */
-function _wc_gzd_sort_shipment_return_reasons( $a, $b ) {
+function _wc_gzd_sort_return_shipment_reasons( $a, $b ) {
 	return $a->get_order() == $b->get_order() ? 0 : ( $a->get_order() > $b->get_order() ) ? 1 : -1;
 }
 
@@ -690,32 +705,6 @@ function wc_gzd_get_shipment_return_address( $shipment_order ) {
 	$address['email'] = get_option( 'admin_email' );
 
 	return $address;
-}
-
-/**
- * @param WC_Order $order
- */
-function wc_gzd_get_shipment_shipping_provider( $order ) {
-	$method_id          = wc_gzd_get_shipment_order_shipping_method_id( $order );
-	$shipping_provider  = '';
-
-	if ( $shipping_method = wc_gzd_get_shipping_provider_method( $method_id ) ) {
-
-		if ( $provider = $shipping_method->get_provider() ) {
-			$shipping_provider = $provider;
-		}
-	}
-
-	/**
-	 * Allows adjusting the shipping provider chosen for a shipment belonging to a certain order.
-	 *
-	 * @param string   $name The shipping provider name e.g. dhl.
-	 * @param WC_Order $order The order object.
-	 *
-	 * @since 3.0.6
-	 * @package Vendidero/Germanized/Shipments
-	 */
-	return apply_filters( 'woocommerce_gzd_shipment_order_shipping_provider', $shipping_provider, $order );
 }
 
 /**
@@ -1003,59 +992,118 @@ function wc_gzd_get_account_shipments_columns( $type = 'simple' ) {
 	return $columns;
 }
 
+function wc_gzd_get_order_customer_add_return_url( $order ) {
+
+	if ( ! $shipment_order = wc_gzd_get_shipment_order( $order ) ) {
+		return false;
+	}
+
+	/**
+	 * Filter to adjust the URL the customer might access to add a return to a certain order.
+	 *
+	 * @param string   $url The URL pointing to the add return page.
+	 * @param Order    $order The order object.
+	 *
+	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
+	return apply_filters( "woocommerce_gzd_shipments_add_return_shipment_url", wc_get_endpoint_url( 'add-return-shipment', $shipment_order->get_order()->get_id(), wc_get_page_permalink( 'myaccount' ) ), $shipment_order->get_order() );
+}
+
 /**
  * @param Shipment $shipment
  *
  * @return mixed
  */
-function wc_gzd_shipment_is_customer_returnable( $shipment ) {
+function wc_gzd_order_is_customer_returnable( $order ) {
 	$is_returnable = false;
 
-	if ( $provider = $shipment->get_shipping_provider_instance() ) {
+	if ( ! $shipment_order = wc_gzd_get_shipment_order( $order ) ) {
+		return false;
+	}
 
-		if ( $provider->supports_customer_returns() ) {
-			$is_returnable = true;
-		}
+	if ( $provider = wc_gzd_get_order_shipping_provider( $order ) ) {
+		$is_returnable = $provider->supports_customer_returns();
 	}
 
 	// Shipment is fully returned
-	if ( ! $shipment->is_returnable() ) {
+	if ( ! $shipment_order->needs_return() ) {
 		$is_returnable = false;
 	}
 
 	/**
-	 * Filter to decide whether a customer might add return request to a certain shipment.
+	 * Filter to decide whether a customer might add return request to a certain order.
 	 *
 	 * @param bool     $is_returnable Whether or not shipment supports customer added returns
-	 * @param Shipment $shipment The shipment instance for which the return shall be created.
+	 * @param WC_Order $order The order instance for which the return shall be created.
 	 *
 	 * @since 3.1.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-	return apply_filters( 'woocommerce_gzd_shipment_is_returnable_by_customer', $is_returnable, $shipment );
+	return apply_filters( 'woocommerce_gzd_order_is_returnable_by_customer', $is_returnable, $shipment_order->get_order() );
 }
 
 /**
- * @param Shipment $shipment
+ * @param $order
+ *
+ * @return bool|ShippingProvider
  */
-function wc_gzd_customer_return_needs_manual_confirmation( $shipment ) {
+function wc_gzd_get_order_shipping_provider( $order ) {
+	if ( is_numeric( $order ) ) {
+		$order = wc_get_order( $order );
+	}
+
+	if ( ! $order ) {
+		return false;
+	}
+
+	$provider = false;
+
+	if ( $method = wc_gzd_get_shipping_provider_method( wc_gzd_get_shipment_order_shipping_method_id( $order ) ) ) {
+		$provider = $method->get_provider_instance();
+	}
+
+	/**
+	 * Filters the shipping provider detected for a specific order.
+	 *
+	 * @param bool|ShippingProvider $provider The shipping provider instance.
+	 * @param WC_Order              $order The order instance.
+	 *
+	 * @since 3.1.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
+	return apply_filters( 'woocommerce_gzd_get_order_shipping_provider', $provider, $order );
+}
+
+/**
+ * @param WC_Order|integer $order
+ */
+function wc_gzd_customer_return_needs_manual_confirmation( $order ) {
+	if ( is_numeric( $order ) ) {
+		$order = wc_get_order( $order );
+	}
+
+	if ( ! $order ) {
+		return true;
+	}
+
 	$needs_manual_confirmation = true;
 
-	if ( $provider = $shipment->get_shipping_provider_instance() ) {
+	if ( $provider = wc_gzd_get_order_shipping_provider( $order ) ) {
 		$needs_manual_confirmation = $provider->needs_manual_confirmation_for_returns();
 	}
 
 	/**
-	 * Filter to decide whether a customer added return of a certain shipment
+	 * Filter to decide whether a customer added return of a certain order
 	 * needs manual confirmation by the shop manager or not.
 	 *
 	 * @param bool     $needs_manual_confirmation Whether needs manual confirmation or not.
-	 * @param Shipment $shipment The shipment instance for which the return shall be created.
+	 * @param WC_Order $order The order instance for which the return shall be created.
 	 *
 	 * @since 3.1.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-	return apply_filters( 'woocommerce_gzd_customer_return_needs_manual_confirmation', $needs_manual_confirmation, $shipment );
+	return apply_filters( 'woocommerce_gzd_customer_return_needs_manual_confirmation', $needs_manual_confirmation, $order );
  }
 
 /**
@@ -1083,14 +1131,7 @@ function wc_gzd_get_account_shipments_actions( $shipment ) {
 		),
 	);
 
-	if ( 'simple' === $shipment->get_type() && wc_gzd_shipment_is_customer_returnable( $shipment ) ) {
-		$actions['add-return'] = array(
-			'url'  => $shipment->get_add_return_shipment_url(),
-			'name' => _x( 'Request return', 'shipments', 'woocommerce-germanized-shipments' ),
-		);
-	}
-
-	if ( 'return' === $shipment->get_type() && $shipment->has_label() ) {
+	if ( 'return' === $shipment->get_type() && $shipment->has_label() && ! $shipment->has_status( 'delivered' ) ) {
 		$actions['download-label'] = array(
 			'url'  => $shipment->get_label_download_url(),
 			'name' => _x( 'Download label', 'shipments', 'woocommerce-germanized-shipments' ),

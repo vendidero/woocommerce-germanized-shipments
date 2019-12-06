@@ -136,7 +136,7 @@ class Admin {
                         <tbody class="shipment_return_reasons">
 						<?php
 						$i = -1;
-                        foreach ( wc_gzd_get_shipment_return_reasons() as $reason ) {
+                        foreach ( wc_gzd_get_return_shipment_reasons() as $reason ) {
                             $i++;
 
                             echo '<tr class="reason">

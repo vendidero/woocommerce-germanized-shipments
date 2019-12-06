@@ -131,8 +131,9 @@ class SimpleShipment extends Shipment {
 			/**
 			 * Make sure that manually adjusted providers are not overridden by syncing.
 			 */
-			$default_provider = wc_gzd_get_shipment_shipping_provider( $order );
-			$provider         = $this->get_shipping_provider( 'edit' );
+			$default_provider_instance = wc_gzd_get_order_shipping_provider( $order );
+			$default_provider          = $default_provider_instance ? $default_provider_instance->get_name() : '';
+			$provider                  = $this->get_shipping_provider( 'edit' );
 
 			$args = wp_parse_args( $args, array(
 				'order_id'          => $order->get_id(),
@@ -335,23 +336,5 @@ class SimpleShipment extends Shipment {
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		return apply_filters( "{$this->get_hook_prefix()}edit_url", get_admin_url( null, 'post.php?post=' . $this->get_order_id() . '&action=edit&shipment_id=' . $this->get_id() ), $this );
-	}
-
-	public function get_add_return_shipment_url() {
-		/**
-		 * Filter to adjust the URL the customer might access to add a return to the current shipment.
-		 *
-		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
-		 * unique hook for a shipment type.
-		 *
-		 * Example hook name: woocommerce_gzd_shipment_add_return_shipment_url
-		 *
-		 * @param string   $url The URL pointing to the add return page.
-		 * @param Shipment $this The shipment object.
-		 *
-		 * @since 3.0.0
-		 * @package Vendidero/Germanized/Shipments
-		 */
-		return apply_filters( "{$this->get_hook_prefix()}_add_return_shipment_url", wc_get_endpoint_url( 'add-return-shipment', $this->get_id(), wc_get_page_permalink( 'myaccount' ) ), $this );
 	}
 }

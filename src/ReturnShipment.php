@@ -435,8 +435,9 @@ class ReturnShipment extends Shipment {
 			/**
 			 * Make sure that manually adjusted providers are not overridden by syncing.
 			 */
-			$default_provider = wc_gzd_get_shipment_shipping_provider( $order );
-			$provider         = $this->get_shipping_provider( 'edit' );
+			$default_provider_instance = wc_gzd_get_order_shipping_provider( $order );
+			$default_provider          = $default_provider_instance ? $default_provider_instance->get_name() : '';
+			$provider                  = $this->get_shipping_provider( 'edit' );
 
 			$args = wp_parse_args( $args, array(
 				'order_id'          => $order->get_id(),
@@ -499,14 +500,14 @@ class ReturnShipment extends Shipment {
 				'exclude_current_shipment' => true,
 			) );
 
-			foreach( $available_items as $item_id => $item_data ) {
+			foreach( $available_items as $order_item_id => $item_data ) {
 
-				if ( $item = $order_shipment->get_simple_shipment_item( $item_id )  ) {
+				if ( $item = $order_shipment->get_simple_shipment_item( $order_item_id )  ) {
 					$quantity = $item_data['max_quantity'];
 
 					if ( ! empty( $args['items'] ) ) {
-						if ( isset( $args['items'][ $item_id ] ) ) {
-							$new_quantity = absint( $args['items'][ $item_id ] );
+						if ( isset( $args['items'][ $order_item_id ] ) ) {
+							$new_quantity = absint( $args['items'][ $order_item_id ] );
 
 							if ( $new_quantity < $quantity ) {
 								$quantity = $new_quantity;
@@ -516,7 +517,7 @@ class ReturnShipment extends Shipment {
 						}
 					}
 
-					if ( ! $shipment_item = $this->get_item_by_order_item_id( $item_id ) ) {
+					if ( ! $shipment_item = $this->get_item_by_order_item_id( $order_item_id ) ) {
 						$shipment_item = wc_gzd_create_return_shipment_item( $this, $item, array( 'quantity' => $quantity ) );
 
 						$this->add_item( $shipment_item );

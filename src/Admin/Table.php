@@ -965,7 +965,7 @@ class Table extends WP_List_Table {
      * @param Shipment $shipment The current shipment object.
      */
     public function column_status( $shipment ) {
-        echo '<span class="shipment-status status-' . esc_attr( $shipment->get_status() ) . '">' . wc_gzd_get_shipment_status_name( $shipment->get_status() ) .'</span>';
+        echo '<span class="shipment-status shipment-type-' . esc_attr( $shipment->get_type() ) . '-status status-' . esc_attr( $shipment->get_status() ) . '">' . wc_gzd_get_shipment_status_name( $shipment->get_status() ) .'</span>';
     }
 
     /**

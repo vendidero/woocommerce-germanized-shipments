@@ -153,25 +153,24 @@ if ( ! function_exists( 'woocommerce_gzd_shipments_template_view_shipment' ) ) {
 
 if ( ! function_exists( 'woocommerce_gzd_shipments_template_add_return_shipment' ) ) {
 
-	function woocommerce_gzd_shipments_template_add_return_shipment( $shipment_id ) {
+	function woocommerce_gzd_shipments_template_add_return_shipment( $order_id ) {
 
-		if ( ( ! ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) ) || ( ! current_user_can( 'view_order', $shipment->get_order_id() ) ) ) {
-			echo '<div class="woocommerce-error">' . esc_html_x( 'Invalid shipment.', 'shipments', 'woocommerce-germanized-shipments' ) . ' <a href="' . esc_url( wc_get_page_permalink( 'myaccount' ) ) . '" class="wc-forward">' . esc_html_x( 'My account', 'shipments', 'woocommerce-germanized-shipments' ) . '</a></div>';
-
+		if ( ( ! ( $order = wc_get_order( $order_id ) ) ) || ( ! current_user_can( 'view_order', $order_id ) ) ) {
+			echo '<div class="woocommerce-error">' . esc_html_x( 'Invalid order.', 'shipments', 'woocommerce-germanized-shipments' ) . ' <a href="' . esc_url( wc_get_page_permalink( 'myaccount' ) ) . '" class="wc-forward">' . esc_html_x( 'My account', 'shipments', 'woocommerce-germanized-shipments' ) . '</a></div>';
 			return;
 		}
 
-		if ( ! wc_gzd_shipment_is_customer_returnable( $shipment ) ) {
-			echo '<div class="woocommerce-error">' . esc_html_x( 'Currently you cannot add new return requests to that shipment. If you have questions regarding the return of that shipment please contact us for further information.', 'shipments', 'woocommerce-germanized-shipments' ) . ' <a href="' . esc_url( $shipment->get_view_shipment_url() ) . '" class="wc-forward">' . esc_html_x( 'View shipment', 'shipments', 'woocommerce-germanized-shipments' ) . '</a></div>';
-
+		if ( ! wc_gzd_order_is_customer_returnable( $order_id ) ) {
+			echo '<div class="woocommerce-error">' . esc_html_x( 'Currently you cannot add new return requests to that order. If you have questions regarding the return of that order please contact us for further information.', 'shipments', 'woocommerce-germanized-shipments' ) . ' <a href="' . esc_url( $order->get_view_order_url() ) . '" class="wc-forward">' . esc_html_x( 'View order', 'shipments', 'woocommerce-germanized-shipments' ) . '</a></div>';
 			return;
 		}
 
 		wc_get_template(
 			'myaccount/add-return-shipment.php',
 			array(
-				'shipment'    => $shipment,
-				'shipment_id' => $shipment_id,
+				'order'          => $order,
+				'order_id'       => $order_id,
+				'shipment_order' => wc_gzd_get_shipment_order( $order ),
 			)
 		);
 	}

@@ -34,6 +34,10 @@ do_action( 'woocommerce_gzd_before_account_shipments', $has_shipments, $shipment
 
     <h2 class="woocommerce-shipments-list__title"><?php echo ( 'return' === $type ? _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ) : _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></h2>
 
+    <?php if ( 'return' === $type && wc_gzd_order_is_customer_returnable( $order ) ) : ?>
+        <p class="shipments-add-return"><a class="add-return-shipment woocommerce-button button" href="<?php echo esc_url( wc_gzd_get_order_customer_add_return_url( $order ) ); ?>"><?php _ex( 'Add return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
+    <?php endif; ?>
+
 	<table class="woocommerce-shipments-table woocommerce-MyAccount-shipments woocommerce-MyAccount-<?php echo esc_attr( $type ); ?>-shipments shop_table shop_table_responsive my_account_shipments account-shipments-table">
 		<thead>
 		<tr>
@@ -79,7 +83,7 @@ do_action( 'woocommerce_gzd_before_account_shipments', $has_shipments, $shipment
 						<?php elseif ( 'shipment-status' === $column_id ) : ?>
 							<?php echo esc_html( wc_gzd_get_shipment_status_name( $shipment->get_status() ) ); ?>
 
-						<?php elseif ( 'shipment-tracking' === $column_id && $shipment->get_tracking_url() ) : ?>
+						<?php elseif ( 'shipment-tracking' === $column_id && $shipment->get_tracking_url() && ! $shipment->has_status( 'delivered' ) ) : ?>
                             <a href="<?php echo esc_url( $shipment->get_tracking_url() ); ?>" target="_blank">
 								<?php echo esc_html( _x( 'track now', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>
                             </a>

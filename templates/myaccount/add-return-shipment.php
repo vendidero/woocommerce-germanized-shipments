@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
 
 <p><?php _ex( 'Please select one or more items to return.', 'shipments', 'woocommerce-germanized-shipments' ); ?></p>
 
-<?php if ( wc_gzd_customer_return_needs_manual_confirmation( $shipment ) ) : ?>
+<?php if ( wc_gzd_customer_return_needs_manual_confirmation( $order ) ) : ?>
     <p><?php _ex( 'After submitting your return request we will review it and notify you via email about the next steps.', 'shipments', 'woocommerce-germanized-shipments' ); ?></p>
 <?php else: ?>
     <p><?php _ex( 'After submitting your return request you\'ll receive an email with further information to the return process.', 'shipments', 'woocommerce-germanized-shipments' ); ?></p>
@@ -43,22 +43,22 @@ defined( 'ABSPATH' ) || exit;
 		/**
 		 * This action is executed before printing the add return shipment table on the customer account page.
 		 *
-		 * @param Shipment $shipment The shipment instance.
+		 * @param WC_Order $order The order instance.
 		 *
 		 * @since 3.1.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		do_action( 'woocommerce_gzd_shipment_details_before_return_shipment_table_items', $shipment );
+		do_action( 'woocommerce_gzd_add_return_shipment_details_before_shipment_table_items', $order );
 
-		foreach ( $shipment->get_available_items_for_return() as $item_id => $item_data ) {
+		foreach ( $shipment_order->get_available_items_for_return() as $order_item_id => $item_data ) {
 
 			wc_get_template(
 				'shipment/add-return-shipment-item.php',
 				array(
-					'shipment'     => $shipment,
-					'item'         => $shipment->get_item( $item_id ),
-					'item_id'      => $item_id,
-					'max_quantity' => $item_data['max_quantity'],
+					'item'          => $shipment_order->get_simple_shipment_item( $order_item_id ),
+					'order_item_id' => $order_item_id,
+					'order'         => $order,
+					'max_quantity'  => $item_data['max_quantity'],
 				)
 			);
 		}
@@ -66,12 +66,12 @@ defined( 'ABSPATH' ) || exit;
 		/**
 		 * This action is executed after printing the add return shipment table on the customer account page.
 		 *
-		 * @param Shipment $shipment The shipment instance.
+		 * @param WC_Order $order The order instance.
 		 *
 		 * @since 3.1.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		do_action( 'woocommerce_gzd_shipment_details_after_return_shipment_table_items', $shipment );
+		do_action( 'woocommerce_gzd_add_return_shipment_details_after_shipment_table_items', $order );
 		?>
 		</tbody>
 	</table>
@@ -80,7 +80,7 @@ defined( 'ABSPATH' ) || exit;
 		<?php wp_nonce_field( 'add_return_shipment', 'add-return-shipment-nonce' ); ?>
 		<button type="submit" class="woocommerce-Button button" name="add_return_shipment" value="<?php echo esc_attr_x( 'Send request', 'shipments', 'woocommerce-germanized-shipments' ); ?>"><?php echo esc_attr_x( 'Send request', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
 		<input type="hidden" name="action" value="gzd_add_return_shipment" />
-        <input type="hidden" name="shipment_id" value="<?php echo esc_attr( $shipment->get_id() ); ?>" />
+        <input type="hidden" name="order_id" value="<?php echo esc_attr( $order_id ); ?>" />
 	</p>
 </form>
 <?php
@@ -88,9 +88,9 @@ defined( 'ABSPATH' ) || exit;
  * This action is executed after printing the add return shipment form
  * on the customer account page.
  *
- * @param int $shipment_id The shipment id.
+ * @param int $order_id The order id.
  *
  * @since 3.1.0
  * @package Vendidero/Germanized/Shipments
  */
-do_action( 'woocommerce_gzd_add_return_shipment', $shipment_id ); ?>
+do_action( 'woocommerce_gzd_add_return_shipment', $order_id ); ?>

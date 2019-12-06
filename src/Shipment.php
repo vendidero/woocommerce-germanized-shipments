@@ -1313,10 +1313,6 @@ abstract class Shipment extends WC_Data {
 	    return apply_filters( "{$this->get_hook_prefix()}_view_shipment_url", wc_get_endpoint_url( 'view-shipment', $this->get_id(), wc_get_page_permalink( 'myaccount' ) ), $this );
     }
 
-	public function get_add_return_shipment_url() {
-		return false;
-	}
-
     /**
      * Get an item object.
      *

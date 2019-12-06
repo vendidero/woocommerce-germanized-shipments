@@ -27,7 +27,7 @@ defined( 'ABSPATH' ) || exit;
                     <select class="item-return-reason-code" id="shipment-item-return-reason-code-<?php echo esc_attr( $item->get_id() ); ?>" name="shipment_item[<?php echo esc_attr( $shipment->get_id() ); ?>][return_reason_code][<?php echo esc_attr( $item->get_id() ); ?>]">
                         <option value=""><?php _ex( 'None', 'shipments return reason', 'woocommerc-germanized-shipments' ); ?></option>
 
-                        <?php foreach( wc_gzd_get_shipment_return_reasons( $shipment ) as $reason ) : ?>
+                        <?php foreach( wc_gzd_get_return_shipment_reasons( $item->get_order_item() ) as $reason ) : ?>
                             <option value="<?php echo esc_attr( $reason->get_code() ); ?>" <?php selected( $reason->get_code(), $item->get_return_reason_code() ); ?>><?php echo $reason->get_reason(); ?></option>
                         <?php endforeach; ?>
                     </select>

@@ -48,19 +48,23 @@ class Package {
 	    add_action( 'woocommerce_load_shipping_methods', array( __CLASS__, 'load_shipping_methods' ), 5, 1 );
 	    add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'set_method_filters' ), 200, 1 );
 
-	    // add_action( 'admin_init', array( __CLASS__, 'test' ) );
+	    add_action( 'init', array( __CLASS__, 'register_shortcodes' ) );
     }
 
-    public static function test() {
+    public static function register_shortcodes() {
+	    add_shortcode( 'gzd_return_request_form', array( __CLASS__, 'return_request_form' ) );
+    }
 
-    	$return = wc_gzd_create_return_shipment( wc_gzd_get_shipment_order( 25966 ), array( 'items' => array(
-    		4561 => 1,
-		    4562 => 1,
-		    4563 => 1,
-	    ) ) );
+    public static function return_request_form( $args = array() ) {
 
-    	var_dump($return);
-    	exit();
+    	$defaults = array(
+		    'message'  => '',
+		    'hidden'   => false,
+	    );
+
+	    $args = wp_parse_args( $args, $defaults );
+
+    	wc_get_template( 'global/form-return-request.php', $args );
     }
 
 	public static function set_method_filters( $methods ) {
