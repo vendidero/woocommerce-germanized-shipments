@@ -4,6 +4,7 @@ namespace Vendidero\Germanized\Shipments\Admin;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\ShipmentItem;
+use WC_DateTime;
 use WP_List_Table;
 use Vendidero\Germanized\Shipments\ShipmentQuery;
 use WP_Query;
