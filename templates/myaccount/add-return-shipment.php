@@ -79,7 +79,9 @@ defined( 'ABSPATH' ) || exit;
 	<p>
 		<?php wp_nonce_field( 'add_return_shipment', 'add-return-shipment-nonce' ); ?>
 		<button type="submit" class="woocommerce-Button button" name="add_return_shipment" value="<?php echo esc_attr_x( 'Send request', 'shipments', 'woocommerce-germanized-shipments' ); ?>"><?php echo esc_attr_x( 'Send request', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
-		<input type="hidden" name="action" value="gzd_add_return_shipment" />
+
+        <input type="hidden" name="action" value="gzd_add_return_shipment" />
+        <input type="hidden" name="key" value="<?php echo esc_attr( wc_gzd_get_customer_order_return_request_key() ); ?>" />
         <input type="hidden" name="order_id" value="<?php echo esc_attr( $order_id ); ?>" />
 	</p>
 </form>

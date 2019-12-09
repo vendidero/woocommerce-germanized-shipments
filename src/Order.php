@@ -530,6 +530,24 @@ class Order {
 		return apply_filters( 'woocommerce_gzd_shipment_item_needs_return', $needs_return, $item, $args, $this );
 	}
 
+	/**
+	 * Returns the return request key added to allow a guest customer to add
+	 * a new return request to a certain order.
+	 *
+	 * @return mixed
+	 */
+	public function get_order_return_request_key() {
+		return $this->get_order()->get_meta( '_return_request_key' );
+	}
+
+	/**
+	 * Removes the return request key from the order. Saves the order.
+	 */
+	public function delete_order_return_request_key() {
+		$this->get_order()->delete_meta_data( '_return_request_key' );
+		$this->get_order()->save();
+	}
+
     /**
      * Returns items that are ready for shipping (defaults to non-virtual line items).
      *

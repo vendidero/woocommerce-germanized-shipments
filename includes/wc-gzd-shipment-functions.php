@@ -998,8 +998,20 @@ function wc_gzd_get_order_customer_add_return_url( $order ) {
 		return false;
 	}
 
+	$url = wc_get_endpoint_url( 'add-return-shipment', $shipment_order->get_order()->get_id(), wc_get_page_permalink( 'myaccount' ) );
+
+	if ( ! is_user_logged_in() ) {
+		$key = $shipment_order->get_order_return_request_key();
+
+		if ( ! empty( $key ) ) {
+			$url = add_query_arg( array( 'key' => $key ), $url );
+		} else {
+			$url = '';
+		}
+	}
+
 	/**
-	 * Filter to adjust the URL the customer might access to add a return to a certain order.
+	 * Filter to adjust the URL the customer (or guest) might access to add a return to a certain order.
 	 *
 	 * @param string   $url The URL pointing to the add return page.
 	 * @param Order    $order The order object.
@@ -1007,11 +1019,11 @@ function wc_gzd_get_order_customer_add_return_url( $order ) {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-	return apply_filters( "woocommerce_gzd_shipments_add_return_shipment_url", wc_get_endpoint_url( 'add-return-shipment', $shipment_order->get_order()->get_id(), wc_get_page_permalink( 'myaccount' ) ), $shipment_order->get_order() );
+	return apply_filters( "woocommerce_gzd_shipments_add_return_shipment_url", $url, $shipment_order->get_order() );
 }
 
 /**
- * @param Shipment $shipment
+ * @param WC_Order $order
  *
  * @return mixed
  */
@@ -1029,6 +1041,37 @@ function wc_gzd_order_is_customer_returnable( $order ) {
 	// Shipment is fully returned
 	if ( ! $shipment_order->needs_return() ) {
 		$is_returnable = false;
+	}
+
+	// Check days left for return
+	$maximum_days = Package::get_setting( 'customer_return_open_days' );
+
+	if ( ! empty( $maximum_days ) ) {
+		$maximum_days = absint( $maximum_days );
+
+		if ( ! empty( $maximum_days ) ) {
+
+			/**
+			 * Filter to adjust the completed date of an order used to determine whether an order is
+			 * still returnable by the customer or not.
+			 *
+			 * @param WC_DateTime $completed_date The order completed date.
+			 * @param WC_Order    $order The order instance.
+			 *
+			 * @since 3.1.0
+			 * @package Vendidero/Germanized/Shipments
+			 */
+			$completed_date = apply_filters( 'woocommerce_gzd_order_return_completed_date', $shipment_order->get_order()->get_date_completed() ? $shipment_order->get_order()->get_date_completed() : $shipment_order->get_order()->get_date_created(), $shipment_order->get_order() );
+
+			if ( $completed_date ) {
+				$today = new WC_DateTime();
+				$diff  = $today->diff( $completed_date );
+
+				if ( $diff->days > $maximum_days ) {
+					$is_returnable = false;
+				}
+			}
+		}
 	}
 
 	/**
@@ -1073,6 +1116,40 @@ function wc_gzd_get_order_shipping_provider( $order ) {
 	 * @package Vendidero/Germanized/Shipments
 	 */
 	return apply_filters( 'woocommerce_gzd_get_order_shipping_provider', $provider, $order );
+}
+
+function wc_gzd_get_customer_order_return_request_key() {
+	$key = ( isset( $_REQUEST['key'] ) ? wc_clean( wp_unslash( $_REQUEST['key'] ) ) : '' );
+
+	return $key;
+}
+
+function wc_gzd_customer_can_add_return_shipment( $order_id ) {
+	$can_view_shipments = false;
+
+	if ( is_user_logged_in() ) {
+		$can_view_shipments = current_user_can( 'view_order', $order_id );
+	} elseif( isset( $_REQUEST['key'] ) ) {
+		$key = wc_gzd_get_customer_order_return_request_key();
+
+		if ( ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) && ! empty( $key ) ) {
+
+			if ( hash_equals( $order_shipment->get_order_return_request_key(), $key ) ) {
+				$can_view_shipments = true;
+			}
+		}
+	}
+
+	/**
+	 * Filters whether a logged in user (or guest) might view shipments belonging to an order or not.
+	 *
+	 * @param bool    $can_view_shipments Whether the user (or guest) might see shipments or not.
+	 * @param integer $order_id The order id.
+	 *
+	 * @since 3.1.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
+	return apply_filters( 'woocommerce_gzd_customer_can_view_shipments', $can_view_shipments, $order_id );
 }
 
 /**

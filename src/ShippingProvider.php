@@ -524,7 +524,7 @@ class ShippingProvider extends WC_Data  {
 
 			array(
 				'title' 	        => _x( 'Customer returns', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc'              => _x( 'Allow customers to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . _x( 'This option will allow your customers to submit return requests to existing shipments. Return requests will be visible within your return dashboard.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
+				'desc'              => _x( 'Allow customers to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'This option will allow your customers to submit return requests to existing shipments. Return requests will be visible within your return dashboard. To learn more about returns added by customers and how to enable them for guests too, please check the %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="" target="_blank">' . _x( 'docs', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
 				'id' 		        => 'shipping_provider_supports_customer_returns',
 				'placeholder'       => '',
 				'value'             => $this->get_supports_customer_returns( 'edit' ) ? 'yes' : 'no',
@@ -534,7 +534,7 @@ class ShippingProvider extends WC_Data  {
 
 			array(
 				'title' 	        => _x( 'Manual confirmation', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc'              => _x( 'Return requests need manual confirmation.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . _x( 'By default return request need manual confirmation e.g. a shop manager needs to process returns which by default are added with the status "request" after a customer submitted a return request. If you choose to disable this option, returns will be added as "processing" and an email confirmation including instructions will be sent immediately to the customer.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
+				'desc'              => _x( 'Return requests need manual confirmation.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . _x( 'By default return request need manual confirmation e.g. a shop manager needs to process returns which by default are added with the status "requested" after a customer submitted a return request. If you choose to disable this option, returns will be added as "processing" and an email confirmation including instructions will be sent immediately to the customer.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
 				'id' 		        => 'shipping_provider_return_manual_confirmation',
 				'placeholder'       => '',
 				'value'             => $this->get_return_manual_confirmation( 'edit' ) ? 'yes' : 'no',

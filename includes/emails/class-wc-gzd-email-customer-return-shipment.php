@@ -57,7 +57,6 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Return_Shipment', false ) ) :
 			$this->placeholders   = array(
 				'{site_title}'             => $this->get_blogname(),
 				'{shipment_number}'        => '',
-				'{parent_shipment_number}' => '',
 				'{order_number}'           => '',
 				'{order_date}'             => '',
 				'{date_sent}'              => '',

@@ -15,6 +15,7 @@ class FormHandler {
 	 */
 	public static function init() {
 		add_action( 'template_redirect', array( __CLASS__, 'add_return_shipment' ), 20 );
+		add_action( 'template_redirect', array( __CLASS__, 'return_request_success_message' ), 20 );
 		add_action( 'wp_loaded', array( __CLASS__, 'process_return_request' ), 20 );
 
 		if ( isset( $_GET['action'], $_GET['shipment_id'], $_GET['_wpnonce'] ) ) { // WPCS: input var ok, CSRF ok.
@@ -22,8 +23,36 @@ class FormHandler {
 		}
 	}
 
-	public static function process_return_request() {
+	public static function return_request_success_message() {
+		if ( isset( $_GET['return-request-success'], $_GET['needs-confirmation'] ) && 'yes' === $_GET['return-request-success'] ) {
+			wc_add_notice( self::get_return_request_success_message( wc_string_to_bool( $_GET['needs-confirmation'] ) ), 'success' );
+		}
+	}
 
+	protected static function get_return_request_success_message( $needs_manual_confirmation = false ) {
+
+		if ( $needs_manual_confirmation ) {
+			$default_message = _x( 'Your return request was submitted successfully. We will now review your request and get in contact with you as soon as possible.', 'shipments', 'woocommerce-germanized-shipments' );
+		} else {
+			$default_message = _x( 'Your return request was submitted successfully. You\'ll receive an email with further instructions in a few minutes.', 'shipments', 'woocommerce-germanized-shipments' );
+		}
+
+		/**
+		 * This filter may be used to adjust the default success message returned
+		 * to the customer after successfully adding a return shipment.
+		 *
+		 * @param string  $message  The success message.
+		 * @param boolean $needs_manual_confirmation Whether the request needs manual confirmation or not.
+		 *
+		 * @since 3.1.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		$success_message = apply_filters( 'woocommerce_gzd_customer_new_return_shipment_request_success_message', $default_message, $needs_manual_confirmation );
+
+		return $success_message;
+	}
+
+	public static function process_return_request() {
 		$nonce_value = isset( $_REQUEST['woocommerce-gzd-return-request-nonce'] ) ? $_REQUEST['woocommerce-gzd-return-request-nonce'] : ''; // @codingStandardsIgnoreLine.
 
 		if ( isset( $_POST['return_request'], $_POST['email'], $_POST['order_id'] ) && wp_verify_nonce( $nonce_value, 'woocommerce-gzd-return-request' ) ) {
@@ -33,10 +62,9 @@ class FormHandler {
 				$email            = sanitize_email( $_POST['email'] );
 				$order_id         = wc_clean( $_POST['order_id'] );
 				$db_order_id      = false;
-
-				$orders = wc_get_orders( apply_filters( 'woocommerce_gzd_return_request_order_query_args', array(
+				$orders           = wc_get_orders( apply_filters( 'woocommerce_gzd_return_request_order_query_args', array(
 					'billing_email' => $email,
-					'include'       => array( $order_id ),
+					'post__in'      => array( $order_id ),
 					'limit'         => 1,
 					'return'        => 'ids'
 				) ) );
@@ -87,6 +115,8 @@ class FormHandler {
 				// Send email to customer
 				wc_add_notice( _x( 'Thank you. You\'ll receive an email containing a link to create a new return to your order.', 'shipments', 'woocommerce-germanized-shipments' ), 'success' );
 
+				WC()->mailer()->emails['WC_GZD_Email_Customer_Guest_Return_Shipment_Request']->trigger( $order );
+
 				do_action( 'woocommerce_gzd_return_request_successfull', $order );
 
 			} catch( Exception $e ) {
@@ -133,19 +163,11 @@ class FormHandler {
 
 		wc_nocache_headers();
 
-		// @TODO Check for guests
-		$user_id = get_current_user_id();
-
-		if ( $user_id <= 0 ) {
-			return;
-		}
-
 		$order_id  = ! empty( $_POST['order_id'] ) ? absint( wp_unslash( $_POST['order_id'] ) ) : false;
 		$items     = ! empty( $_POST['items'] ) ? wc_clean( wp_unslash( $_POST['items'] ) ) : array();
 		$item_data = ! empty( $_POST['item'] ) ? wc_clean( wp_unslash( $_POST['item'] ) ) : array();
 
-		// @TODO Check for guests
-		if ( ! ( $order = wc_get_order( $order_id ) ) || ( ! current_user_can( 'view_order', $order_id ) ) ) {
+		if ( ! ( $order = wc_get_order( $order_id ) ) || ( ! wc_gzd_customer_can_add_return_shipment( $order_id ) ) ) {
 			wc_add_notice( _x( 'You are not allowed to add returns to that order.', 'shipments', 'woocommerce-germanized-shipments' ), 'error' );
 			return;
 		}
@@ -225,25 +247,14 @@ class FormHandler {
 			wc_add_notice( _x( 'There was an error while creating the return. Please contact us for further information.', 'shipments', 'woocommerce-germanized-shipments' ), 'error' );
 			return;
 		} else {
+			// Delete return request key if available
+			$shipment_order->delete_order_return_request_key();
 
-			if ( $needs_manual_confirmation ) {
-				$default_message = _x( 'Your return request was submitted successfully. We will now review your request and get in contact with you.', 'shipments', 'woocommerce-germanized-shipments' );
-			} else {
-				$default_message = _x( 'Your return request was submitted successfully. You\'ll receive an email with further instructions in a few minutes.', 'shipments', 'woocommerce-germanized-shipments' );
+			$success_message = self::get_return_request_success_message( $needs_manual_confirmation );
+
+			if ( is_user_logged_in() ) {
+				wc_add_notice( $success_message );
 			}
-
-			/**
-			 * This filter may be used to adjust the default success message returned
-			 * to the customer after successfully adding a return shipment.
-			 *
-			 * @param string         $message  The success message.
-			 * @param ReturnShipment $shipment The return shipment object.
-			 *
-			 * @since 3.1.0
-			 * @package Vendidero/Germanized/Shipments
-			 */
-			$success_message = apply_filters( 'woocommerce_gzd_customer_new_return_shipment_request_success_message', $default_message, $return_shipment );
-			wc_add_notice( $success_message );
 
 			/**
 			 * This hook is fired after a customer has added a new return request
@@ -263,6 +274,10 @@ class FormHandler {
 				$return_url = $return_shipment->get_view_shipment_url();
 			}
 
+			if ( ! is_user_logged_in() ) {
+				$return_url = add_query_arg( array( 'return-request-success' => 'yes', 'needs-confirmation' => wc_bool_to_string( $needs_manual_confirmation ) ), wc_get_page_permalink( 'myaccount' ) );
+			}
+
 			/**
 			 * This filter may be used to adjust the redirect of a customer
 			 * after adding a new return shipment. In case the return request needs manual confirmation
@@ -270,11 +285,12 @@ class FormHandler {
 			 *
 			 * @param string         $url  The redirect URL.
 			 * @param ReturnShipment $shipment The return shipment object.
+			 * @param boolean        $needs_manual_confirmation Whether the request needs manual confirmation or not.
 			 *
 			 * @since 3.1.0
 			 * @package Vendidero/Germanized/Shipments
 			 */
-			$redirect = apply_filters( 'woocommerce_gzd_customer_new_return_shipment_request_redirect', $return_url, $return_shipment );
+			$redirect = apply_filters( 'woocommerce_gzd_customer_new_return_shipment_request_redirect', $return_url, $return_shipment, $needs_manual_confirmation );
 
 			wp_safe_redirect( $redirect );
 			exit;

@@ -25,8 +25,9 @@ class Emails {
 	}
 
     public static function register_emails( $emails ) {
-        $emails['WC_GZD_Email_Customer_Shipment']        = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-shipment.php';
-	    $emails['WC_GZD_Email_Customer_Return_Shipment'] = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-return-shipment.php';
+        $emails['WC_GZD_Email_Customer_Shipment']                      = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-shipment.php';
+	    $emails['WC_GZD_Email_Customer_Return_Shipment']               = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-return-shipment.php';
+	    $emails['WC_GZD_Email_Customer_Guest_Return_Shipment_Request'] = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-guest-return-shipment-request.php';
 
         return $emails;
     }
