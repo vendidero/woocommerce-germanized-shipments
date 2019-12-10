@@ -29,7 +29,7 @@ class Automation {
         }
 
         if ( 'yes' === Package::get_setting( 'auto_order_shipped_completed_enable' ) ) {
-	        add_action( 'woocommerce_gzd_shipment_status_changed', array( __CLASS__, 'maybe_mark_order_completed' ), 150, 4 );
+	        add_action( 'woocommerce_gzd_shipments_order_shipped', array( __CLASS__, 'mark_order_completed' ), 10 );
         }
 
 	    if ( 'yes' === Package::get_setting( 'auto_order_completed_shipped_enable' ) ) {
@@ -86,32 +86,24 @@ class Automation {
     }
 
 	/**
-	 * Maybe mark the order as completed if the order is fully shipped.
+	 * Mark the order as completed if the order is fully shipped.
 	 *
-	 * @param $shipment_id
-	 * @param $old_status
-	 * @param $new_status
-	 * @param Shipment $shipment
+	 * @param $order_id
 	 */
-    public static function maybe_mark_order_completed( $shipment_id, $old_status, $new_status, $shipment ) {
-		if ( 'simple' === $shipment->get_type() ) {
-			if ( $shipment_order = $shipment->get_order_shipment() ) {
-
-				if ( 'shipped' === $shipment_order->get_shipping_status() ) {
-					/**
-					 * Filter to adjust the new status of an order after all it's required
-					 * shipments have been marked as shipped. Does only take effect if the automation option has been set
-					 * within the shipment settings.
-					 *
-					 * @param string  $status The order status to be used.
-					 * @param integer $shipment_id The shipment id.
-					 *
-					 * @since 3.0.5
-					 * @package Vendidero/Germanized/Shipments
-					 */
-					$shipment_order->get_order()->update_status( apply_filters( 'woocommerce_gzd_shipment_order_completed_status', 'completed', $shipment_id ) , _x( 'Order is fully shipped.', 'shipments', 'woocommerce-germanized-shipments' ) );
-				}
-			}
+    public static function mark_order_completed( $order_id ) {
+		if ( $order = wc_get_order( $order_id ) ) {
+			/**
+			 * Filter to adjust the new status of an order after all it's required
+			 * shipments have been marked as shipped. Does only take effect if the automation option has been set
+			 * within the shipment settings.
+			 *
+			 * @param string  $status The order status to be used.
+			 * @param integer $order_id The order id.
+			 *
+			 * @since 3.0.5
+			 * @package Vendidero/Germanized/Shipments
+			 */
+			$order->update_status( apply_filters( 'woocommerce_gzd_shipment_order_completed_status', 'completed', $order_id ) , _x( 'Order is fully shipped.', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
     }
 
