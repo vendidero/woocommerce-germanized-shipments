@@ -48,6 +48,12 @@ class Package {
 
 	    add_action( 'woocommerce_load_shipping_methods', array( __CLASS__, 'load_shipping_methods' ), 5, 1 );
 	    add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'set_method_filters' ), 200, 1 );
+
+	    add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
+    }
+
+    public static function load_wpml_compatibility( $compatibility ) {
+    	WPMLHelper::init( $compatibility );
     }
 
 	public static function set_method_filters( $methods ) {

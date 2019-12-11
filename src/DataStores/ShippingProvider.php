@@ -82,12 +82,13 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 			/**
 			 * Action that indicates that a new Shipping Provider has been created in the DB.
 			 *
-			 * @param integer $provider_id The provider id.
+			 * @param integer                                          $provider_id The provider id.
+			 * @param \Vendidero\Germanized\Shipments\ShippingProvider $shipping_provider The shipping provider instance.
 			 *
 			 * @since 3.0.0
 			 * @package Vendidero/Germanized/Shipments
 			 */
-			do_action( "woocommerce_gzd_new_shipping_provider", $provider_id );
+			do_action( "woocommerce_gzd_new_shipping_provider", $provider_id, $provider );
 		}
 	}
 
@@ -169,12 +170,13 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		/**
 		 * Action that indicates that a shipping provider has been updated in the DB.
 		 *
-		 * @param integer $shipping_provider_id The shipping provider id.
+		 * @param integer                                          $shipping_provider_id The shipping provider id.
+		 * @param \Vendidero\Germanized\Shipments\ShippingProvider $shipping_provider The shipping provider instance.
 		 *
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		do_action( "woocommerce_gzd_shipping_provider_updated", $provider->get_id() );
+		do_action( "woocommerce_gzd_shipping_provider_updated", $provider->get_id(), $provider );
 	}
 
 	/**
@@ -406,15 +408,12 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	public function get_shipping_providers() {
 		global $wpdb;
 
-		$providers          = $wpdb->get_results( "SELECT shipping_provider_id FROM $wpdb->gzd_shipping_provider" );
+		$providers          = $wpdb->get_results( "SELECT * FROM $wpdb->gzd_shipping_provider" );
 		$shipping_providers = array();
 
 		foreach( $providers as $provider ) {
 			try {
-
-				$provider = new \Vendidero\Germanized\Shipments\ShippingProvider( $provider->shipping_provider_id );
-				$shipping_providers[ $provider->get_name() ] = $provider;
-
+				$shipping_providers[ $provider->shipping_provider_name ] = $provider;
 			} catch( Exception $e ) {
 				continue;
 			}

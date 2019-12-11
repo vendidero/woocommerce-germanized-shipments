@@ -312,6 +312,10 @@ class Settings {
 			if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
 				if ( $provider = $helper->get_shipping_provider( $provider_name ) ) {
 					$title = $provider->get_title();
+
+					if ( ! $provider->is_manual_integration() && $provider->get_additional_options_url() ) {
+						$title = $title . '<a href="' . $provider->get_additional_options_url() . '" class="page-title-action">' . _x( 'Additional settings', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+					}
 				}
 			}
 

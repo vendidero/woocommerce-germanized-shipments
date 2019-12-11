@@ -24,7 +24,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
      * @package  Vendidero/Germanized/Shipments/Emails
      * @extends  WC_Email
      */
-    class WC_GZD_Email_Customer_Shipment extends WC_Email {
+    class WC_GZD_Email_Customer_Shipment extends WC_GZD_Shipment_Email {
 
         /**
          * Shipment.
@@ -183,10 +183,13 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
 
             $this->id = $this->partial_shipment ? 'customer_partial_shipment' : 'customer_shipment';
 
+            $this->setup_email_locale();
+
             if ( $this->is_enabled() && $this->get_recipient() ) {
                 $this->send( $this->get_recipient(), $this->get_subject(), $this->get_content(), $this->get_headers(), $this->get_attachments() );
             }
 
+            $this->restore_email_locale();
             $this->restore_locale();
         }
 

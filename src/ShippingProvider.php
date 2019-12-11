@@ -66,6 +66,8 @@ class ShippingProvider extends WC_Data  {
 			$this->set_id( absint( $data->get_id() ) );
 		} elseif ( is_numeric( $data ) ) {
 			$this->set_id( $data );
+		} elseif( is_object( $data ) && isset( $data->shipping_provider_id ) ) {
+			$this->set_id( $data->shipping_provider_id );
 		}
 
 		$this->data_store = WC_Data_Store::load( 'shipping-provider' );
@@ -94,6 +96,10 @@ class ShippingProvider extends WC_Data  {
 		return true;
 	}
 
+	public function get_additional_options_url() {
+		return '';
+	}
+
 	/**
 	 * Whether or not this instance supports a certain label type.
 	 *
@@ -106,7 +112,7 @@ class ShippingProvider extends WC_Data  {
 	}
 
 	public function get_edit_link() {
-		return $this->get_id() > 0 ? admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=' . esc_attr( $this->get_name() ) ) : '';
+		return admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=' . esc_attr( $this->get_name() ) );
 	}
 
 	/**
@@ -339,10 +345,6 @@ class ShippingProvider extends WC_Data  {
 	}
 
 	protected function set_prop( $prop, $value ) {
-		if ( ! $this->is_manual_integration() ) {
-			return false;
-		}
-
 		parent::set_prop( $prop, $value );
 	}
 
@@ -383,35 +385,44 @@ class ShippingProvider extends WC_Data  {
 	 * @return string
 	 */
 	protected function get_hook_prefix() {
-		$name = $this->get_hook_name();
-		$suffix = ( ! empty( $name ) ? $name . '_' : '' );
-
-		return "woocommerce_gzd_shipping_provider_{$suffix}get_";
+		return "woocommerce_gzd_shipping_provider_get_";
 	}
 
 	public function get_settings() {
+		$desc = '';
+
+		if ( ! $this->is_manual_integration() && $this->get_additional_options_url() ) {
+			$desc = sprintf( _x( '%s supports many more options. Explore %s.', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title(), '<a class="" href="' . $this->get_additional_options_url() . '" target="_blank">' . sprintf( _x( '%s specific settings', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title() ) . '</a>' );
+		}
+
 		$settings = array(
-			array( 'title' => '', 'type' => 'title', 'id' => 'shipping_provider_options' ),
+			array( 'title' => '', 'type' => 'title', 'id' => 'shipping_provider_options', 'desc' => $desc ),
+		);
 
-			array(
-				'title' 	        => _x( 'Title', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc_tip' 		    => _x( 'Choose a title for the shipping provider.', 'shipments', 'woocommerce-germanized-shipments' ),
-				'id' 		        => 'shipping_provider_title',
-				'value'             => $this->get_title( 'edit' ),
-				'default'	        => '',
-				'type' 		        => 'text',
-			),
+		if ( $this->is_manual_integration() ) {
+			$settings = array_merge( $settings, array(
+				array(
+					'title' 	        => _x( 'Title', 'shipments', 'woocommerce-germanized-shipments' ),
+					'desc_tip' 		    => _x( 'Choose a title for the shipping provider.', 'shipments', 'woocommerce-germanized-shipments' ),
+					'id' 		        => 'shipping_provider_title',
+					'value'             => $this->get_title( 'edit' ),
+					'default'	        => '',
+					'type' 		        => 'text',
+				),
 
-			array(
-				'title' 	        => _x( 'Description', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc_tip' 		    => _x( 'Choose a description for the shipping provider.', 'shipments', 'woocommerce-germanized-shipments' ),
-				'id' 		        => 'shipping_provider_description',
-				'value'             => $this->get_description( 'edit' ),
-				'default'	        => '',
-				'type' 		        => 'textarea',
-				'css'               => 'width: 100%;',
-			),
+				array(
+					'title' 	        => _x( 'Description', 'shipments', 'woocommerce-germanized-shipments' ),
+					'desc_tip' 		    => _x( 'Choose a description for the shipping provider.', 'shipments', 'woocommerce-germanized-shipments' ),
+					'id' 		        => 'shipping_provider_description',
+					'value'             => $this->get_description( 'edit' ),
+					'default'	        => '',
+					'type' 		        => 'textarea',
+					'css'               => 'width: 100%;',
+				),
+			) );
+		}
 
+		$settings = array_merge( $settings, array(
 			array(
 				'title' 	        => _x( 'Tracking URL', 'shipments', 'woocommerce-germanized-shipments' ),
 				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Adjust the placeholder used to construct the tracking URL for this shipping provider. You may use on of the following placeholders to insert the tracking id or other dynamic data: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>' . implode( ', ', array_keys( $this->get_tracking_placeholders() ) ) . '</code>' ) . '</div>',
@@ -435,7 +446,7 @@ class ShippingProvider extends WC_Data  {
 			),
 
 			array( 'type' => 'sectionend', 'id' => 'shipping_provider_options' ),
-		);
+		) );
 
 		/**
 		 * This filter returns the admin settings available for a certain shipping provider.
@@ -455,10 +466,6 @@ class ShippingProvider extends WC_Data  {
 	}
 
 	public function save() {
-		if ( ! $this->is_manual_integration() ) {
-			return false;
-		}
-
 		return parent::save();
 	}
 }
