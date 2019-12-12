@@ -423,7 +423,8 @@ table.wc-gzd-shipping-providers {
       padding-top: 0;
       padding-bottom: 0; }
     .germanized-shipments #panel-order-shipments .order-shipment p.form-row label {
-      color: #999; }
+      color: #999;
+      font-weight: 600; }
       .germanized-shipments #panel-order-shipments .order-shipment p.form-row label .woocommerce-help-tip {
         float: none; }
   .germanized-shipments #panel-order-shipments .order-shipment .columns .column.column-spaced {

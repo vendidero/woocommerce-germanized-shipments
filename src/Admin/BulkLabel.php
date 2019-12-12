@@ -89,7 +89,11 @@ class BulkLabel extends BulkActionHandler {
 	public function get_success_message() {
 		$download_button = $this->get_download_button();
 
-		return sprintf( _x( 'Successfully generated labels. %s', 'shipments', 'woocommerce-germanized-shipments' ), $download_button );
+		if ( empty( $download_button ) ) {
+			return sprintf( _x( 'The chosen shipments were not suitable for automatic label creation. Please check the shipping provider option of the corresponding shipments.', 'shipments', 'woocommerce-germanized-shipments' ), $download_button );
+		} else {
+			return sprintf( _x( 'Successfully generated labels. %s', 'shipments', 'woocommerce-germanized-shipments' ), $download_button );
+		}
 	}
 
 	public function admin_after_error() {
@@ -161,29 +165,31 @@ class BulkLabel extends BulkActionHandler {
 				$files = $this->get_files();
 				$pdf   = new PDFMerger();
 
-				foreach( $files as $file ) {
+				if ( ! empty( $files ) ) {
 
-					if ( ! file_exists( $file ) ) {
-						continue;
+					foreach( $files as $file ) {
+						if ( ! file_exists( $file ) ) {
+							continue;
+						}
+
+						$pdf->add( $file );
 					}
 
-					$pdf->add( $file );
-				}
+					/**
+					 * Filter to adjust the default filename chosen for bulk exporting shipment labels.
+					 *
+					 * @param string    $filename The filename.
+					 * @param BulkLabel $this The `BulkLabel instance.
+					 *
+					 * @since 3.0.0
+					 * @package Vendidero/Germanized/shipments
+					 */
+					$filename = apply_filters( 'woocommerce_gzd_shipment_labels_bulk_filename', 'export.pdf', $this );
+					$file     = $pdf->output( $filename, 'S' );
 
-				/**
-				 * Filter to adjust the default filename chosen for bulk exporting shipment labels.
-				 *
-				 * @param string    $filename The filename.
-				 * @param BulkLabel $this The `BulkLabel instance.
-				 *
-				 * @since 3.0.0
-				 * @package Vendidero/Germanized/shipments
-				 */
-				$filename = apply_filters( 'woocommerce_gzd_shipment_labels_bulk_filename', 'export.pdf', $this );
-				$file     = $pdf->output( $filename, 'S' );
-
-				if ( $path = wc_gzd_shipments_upload_data( $filename, $file ) ) {
-					$this->update_file( $path );
+					if ( $path = wc_gzd_shipments_upload_data( $filename, $file ) ) {
+						$this->update_file( $path );
+					}
 				}
 			} catch( Exception $e ) {}
 		}
