@@ -219,6 +219,13 @@ class ShippingProvider extends WC_Data  {
 	public function activate() {
 		$this->set_activated( true );
 		$this->save();
+
+		/**
+		 * This action fires as soon as a certain shipping provider gets activated.
+		 *
+		 * @param ShippingProvider $shipping_provider The shipping provider instance.
+		 */
+		do_action( 'woocommerce_gzd_shipping_provider_activated', $this );
 	}
 
 	/**
@@ -227,6 +234,13 @@ class ShippingProvider extends WC_Data  {
 	public function deactivate() {
 		$this->set_activated( false );
 		$this->save();
+
+		/**
+		 * This action fires as soon as a certain shipping provider gets deactivated.
+		 *
+		 * @param ShippingProvider $shipping_provider The shipping provider instance.
+		 */
+		do_action( 'woocommerce_gzd_shipping_provider_deactivated', $this );
 	}
 
 	/**

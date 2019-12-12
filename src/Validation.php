@@ -28,6 +28,22 @@ class Validation {
 
         // Check if order is shipped
 	    add_action( 'woocommerce_gzd_shipment_status_changed', array( __CLASS__, 'maybe_update_order_date_shipped' ), 10, 4 );
+
+	    add_action( 'woocommerce_gzd_shipping_provider_deactivated', array( __CLASS__, 'maybe_disable_default_shipping_provider' ), 10 );
+    }
+
+	/**
+	 * In case a certain shipping provider is being deactivated make sure that the default
+	 * shipping provider option is removed in case the option equals the deactivated provider.
+	 *
+	 * @param ShippingProvider $provider
+	 */
+    public static function maybe_disable_default_shipping_provider( $provider ) {
+    	$default_provider = wc_gzd_get_default_shipping_provider();
+
+    	if ( $default_provider === $provider->get_name() ) {
+    		update_option( 'woocommerce_gzd_shipments_default_shipping_provider', '' );
+	    }
     }
 
 	/**
