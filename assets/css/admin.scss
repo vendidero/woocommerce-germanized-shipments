@@ -153,6 +153,8 @@ table.wc-gzd-shipping-providers {
   padding: .2em .5em;
   font-size: .9em;
   border-radius: 3px;
+  display: inline-flex;
+  white-space: nowrap;
 
   &.status-draft, &.status-processing, &.status-requested, &.status-partially-shipped, &.status-open, &.status-partially-returned {
     background: #f8dda7;

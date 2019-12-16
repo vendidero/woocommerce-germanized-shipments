@@ -111,7 +111,10 @@ table.wc-gzd-shipping-providers {
   background: #eee;
   padding: .2em .5em;
   font-size: .9em;
-  border-radius: 3px; }
+  border-radius: 3px;
+  display: -webkit-inline-box;
+  display: inline-flex;
+  white-space: nowrap; }
   .shipment-status.status-draft, .shipment-status.status-processing, .shipment-status.status-requested, .shipment-status.status-partially-shipped, .shipment-status.status-open, .shipment-status.status-partially-returned, .order-shipping-status.status-draft, .order-shipping-status.status-processing, .order-shipping-status.status-requested, .order-shipping-status.status-partially-shipped, .order-shipping-status.status-open, .order-shipping-status.status-partially-returned, .order-return-status.status-draft, .order-return-status.status-processing, .order-return-status.status-requested, .order-return-status.status-partially-shipped, .order-return-status.status-open, .order-return-status.status-partially-returned {
     background: #f8dda7;
     color: #94660c; }
