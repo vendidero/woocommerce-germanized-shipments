@@ -99,8 +99,9 @@ class Package {
 	    );
 
 	    $args = wp_parse_args( $args, $defaults );
+    	$html = wc_get_template_html( 'global/form-return-request.php', $args );
 
-    	wc_get_template( 'global/form-return-request.php', $args );
+    	return $html;
     }
 
 	public static function load_wpml_compatibility( $compatibility ) {
