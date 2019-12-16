@@ -7,7 +7,7 @@ defined( 'ABSPATH' ) || exit;
 class Emails {
 
     public static function init() {
-        add_filter( 'woocommerce_email_classes', array( __CLASS__, 'register_emails' ), 10 );
+        add_filter( 'woocommerce_email_classes', array( __CLASS__, 'register_emails' ), 20 );
         add_filter( 'woocommerce_email_actions', array( __CLASS__, 'register_email_notifications' ), 10, 1 );
 
         add_action( 'init', array( __CLASS__, 'email_hooks' ), 10 );

@@ -66,10 +66,11 @@ class BulkLabel extends BulkActionHandler {
 
 		if ( $is_new ) {
 			delete_user_option( get_current_user_id(), $this->get_file_option_name() );
+			delete_user_option( get_current_user_id(), $this->get_files_option_name() );
 		}
 	}
 
-	public function get_success_message() {
+	protected function get_download_button() {
 		$download_button = '';
 
 		if ( ( $path = $this->get_file() ) && file_exists( $path ) ) {
@@ -79,16 +80,58 @@ class BulkLabel extends BulkActionHandler {
 				'force'    => 'no'
 			), wp_nonce_url( admin_url(), 'download-export-shipment-label' ) );
 
-			$download_button = '<a class="button button-primary" style="margin-left: 1em;" href="' . $download_url . '" target="_blank">' . _x( 'Download labels', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+			$download_button = '<a class="button button-primary bulk-download-button" style="margin-left: 1em;" href="' . $download_url . '" target="_blank">' . _x( 'Download labels', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
 		}
 
-		return sprintf( _x( 'Successfully generated labels. %s', 'shipments', 'woocommerce-germanized-shipments' ), $download_button );
+		return $download_button;
+	}
+
+	public function get_success_message() {
+		$download_button = $this->get_download_button();
+
+		if ( empty( $download_button ) ) {
+			return sprintf( _x( 'The chosen shipments were not suitable for automatic label creation. Please check the shipping provider option of the corresponding shipments.', 'shipments', 'woocommerce-germanized-shipments' ), $download_button );
+		} else {
+			return sprintf( _x( 'Successfully generated labels. %s', 'shipments', 'woocommerce-germanized-shipments' ), $download_button );
+		}
+	}
+
+	public function admin_after_error() {
+		$download_button = $this->get_download_button();
+
+		if ( ! empty( $download_button ) ) {
+			echo '<div class="notice"><p>' . sprintf( _x( 'Labels partially generated. %s', 'shipments', 'woocommerce-germanized-shipments' ), $download_button ) . '</p></div>';
+		}
+	}
+
+	protected function get_files_option_name() {
+		$action = sanitize_key( $this->get_action() );
+
+		return "woocommerce_gzd_shipments_{$action}_bulk_files";
+	}
+
+	protected function get_files() {
+		$files = get_user_option( $this->get_files_option_name() );
+
+		if ( empty( $files ) || ! is_array( $files ) ) {
+			$files = array();
+		}
+
+		return $files;
+	}
+
+	protected function add_file( $path ) {
+		$files   = $this->get_files();
+		$files[] = $path;
+
+		update_user_option( get_current_user_id(), $this->get_files_option_name(), $files );
 	}
 
 	public function handle() {
 		$current = $this->get_current_ids();
 
 		if ( ! empty( $current ) ) {
+
 			foreach( $current as $shipment_id ) {
 				$label = false;
 
@@ -110,41 +153,45 @@ class BulkLabel extends BulkActionHandler {
 					}
 				}
 
-				// Merge to bulk print/download
 				if ( $label ) {
-
-					try {
-						$path     = $this->get_file();
-						$filename = $this->get_filename();
-						$pdf      = new PDFMerger();
-
-						if ( $path ) {
-							$pdf->add( $path );
-						}
-
-						$label->merge( $pdf );
-
-						if ( ! $path ) {
-							/**
-							 * Filter to adjust the default filename chosen for bulk exporting shipment labels.
-							 *
-							 * @param string    $filename The filename.
-							 * @param BulkLabel $this The `BulkLabel instance.
-							 *
-							 * @since 3.0.0
-							 * @package Vendidero/Germanized/shipments
-							 */
-							$filename = apply_filters( 'woocommerce_gzd_shipment_labels_bulk_filename', 'export.pdf', $this );
-						}
-
-						$file = $pdf->output( $filename, 'S' );
-
-						if ( $path = wc_gzd_shipments_upload_data( $filename, $file ) ) {
-							$this->update_file( $path );
-						}
-					} catch( Exception $e ) {}
+					$this->add_file( $label->get_file() );
 				}
 			}
+		}
+
+		if ( $this->is_last_step() ) {
+
+			try {
+				$files = $this->get_files();
+				$pdf   = new PDFMerger();
+
+				if ( ! empty( $files ) ) {
+
+					foreach( $files as $file ) {
+						if ( ! file_exists( $file ) ) {
+							continue;
+						}
+
+						$pdf->add( $file );
+					}
+
+					/**
+					 * Filter to adjust the default filename chosen for bulk exporting shipment labels.
+					 *
+					 * @param string    $filename The filename.
+					 * @param BulkLabel $this The `BulkLabel instance.
+					 *
+					 * @since 3.0.0
+					 * @package Vendidero/Germanized/shipments
+					 */
+					$filename = apply_filters( 'woocommerce_gzd_shipment_labels_bulk_filename', 'export.pdf', $this );
+					$file     = $pdf->output( $filename, 'S' );
+
+					if ( $path = wc_gzd_shipments_upload_data( $filename, $file ) ) {
+						$this->update_file( $path );
+					}
+				}
+			} catch( Exception $e ) {}
 		}
 
 		$this->update_notices();

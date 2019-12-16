@@ -145,7 +145,7 @@ class SimpleShipment extends Shipment {
 				'length'            => $this->get_length( 'edit' ),
 				'width'             => $this->get_width( 'edit' ),
 				'height'            => $this->get_height( 'edit' ),
-				'additional_total' => $this->calculate_additional_total( $order ),
+				'additional_total'  => $this->calculate_additional_total( $order ),
 			) );
 
 			$this->set_props( $args );

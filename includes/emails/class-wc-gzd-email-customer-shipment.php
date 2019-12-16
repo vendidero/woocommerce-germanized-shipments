@@ -40,6 +40,8 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
          */
         public $partial_shipment;
 
+        public $helper = null;
+
         /**
          * Constructor.
          */
@@ -52,6 +54,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
             $this->template_html  = 'emails/customer-shipment.php';
             $this->template_plain = 'emails/plain/customer-shipment.php';
             $this->template_base  = Package::get_path() . '/templates/';
+            $this->helper         = function_exists( 'wc_gzd_get_email_helper' ) ? wc_gzd_get_email_helper( $this ) : false;
 
             $this->placeholders   = array(
                 '{site_title}'      => $this->get_blogname(),
@@ -177,7 +180,11 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
          * @param int  $shipment_id Shipment ID.
          */
         public function trigger( $shipment_id ) {
-            $this->setup_locale();
+        	if ( $this->helper ) {
+		        $this->helper->setup_locale();
+	        } else {
+		        $this->setup_locale();
+	        }
 
             $this->partial_shipment = false;
 
@@ -205,11 +212,23 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
 
             $this->id = $this->partial_shipment ? 'customer_partial_shipment' : 'customer_shipment';
 
+            if ( $this->helper ) {
+	            $this->helper->setup_email_locale();
+            }
+
             if ( $this->is_enabled() && $this->get_recipient() ) {
                 $this->send( $this->get_recipient(), $this->get_subject(), $this->get_content(), $this->get_headers(), $this->get_attachments() );
             }
 
-            $this->restore_locale();
+	        if ( $this->helper ) {
+		        $this->helper->restore_email_locale();
+	        }
+
+	        if ( $this->helper ) {
+		        $this->helper->restore_locale();
+	        } else {
+		        $this->restore_locale();
+	        }
         }
 
 	    /**

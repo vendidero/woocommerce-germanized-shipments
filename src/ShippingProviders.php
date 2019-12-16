@@ -78,6 +78,8 @@ class ShippingProviders {
 	 * @return bool|void
 	 */
 	public function register_shipping_provider( $provider ) {
+		$classes = $this->get_shipping_provider_class_names();
+
 		if ( ! is_object( $provider ) ) {
 
 			if ( ! class_exists( $provider ) ) {
@@ -85,6 +87,20 @@ class ShippingProviders {
 			}
 
 			$provider = new $provider();
+		} else {
+			$classname = '\Vendidero\Germanized\Shipments\ShippingProvider';
+
+			if ( array_key_exists( $provider->shipping_provider_name, $classes ) ) {
+				$classname = $classes[ $provider->shipping_provider_name ];
+			}
+
+			$classname = apply_filters( 'woocommerce_gzd_shipping_provider_class_name', $classname, $provider->shipping_provider_name, $provider );
+
+			if ( ! class_exists( $classname ) ) {
+				$classname = '\Vendidero\Germanized\Shipments\ShippingProvider';
+			}
+
+			$provider = new $classname( $provider );
 		}
 
 		if ( ! $provider || ! is_a( $provider, 'Vendidero\Germanized\Shipments\ShippingProvider' ) ) {
@@ -104,8 +120,7 @@ class ShippingProviders {
 	 * @return array
 	 */
 	public function get_shipping_provider_class_names() {
-		// Unique provider name => provider class name.
-		$shipping_providers = WC_Data_Store::load( 'shipping-provider' )->get_shipping_providers();
+		$class_names = array();
 
 		/**
 		 * This filter may be used to register additional shipping providers
@@ -116,7 +131,7 @@ class ShippingProviders {
 		 * @since 1.0.5
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( 'woocommerce_gzd_shipping_providers', $shipping_providers );
+		return apply_filters( 'woocommerce_gzd_shipping_provider_class_names', $class_names );
 	}
 
 	/**
@@ -127,8 +142,11 @@ class ShippingProviders {
 	public function load_shipping_providers() {
 		$this->shipping_providers = array();
 
+		// Unique provider name => provider class name.
+		$shipping_providers = array_merge( $this->get_shipping_provider_class_names(), WC_Data_Store::load( 'shipping-provider' )->get_shipping_providers() );
+
 		// For the settings in the backend, and for non-shipping zone methods, we still need to load any registered classes here.
-		foreach ( $this->get_shipping_provider_class_names() as $provider_name => $provider_class ) {
+		foreach ( $shipping_providers as $provider_name => $provider_class ) {
 			$this->register_shipping_provider( $provider_class );
 		}
 

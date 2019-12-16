@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments;
 use Exception;
 use WC_Order;
+use WC_Order_Item;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -11,7 +12,7 @@ class Validation {
     private static $current_refund_parent_order = false;
 
     public static function init() {
-        add_action( 'woocommerce_update_order_item', array( __CLASS__, 'update_order_item' ), 10, 3 );
+        add_action( 'woocommerce_update_order_item', array( __CLASS__, 'update_order_item' ), 10, 2 );
         add_action( 'woocommerce_new_order_item', array( __CLASS__, 'create_order_item' ), 10, 3 );
         add_action( 'woocommerce_before_delete_order_item', array( __CLASS__, 'delete_order_item' ), 10, 1 );
 
@@ -24,6 +25,62 @@ class Validation {
         add_action( 'before_delete_post', array( __CLASS__, 'before_delete_refund' ), 10, 1 );
         add_action( 'woocommerce_delete_order_refund', array( __CLASS__, 'delete_refund_order' ), 10, 1 );
         add_action( 'woocommerce_order_refund_object_updated_props', array( __CLASS__, 'refresh_refund_order' ), 10, 1 );
+
+        // Check if order is shipped
+	    add_action( 'woocommerce_gzd_shipment_status_changed', array( __CLASS__, 'maybe_update_order_date_shipped' ), 10, 4 );
+
+	    add_action( 'woocommerce_gzd_shipping_provider_deactivated', array( __CLASS__, 'maybe_disable_default_shipping_provider' ), 10 );
+    }
+
+	/**
+	 * In case a certain shipping provider is being deactivated make sure that the default
+	 * shipping provider option is removed in case the option equals the deactivated provider.
+	 *
+	 * @param ShippingProvider $provider
+	 */
+    public static function maybe_disable_default_shipping_provider( $provider ) {
+    	$default_provider = wc_gzd_get_default_shipping_provider();
+
+    	if ( $default_provider === $provider->get_name() ) {
+    		update_option( 'woocommerce_gzd_shipments_default_shipping_provider', '' );
+	    }
+    }
+
+	/**
+	 * @param $shipment_id
+	 * @param $status_from
+	 * @param $status_to
+	 * @param Shipment $shipment
+	 */
+    public static function maybe_update_order_date_shipped( $shipment_id, $status_from, $status_to, $shipment ) {
+    	if ( 'simple' === $shipment->get_type() && ( $order = $shipment->get_order() ) ) {
+		    self::check_order_shipped( $order );
+	    }
+    }
+
+    public static function check_order_shipped( $order ) {
+	    if ( $shipment_order = wc_gzd_get_shipment_order( $order ) ) {
+
+		    if ( 'shipped' === $shipment_order->get_shipping_status() )	 {
+
+			    /**
+			     * Action that fires as soon as an order has been shipped completely.
+			     * That is the case when the order contains all relevant shipments and all the shipments are marked as shipped.
+			     *
+			     * @param string  $order_id The order id.
+			     *
+			     * @since 3.1.0
+			     * @package Vendidero/Germanized/Shipments
+			     */
+			    do_action( 'woocommerce_gzd_shipments_order_shipped', $shipment_order->get_order()->get_id() );
+
+			    $shipment_order->get_order()->update_meta_data( '_date_shipped', current_time( 'timestamp', true ) );
+			    $shipment_order->get_order()->save();
+		    } else {
+			    $shipment_order->get_order()->delete_meta_data( '_date_shipped' );
+			    $shipment_order->get_order()->save();
+		    }
+	    }
     }
 
 	/**
@@ -125,9 +182,16 @@ class Validation {
         }
     }
 
-    public static function update_order_item( $order_item_id, $order_item, $order_id ) {
-        if ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) {
-            $order_shipment->validate_shipments();
-        }
+	/**
+	 * @param $order_item_id
+	 * @param WC_Order_Item $order_item
+	 */
+    public static function update_order_item( $order_item_id, $order_item ) {
+    	if ( is_callable( array( $order_item, 'get_order_id' ) ) ) {
+
+    		if ( $order_shipment = wc_gzd_get_shipment_order( $order_item->get_order_id() ) ) {
+			    $order_shipment->validate_shipments();
+		    }
+	    }
     }
 }

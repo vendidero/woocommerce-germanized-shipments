@@ -1729,7 +1729,7 @@ abstract class Shipment extends WC_Data {
 		 */
 		 do_action( "{$hook_prefix}create_{$provider}label", $props, $error, $this, $raw_data );
 
-		 if ( $error->has_errors() ) {
+		 if ( wc_gzd_shipment_wp_error_has_errors( $error ) ) {
 		 	return $error;
 		 } else {
 

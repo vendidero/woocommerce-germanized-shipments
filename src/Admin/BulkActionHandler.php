@@ -84,6 +84,10 @@ abstract class BulkActionHandler {
 
 	}
 
+	public function admin_after_error() {
+
+	}
+
 	public function add_notice( $notice, $type = 'error' ) {
 		if ( ! isset( $this->notices[ $type ] ) ) {
 			$this->notices[ $type ] = array();
@@ -103,7 +107,7 @@ abstract class BulkActionHandler {
 	abstract public function get_action();
 
 	public function get_max_step() {
-		return ceil( sizeof( $this->get_ids() ) / $this->get_limit() );
+		return (int) ceil( sizeof( $this->get_ids() ) / $this->get_limit() );
 	}
 
 	abstract public function get_limit();
@@ -144,5 +148,16 @@ abstract class BulkActionHandler {
 	 */
 	public function get_percent_complete() {
 		return floor( ( $this->get_total_processed() / $this->get_total() ) * 100 );
+	}
+
+	public function is_last_step() {
+		$current_step = $this->get_step();
+		$max_step     = $this->get_max_step();
+
+		if ( $max_step === $current_step ) {
+			return true;
+		}
+
+		return false;
 	}
 }

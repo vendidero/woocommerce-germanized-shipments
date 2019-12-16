@@ -31,6 +31,7 @@ class PDFMerger {
 	public function add( $filename, $pages = [], $width = 210 ) {
 		if ( file_exists( $filename ) ) {
 			$pageCount = $this->_pdf->setSourceFile( $filename );
+
 			for ( $i = 1; $i <= $pageCount; $i ++ ) {
 				if ( $this->_isPageInRange( $i, $pages ) ) {
 					$this->_addPage( $i, $width );
@@ -81,8 +82,9 @@ class PDFMerger {
 	 */
 	private function _addPage( $pageNumber, $width = 210 ) {
 		$pageId = $this->_pdf->importPage( $pageNumber );
+
 		$this->_pdf->addPage();
-		$this->_pdf->useImportedPage( $pageId, 0, 0, 210, null, true );
+		$this->_pdf->useImportedPage( $pageId, 0, 0, $width, null, true );
 	}
 
 

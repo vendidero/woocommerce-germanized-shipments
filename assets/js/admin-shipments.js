@@ -474,6 +474,12 @@ window.germanized.admin = window.germanized.admin || {};
                     self.enableCreateLabel( $shipment );
                 }
             }
+          
+            if ( self.needsSaving ) {
+                self.disableCreateLabel( $shipment );
+            } else {
+                self.enableCreateLabel( $shipment );
+            }
 
             self.hideOrShowFooter();
 

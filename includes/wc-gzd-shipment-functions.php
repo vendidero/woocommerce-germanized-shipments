@@ -519,6 +519,21 @@ function _wc_gzd_sort_return_shipment_reasons( $a, $b ) {
 }
 
 /**
+ * @param WP_Error $error
+ *
+ * @return bool
+ */
+function wc_gzd_shipment_wp_error_has_errors( $error ) {
+	if ( is_callable( array( $error, 'has_errors' ) ) ) {
+		return $error->has_errors();
+	} else {
+		$errors = $error->errors;
+
+		return ( ! empty( $errors ) ? true : false );
+	}
+}
+
+/**
  * @param Shipment $shipment
  * @param ShipmentItem $shipment_item
  * @param array $args
@@ -526,6 +541,7 @@ function _wc_gzd_sort_return_shipment_reasons( $a, $b ) {
  * @return ShipmentReturnItem|WP_Error
  */
 function wc_gzd_create_return_shipment_item( $shipment, $shipment_item, $args = array() ) {
+  
 	try {
 
 		if ( ! $shipment_item || ! is_a( $shipment_item, '\Vendidero\Germanized\Shipments\ShipmentItem' ) ) {
