@@ -337,24 +337,24 @@ window.germanized.admin = window.germanized.admin || {};
 
             if ( $shipment.length > 0 ) {
 
-                if ( $shipment.hasClass( 'shipment-return' ) ) {
-                    if ( self.$wrapper.find( '.order-shipment.shipment-return' ).length === 1 ) {
-                        self.$wrapper.find( '.panel-order-return-title' ).addClass( 'hide-default' );
-                    }
-                }
-
                 if ( $shipment.hasClass( 'active' ) ) {
                     $shipment.find( '.shipment-content-wrapper' ).slideUp( 300, function() {
                         $shipment.removeClass( 'active' );
                         $shipment.remove();
+
+                        self.initShipments();
+                        self.unblock();
                     });
                 } else {
                     $shipment.remove();
-                }
-            }
 
-            self.initShipments();
-            self.unblock();
+                    self.initShipments();
+                    self.unblock();
+                }
+            } else {
+                self.initShipments();
+                self.unblock();
+            }
         },
 
         onRemoveShipmentError: function( data ) {
@@ -448,7 +448,6 @@ window.germanized.admin = window.germanized.admin || {};
             var self = germanized.admin.shipments;
 
             self.onAddShipmentSuccess( data );
-            self.$wrapper.find( '.panel-order-return-title' ).removeClass( 'hide-default' );
         },
 
         onAddReturnError: function( data ) {
@@ -535,6 +534,18 @@ window.germanized.admin = window.germanized.admin || {};
             self.hideOrShowFooter();
         },
 
+        hideOrShowReturnTitle: function() {
+            var self = germanized.admin.shipments;
+
+            console.log(self.$wrapper.find( '.order-shipment.shipment-return' ).length);
+
+            if ( self.$wrapper.find( '.order-shipment.shipment-return' ).length === 0 ) {
+                self.$wrapper.find( '.panel-order-return-title' ).addClass( 'hide-default' );
+            } else {
+                self.$wrapper.find( '.panel-order-return-title' ).removeClass( 'hide-default' );
+            }
+        },
+
         setNeedsReturns: function( needsReturns ) {
             var self = germanized.admin.shipments;
 
@@ -590,11 +601,16 @@ window.germanized.admin = window.germanized.admin || {};
         initShipments: function() {
             var self = germanized.admin.shipments;
 
+            // Refresh wrapper
+            self.$wrapper = $( '#panel-order-shipments' );
+
             self.$wrapper.find( '.order-shipment' ).each( function() {
                 var id = $( this ).data( 'shipment' );
 
                 self.initShipment( id );
             });
+
+            self.hideOrShowReturnTitle();
         },
 
         getShipments: function() {
