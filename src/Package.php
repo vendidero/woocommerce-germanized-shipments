@@ -17,12 +17,11 @@ class Package {
      *
      * @var string
      */
-
     const VERSION = '1.1.2';
 
-	  public static $upload_dir_suffix = '';
+    public static $upload_dir_suffix = '';
 
-	  protected static $method_settings = null;
+    protected static $method_settings = null;
 
     /**
      * Init the package - load the REST API Server class.
@@ -50,7 +49,7 @@ class Package {
 	    add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'set_method_filters' ), 200, 1 );
 
 	    add_filter( 'wc_get_template', array( __CLASS__, 'add_return_shipment_guest_endpoints' ), 10, 2 );
-      add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
+        add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
 
 	    add_action( 'init', array( __CLASS__, 'register_shortcodes' ) );
     }
@@ -104,9 +103,9 @@ class Package {
     	wc_get_template( 'global/form-return-request.php', $args );
     }
 
-  public static function load_wpml_compatibility( $compatibility ) {
-    WPMLHelper::init( $compatibility );
-  }
+	public static function load_wpml_compatibility( $compatibility ) {
+		WPMLHelper::init( $compatibility );
+	}
 
 	public static function set_method_filters( $methods ) {
 

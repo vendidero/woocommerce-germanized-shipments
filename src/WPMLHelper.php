@@ -25,6 +25,22 @@ class WPMLHelper {
 		add_action( 'woocommerce_gzd_new_shipping_provider', array( __CLASS__, 'register_shipping_provider_strings' ), 10, 2 );
 		add_action( 'woocommerce_gzd_shipping_provider_updated', array( __CLASS__, 'register_shipping_provider_strings' ), 10, 2 );
 		add_filter( 'woocommerce_gzd_shipping_provider_get_tracking_desc_placeholder', array( __CLASS__, 'filter_shipping_provider_placeholder' ), 10, 2 );
+		add_filter( 'woocommerce_gzd_shipping_provider_get_tracking_url_placeholder', array( __CLASS__, 'filter_shipping_provider_url' ), 10, 2 );
+		add_filter( 'woocommerce_gzd_shipping_provider_get_return_instructions', array( __CLASS__, 'filter_shipping_provider_return_instructions' ), 10, 2 );
+	}
+
+	public static function filter_shipping_provider_return_instructions( $instructions, $provider ) {
+		$string_name       = "return_instructions";
+		$translated_string = apply_filters( 'wpml_translate_string', $instructions, self::get_shipping_provider_string_id( $string_name, $provider ), self::get_shipping_provider_string_package( $string_name, $provider ) );
+
+		return $translated_string;
+	}
+
+	public static function filter_shipping_provider_url( $placeholder, $provider ) {
+		$string_name       = "tracking_url_placeholder";
+		$translated_string = apply_filters( 'wpml_translate_string', $placeholder, self::get_shipping_provider_string_id( $string_name, $provider ), self::get_shipping_provider_string_package( $string_name, $provider ) );
+
+		return $translated_string;
 	}
 
 	public static function filter_shipping_provider_placeholder( $placeholder, $provider ) {
@@ -56,6 +72,7 @@ class WPMLHelper {
 		$strings = array(
 			'tracking_desc_placeholder' => _x( '%s tracking description', 'shipments', 'woocommerce-germanized-shipments' ),
 			'tracking_url_placeholder'  => _x( '%s tracking URL', 'shipments', 'woocommerce-germanized-shipments' ),
+			'return_instructions'       => _x( '%s return instructions', 'shipments', 'woocommerce-germanized-shipments' ),
 		);
 
 		return $strings;
@@ -95,7 +112,9 @@ class WPMLHelper {
 	 * @param $emails
 	 */
 	public static function register_emails( $emails ) {
-		$emails['WC_GZD_Email_Customer_Shipment'] = 'customer_shipment';
+		$emails['WC_GZD_Email_Customer_Shipment']                      = 'customer_shipment';
+		$emails['WC_GZD_Email_Customer_Return_Shipment']               = 'customer_return_shipment';
+		$emails['WC_GZD_Email_Customer_Guest_Return_Shipment_Request'] = 'customer_guest_return_shipment_request';
 
 		return $emails;
 	}

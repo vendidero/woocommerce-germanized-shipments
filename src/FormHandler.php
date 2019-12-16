@@ -104,7 +104,7 @@ class FormHandler {
 				}
 
 				if ( ! wc_gzd_order_is_customer_returnable( $order ) ) {
-					throw new Exception( '<strong>' . _x( 'Error:', 'shipments', 'woocommerce-germanized-shipments' ) . '</strong> ' . _x( 'This order is no longer returnable. Please contact us for further details.', 'shipments', 'woocommerce-germanized-shipments' ) );
+					throw new Exception( '<strong>' . _x( 'Error:', 'shipments', 'woocommerce-germanized-shipments' ) . '</strong> ' . _x( 'This order is currently not eligible for returns. Please contact us for further details.', 'shipments', 'woocommerce-germanized-shipments' ) );
 				}
 
 				$key = 'wc_gzd_order_return_request_' . wp_generate_password( 13, false );
@@ -252,7 +252,8 @@ class FormHandler {
 
 			$success_message = self::get_return_request_success_message( $needs_manual_confirmation );
 
-			if ( is_user_logged_in() ) {
+			// Do not add success message for guest returns
+			if ( $order->get_customer_id() > 0 ) {
 				wc_add_notice( $success_message );
 			}
 
@@ -274,7 +275,7 @@ class FormHandler {
 				$return_url = $return_shipment->get_view_shipment_url();
 			}
 
-			if ( ! is_user_logged_in() ) {
+			if ( $order->get_customer_id() <= 0 ) {
 				$return_url = add_query_arg( array( 'return-request-success' => 'yes', 'needs-confirmation' => wc_bool_to_string( $needs_manual_confirmation ) ), wc_get_page_permalink( 'myaccount' ) );
 			}
 

@@ -156,6 +156,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
 	     * Switch Woo and Germanized locale
 	     */
 	    public function setup_locale() {
+
 		    if ( $this->is_customer_email() && function_exists( 'wc_gzd_switch_to_site_locale' ) && apply_filters( 'woocommerce_email_setup_locale', true ) ) {
 			    wc_gzd_switch_to_site_locale();
 		    }
@@ -167,6 +168,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
 	     * Restore Woo and Germanized locale
 	     */
 	    public function restore_locale() {
+
 		    if ( $this->is_customer_email() && function_exists( 'wc_gzd_restore_locale' ) && apply_filters( 'woocommerce_email_restore_locale', true ) ) {
 			    wc_gzd_restore_locale();
 		    }
@@ -180,7 +182,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
          * @param int  $shipment_id Shipment ID.
          */
         public function trigger( $shipment_id ) {
-        	if ( $this->helper ) {
+	        if ( $this->helper ) {
 		        $this->helper->setup_locale();
 	        } else {
 		        $this->setup_locale();

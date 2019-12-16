@@ -316,6 +316,9 @@ table.wc-gzd-shipping-providers {
 #woocommerce-gzd-order-shipments .hndle, #woocommerce-gzd-order-shipments .handlediv {
   display: none; }
 
+#woocommerce-gzd-order-shipments .hide-default {
+  display: none; }
+
 .germanized-shipments * {
   box-sizing: border-box; }
 
@@ -453,9 +456,7 @@ table.wc-gzd-shipping-providers {
     margin: 5px 0; }
   .germanized-shipments #panel-order-shipments .order-shipment .columns .column h4 {
     margin-bottom: .7em;
-    text-transform: uppercase;
-    color: #999;
-    font-size: .9em; }
+    color: #999; }
     .germanized-shipments #panel-order-shipments .order-shipment .columns .column h4 a {
       color: #999;
       text-decoration: none; }
@@ -470,10 +471,13 @@ table.wc-gzd-shipping-providers {
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item-heading {
     padding: .5em;
     color: #999;
-    background: #f8f8f8; }
+    background: #f8f8f8;
+    font-weight: 600; }
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item {
     padding: .5em;
     border-bottom: 1px solid #dfdfdf; }
+    .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item:last-child {
+      border-bottom: none; }
     .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item:nth-child(2n) {
       background: #f8f8f8; }
     .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item .columns {
@@ -485,7 +489,8 @@ table.wc-gzd-shipping-providers {
     padding: .7em .5em;
     flex-wrap: nowrap;
     -webkit-box-pack: end;
-            justify-content: flex-end; }
+            justify-content: flex-end;
+    border-top: 1px solid #dfdfdf; }
     .germanized-shipments #panel-order-shipments .order-shipment .shipment-item-actions .add-items {
       margin-right: 1em; }
     .germanized-shipments #panel-order-shipments .order-shipment .shipment-item-actions .woocommerce-help-tip {

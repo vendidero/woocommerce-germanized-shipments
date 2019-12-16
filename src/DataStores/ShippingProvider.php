@@ -34,7 +34,8 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		'_description',
 		'_return_manual_confirmation',
 		'_return_instructions',
-		'_supports_customer_returns'
+		'_supports_customer_returns',
+		'_supports_guest_returns'
 	);
 
 	protected $core_props = array(
@@ -321,6 +322,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 			switch ( $prop ) {
 				case "return_manual_confirmation":
 				case "supports_customer_returns":
+				case "supports_guest_returns":
 					$value = wc_bool_to_string( $value );
 					break;
 			}

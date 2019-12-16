@@ -30,6 +30,8 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Guest_Return_Shipment_Request', fals
 
 		public $request_url = '';
 
+		public $helper = null;
+
 		/**
 		 * Constructor.
 		 */
@@ -42,6 +44,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Guest_Return_Shipment_Request', fals
 			$this->template_html  = 'emails/customer-guest-return-shipment-request.php';
 			$this->template_plain = 'emails/plain/customer-guest-return-shipment-request.php';
 			$this->template_base  = Package::get_path() . '/templates/';
+			$this->helper         = function_exists( 'wc_gzd_get_email_helper' ) ? wc_gzd_get_email_helper( $this ) : false;
 
 			$this->placeholders   = array(
 				'{site_title}'             => $this->get_blogname(),
@@ -60,7 +63,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Guest_Return_Shipment_Request', fals
 		 * @return string
 		 */
 		public function get_default_subject() {
-			return _x( 'Your return request to {order_number}', 'shipments', 'woocommerce-germanized-shipments' );
+			return _x( 'Your return request to your order {order_number}', 'shipments', 'woocommerce-germanized-shipments' );
 		}
 
 		/**
@@ -77,6 +80,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Guest_Return_Shipment_Request', fals
 		 * Switch Woo and Germanized locale
 		 */
 		public function setup_locale() {
+
 			if ( $this->is_customer_email() && function_exists( 'wc_gzd_switch_to_site_locale' ) && apply_filters( 'woocommerce_email_setup_locale', true ) ) {
 				wc_gzd_switch_to_site_locale();
 			}
@@ -88,6 +92,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Guest_Return_Shipment_Request', fals
 		 * Restore Woo and Germanized locale
 		 */
 		public function restore_locale() {
+
 			if ( $this->is_customer_email() && function_exists( 'wc_gzd_restore_locale' ) && apply_filters( 'woocommerce_email_restore_locale', true ) ) {
 				wc_gzd_restore_locale();
 			}
@@ -101,7 +106,11 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Guest_Return_Shipment_Request', fals
 		 * @param int $order_id order ID.
 		 */
 		public function trigger( $order_id ) {
-			$this->setup_locale();
+			if ( $this->helper ) {
+				$this->helper->setup_locale();
+			} else {
+				$this->setup_locale();
+			}
 
 			if ( $this->object = wc_get_order( $order_id ) ) {
 
@@ -114,11 +123,23 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Guest_Return_Shipment_Request', fals
 				}
 			}
 
+			if ( $this->helper ) {
+				$this->helper->setup_email_locale();
+			}
+
 			if ( $this->is_enabled() && $this->get_recipient() ) {
 				$this->send( $this->get_recipient(), $this->get_subject(), $this->get_content(), $this->get_headers(), $this->get_attachments() );
 			}
 
-			$this->restore_locale();
+			if ( $this->helper ) {
+				$this->helper->restore_email_locale();
+			}
+
+			if ( $this->helper ) {
+				$this->helper->restore_locale();
+			} else {
+				$this->restore_locale();
+			}
 		}
 
 		/**

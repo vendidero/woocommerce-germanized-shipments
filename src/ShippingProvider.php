@@ -50,6 +50,7 @@ class ShippingProvider extends WC_Data  {
 		'name'                       => '',
 		'description'                => '',
 		'supports_customer_returns'  => false,
+		'supports_guest_returns'     => false,
 		'return_manual_confirmation' => true,
 		'return_instructions'        => '',
 		'tracking_url_placeholder'   => '',
@@ -146,6 +147,10 @@ class ShippingProvider extends WC_Data  {
 		return $this->get_supports_customer_returns() === true;
 	}
 
+	public function supports_guest_returns() {
+		return $this->get_supports_customer_returns() === true && $this->get_supports_guest_returns() === true;
+	}
+
 	/**
 	 * Returns a title for the shipping provider.
 	 *
@@ -166,12 +171,6 @@ class ShippingProvider extends WC_Data  {
 	 */
 	public function get_name( $context = 'view' ) {
 		return $this->get_prop( 'name', $context );
-	}
-
-	protected function get_hook_name() {
-		$name = isset( $this->data['name'] ) ? $this->data['name'] : '';
-
-		return $name;
 	}
 
 	/**
@@ -222,6 +221,17 @@ class ShippingProvider extends WC_Data  {
 	 */
 	public function get_supports_customer_returns( $context = 'view' ) {
 		return $this->get_prop( 'supports_customer_returns', $context );
+	}
+
+	/**
+	 * Returns whether the shipping provider supports returns added by guests or not.
+	 *
+	 * @param string $context
+	 *
+	 * @return string
+	 */
+	public function get_supports_guest_returns( $context = 'view' ) {
+		return $this->get_prop( 'supports_guest_returns', $context );
 	}
 
 	/**
@@ -290,6 +300,15 @@ class ShippingProvider extends WC_Data  {
 	 */
 	public function set_supports_customer_returns( $supports ) {
 		$this->set_prop( 'supports_customer_returns', wc_string_to_bool( $supports ) );
+	}
+
+	/**
+	 * Set whether or not the current shipping provider supports guest returns
+	 *
+	 * @param bool $supports
+	 */
+	public function set_supports_guest_returns( $supports ) {
+		$this->set_prop( 'supports_guest_returns', wc_string_to_bool( $supports ) );
 	}
 
 	/**
@@ -549,12 +568,24 @@ class ShippingProvider extends WC_Data  {
 
 			array(
 				'title' 	        => _x( 'Customer returns', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc'              => _x( 'Allow customers to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'This option will allow your customers to submit return requests to existing shipments. Return requests will be visible within your return dashboard. To learn more about returns added by customers and how to enable them for guests too, please check the %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="" target="_blank">' . _x( 'docs', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
+				'desc'              => _x( 'Allow customers to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'This option will allow your customers to submit return requests to existing shipments. Return requests will be visible within your return dashboard. To learn more about returns added by customers and for guests, please check the %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="" target="_blank">' . _x( 'docs', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
 				'id' 		        => 'shipping_provider_supports_customer_returns',
 				'placeholder'       => '',
 				'value'             => $this->get_supports_customer_returns( 'edit' ) ? 'yes' : 'no',
 				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
+			),
+
+			array(
+				'title' 	        => _x( 'Guest returns', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc' 		        => _x( 'Allow guests to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Guests will need to provide their email address and the order id to receive a one-time link to submit a return request. The placeholder %s might be used to place the request form on your site.', 'shipments', 'woocommerce-germanized-shipments' ), '<code>[gzd_return_request_form]</code>' ) . '</div>',
+				'id' 		        => 'shipping_provider_supports_guest_returns',
+				'default'	        => 'no',
+				'value'             => $this->get_supports_guest_returns( 'edit' ) ? 'yes' : 'no',
+				'type' 		        => 'gzd_toggle',
+				'custom_attributes' => array(
+					'data-show_if_shipping_provider_supports_customer_returns' => '',
+				),
 			),
 
 			array(

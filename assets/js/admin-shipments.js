@@ -442,6 +442,7 @@ window.germanized.admin = window.germanized.admin || {};
             var self = germanized.admin.shipments;
 
             self.onAddShipmentSuccess( data );
+            self.$wrapper.find( '.panel-order-return-title' ).removeClass( 'hide-default' );
         },
 
         onAddReturnError: function( data ) {

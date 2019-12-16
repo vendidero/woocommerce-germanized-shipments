@@ -1016,7 +1016,7 @@ function wc_gzd_get_order_customer_add_return_url( $order ) {
 
 	$url = wc_get_endpoint_url( 'add-return-shipment', $shipment_order->get_order()->get_id(), wc_get_page_permalink( 'myaccount' ) );
 
-	if ( ! is_user_logged_in() ) {
+	if ( $shipment_order->get_order()->get_customer_id() <= 0 ) {
 		$key = $shipment_order->get_order_return_request_key();
 
 		if ( ! empty( $key ) ) {
@@ -1052,6 +1052,10 @@ function wc_gzd_order_is_customer_returnable( $order ) {
 
 	if ( $provider = wc_gzd_get_order_shipping_provider( $order ) ) {
 		$is_returnable = $provider->supports_customer_returns();
+
+		if ( $shipment_order->get_order()->get_customer_id() <= 0 && ! $provider->supports_guest_returns() ) {
+			$is_returnable = false;
+		}
 	}
 
 	// Shipment is fully returned
@@ -1143,9 +1147,7 @@ function wc_gzd_get_customer_order_return_request_key() {
 function wc_gzd_customer_can_add_return_shipment( $order_id ) {
 	$can_view_shipments = false;
 
-	if ( is_user_logged_in() ) {
-		$can_view_shipments = current_user_can( 'view_order', $order_id );
-	} elseif( isset( $_REQUEST['key'] ) ) {
+	if( isset( $_REQUEST['key'] ) ) {
 		$key = wc_gzd_get_customer_order_return_request_key();
 
 		if ( ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) && ! empty( $key ) ) {
@@ -1154,6 +1156,8 @@ function wc_gzd_customer_can_add_return_shipment( $order_id ) {
 				$can_view_shipments = true;
 			}
 		}
+	} elseif ( is_user_logged_in() ) {
+		$can_view_shipments = current_user_can( 'view_order', $order_id );
 	}
 
 	/**
