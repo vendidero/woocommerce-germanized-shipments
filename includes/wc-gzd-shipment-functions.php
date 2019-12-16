@@ -1147,7 +1147,7 @@ function wc_gzd_get_customer_order_return_request_key() {
 function wc_gzd_customer_can_add_return_shipment( $order_id ) {
 	$can_view_shipments = false;
 
-	if( isset( $_REQUEST['key'] ) ) {
+	if ( isset( $_REQUEST['key'] ) && ! empty( $_REQUEST['key'] ) ) {
 		$key = wc_gzd_get_customer_order_return_request_key();
 
 		if ( ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) && ! empty( $key ) ) {
