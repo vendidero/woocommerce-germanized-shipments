@@ -26,12 +26,12 @@ defined( 'ABSPATH' ) || exit;
 	) ); ?>
 <?php endif; ?>
 
+<?php if ( wc_gzd_order_is_customer_returnable( $order ) ) : ?>
+    <p class="shipments-add-return"><a class="add-return-shipment woocommerce-button button" href="<?php echo esc_url( wc_gzd_get_order_customer_add_return_url( $order ) ); ?>"><?php _ex( 'Add return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
+<?php endif; ?>
+
 <?php if ( ! empty( $returns ) ) : ?>
 	<h2 class="woocommerce-shipments-list__title woocommerce-return-shipments-list__title"><?php _ex( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
-
-	<?php if ( wc_gzd_order_is_customer_returnable( $order ) ) : ?>
-		<p class="shipments-add-return"><a class="add-return-shipment woocommerce-button button" href="<?php echo esc_url( wc_gzd_get_order_customer_add_return_url( $order ) ); ?>"><?php _ex( 'Add return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
-	<?php endif; ?>
 
 	<?php wc_get_template( 'myaccount/shipments.php', array(
 		'type'      => 'return',
