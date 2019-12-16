@@ -337,6 +337,12 @@ window.germanized.admin = window.germanized.admin || {};
 
             if ( $shipment.length > 0 ) {
 
+                if ( $shipment.hasClass( 'shipment-return' ) ) {
+                    if ( self.$wrapper.find( '.order-shipment.shipment-return' ).length === 1 ) {
+                        self.$wrapper.find( '.panel-order-return-title' ).addClass( 'hide-default' );
+                    }
+                }
+
                 if ( $shipment.hasClass( 'active' ) ) {
                     $shipment.find( '.shipment-content-wrapper' ).slideUp( 300, function() {
                         $shipment.removeClass( 'active' );
