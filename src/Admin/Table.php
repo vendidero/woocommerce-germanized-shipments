@@ -111,6 +111,18 @@ class Table extends WP_List_Table {
                     $changed++;
                 }
             }
+        } elseif( 'confirm_requests' === $action ) {
+	        foreach ( $ids as $id ) {
+		        if ( $shipment = wc_gzd_get_shipment( $id ) ) {
+			        if ( 'return' === $shipment->get_type() ) {
+			            if ( $shipment->is_customer_requested() && $shipment->has_status( 'requested' ) ) {
+			                if ( $shipment->confirm_customer_request() ) {
+			                    $changed++;
+			                }
+                        }
+                    }
+		        }
+	        }
         }
 
 	    /**
@@ -576,8 +588,6 @@ class Table extends WP_List_Table {
      */
     protected function extra_tablenav( $which ) {
         ?>
-
-
         <div class="alignleft actions">
             <?php
             if ( 'top' === $which && ! is_singular() ) {
@@ -660,8 +670,7 @@ class Table extends WP_List_Table {
      * @return array
      */
     public function get_columns() {
-
-        $columns               = $this->get_custom_columns();
+        $columns = $this->get_custom_columns();
 
 	    /**
 	     * Filters the columns displayed in the Shipments list table.
@@ -958,7 +967,7 @@ class Table extends WP_List_Table {
      * @param Shipment $shipment The current shipment object.
      */
     public function column_status( $shipment ) {
-        echo '<span class="shipment-status status-' . esc_attr( $shipment->get_status() ) . '">' . wc_gzd_get_shipment_status_name( $shipment->get_status() ) .'</span>';
+        echo '<span class="shipment-status shipment-type-' . esc_attr( $shipment->get_type() ) . '-status status-' . esc_attr( $shipment->get_status() ) . '">' . wc_gzd_get_shipment_status_name( $shipment->get_status() ) .'</span>';
     }
 
     /**

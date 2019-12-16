@@ -45,12 +45,15 @@ class ShippingProvider extends WC_Data  {
 	 * @var array
 	 */
 	protected $data = array(
-		'activated'                 => true,
-		'title'                     => '',
-		'name'                      => '',
-		'description'               => '',
-		'tracking_url_placeholder'  => '',
-		'tracking_desc_placeholder' => '',
+		'activated'                  => true,
+		'title'                      => '',
+		'name'                       => '',
+		'description'                => '',
+		'supports_customer_returns'  => false,
+		'return_manual_confirmation' => true,
+		'return_instructions'        => '',
+		'tracking_url_placeholder'   => '',
+		'tracking_desc_placeholder'  => '',
 	);
 
 	/**
@@ -111,6 +114,17 @@ class ShippingProvider extends WC_Data  {
 		return false;
 	}
 
+	/**
+	 * Some providers (e.g. DHL) create return labels automatically and the return
+	 * address is chosen dynamically depending on the country. For that reason the return address
+	 * might not show up within emails or in customer panel.
+	 *
+	 * @return bool
+	 */
+	public function hide_return_address() {
+		return $this->supports_labels( 'return' ) ? true : false;
+	}
+
 	public function get_edit_link() {
 		return admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=' . esc_attr( $this->get_name() ) );
 	}
@@ -122,6 +136,14 @@ class ShippingProvider extends WC_Data  {
 	 */
 	public function is_activated() {
 		return $this->get_activated() === true;
+	}
+
+	public function needs_manual_confirmation_for_returns() {
+		return $this->get_return_manual_confirmation() === true;
+	}
+
+	public function supports_customer_returns() {
+		return $this->get_supports_customer_returns() === true;
 	}
 
 	/**
@@ -181,6 +203,28 @@ class ShippingProvider extends WC_Data  {
 	}
 
 	/**
+	 * Returns whether the shipping provider needs manual confirmation for a return.
+	 *
+	 * @param string $context
+	 *
+	 * @return string
+	 */
+	public function get_return_manual_confirmation( $context = 'view' ) {
+		return $this->get_prop( 'return_manual_confirmation', $context );
+	}
+
+	/**
+	 * Returns whether the shipping provider supports returns added by customers or not.
+	 *
+	 * @param string $context
+	 *
+	 * @return string
+	 */
+	public function get_supports_customer_returns( $context = 'view' ) {
+		return $this->get_prop( 'supports_customer_returns', $context );
+	}
+
+	/**
 	 * Returns the tracking url placeholder which is being used to
 	 * construct a tracking url.
 	 *
@@ -205,12 +249,47 @@ class ShippingProvider extends WC_Data  {
 	}
 
 	/**
+	 * Returns the return instructions.
+	 *
+	 * @param string $context
+	 *
+	 * @return mixed
+	 */
+	public function get_return_instructions( $context = 'view' ) {
+		return $this->get_prop( 'return_instructions', $context );
+	}
+
+	public function has_return_instructions() {
+		$instructions = $this->get_return_instructions();
+
+		return empty( $instructions ) ? false : true;
+	}
+
+	/**
 	 * Set the current shipping provider to active or inactive.
 	 *
 	 * @param bool $is_activated
 	 */
 	public function set_activated( $is_activated ) {
 		$this->set_prop( 'activated', wc_string_to_bool( $is_activated ) );
+	}
+
+	/**
+	 * Mark the current shipping provider as manual needed confirmation for returns.
+	 *
+	 * @param bool $needs_confirmation
+	 */
+	public function set_return_manual_confirmation( $needs_confirmation ) {
+		$this->set_prop( 'return_manual_confirmation', wc_string_to_bool( $needs_confirmation ) );
+	}
+
+	/**
+	 * Set whether or not the current shipping provider supports customer returns
+	 *
+	 * @param bool $supports
+	 */
+	public function set_supports_customer_returns( $supports ) {
+		$this->set_prop( 'supports_customer_returns', wc_string_to_bool( $supports ) );
 	}
 
 	/**
@@ -264,10 +343,19 @@ class ShippingProvider extends WC_Data  {
 	/**
 	 * Set the description of the current shipping provider.
 	 *
-	 * @param string $title
+	 * @param string $description
 	 */
 	public function set_description( $description ) {
 		$this->set_prop( 'description', $description );
+	}
+
+	/**
+	 * Set the return instructions of the current shipping provider.
+	 *
+	 * @param string $instructions
+	 */
+	public function set_return_instructions( $instructions ) {
+		$this->set_prop( 'return_instructions', $instructions );
 	}
 
 	/**
@@ -457,6 +545,43 @@ class ShippingProvider extends WC_Data  {
 				'default'	        => _x( 'Your shipment is being processed by {shipping_provider}. If you want to track the shipment, please use the following tracking number: {tracking_id}. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type' 		        => 'textarea',
 				'css'               => 'width: 100%; min-height: 60px; margin-top: 1em;',
+			),
+
+			array(
+				'title' 	        => _x( 'Customer returns', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc'              => _x( 'Allow customers to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'This option will allow your customers to submit return requests to existing shipments. Return requests will be visible within your return dashboard. To learn more about returns added by customers and how to enable them for guests too, please check the %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="" target="_blank">' . _x( 'docs', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
+				'id' 		        => 'shipping_provider_supports_customer_returns',
+				'placeholder'       => '',
+				'value'             => $this->get_supports_customer_returns( 'edit' ) ? 'yes' : 'no',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
+			),
+
+			array(
+				'title' 	        => _x( 'Manual confirmation', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc'              => _x( 'Return requests need manual confirmation.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . _x( 'By default return request need manual confirmation e.g. a shop manager needs to process returns which by default are added with the status "requested" after a customer submitted a return request. If you choose to disable this option, returns will be added as "processing" and an email confirmation including instructions will be sent immediately to the customer.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
+				'id' 		        => 'shipping_provider_return_manual_confirmation',
+				'placeholder'       => '',
+				'value'             => $this->get_return_manual_confirmation( 'edit' ) ? 'yes' : 'no',
+				'default'	        => 'yes',
+				'type' 		        => 'gzd_toggle',
+				'custom_attributes' => array(
+					'data-show_if_shipping_provider_supports_customer_returns' => '',
+				),
+			),
+
+			array(
+				'title' 	        => _x( 'Return instructions', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Provide your customer with instructions on how to return the shipment after a return request has been confirmed e.g. explain how to prepare the return for shipment. In case a label cannot be generated automatically, make sure to provide your customer with information on how to obain a return label.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
+				'id' 		        => 'shipping_provider_return_instructions',
+				'placeholder'       => '',
+				'value'             => $this->get_return_instructions( 'edit' ),
+				'default'	        => '',
+				'type' 		        => 'textarea',
+				'css'               => 'width: 100%; min-height: 60px; margin-top: 1em;',
+				'custom_attributes' => array(
+					'data-show_if_shipping_provider_supports_customer_returns' => '',
+				),
 			),
 
 			array( 'type' => 'sectionend', 'id' => 'shipping_provider_options' ),

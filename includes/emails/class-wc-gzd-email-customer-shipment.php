@@ -152,6 +152,28 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
             return apply_filters( 'woocommerce_email_heading_customer_shipment', $this->format_string( $heading ), $this->object );
         }
 
+	    /**
+	     * Switch Woo and Germanized locale
+	     */
+	    public function setup_locale() {
+		    if ( $this->is_customer_email() && function_exists( 'wc_gzd_switch_to_site_locale' ) && apply_filters( 'woocommerce_email_setup_locale', true ) ) {
+			    wc_gzd_switch_to_site_locale();
+		    }
+
+		    parent::setup_locale();
+	    }
+
+	    /**
+	     * Restore Woo and Germanized locale
+	     */
+	    public function restore_locale() {
+		    if ( $this->is_customer_email() && function_exists( 'wc_gzd_restore_locale' ) && apply_filters( 'woocommerce_email_restore_locale', true ) ) {
+			    wc_gzd_restore_locale();
+		    }
+
+		    parent::restore_locale();
+	    }
+
         /**
          * Trigger.
          *

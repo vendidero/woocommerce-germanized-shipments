@@ -26,7 +26,17 @@ if ( ! $shipment ) {
 
 $order                 = $shipment->get_order();
 $show_receiver_details = is_user_logged_in() && $order && $order->get_user_id() === get_current_user_id();
+$show_tracking         = $show_receiver_details && $shipment->has_tracking();
 $shipment_items        = $shipment->get_items();
+
+if ( 'return' === $shipment->get_type() ) {
+
+	if ( $provider = $shipment->get_shipping_provider_instance() ) {
+		if ( $provider->hide_return_address() ) {
+			$show_receiver_details = false;
+		}
+	}
+}
 ?>
 <section class="woocommerce-shipment-details">
 	<?php
@@ -107,6 +117,6 @@ if ( $show_receiver_details ) {
 	wc_get_template( 'shipment/shipment-details-address.php', array( 'shipment' => $shipment ) );
 }
 
-if ( $show_receiver_details && $shipment->has_tracking() ) {
+if ( $show_tracking ) {
 	wc_get_template( 'shipment/shipment-details-tracking.php', array( 'shipment' => $shipment ) );
 }

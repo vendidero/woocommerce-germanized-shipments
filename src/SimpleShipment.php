@@ -33,11 +33,8 @@ class SimpleShipment extends Shipment {
 	 */
 	private $order_shipment = null;
 
-	private $force_order_shipment_usage = false;
-
 	protected $extra_data = array(
-		'est_delivery_date'     => null,
-		'order_id'              => 0,
+		'order_id' => 0,
 	);
 
 	/**
@@ -47,25 +44,6 @@ class SimpleShipment extends Shipment {
 	 */
 	public function get_type() {
 		return 'simple';
-	}
-
-	/**
-	 * Return the date this shipment is estimated to be delivered.
-	 *
-	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
-	 * @return WC_DateTime|null object if the date is set or null if there is no date.
-	 */
-	public function get_est_delivery_date( $context = 'view' ) {
-		return $this->get_prop( 'est_delivery_date', $context );
-	}
-
-	/**
-	 * Set the date this shipment will be delivered.
-	 *
-	 * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
-	 */
-	public function set_est_delivery_date( $date = null ) {
-		$this->set_date_prop( 'est_delivery_date', $date );
 	}
 
 	/**
@@ -97,8 +75,6 @@ class SimpleShipment extends Shipment {
 	 */
 	public function set_order_shipment( &$order_shipment ) {
 		$this->order_shipment             = $order_shipment;
-		/** Little hack to determine whether to work with the order shipment instance for retrieving return instances */
-		$this->force_order_shipment_usage = true;
 	}
 
 	/**
@@ -150,13 +126,14 @@ class SimpleShipment extends Shipment {
 				wc_gzd_remove_class_filter( 'woocommerce_order_get_items', 'WCML_Orders', 'woocommerce_order_get_items', 10 );
 			}
 
-			$order            = $order_shipment->get_order();
+			$order = $order_shipment->get_order();
 
 			/**
 			 * Make sure that manually adjusted providers are not overridden by syncing.
 			 */
-			$default_provider = wc_gzd_get_shipment_shipping_provider( $order );
-			$provider         = $this->get_shipping_provider( 'edit' );
+			$default_provider_instance = wc_gzd_get_order_shipping_provider( $order );
+			$default_provider          = $default_provider_instance ? $default_provider_instance->get_name() : '';
+			$provider                  = $this->get_shipping_provider( 'edit' );
 
 			$args = wp_parse_args( $args, array(
 				'order_id'          => $order->get_id(),
@@ -310,87 +287,6 @@ class SimpleShipment extends Shipment {
 	}
 
 	/**
-	 * Returns available items for return.
-	 *
-	 * @param array $args
-	 *
-	 * @return array
-	 */
-	public function get_available_items_for_return( $args = array() ) {
-		$args     = wp_parse_args( $args, array(
-			'disable_duplicates'       => false,
-			'shipment_id'              => 0,
-			'exclude_current_shipment' => false,
-		) );
-
-		$items    = array();
-		$shipment = false;
-
-		if ( $order_shipment = $this->get_order_shipment() ) {
-			$shipment = $args['shipment_id'] ? $order_shipment->get_shipment( $args['shipment_id'] ) : false;
-		}
-
-		foreach( $this->get_items() as $item ) {
-
-			$quantity_left = $this->get_item_quantity_left_for_return( $item->get_id(), $args );
-
-			if ( $shipment ) {
-				if ( $args['disable_duplicates'] && $shipment->get_item_by_item_parent_id( $item->get_id() ) ) {
-					continue;
-				}
-			}
-
-			if ( $quantity_left > 0 ) {
-				$items[ $item->get_id() ] = array(
-					'name'         => $item->get_name(),
-					'max_quantity' => $quantity_left,
-				);
-			}
-		}
-
-		return $items;
-	}
-
-	/**
-	 * Returns the quantity left for return of a certain item.
-	 *
-	 * @param int $item_id
-	 * @param array $args
-	 *
-	 * @return int
-	 */
-	public function get_item_quantity_left_for_return( $item_id, $args = array() ) {
-		$args = wp_parse_args( $args, array(
-			'exclude_current_shipment' => false,
-			'shipment_id'              => 0,
-		) );
-
-		$returns       = $this->get_returns();
-		$quantity_left = 0;
-
-		if ( $item = $this->get_item( $item_id ) ) {
-			$quantity_left = $item->get_quantity();
-
-			foreach( $returns as $return ) {
-
-				if ( $args['exclude_current_shipment'] && $args['shipment_id'] > 0 && $args['shipment_id'] === $return->get_id() ) {
-					continue;
-				}
-
-				if ( $return_item = $return->get_item_by_item_parent_id( $item_id ) ) {
-					$quantity_left -= $return_item->get_quantity();
-				}
-			}
-
-			if ( $quantity_left < 0 ) {
-				$quantity_left = 0;
-			}
-		}
-
-		return $quantity_left;
-	}
-
-	/**
 	 * Returns the number of items available for shipment.
 	 *
 	 * @return int|mixed|void
@@ -401,34 +297,6 @@ class SimpleShipment extends Shipment {
 		}
 
 		return 0;
-	}
-
-	/**
-	 * Returns return shipments linked to that shipment.
-	 *
-	 * @return ReturnShipment[]
-	 */
-	public function get_returns() {
-		if ( $this->force_order_shipment_usage && ( $order = $this->get_order_shipment() ) ) {
-			return $order->get_return_shipments( $this->get_id() );
-		} else {
-			return wc_gzd_get_shipments( array(
-				'parent_id' => $this->get_id(),
-				'type'      => 'return',
-			) );
-		}
-	}
-
-	/**
-	 * Checks whether the current shipment is fully returned, e.g. if
-	 * items exist which are not yet linked to a return.
-	 *
-	 * @return bool
-	 */
-	public function has_complete_return() {
-		$items = $this->get_available_items_for_return();
-
-		return empty( $items ) ? true : false;
 	}
 
 	/**
@@ -445,20 +313,6 @@ class SimpleShipment extends Shipment {
 		}
 
 		return ( $this->is_editable() && ! $this->contains_order_item( $available_items ) );
-	}
-
-	/**
-	 * Checks if the current shipment is returnable or not.
-	 *
-	 * @return bool
-	 */
-	public function is_returnable() {
-
-		if ( $this->has_status( array( 'shipped', 'delivered' ) ) && ! $this->has_complete_return() ) {
-			return true;
-		}
-
-		return false;
 	}
 
 	/**

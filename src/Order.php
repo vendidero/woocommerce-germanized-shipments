@@ -64,6 +64,40 @@ class Order {
         return $status;
     }
 
+    public function has_shipped_shipments() {
+    	$shipments = $this->get_simple_shipments();
+
+    	foreach( $shipments as $shipment ) {
+
+    		if ( $shipment->has_status( wc_gzd_get_shipment_sent_statuses() ) ) {
+			    return true;
+		    }
+	    }
+
+    	return false;
+    }
+
+	public function get_return_status() {
+		$status    = 'open';
+		$shipments = $this->get_return_shipments();
+
+		if ( ! empty( $shipments ) ) {
+			foreach( $shipments as $shipment ) {
+
+				if ( $shipment->has_status( 'delivered' ) ) {
+					$status = 'partially-returned';
+					break;
+				}
+			}
+		}
+
+		if ( ! $this->needs_return( array( 'delivered_only' => true ) ) && $this->has_shipped_shipments() ) {
+			$status = 'returned';
+		}
+
+		return $status;
+	}
+
     public function validate_shipments( $args = array() ) {
         $args = wp_parse_args( $args, array(
             'save' => true,
@@ -187,16 +221,11 @@ class Order {
 	/**
 	 * @return ReturnShipment[]
 	 */
-	public function get_return_shipments( $parent_id = false ) {
+	public function get_return_shipments() {
 		$returns = array();
 
 		foreach( $this->get_shipments() as $shipment ) {
 			if ( 'return' === $shipment->get_type() ) {
-
-				if ( $parent_id && $shipment->get_parent_id() !== (int) $parent_id ) {
-					continue;
-				}
-
 				$returns[] = $shipment;
 			}
 		}
@@ -293,8 +322,71 @@ class Order {
         return apply_filters( 'woocommerce_gzd_shipment_order_item_quantity_left_for_shipping', $quantity_left, $order_item, $this );
     }
 
+    public function get_item_quantity_sent_by_order_item_id( $order_item_id ) {
+    	$shipments = $this->get_simple_shipments();
+    	$quantity  = 0;
+
+    	foreach( $shipments as $shipment ) {
+
+    		if ( ! $shipment->has_status( wc_gzd_get_shipment_sent_statuses() ) ) {
+    			continue;
+		    }
+
+    		if ( $item = $shipment->get_item_by_order_item_id( $order_item_id ) ) {
+    			$quantity += $item->get_quantity();
+		    }
+	    }
+
+    	return $quantity;
+    }
+
+	/**
+	 * @param ShipmentItem $item
+	 */
+	public function get_item_quantity_left_for_returning( $order_item_id, $args = array() ) {
+		$quantity_left = 0;
+		$args          = wp_parse_args( $args, array(
+			'delivered_only'           => false,
+			'shipment_id'              => 0,
+			'exclude_current_shipment' => false,
+		) );
+
+		$quantity_left = $this->get_item_quantity_sent_by_order_item_id( $order_item_id );
+
+		foreach( $this->get_return_shipments() as $shipment ) {
+
+			if ( $args['delivered_only'] && ! $shipment->has_status( 'delivered' ) ) {
+				continue;
+			}
+
+			if ( $args['exclude_current_shipment'] && $args['shipment_id'] > 0 && ( $shipment->get_id() === $args['shipment_id'] ) ) {
+				continue;
+			}
+
+			if ( $shipment_item = $shipment->get_item_by_order_item_id( $order_item_id ) ) {
+				$quantity_left -= $shipment_item->get_quantity();
+			}
+		}
+
+		if ( $quantity_left < 0 ) {
+			$quantity_left = 0;
+		}
+
+		/**
+		 * Filter to adjust the quantity left for returning of a specific order item.
+		 *
+		 * @param integer       $quantity_left The quantity left for shipment.
+		 * @param integer       $order_item_id The order item id.
+		 * @param Order         $this The shipment order object.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_shipment_order_item_quantity_left_for_returning', $quantity_left, $order_item_id, $this );
+	}
+
     /**
-     * @param bool|Vendidero\Germanized\Shipments\Shipment $shipment
+     * @param bool|Shipment $shipment
      * @return array
      */
     public function get_available_items_for_shipment( $args = array() ) {
@@ -328,6 +420,58 @@ class Order {
         return $items;
     }
 
+	/**
+	 * Returns the first found matching shipment item for a certain order item id.
+	 *
+	 * @param $order_item_id
+	 *
+	 * @return bool|ShipmentItem
+	 */
+    public function get_simple_shipment_item( $order_item_id ) {
+    	foreach( $this->get_simple_shipments() as $shipment ) {
+
+    		if ( $item = $shipment->get_item_by_order_item_id( $order_item_id ) ) {
+    			return $item;
+		    }
+	    }
+
+    	return false;
+    }
+
+	/**
+	 * @return array
+	 */
+	public function get_available_items_for_return( $args = array() ) {
+		$args = wp_parse_args( $args, array(
+			'disable_duplicates'       => false,
+			'shipment_id'              => 0,
+			'delivered_only'           => false,
+			'exclude_current_shipment' => false,
+		) );
+
+		$items          = array();
+		$shipment       = $args['shipment_id'] ? $this->get_shipment( $args['shipment_id'] ) : false;
+
+		foreach( $this->get_returnable_items() as $item ) {
+			$quantity_left = $this->get_item_quantity_left_for_returning( $item->get_order_item_id(), $args );
+
+			if ( $shipment ) {
+				if ( $args['disable_duplicates'] && $shipment->get_item_by_order_item_id( $item->get_order_item_id() ) ) {
+					continue;
+				}
+			}
+
+			if ( $quantity_left > 0 ) {
+				$items[ $item->get_order_item_id() ] = array(
+					'name'         => $item->get_name(),
+					'max_quantity' => $quantity_left,
+				);
+			}
+		}
+
+		return $items;
+	}
+
     public function item_needs_shipping( $order_item, $args = array() ) {
         $args = wp_parse_args( $args, array(
             'sent_only' => false,
@@ -353,6 +497,57 @@ class Order {
         return apply_filters( 'woocommerce_gzd_shipment_order_item_needs_shipping', $needs_shipping, $order_item, $args, $this );
     }
 
+	/**
+	 * Checks whether an item needs return or not by checking the quantity left for return.
+	 *
+	 * @param ShipmentItem $item
+	 * @param array $args
+	 *
+	 * @return mixed|void
+	 */
+	public function item_needs_return( $item, $args = array() ) {
+		$args = wp_parse_args( $args, array(
+			'delivered_only' => false,
+		) );
+
+		$needs_return = false;
+
+		if ( $this->get_item_quantity_left_for_returning( $item->get_order_item_id(), $args ) > 0 ) {
+			$needs_return = true;
+		}
+
+		/**
+		 * Filter to decide whether a shipment item needs return or not.
+		 *
+		 * @param boolean      $needs_return Whether the item needs return or not.
+		 * @param ShipmentItem $item The order item object.
+		 * @param array        $args Additional arguments to be considered.
+		 * @param Order $order The shipment order object.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_shipment_item_needs_return', $needs_return, $item, $args, $this );
+	}
+
+	/**
+	 * Returns the return request key added to allow a guest customer to add
+	 * a new return request to a certain order.
+	 *
+	 * @return mixed
+	 */
+	public function get_order_return_request_key() {
+		return $this->get_order()->get_meta( '_return_request_key' );
+	}
+
+	/**
+	 * Removes the return request key from the order. Saves the order.
+	 */
+	public function delete_order_return_request_key() {
+		$this->get_order()->delete_meta_data( '_return_request_key' );
+		$this->get_order()->save();
+	}
+
     /**
      * Returns items that are ready for shipping (defaults to non-virtual line items).
      *
@@ -365,7 +560,6 @@ class Order {
             $product = is_callable( array( $item, 'get_product' ) ) ? $item->get_product() : false;
 
             if ( $product ) {
-
                 if ( $product->is_virtual() || $this->get_shippable_item_quantity( $item ) <= 0 ) {
                     unset( $items[ $key ] );
                 }
@@ -387,6 +581,45 @@ class Order {
 	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_shippable_items', $items, $this->get_order(), $this );
     }
+
+	/**
+	 * Returns items that are ready for return. By default only shipped (or delivered) items are returnable.
+	 *
+	 * @return ShipmentItem[] Shippable items.
+	 */
+	public function get_returnable_items() {
+		$items = array();
+
+		foreach( $this->get_simple_shipments() as $shipment ) {
+
+			if ( ! $shipment->has_status( wc_gzd_get_shipment_sent_statuses() ) ) {
+				continue;
+			}
+
+			foreach( $shipment->get_items() as $item ) {
+
+				if ( ! isset( $items[ $item->get_order_item_id() ] ) ) {
+					$new_item = clone $item;
+					$items[ $item->get_order_item_id() ] = $new_item;
+				} else {
+					$new_quantity = $items[ $item->get_order_item_id() ]->get_quantity() + $item->get_quantity();
+					$items[ $item->get_order_item_id() ]->set_quantity( $new_quantity );
+				}
+			}
+		}
+
+		/**
+		 * Filter to adjust returnable items for a specific order.
+		 *
+		 * @param ShipmentItem[] $items Array containing shippable order items.
+		 * @param WC_Order       $order The order object.
+		 * @param Order          $order The shipment order object.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_shipment_order_returnable_items', $items, $this->get_order(), $this );
+	}
 
     public function get_shippable_item_quantity( $order_item ) {
         $refunded_qty = $this->get_order()->get_qty_refunded_for_item( $order_item->get_id() );
@@ -411,6 +644,11 @@ class Order {
         return apply_filters( 'woocommerce_gzd_shipment_order_item_shippable_quantity', $quantity_left, $order_item, $this );
     }
 
+	/**
+	 * Returns the total number of shippable items.
+	 *
+	 * @return mixed|void
+	 */
     public function get_shippable_item_count() {
         $count = 0;
 
@@ -429,6 +667,30 @@ class Order {
 	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_shippable_item_count', $count, $this );
     }
+
+	/**
+	 * Returns the number of total returnable items.
+	 *
+	 * @return mixed|void
+	 */
+	public function get_returnable_item_count() {
+		$count = 0;
+
+		foreach( $this->get_returnable_items() as $item ) {
+			$count += $item->get_quantity();
+		}
+
+		/**
+		 * Filters the total number of returnable items available in an order.
+		 *
+		 * @param integer $count The total number of items.
+		 * @param Order   $order The shipment order object.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_shipment_order_returnable_item_count', $count, $this );
+	}
 
     /**
      * Checks whether the order needs shipping or not by checking quantity
@@ -466,6 +728,41 @@ class Order {
 	     */
         return apply_filters( 'woocommerce_gzd_shipment_order_needs_shipping', $needs_shipping, $this->get_order(), $this );
     }
+
+	/**
+	 * Checks whether the order needs return or not by checking quantity
+	 * for every line item.
+	 *
+	 * @return bool Whether the order needs shipping or not.
+	 */
+	public function needs_return( $args = array() ) {
+		$args = wp_parse_args( $args, array(
+			'delivered_only' => false
+		) );
+
+		$items        = $this->get_returnable_items();
+		$needs_return = false;
+
+		foreach( $items as $item ) {
+
+			if ( $this->item_needs_return( $item, $args ) ) {
+				$needs_return = true;
+				break;
+			}
+		}
+
+		/**
+		 * Filter to decide whether an order needs return or not.
+		 *
+		 * @param boolean  $needs_return Whether the order needs return or not.
+		 * @param WC_Order $order The order object.
+		 * @param Order    $order The shipment order object.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_shipment_order_needs_return', $needs_return, $this->get_order(), $this );
+	}
 
     public function save() {
         if ( ! empty( $this->shipments_to_delete ) ) {

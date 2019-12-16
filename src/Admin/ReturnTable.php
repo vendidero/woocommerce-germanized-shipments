@@ -24,7 +24,7 @@ class ReturnTable extends Table {
 		$columns['status']     = _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' );
 		$columns['items']      = _x( 'Items', 'shipments', 'woocommerce-germanized-shipments' );
 		$columns['sender']     = _x( 'Sender', 'shipments', 'woocommerce-germanized-shipments' );
-		$columns['shipment']   = _x( 'Shipment', 'shipments', 'woocommerce-germanized-shipments' );
+		$columns['order']      = _x( 'Order', 'shipments', 'woocommerce-germanized-shipments' );
 		$columns['actions']    = _x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' );
 
 		return $columns;
@@ -42,7 +42,7 @@ class ReturnTable extends Table {
 			unset( $actions['shipped'] );
 		}
 
-		if ( ! $shipment->has_status( 'delivered' ) ) {
+		if ( ! $shipment->has_status( 'delivered' ) && ! $shipment->has_status( 'requested' ) ) {
 			$actions['received'] = array(
 				'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_update_shipment_status&status=delivered&shipment_id=' . $shipment->get_id() ), 'update-shipment-status' ),
 				'name'   => _x( 'Delivered', 'shipments', 'woocommerce-germanized-shipments' ),
@@ -50,15 +50,20 @@ class ReturnTable extends Table {
 			);
 		}
 
-		if ( $shipment->supports_label() ) {
+		if ( $shipment->has_status( 'processing' ) ) {
+			$actions['email_notification'] = array(
+				'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_send_return_shipment_notification_email&shipment_id=' . $shipment->get_id() ), 'send-return-shipment-notification' ),
+				'name'   => _x( 'Send notification to customer', 'shipments', 'woocommerce-germanized-shipments' ),
+				'action' => 'send-return-notification email',
+			);
+		}
 
-			if ( $shipment->has_label() ) {
-				$actions['email_label'] = array(
-					'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_send_shipment_return_label_email&shipment_id=' . $shipment->get_id() ), 'send-shipment-return-label' ),
-					'name'   => _x( 'Send label to customer', 'shipments', 'woocommerce-germanized-shipments' ),
-					'action' => 'send-label email',
-				);
-			}
+		if ( $shipment->is_customer_requested() && $shipment->has_status( 'requested' ) ) {
+			$actions['confirm'] = array(
+				'url'    => wp_nonce_url( admin_url( 'admin-ajax.php?action=woocommerce_gzd_confirm_return_request&shipment_id=' . $shipment->get_id() ), 'confirm-return-request' ),
+				'name'   => _x( 'Confirm return request', 'shipments', 'woocommerce-germanized-shipments' ),
+				'action' => 'confirm',
+			);
 		}
 
 		return $actions;
@@ -69,6 +74,8 @@ class ReturnTable extends Table {
 	}
 
 	protected function get_custom_bulk_actions( $actions ) {
+		$actions['confirm_requests'] = _x( 'Confirm open return requests', 'shipments', 'woocommerce-germanized-shipments' );
+
 		return $actions;
 	}
 
@@ -84,21 +91,6 @@ class ReturnTable extends Table {
 
 		if ( $address ) {
 			echo '<a target="_blank" href="' . esc_url( $shipment->get_address_map_url( $shipment->get_sender_address() ) ) . '">' . esc_html( preg_replace( '#<br\s*/?>#i', ', ', $address ) ) . '</a>';
-		} else {
-			echo '&ndash;';
-		}
-	}
-
-	/**
-	 * Handles the post author column output.
-	 *
-	 * @since 4.3.0
-	 *
-	 * @param ReturnShipment $shipment The current shipment object.
-	 */
-	public function column_shipment( $shipment ) {
-		if ( ( $parent = $shipment->get_parent() ) ) {
-			echo '<a href="' . $parent->get_edit_shipment_url() . '">' . $parent->get_shipment_number() . '</a>';
 		} else {
 			echo '&ndash;';
 		}

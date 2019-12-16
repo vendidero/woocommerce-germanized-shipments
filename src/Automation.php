@@ -77,7 +77,7 @@ class Automation {
 		    if ( $shipment_order = wc_gzd_get_shipment_order( $order ) ) {
 			    foreach( $shipment_order->get_simple_shipments() as $shipment ) {
 
-				    if ( ! $shipment->has_status( array( 'shipped', 'delivered', 'returned' ) ) ) {
+				    if ( ! $shipment->has_status( array( 'shipped', 'delivered' ) ) ) {
 					    $shipment->update_status( 'shipped' );
 				    }
 			    }
@@ -107,11 +107,24 @@ class Automation {
 		}
     }
 
-    public static function create_shipments( $order_id ) {
+    public static function create_shipments( $order_id, $enable_auto_filter = true ) {
 	    $shipment_status = Package::get_setting( 'auto_default_status' );
 
 	    if ( empty( $shipment_status ) ) {
 	    	$shipment_status = 'processing';
+	    }
+
+	    /**
+	     * Filter to disable automatically creating shipments for a specific order.
+	     *
+	     * @param string  $enable Whether to create or not create shipments.
+	     * @param integer $order_id The order id.
+	     *
+	     * @since 3.1.0
+	     * @package Vendidero/Germanized/Shipments
+	     */
+	    if ( $enable_auto_filter && ! apply_filters( 'woocommerce_gzd_auto_create_shipments_for_order', true, $order_id ) ) {
+	    	return;
 	    }
 
 	    if ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) {

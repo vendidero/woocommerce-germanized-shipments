@@ -15,7 +15,4 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * ShipmentLabel class.
  */
-interface ShipmentReturnLabel extends ShipmentLabel {
-
-	public function send_to_customer( $force = false );
-}
+interface ShipmentReturnLabel extends ShipmentLabel {}

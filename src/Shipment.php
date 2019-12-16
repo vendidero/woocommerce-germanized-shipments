@@ -119,6 +119,7 @@ abstract class Shipment extends WC_Data {
         'shipping_method'       => '',
         'total'                 => 0,
 	    'additional_total'      => 0,
+        'est_delivery_date'     => null,
     );
 
 	/**
@@ -883,6 +884,16 @@ abstract class Shipment extends WC_Data {
     }
 
 	/**
+	 * Return the date this shipment is estimated to be delivered.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return WC_DateTime|null object if the date is set or null if there is no date.
+	 */
+	public function get_est_delivery_date( $context = 'view' ) {
+		return $this->get_prop( 'est_delivery_date', $context );
+	}
+
+	/**
 	 * Decides whether the shipment is sent to an external pickup or not.
 	 *
 	 * @param string[] $types
@@ -971,10 +982,6 @@ abstract class Shipment extends WC_Data {
 	     * @package Vendidero/Germanized/Shipments
 	     */
         return apply_filters( 'woocommerce_gzd_shipment_is_editable', $this->has_status( wc_gzd_get_shipment_editable_statuses() ), $this );
-    }
-
-    public function is_returnable() {
-    	return false;
     }
 
 	/**
@@ -1177,6 +1184,15 @@ abstract class Shipment extends WC_Data {
 	 */
 	public function set_shipping_method( $method ) {
 		$this->set_prop( 'shipping_method', $method );
+	}
+
+	/**
+	 * Set the date this shipment will be delivered.
+	 *
+	 * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
+	 */
+	public function set_est_delivery_date( $date = null ) {
+		$this->set_date_prop( 'est_delivery_date', $date );
 	}
 
 	/**
@@ -1716,8 +1732,28 @@ abstract class Shipment extends WC_Data {
 		 if ( wc_gzd_shipment_wp_error_has_errors( $error ) ) {
 		 	return $error;
 		 } else {
+
+		 	if ( $label = $this->get_label() ) {
+		 		$this->set_tracking_id( $label->get_number() );
+		 		$this->save();
+		    }
+
 		 	return true;
 		 }
+	}
+
+	public function delete_label( $force = false ) {
+		if ( $this->supports_label() && $this->has_label() ) {
+			$label = $this->get_label();
+			$label->delete( $force );
+
+			$this->set_tracking_id( '' );
+			$this->save();
+
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -1760,7 +1796,7 @@ abstract class Shipment extends WC_Data {
 		}
 
 		// If shipment is already delivered
-		if ( $check_status && $this->has_status( array( 'delivered', 'shipped', 'returned' ) ) ) {
+		if ( $check_status && $this->has_status( array( 'delivered', 'shipped' ) ) ) {
 			$needs_label = false;
 		}
 
@@ -1812,7 +1848,8 @@ abstract class Shipment extends WC_Data {
 			$provider = $provider . '_';
 		}
 
-		$download_url = add_query_arg( array( 'action' => 'wc-gzd-download-shipment-label', 'shipment_id' => $this->get_id() ), wp_nonce_url( admin_url(), 'download-shipment-label' ) );
+		$base_url     = is_admin() ? admin_url() : trailingslashit( home_url() );
+		$download_url = add_query_arg( array( 'action' => 'wc-gzd-download-shipment-label', 'shipment_id' => $this->get_id() ), wp_nonce_url( $base_url, 'download-shipment-label' ) );
 
 		foreach( $args as $arg => $val ) {
 			if ( is_bool( $val ) ) {
@@ -1849,48 +1886,6 @@ abstract class Shipment extends WC_Data {
 	}
 
 	/**
-	 * Returns whether the Shipment contains an item with a certain parent id.
-	 *
-	 * @param integer|integer[] $item_id
-	 *
-	 * @return boolean
-	 */
-	public function contains_item_parent( $item_parent_id ) {
-
-		if ( ! is_array( $item_parent_id ) ) {
-			$item_parent_id = array( $item_parent_id );
-		}
-
-		$new_items = $item_parent_id;
-
-		foreach( $item_parent_id as $key => $item_p_id ) {
-
-			if ( is_a( $item_p_id, '\Vendidero\Germanized\Shipments\ShipmentItem' ) ) {
-				$item_p_id        = $item_parent_id->get_id();
-				$item_id[ $key ]  = $item_parent_id;
-			}
-
-			if ( $this->get_item_by_item_parent_id( $item_p_id ) ) {
-				unset( $new_items[ $key ] );
-			}
-		}
-
-		$contains = empty( $new_items ) ? true : false;
-
-		/**
-		 * Filter to adjust whether a Shipment contains a specific item with a certain parent id or not.
-		 *
-		 * @param boolean                                  $contains Whether the Shipment contains the item's parent or not.
-		 * @param integer[]                                $order_item_id The item parent id(s).
-		 * @param Shipment $this The shipment object.
-		 *
-		 * @since 3.0.0
-		 * @package Vendidero/Germanized/Shipments
-		 */
-		return apply_filters( 'woocommerce_gzd_shipment_contains_item_parent', $contains, $item_parent_id, $this );
-	}
-
-	/**
 	 * Calculate totals based on contained items.
 	 */
     protected function calculate_totals() {
@@ -1903,7 +1898,13 @@ abstract class Shipment extends WC_Data {
         $this->set_total( $total );
     }
 
-    /**
+    public function delete( $force_delete = false ) {
+    	$this->delete_label( $force_delete );
+
+	    return parent::delete( $force_delete );
+    }
+
+	/**
      * Save data to the database.
      *
      * @return integer shipment id

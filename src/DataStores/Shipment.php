@@ -38,7 +38,8 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	    '_additional_total',
 	    '_sender_address',
 	    '_weight_unit',
-	    '_dimension_unit'
+	    '_dimension_unit',
+	    '_is_customer_requested',
     );
 
     protected $core_props = array(
@@ -185,6 +186,14 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         	$changed_props[] = 'country';
         }
 
+        // Shipping provider has changed - lets remove existing label
+        if ( in_array( 'shipping_provider', $changed_props ) ) {
+
+			if ( $shipment->supports_label() && $shipment->has_label() ) {
+				$shipment->get_label()->delete();
+			}
+        }
+
         foreach ( $changed_props as $prop ) {
 
             if ( ! in_array( $prop, $core_props, true ) ) {
@@ -257,15 +266,6 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         $wpdb->delete( $wpdb->gzd_shipmentmeta, array( 'gzd_shipment_id' => $shipment->get_id() ), array( '%d' ) );
 
         $this->delete_items( $shipment );
-
-        if ( 'simple' === $shipment->get_type() ) {
-
-        	// Delete returns as well
-        	foreach( $shipment->get_returns() as $return ) {
-        		$return->delete( $force_delete );
-	        }
-        }
-
         $this->clear_caches( $shipment );
 
         $hook_postfix = $this->get_hook_postfix( $shipment );
@@ -429,7 +429,11 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
             $value = $shipment->{"get_$prop"}( 'edit' );
             $value = is_string( $value ) ? wp_slash( $value ) : $value;
 
-            switch ( $prop ) {}
+            switch ( $prop ) {
+	            case "is_customer_requested":
+		            $value = wc_bool_to_string( $value );
+		            break;
+            }
 
             $updated = $this->update_or_delete_meta( $shipment, $meta_key, $value );
 
@@ -480,7 +484,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
     /**
      * Read items from the database for this shipment.
      *
-     * @param  WC_GZD_Shipment $shipment Shipment object.
+     * @param \Vendidero\Germanized\Shipments\Shipment $shipment Shipment object.
      *
      * @return array
      */
@@ -506,7 +510,12 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         }
 
         if ( ! empty( $items ) ) {
-            $items = array_map( 'wc_gzd_get_shipment_item', array_combine( wp_list_pluck( $items, 'shipment_item_id' ), $items ) );
+
+        	$shipment_type = $shipment->get_type();
+
+        	$items = array_map( function( $item_id ) use ( $shipment_type ) {
+		        return wc_gzd_get_shipment_item( $item_id, $shipment_type );
+	        }, array_combine( wp_list_pluck( $items, 'shipment_item_id' ), $items ) );
         } else {
             $items = array();
         }
