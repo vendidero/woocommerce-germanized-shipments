@@ -537,8 +537,6 @@ window.germanized.admin = window.germanized.admin || {};
         hideOrShowReturnTitle: function() {
             var self = germanized.admin.shipments;
 
-            console.log(self.$wrapper.find( '.order-shipment.shipment-return' ).length);
-
             if ( self.$wrapper.find( '.order-shipment.shipment-return' ).length === 0 ) {
                 self.$wrapper.find( '.panel-order-return-title' ).addClass( 'hide-default' );
             } else {
