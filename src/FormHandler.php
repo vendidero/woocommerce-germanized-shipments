@@ -178,7 +178,7 @@ class FormHandler {
 		}
 
 		if ( empty( $items ) ) {
-			wc_add_notice( _x( 'Please choose on or more items from the list.', 'shipments', 'woocommerce-germanized-shipments' ), 'error' );
+			wc_add_notice( _x( 'Please choose one or more items from the list.', 'shipments', 'woocommerce-germanized-shipments' ), 'error' );
 			return;
 		}
 

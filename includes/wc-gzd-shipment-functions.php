@@ -1043,7 +1043,7 @@ function wc_gzd_get_order_customer_add_return_url( $order ) {
  *
  * @return mixed
  */
-function wc_gzd_order_is_customer_returnable( $order ) {
+function wc_gzd_order_is_customer_returnable( $order, $check_date = true ) {
 	$is_returnable = false;
 
 	if ( ! $shipment_order = wc_gzd_get_shipment_order( $order ) ) {
@@ -1066,14 +1066,26 @@ function wc_gzd_order_is_customer_returnable( $order ) {
 	// Check days left for return
 	$maximum_days = Package::get_setting( 'customer_return_open_days' );
 
-	if ( ! empty( $maximum_days ) ) {
+	if ( $check_date && ! empty( $maximum_days ) ) {
 		$maximum_days = absint( $maximum_days );
 
 		if ( ! empty( $maximum_days ) ) {
 
+			$completed_date = $shipment_order->get_order()->get_date_created();
+
+			if ( $shipment_order->get_date_shipped() ) {
+				$completed_date = $shipment_order->get_date_shipped();
+			} elseif( $shipment_order->get_order()->get_date_completed() ) {
+				$completed_date = $shipment_order->get_order()->get_date_completed();
+			}
+
 			/**
 			 * Filter to adjust the completed date of an order used to determine whether an order is
-			 * still returnable by the customer or not.
+			 * still returnable by the customer or not. The date is constructed by checking for existence in the following order:
+			 *
+			 * 1. The date the order was shipped completely
+			 * 2. The date the order was marked as completed
+			 * 3. The date the order was created
 			 *
 			 * @param WC_DateTime $completed_date The order completed date.
 			 * @param WC_Order    $order The order instance.
@@ -1081,7 +1093,7 @@ function wc_gzd_order_is_customer_returnable( $order ) {
 			 * @since 3.1.0
 			 * @package Vendidero/Germanized/Shipments
 			 */
-			$completed_date = apply_filters( 'woocommerce_gzd_order_return_completed_date', $shipment_order->get_order()->get_date_completed() ? $shipment_order->get_order()->get_date_completed() : $shipment_order->get_order()->get_date_created(), $shipment_order->get_order() );
+			$completed_date = apply_filters( 'woocommerce_gzd_order_return_completed_date', $completed_date, $shipment_order->get_order() );
 
 			if ( $completed_date ) {
 				$today = new WC_DateTime();
@@ -1099,11 +1111,12 @@ function wc_gzd_order_is_customer_returnable( $order ) {
 	 *
 	 * @param bool     $is_returnable Whether or not shipment supports customer added returns
 	 * @param WC_Order $order The order instance for which the return shall be created.
+	 * @param bool     $check_date Whether to check for a maximum date or not.
 	 *
 	 * @since 3.1.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-	return apply_filters( 'woocommerce_gzd_order_is_returnable_by_customer', $is_returnable, $shipment_order->get_order() );
+	return apply_filters( 'woocommerce_gzd_order_is_returnable_by_customer', $is_returnable, $shipment_order->get_order(), $check_date );
 }
 
 /**

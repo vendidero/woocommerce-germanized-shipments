@@ -28,6 +28,8 @@ defined( 'ABSPATH' ) || exit;
 
 <?php if ( wc_gzd_order_is_customer_returnable( $order ) ) : ?>
     <p class="shipments-add-return"><a class="add-return-shipment woocommerce-button button" href="<?php echo esc_url( wc_gzd_get_order_customer_add_return_url( $order ) ); ?>"><?php _ex( 'Add return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
+<?php elseif ( wc_gzd_order_is_customer_returnable( $order, false ) ): ?>
+    <p class="shipments-return-not-available"><?php _ex( 'Adding return requests to this order is no longer available. You may contact us for further information.', 'shipments', 'woocommerce-germanized-shipments' ); ?></p>
 <?php endif; ?>
 
 <?php if ( ! empty( $returns ) ) : ?>

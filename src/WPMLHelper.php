@@ -114,6 +114,7 @@ class WPMLHelper {
 	public static function register_emails( $emails ) {
 		$emails['WC_GZD_Email_Customer_Shipment']                      = 'customer_shipment';
 		$emails['WC_GZD_Email_Customer_Return_Shipment']               = 'customer_return_shipment';
+		$emails['WC_GZD_Email_Customer_Return_Shipment_Delivered']     = 'customer_return_shipment_delivered';
 		$emails['WC_GZD_Email_Customer_Guest_Return_Shipment_Request'] = 'customer_guest_return_shipment_request';
 
 		return $emails;

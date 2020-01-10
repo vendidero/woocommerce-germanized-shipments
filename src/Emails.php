@@ -27,6 +27,7 @@ class Emails {
     public static function register_emails( $emails ) {
         $emails['WC_GZD_Email_Customer_Shipment']                      = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-shipment.php';
 	    $emails['WC_GZD_Email_Customer_Return_Shipment']               = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-return-shipment.php';
+	    $emails['WC_GZD_Email_Customer_Return_Shipment_Delivered']     = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-return-shipment-delivered.php';
 	    $emails['WC_GZD_Email_Customer_Guest_Return_Shipment_Request'] = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-guest-return-shipment-request.php';
 
         return $emails;
@@ -70,7 +71,7 @@ class Emails {
 	 */
     public static function email_return_instructions( $shipment, $sent_to_admin = false, $plain_text = false, $email = '' ) {
 
-    	if ( 'return' !== $shipment->get_type() ) {
+    	if ( 'return' !== $shipment->get_type() || $shipment->has_status( 'delivered' ) ) {
     		return;
 	    }
 
@@ -104,7 +105,7 @@ class Emails {
 	public static function email_tracking( $shipment, $sent_to_admin = false, $plain_text = false, $email = '' ) {
 
 		// Do only include shipment tracking if estimated delivery date or tracking instruction or tracking url exists
-		if ( ! $shipment->has_tracking() ) {
+		if ( ! $shipment->has_tracking() || $shipment->has_status( 'delivered' ) ) {
 			return;
 		}
 
@@ -137,7 +138,7 @@ class Emails {
 	 */
     public static function email_address( $shipment, $sent_to_admin = false, $plain_text = false, $email = '' ) {
 
-		if ( 'return' === $shipment->get_type() ) {
+		if ( 'return' === $shipment->get_type() || in_array( $email,  array( 'customer_return_shipment_delivered' ) ) ) {
 			if ( $provider = $shipment->get_shipping_provider_instance() ) {
 				if ( $provider->hide_return_address() ) {
 					return;

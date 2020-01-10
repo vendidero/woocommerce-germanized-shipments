@@ -55,9 +55,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	             * @package Vendidero/Germanized/Shipments
 	             */
 	            if ( wc_gzd_allow_customer_return_empty_return_reason( $order ) ) : ?>
-		            <?php _ex( 'None', 'shipments return reason', 'woocommerc-germanized-shipments' ); ?>
+		            <?php _ex( 'None', 'shipments return reason', 'woocommerce-germanized-shipments' ); ?>
                 <?php else: ?>
-		            <?php _ex( 'Please choose', 'shipments return reason', 'woocommerc-germanized-shipments' ); ?>
+		            <?php _ex( 'Please choose', 'shipments return reason', 'woocommerce-germanized-shipments' ); ?>
                 <?php endif; ?>
             </option>
 

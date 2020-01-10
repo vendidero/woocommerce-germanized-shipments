@@ -1,6 +1,9 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments;
+use Exception;
+use WC_DateTime;
+use DateTimeZone;
 use WC_Order;
 use WC_Customer;
 use WC_Order_Item;
@@ -41,6 +44,32 @@ class Order {
      */
     public function get_order() {
         return $this->order;
+    }
+
+	/**
+	 * @return WC_DateTime|null
+	 */
+    public function get_date_shipped() {
+    	$date_shipped = $this->get_order()->get_meta( '_date_shipped', true );
+
+    	if ( $date_shipped ) {
+    		try {
+			    $date_shipped = new WC_DateTime( "@{$date_shipped}" );
+
+			    // Set local timezone or offset.
+			    if ( get_option( 'timezone_string' ) ) {
+				    $date_shipped->setTimezone( new DateTimeZone( wc_timezone_string() ) );
+			    } else {
+				    $date_shipped->set_utc_offset( wc_timezone_offset() );
+			    }
+		    } catch( Exception $e ) {
+    			$date_shipped = null;
+		    }
+    	} else {
+    		$date_shipped = null;
+	    }
+
+    	return $date_shipped;
     }
 
     public function get_shipping_status() {
