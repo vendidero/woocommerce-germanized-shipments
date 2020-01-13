@@ -105,7 +105,8 @@ class Emails {
 	public static function email_tracking( $shipment, $sent_to_admin = false, $plain_text = false, $email = '' ) {
 
 		// Do only include shipment tracking if estimated delivery date or tracking instruction or tracking url exists
-		if ( ! $shipment->has_tracking() || $shipment->has_status( 'delivered' ) ) {
+		// Do not show tracking for returns
+		if ( ! $shipment->has_tracking() || $shipment->has_status( 'delivered' ) || 'return' === $shipment->get_type() ) {
 			return;
 		}
 

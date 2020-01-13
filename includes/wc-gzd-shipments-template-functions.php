@@ -177,6 +177,10 @@ if ( ! function_exists( 'woocommerce_gzd_return_shipments_template_instructions'
 				return;
 			}
 
+			if ( ! $shipment->has_status( array( 'processing', 'sent' ) ) ) {
+				return;
+			}
+
 			wc_get_template(
 				'shipment/shipment-return-instructions.php',
 				array(
