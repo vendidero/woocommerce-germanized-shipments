@@ -528,6 +528,16 @@ table.wc-gzd-shipping-providers {
         display: flex;
         flex-wrap: nowrap;
         justify-content: space-between;
+
+        .shipment-actions-left {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: flex-start;
+
+          .button {
+            margin-right: 1em;
+          }
+        }
       }
 
       #order-shipments-save {

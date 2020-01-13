@@ -568,7 +568,7 @@ class ShippingProvider extends WC_Data  {
 
 			array(
 				'title' 	        => _x( 'Customer returns', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc'              => _x( 'Allow customers to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'This option will allow your customers to submit return requests to orders. Return requests will be visible within your return dashboard. To learn more about return requests by customers and/or guests, please check the %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="" target="_blank">' . _x( 'docs', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
+				'desc'              => _x( 'Allow customers to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'This option will allow your customers to submit return requests to orders. Return requests will be visible within your return dashboard. To learn more about return requests by customers and/or guests, please check the %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="https://vendidero.de/dokument/retouren-konfigurieren-und-verwalten" target="_blank">' . _x( 'docs', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
 				'id' 		        => 'shipping_provider_supports_customer_returns',
 				'placeholder'       => '',
 				'value'             => $this->get_supports_customer_returns( 'edit' ) ? 'yes' : 'no',

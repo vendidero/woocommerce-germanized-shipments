@@ -355,6 +355,14 @@ table.wc-gzd-shipping-providers {
       flex-wrap: nowrap;
       -webkit-box-pack: justify;
               justify-content: space-between; }
+      .germanized-shipments #panel-order-shipments .panel-footer .order-shipments-actions .shipment-actions-left {
+        display: -webkit-box;
+        display: flex;
+        flex-wrap: wrap;
+        -webkit-box-pack: start;
+                justify-content: flex-start; }
+        .germanized-shipments #panel-order-shipments .panel-footer .order-shipments-actions .shipment-actions-left .button {
+          margin-right: 1em; }
     .germanized-shipments #panel-order-shipments .panel-footer #order-shipments-save {
       display: none; }
   .germanized-shipments #panel-order-shipments #order-shipment-add, .germanized-shipments #panel-order-shipments #order-return-shipment-add {
