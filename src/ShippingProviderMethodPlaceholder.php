@@ -24,15 +24,24 @@ class ShippingProviderMethodPlaceholder extends ShippingProviderMethod {
 
 	public function __construct( $id ) {
 
+		if ( is_a( $id, 'WC_Shipping_Rate' ) ) {
+			$instance_id = $id->get_instance_id();
+			$id          = $id->get_id();
+
+			if ( strpos( $id, ':' ) === false ) {
+				$id = $id . ':' . $instance_id;
+			}
+		}
+
 		if ( ! is_numeric( $id ) ) {
 			$expl        = explode( ':', $id );
-			$instance_id = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? $expl[1] : $id );
+			$instance_id = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? $expl[1] : 0 );
 			$id          = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? $expl[0] : $id );
 		} else {
 			$instance_id = $id;
 		}
 
-		$this->id = $id;
+		$this->id          = $id;
 		$this->instance_id = $instance_id;
 	}
 

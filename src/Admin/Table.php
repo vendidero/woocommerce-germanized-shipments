@@ -316,6 +316,8 @@ class Table extends WP_List_Table {
 
                 $next_month = clone $datetime;
                 $next_month->modify( '+ 1 month' );
+                // Make sure to not include next month first day
+                $next_month->modify( '-1 day' );
 
                 $args['date_created'] = $datetime->format( 'Y-m-d' ) . '...' . $next_month->format( 'Y-m-d' );
             }
