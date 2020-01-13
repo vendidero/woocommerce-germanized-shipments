@@ -30,7 +30,7 @@ class Settings {
 			$pointers = array(
 				'pointers' => array(
 					'menu'             => array(
-						'target'       => '.wc-gzd-settings-breadcrumb .page-title-action',
+						'target'       => '.wc-gzd-settings-breadcrumb .page-title-action:last',
 						'next'         => 'default',
 						'next_url'     => '',
 						'next_trigger' => array(),
@@ -59,8 +59,8 @@ class Settings {
 					),
 					'auto'          => array(
 						'target'       => '#woocommerce_gzd_shipments_auto_enable-toggle',
-						'next'         => '',
-						'next_url'     => $next_url,
+						'next'         => 'returns',
+						'next_url'     => '',
 						'next_trigger' => array(),
 						'options'      => array(
 							'content'  => '<h3>' . esc_html_x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3>' .
@@ -68,6 +68,20 @@ class Settings {
 							'position' => array(
 								'edge'  => 'left',
 								'align' => 'left',
+							),
+						),
+					),
+					'returns'          => array(
+						'target'       => '#shipments_return_options-description',
+						'next'         => '',
+						'next_url'     => $next_url,
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3>' .
+							              '<p>' . sprintf( _x( 'Germanized can help you to minimize manual work while handling customer returns. Learn more about returns within our %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="https://vendidero.de/dokument/retouren-konfigurieren-und-verwalten" target="_blank">' . _x( 'documentation', 'shipments', 'woocommerce-germanized-shipments' ) .'</a>' ) . '</p>',
+							'position' => array(
+								'edge'  => 'top',
+								'align' => 'top',
 							),
 						),
 					),
@@ -287,7 +301,7 @@ class Settings {
 
 		WC_Admin_Settings::save_fields( $settings );
 
-		if ( 'new' === $provider_name ) {
+		if ( $provider->get_id() <= 0 ) {
 			if ( empty( $provider->get_tracking_desc_placeholder( 'edit' ) ) ) {
 				$provider->set_tracking_desc_placeholder( $provider->get_default_tracking_desc_placeholder() );
 			}
