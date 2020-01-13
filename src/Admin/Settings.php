@@ -286,6 +286,17 @@ class Settings {
 		}
 
 		WC_Admin_Settings::save_fields( $settings );
+
+		if ( 'new' === $provider_name ) {
+			if ( empty( $provider->get_tracking_desc_placeholder( 'edit' ) ) ) {
+				$provider->set_tracking_desc_placeholder( $provider->get_default_tracking_desc_placeholder() );
+			}
+
+			if ( empty( $provider->get_tracking_url_placeholder( 'edit' ) ) ) {
+				$provider->set_tracking_url_placeholder( $provider->get_default_tracking_url_placeholder() );
+			}
+		}
+
 		$provider->save();
 
 		if ( 'new' === $provider_name ) {

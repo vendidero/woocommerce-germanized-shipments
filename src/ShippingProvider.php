@@ -246,6 +246,10 @@ class ShippingProvider extends WC_Data  {
 		return $this->get_prop( 'tracking_url_placeholder', $context );
 	}
 
+	public function get_default_tracking_url_placeholder() {
+		return '';
+	}
+
 	/**
 	 * Returns the tracking description placeholder which is being used to
 	 * construct a tracking description.
@@ -256,6 +260,10 @@ class ShippingProvider extends WC_Data  {
 	 */
 	public function get_tracking_desc_placeholder( $context = 'view' ) {
 		return $this->get_prop( 'tracking_desc_placeholder', $context );
+	}
+
+	public function get_default_tracking_desc_placeholder() {
+		return _x( 'Your shipment is being processed by {shipping_provider}. If you want to track the shipment, please use the following tracking number: {tracking_id}. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'shipments', 'woocommerce-germanized-shipments' );
 	}
 
 	/**
@@ -550,7 +558,7 @@ class ShippingProvider extends WC_Data  {
 				'id' 		        => 'shipping_provider_tracking_url_placeholder',
 				'placeholder'       => 'https://www.dhl.de/privatkunden/pakete-empfangen/verfolgen.html?idc={tracking_id}',
 				'value'             => $this->get_tracking_url_placeholder( 'edit' ),
-				'default'	        => '',
+				'default'	        => $this->get_default_tracking_url_placeholder(),
 				'type' 		        => 'text',
 				'css'               => 'width: 100%;',
 			),
@@ -561,7 +569,7 @@ class ShippingProvider extends WC_Data  {
 				'id' 		        => 'shipping_provider_tracking_desc_placeholder',
 				'placeholder'       => '',
 				'value'             => $this->get_tracking_desc_placeholder( 'edit' ),
-				'default'	        => _x( 'Your shipment is being processed by {shipping_provider}. If you want to track the shipment, please use the following tracking number: {tracking_id}. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'default'	        => $this->get_default_tracking_desc_placeholder(),
 				'type' 		        => 'textarea',
 				'css'               => 'width: 100%; min-height: 60px; margin-top: 1em;',
 			),
