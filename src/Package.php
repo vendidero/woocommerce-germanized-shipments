@@ -296,7 +296,7 @@ class Package {
 	}
 
 	public static function has_dependencies() {
-		return class_exists( 'WooCommerce' );
+		return class_exists( 'WooCommerce' ) && apply_filters( 'woocommerce_gzd_shipments_enabled', true );
 	}
 
     private static function includes() {
