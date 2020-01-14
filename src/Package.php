@@ -17,7 +17,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.2.0';
+    const VERSION = '1.2.1';
 
     public static $upload_dir_suffix = '';
 
@@ -100,8 +100,16 @@ class Package {
 		    'hidden'   => false,
 	    );
 
-	    $args = wp_parse_args( $args, $defaults );
-    	$html = wc_get_template_html( 'global/form-return-request.php', $args );
+	    $args    = wp_parse_args( $args, $defaults );
+	    $notices = function_exists( 'wc_print_notices' ) ? wc_print_notices( true ) : '';
+	    $html    = '';
+
+	    // Output notices in case notices have not been outputted yet.
+	    if ( ! empty( $notices ) ) {
+		    $html .= '<div class="woocommerce">' . $notices . '</div>';
+	    }
+
+    	$html .= wc_get_template_html( 'global/form-return-request.php', $args );
 
     	return $html;
     }
