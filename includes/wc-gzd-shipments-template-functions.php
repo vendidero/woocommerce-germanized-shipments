@@ -141,13 +141,11 @@ if ( ! function_exists( 'woocommerce_gzd_shipments_template_add_return_shipment'
 			return;
 		}
 
-		if ( ! is_user_logged_in() ) {
-			$notices = function_exists( 'wc_print_notices' ) ? wc_print_notices( true ) : '';
+		$notices = function_exists( 'wc_print_notices' ) ? wc_print_notices( true ) : '';
 
-			// Output notices in case notices have not been outputted yet.
-			if ( ! empty( $notices ) ) {
-				echo '<div class="woocommerce">' . $notices . '</div>';
-			}
+		// Output notices in case notices have not been outputted yet.
+		if ( ! empty( $notices ) ) {
+			echo '<div class="woocommerce">' . $notices . '</div>';
 		}
 
 		wc_get_template(

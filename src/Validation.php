@@ -21,6 +21,7 @@ class Validation {
         add_action( 'woocommerce_delete_order', array( __CLASS__, 'delete_order' ), 10, 1 );
 
         add_action( 'woocommerce_order_status_cancelled', array( __CLASS__, 'maybe_cancel_shipments' ), 10, 2 );
+	    add_action( 'woocommerce_order_status_failed', array( __CLASS__, 'maybe_cancel_shipments' ), 10, 2 );
 
         add_action( 'before_delete_post', array( __CLASS__, 'before_delete_refund' ), 10, 1 );
         add_action( 'woocommerce_delete_order_refund', array( __CLASS__, 'delete_refund_order' ), 10, 1 );
@@ -93,7 +94,6 @@ class Validation {
     	$shipments = wc_gzd_get_shipments_by_order( $order );
 
     	foreach( $shipments as $shipment ) {
-
     		if ( $shipment->is_editable() ) {
     			$shipment->delete();
 		    }
