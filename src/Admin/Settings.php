@@ -94,6 +94,8 @@ class Settings {
 
 	protected static function get_general_settings() {
 
+		$statuses = array_diff_key( wc_gzd_get_shipment_statuses(), array_flip( array( 'gzd-requested' ) ) );
+
 		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'shipments_options' ),
 
@@ -147,7 +149,7 @@ class Settings {
 				'id' 		        => 'woocommerce_gzd_shipments_auto_default_status',
 				'default'	        => 'gzd-processing',
 				'class' 	        => 'wc-enhanced-select',
-				'options'           => wc_gzd_get_shipment_statuses(),
+				'options'           => $statuses,
 				'type'              => 'select',
 				'custom_attributes' => array(
 					'data-show_if_woocommerce_gzd_shipments_auto_enable' => '',
