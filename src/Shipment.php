@@ -1531,7 +1531,7 @@ abstract class Shipment extends WC_Data {
 		$items = $this->get_items();
 
 		foreach( $items as $item ) {
-			if ( $item->get_order_item_id() === $order_item_id ) {
+			if ( $item->get_order_item_id() === (int) $order_item_id ) {
 				return $item;
 			}
 		}

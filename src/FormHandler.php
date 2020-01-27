@@ -212,6 +212,10 @@ class FormHandler {
 			}
 		}
 
+		if ( empty( $return_items ) ) {
+			wc_add_notice( _x( 'Please choose one or more items from the list.', 'shipments', 'woocommerce-germanized-shipments' ), 'error' );
+		}
+
 		if ( wc_notice_count( 'error' ) > 0 ) {
 			return;
 		}
