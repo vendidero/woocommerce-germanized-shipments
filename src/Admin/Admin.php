@@ -42,6 +42,37 @@ class Admin {
 	    // Return reason options
 	    add_action( 'woocommerce_admin_field_shipment_return_reasons', array( __CLASS__, 'output_return_reasons_field' ) );
 	    add_action( 'woocommerce_gzd_admin_settings_after_save_shipments', array( __CLASS__, 'save_return_reasons' ) );
+
+	    // Menu count
+	    add_action( 'admin_head', array( __CLASS__, 'menu_return_count' ) );
+    }
+
+    public static function menu_return_count() {
+	    global $submenu;
+
+	    if ( isset( $submenu['woocommerce'] ) ) {
+
+		    /**
+		     * Filter to adjust whether to include requested return count in admin menu or not.
+		     *
+		     * @param boolean $show_count Whether to show count or not.
+		     *
+		     * @since 3.1.3
+		     * @package Vendidero/Germanized/Shipments
+		     */
+		    if ( apply_filters( 'woocommerce_gzd_shipments_include_requested_return_count_in_menu', true ) && current_user_can( 'manage_woocommerce' ) ) {
+			    $return_count = wc_gzd_get_shipment_count( 'requested', 'return' );
+
+			    if ( $return_count ) {
+				    foreach ( $submenu['woocommerce'] as $key => $menu_item ) {
+					    if ( 0 === strpos( $menu_item[0], _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ) ) ) {
+						    $submenu['woocommerce'][ $key ][0] .= ' <span class="awaiting-mod update-plugins count-' . esc_attr( $return_count ) . '"><span class="requested-count">' . number_format_i18n( $return_count ) . '</span></span>'; // WPCS: override ok.
+						    break;
+					    }
+				    }
+			    }
+		    }
+	    }
     }
 
     public static function get_admin_shipment_item_columns( $shipment ) {
@@ -77,6 +108,15 @@ class Admin {
 
 	    uasort ( $item_columns, array( __CLASS__, '_sort_shipment_item_columns' ) );
 
+	    /**
+	     * Filter to adjust shipment item columns shown in admin view.
+	     *
+	     * @param array    $item_columns The columns available.
+         * @param Shipment $shipment The shipment.
+	     *
+	     * @since 3.1.0
+	     * @package Vendidero/Germanized/Shipments
+	     */
 	    return apply_filters( 'woocommerce_gzd_shipments_meta_box_shipment_item_columns', $item_columns, $shipment );
     }
 
