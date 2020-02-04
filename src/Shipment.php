@@ -1735,6 +1735,26 @@ abstract class Shipment extends WC_Data {
 
 		 	if ( $label = $this->get_label() ) {
 		 		$this->set_tracking_id( $label->get_number() );
+
+			    /**
+				 * Action for shipping providers to adjust the shipment before updating it after a label has
+			     * been successfully generated.
+				 *
+				 * The dynamic portion of this hook, `$hook_prefix` is used to construct a
+				 * unique hook for a shipment type. `$provider` is related to the current shipping provider
+				 * for the shipment (slug).
+				 *
+				 * Example hook name: `woocommerce_gzd_return_shipment_created_dhl_label`
+				 *
+			     * @param Shipment  $shipment The current shipment instance.
+			     * @param array     $props Array containing props extracted from post data (if created manually) and sanitized via `wc_clean`.
+				 * @param array     $raw_data Raw post data unsanitized.
+				 *
+				 * @since 3.1.2
+				 * @package Vendidero/Germanized/Shipments
+				 */
+		 		do_action( "{$hook_prefix}created_{$provider}label", $this, $props, $raw_data );
+
 		 		$this->save();
 		    }
 
