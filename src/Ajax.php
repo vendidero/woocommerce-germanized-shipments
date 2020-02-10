@@ -21,11 +21,6 @@ class Ajax {
      * Hook in methods - uses WordPress ajax handlers (admin-ajax).
      */
     public static function add_ajax_events() {
-        $ajax_events_nopriv = array();
-
-        foreach ( $ajax_events_nopriv as $ajax_event ) {
-            add_action( 'wp_ajax_woocommerce_gzd_' . $ajax_event, array( __CLASS__, $ajax_event ) );
-        }
 
         $ajax_events = array(
             'get_available_shipment_items',
@@ -52,8 +47,17 @@ class Ajax {
         );
 
         foreach ( $ajax_events as $ajax_event ) {
+	        add_action( 'wp_ajax_woocommerce_gzd_' . $ajax_event, array( __CLASS__, 'suppress_errors' ), 5 );
             add_action( 'wp_ajax_woocommerce_gzd_' . $ajax_event, array( __CLASS__, $ajax_event ) );
         }
+    }
+
+    public static function suppress_errors() {
+	    if ( ! WP_DEBUG || ( WP_DEBUG && ! WP_DEBUG_DISPLAY ) ) {
+		    @ini_set( 'display_errors', 0 ); // Turn off display_errors during AJAX events to prevent malformed JSON.
+	    }
+
+	    $GLOBALS['wpdb']->hide_errors();
     }
 
 	public static function send_return_shipment_notification_email() {
