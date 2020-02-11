@@ -158,7 +158,11 @@ window.germanized.admin = window.germanized.admin || {};
                 $( document.body ).trigger( 'wc-init-datepickers' );
 
                 $modal.find( 'input.show-if-trigger' ).trigger( 'change' );
+
                 $modal.parents( '.wc-backbone-modal' ).on( 'click', '#btn-ok', { 'shipmentId': shipmentId }, self.onSubmit );
+                $modal.parents( '.wc-backbone-modal' ).on( 'touchstart', '#btn-ok', { 'shipmentId': shipmentId }, self.onSubmit );
+                $modal.parents( '.wc-backbone-modal' ).on( 'keydown', { 'shipmentId': shipmentId }, self.onKeyDown );
+
             },
 
             getFormData: function( $form ) {
@@ -189,16 +193,27 @@ window.germanized.admin = window.germanized.admin || {};
                 }
             },
 
+            onKeyDown: function( e ) {
+                var self   = germanized.admin.shipment_label_backbone.backbone,
+                    button = e.keyCode || e.which;
+
+                // Enter key
+                if ( 13 === button && ! ( e.target.tagName && ( e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea' ) ) ) {
+                    self.onSubmit.apply( $( this ).find( 'button#btn-ok' ), [ e ] );
+                }
+            },
+
             onSubmit: function( e ) {
                 var self       = germanized.admin.shipment_label_backbone.backbone,
                     backbone   = germanized.admin.shipment_label_backbone,
+                    shipmentId = e.data.shipmentId,
                     $modal     = $( this ).parents( '.wc-backbone-modal-content' ),
                     $content   = $modal.find( '.germanized-create-label' ),
                     $form      = $content.find( 'form' ),
                     params     = self.getFormData( $form );
 
                 params['security']    = backbone.params.create_label_nonce;
-                params['shipment_id'] = e.data.shipmentId;
+                params['shipment_id'] = shipmentId;
                 params['action']      = 'woocommerce_gzd_create_shipment_label';
 
                 self.doAjax( params, $modal, self.onSubmitSuccess );
