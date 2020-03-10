@@ -123,7 +123,7 @@ class FormHandler {
 				wc_add_notice( $e->getMessage(), 'error' );
 				do_action( 'woocommerce_gzd_return_request_failed' );
 			}
- {}		}
+ 		}
 	}
 
 	/**
@@ -206,7 +206,8 @@ class FormHandler {
 					return;
 				} else {
 					$return_items[ $order_item_id ] = array(
-						'quantity' => $quantity,
+						'quantity'           => $quantity,
+						'return_reason_code' => $reason,
 					);
 				}
 			}

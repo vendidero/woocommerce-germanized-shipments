@@ -503,11 +503,26 @@ class ReturnShipment extends Shipment {
 			foreach( $available_items as $order_item_id => $item_data ) {
 
 				if ( $item = $order_shipment->get_simple_shipment_item( $order_item_id )  ) {
-					$quantity = $item_data['max_quantity'];
+					$quantity           = $item_data['max_quantity'];
+					$return_reason_code = '';
 
 					if ( ! empty( $args['items'] ) ) {
 						if ( isset( $args['items'][ $order_item_id ] ) ) {
-							$new_quantity = absint( $args['items'][ $order_item_id ] );
+
+							if ( is_array( $args['items'][ $order_item_id ] ) ) {
+								$default_item_data = wp_parse_args( $args['items'][ $order_item_id ], array(
+									'quantity'           => 1,
+									'return_reason_code' => '',
+								) );
+							} else {
+								$default_item_data = array(
+									'quantity'           => absint( $args['items'][ $order_item_id ] ),
+									'return_reason_code' => '',
+								);
+							}
+
+							$new_quantity       = $default_item_data['quantity'];
+							$return_reason_code = $default_item_data['return_reason_code'];
 
 							if ( $new_quantity < $quantity ) {
 								$quantity = $new_quantity;
@@ -517,12 +532,20 @@ class ReturnShipment extends Shipment {
 						}
 					}
 
+					$sync_data = array(
+						'quantity' => $quantity,
+					);
+
+					if ( ! empty( $return_reason_code ) ) {
+						$sync_data['return_reason_code'] = $return_reason_code;
+					}
+
 					if ( ! $shipment_item = $this->get_item_by_order_item_id( $order_item_id ) ) {
-						$shipment_item = wc_gzd_create_return_shipment_item( $this, $item, array( 'quantity' => $quantity ) );
+						$shipment_item = wc_gzd_create_return_shipment_item( $this, $item, $sync_data );
 
 						$this->add_item( $shipment_item );
 					} else {
-						$shipment_item->sync( array( 'quantity' => $quantity ) );
+						$shipment_item->sync( $sync_data );
 					}
 				}
 			}

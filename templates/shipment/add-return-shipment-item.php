@@ -41,7 +41,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</td>
 
 	<td class="woocommerce-table__product-return-reason product-return-reason">
-		<select name="item[<?php echo esc_attr( $item->get_id() ); ?>][return_reason]" id="item-<?php echo esc_attr( $item->get_id() ); ?>-return_reason">
+		<select name="item[<?php echo esc_attr( $order_item_id ); ?>][reason]" id="item-<?php echo esc_attr( $order_item_id ); ?>-return_reason">
             <option value="">
 	            <?php
 	            /**
@@ -71,7 +71,7 @@ if ( ! defined( 'ABSPATH' ) ) {
         <?php if ( $max_quantity == 1 ) : ?>1<?php endif; ?>
 
         <?php woocommerce_quantity_input( array(
-            'input_name' => 'item[' . esc_attr( $item->get_id() ) . '][quantity]',
+            'input_name' => 'item[' . esc_attr( $order_item_id ) . '][quantity]',
             'input_value' => 1,
             'max_value'   => $max_quantity,
             'min_value'   => 1,
