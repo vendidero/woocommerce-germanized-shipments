@@ -116,11 +116,13 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipments (
   shipment_country varchar(2) NOT NULL DEFAULT '',
   shipment_tracking_id varchar(200) NOT NULL DEFAULT '',
   shipment_type varchar(200) NOT NULL DEFAULT '',
+  shipment_search_index longtext NOT NULL DEFAULT '',
   shipment_shipping_provider varchar(200) NOT NULL DEFAULT '',
   shipment_shipping_method varchar(200) NOT NULL DEFAULT '',
   PRIMARY KEY  (shipment_id),
   KEY shipment_order_id (shipment_order_id),
-  KEY shipment_parent_id (shipment_parent_id)
+  KEY shipment_parent_id (shipment_parent_id),
+  KEY shipment_search_index (shipment_search_index)
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipmentmeta (
   meta_id BIGINT UNSIGNED NOT NULL auto_increment,

@@ -324,7 +324,13 @@ class Table extends WP_List_Table {
         }
 
         if ( isset( $_REQUEST['s'] ) ) {
-            $args['search'] = wc_clean( wp_unslash( $_REQUEST['s'] ) );
+            $search = wc_clean( wp_unslash( $_REQUEST['s'] ) );
+
+            if ( ! is_numeric( $search ) ) {
+                $search = '*' . $search . '*';
+            }
+
+            $args['search'] = $search;
         }
 
         // Query the user IDs for this page

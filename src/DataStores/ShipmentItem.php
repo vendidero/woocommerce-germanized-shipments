@@ -39,6 +39,8 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
 	    'parent_id'
     );
 
+    protected $must_exist_meta_keys = array();
+
     /**
      * Meta type. This should match up with
      * the types available at https://developer.wordpress.org/reference/functions/add_metadata/.

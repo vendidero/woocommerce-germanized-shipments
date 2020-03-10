@@ -22,6 +22,8 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
      */
     protected $meta_type = 'gzd_shipment';
 
+	protected $must_exist_meta_keys = array();
+
     /**
      * Data stored in meta keys, but not considered "meta" for an order.
      *
@@ -83,6 +85,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
             'shipment_parent_id'         => is_callable( array( $shipment, 'get_parent_id' ) ) ? $shipment->get_parent_id() : 0,
             'shipment_tracking_id'       => $shipment->get_tracking_id(),
             'shipment_status'            => $this->get_status( $shipment ),
+            'shipment_search_index'      => $this->get_search_index( $shipment ),
             'shipment_type'              => $shipment->get_type(),
             'shipment_shipping_provider' => $shipment->get_shipping_provider(),
             'shipment_shipping_method'   => $shipment->get_shipping_method(),
@@ -184,6 +187,9 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         // Make sure country in core props is updated as soon as the address changes
         if ( in_array( 'address', $changed_props ) ) {
         	$changed_props[] = 'country';
+
+        	// Update search index
+	        $shipment_data['shipment_search_index'] = $this->get_search_index( $shipment );
         }
 
         // Shipping provider has changed - lets remove existing label
@@ -221,6 +227,8 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         }
 
         if ( ! empty( $shipment_data ) ) {
+	        $shipment_data['shipment_search_index'] = $this->get_search_index( $shipment );
+
             $wpdb->update(
                 $wpdb->gzd_shipments,
                 $shipment_data,
@@ -360,6 +368,21 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
     | Additional Methods
     |--------------------------------------------------------------------------
     */
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 */
+    protected function get_search_index( $shipment ) {
+    	$index = array();
+
+    	if ( is_a( $shipment, '\Vendidero\Germanized\Shipments\ReturnShipment' ) ) {
+    		$index = array_merge( $index, $shipment->get_sender_address() );
+	    } else {
+		    $index = array_merge( $index, $shipment->get_address() );
+	    }
+
+    	return implode( ' ', $index );
+    }
 
 	protected function get_hook_postfix( $shipment ) {
 		if ( 'simple' !== $shipment->get_type() ) {

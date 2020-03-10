@@ -302,7 +302,7 @@ class ShipmentQuery extends WC_Object_Query {
             $search_columns = array();
 
             if ( $this->args['search_columns'] ) {
-                $search_columns = array_intersect( $this->args['search_columns'], array( 'shipment_id', 'shipment_country', 'shipment_tracking_id', 'shipment_order_id', 'shipment_shipping_provider', 'shipment_shipping_method' ) );
+                $search_columns = array_intersect( $this->args['search_columns'], array( 'shipment_id', 'shipment_country', 'shipment_tracking_id', 'shipment_order_id', 'shipment_shipping_provider', 'shipment_shipping_method', 'shipment_search_index' ) );
             }
 
             if ( ! $search_columns ) {
@@ -311,7 +311,7 @@ class ShipmentQuery extends WC_Object_Query {
                 } elseif ( strlen( $search ) === 2 ) {
                     $search_columns = array( 'shipment_country' );
                 } else {
-                    $search_columns = array( 'shipment_id', 'shipment_country', 'shipment_tracking_id', 'shipment_order_id' );
+                    $search_columns = array( 'shipment_id', 'shipment_country', 'shipment_tracking_id', 'shipment_order_id', 'shipment_search_index' );
                 }
             }
 

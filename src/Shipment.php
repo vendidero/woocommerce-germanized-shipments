@@ -896,7 +896,7 @@ abstract class Shipment extends WC_Data {
 	/**
 	 * Decides whether the shipment is sent to an external pickup or not.
 	 *
-	 * @param string[] $types
+	 * @param string[]|string $types
 	 *
 	 * @return boolean
 	 */
