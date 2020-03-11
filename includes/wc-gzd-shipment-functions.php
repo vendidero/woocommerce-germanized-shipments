@@ -517,7 +517,7 @@ function wc_gzd_return_shipment_reason_exists( $maybe_reason, $shipment = false 
  * @param ReturnReason $b
  */
 function _wc_gzd_sort_return_shipment_reasons( $a, $b ) {
-	return $a->get_order() == $b->get_order() ? 0 : ( $a->get_order() > $b->get_order() ) ? 1 : -1;
+	return $a->get_order() == $b->get_order() ? 0 : ( $a->get_order() > $b->get_order() ? 1 : -1 );
 }
 
 /**
