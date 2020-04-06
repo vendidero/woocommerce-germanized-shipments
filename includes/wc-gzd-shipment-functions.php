@@ -936,11 +936,12 @@ function wc_gzd_get_shipment_item_id( $item ) {
  * @param  array $dimensions Array of dimensions.
  * @return string
  */
-function wc_gzd_format_shipment_dimensions( $dimensions ) {
+function wc_gzd_format_shipment_dimensions( $dimensions, $unit = '' ) {
     $dimension_string = implode( ' &times; ', array_filter( array_map( 'wc_format_localized_decimal', $dimensions ) ) );
 
     if ( ! empty( $dimension_string ) ) {
-        $dimension_string .= ' ' . 'cm';
+	    $unit = empty( $unit ) ? get_option( 'woocommerce_dimension_unit' ) : $unit;
+        $dimension_string .= ' ' . $unit;
     } else {
         $dimension_string = _x( 'N/A', 'shipments', 'woocommerce-germanized-shipments' );
     }
@@ -950,11 +951,12 @@ function wc_gzd_format_shipment_dimensions( $dimensions ) {
 	 *
 	 * @param string  $dimension_string The dimension string.
 	 * @param array   $dimensions Array containing the dimensions.
+	 * @param string  $unit The dimension unit.
 	 *
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-    return apply_filters( 'woocommerce_gzd_format_shipment_dimensions', $dimension_string, $dimensions );
+    return apply_filters( 'woocommerce_gzd_format_shipment_dimensions', $dimension_string, $dimensions, $unit );
 }
 
 /**
@@ -964,11 +966,12 @@ function wc_gzd_format_shipment_dimensions( $dimensions ) {
  * @param  float $weight Weight.
  * @return string
  */
-function wc_gzd_format_shipment_weight( $weight ) {
+function wc_gzd_format_shipment_weight( $weight, $unit = '' ) {
     $weight_string = wc_format_localized_decimal( $weight );
 
     if ( ! empty( $weight_string ) ) {
-        $weight_string .= ' ' . 'kg';
+    	$unit = empty( $unit ) ? get_option( 'woocommerce_weight_unit' ) : $unit;
+        $weight_string .= ' ' . $unit;
     } else {
         $weight_string = _x( 'N/A', 'shipments', 'woocommerce-germanized-shipments' );
     }
@@ -978,11 +981,12 @@ function wc_gzd_format_shipment_weight( $weight ) {
 	 *
 	 * @param string  $weight_string The weight string.
 	 * @param string  $weight The Shipment weight.
+	 * @param string  $unit The dimension unit.
 	 *
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-    return apply_filters( 'woocommerce_gzd_format_shipment_weight', $weight_string, $weight );
+    return apply_filters( 'woocommerce_gzd_format_shipment_weight', $weight_string, $weight, $unit );
 }
 
 /**

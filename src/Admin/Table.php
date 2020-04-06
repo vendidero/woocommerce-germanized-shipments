@@ -986,7 +986,7 @@ class Table extends WP_List_Table {
      * @param Shipment $shipment The current shipment object.
      */
     public function column_weight( $shipment ) {
-        echo wc_gzd_format_shipment_weight( $shipment->get_weight() );
+        echo wc_gzd_format_shipment_weight( $shipment->get_weight(), $shipment->get_weight_unit() );
     }
 
     /**
@@ -997,7 +997,7 @@ class Table extends WP_List_Table {
      * @param Shipment $shipment The current shipment object.
      */
     public function column_dimensions( $shipment ) {
-        echo wc_gzd_format_shipment_dimensions( $shipment->get_dimensions() );
+        echo wc_gzd_format_shipment_dimensions( $shipment->get_dimensions(), $shipment->get_dimension_unit() );
     }
 
     /**
