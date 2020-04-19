@@ -705,6 +705,7 @@ class Table extends WP_List_Table {
         return array(
             'date'     => array( 'date_created', false ),
             'weight'   => 'weight',
+			'order'	   => 'order_id'
         );
     }
 
