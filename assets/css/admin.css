@@ -216,6 +216,8 @@ table.wc-gzd-shipping-providers {
     line-height: 26px; }
   .woocommerce_page_wc-gzd-shipments .wp-list-table thead th, .woocommerce_page_wc-gzd-return-shipments .wp-list-table thead th {
     padding: .5em 1em; }
+    .woocommerce_page_wc-gzd-shipments .wp-list-table thead th.sortable a, .woocommerce_page_wc-gzd-shipments .wp-list-table thead th.sorted a, .woocommerce_page_wc-gzd-return-shipments .wp-list-table thead th.sortable a, .woocommerce_page_wc-gzd-return-shipments .wp-list-table thead th.sorted a {
+      padding: 0; }
     .woocommerce_page_wc-gzd-shipments .wp-list-table thead th:last-child, .woocommerce_page_wc-gzd-return-shipments .wp-list-table thead th:last-child {
       padding-right: 2em; }
   .woocommerce_page_wc-gzd-shipments .wp-list-table .check-column, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .check-column {

@@ -41,6 +41,7 @@ class Table extends WP_List_Table {
      */
     public function __construct( $args = array() ) {
         add_filter( 'removable_query_args', array( $this, 'enable_query_removing' ) );
+        add_filter( 'default_hidden_columns', array( $this, 'set_default_hidden_columns' ), 10, 2 );
 
         $args = wp_parse_args( $args, array(
             'type' => 'simple',
@@ -55,6 +56,21 @@ class Table extends WP_List_Table {
             )
         );
     }
+
+    public function set_default_hidden_columns( $columns, $screen ) {
+    	if ( $this->screen->id === $screen->id ) {
+    		$columns = array_merge( $columns, $this->get_default_hidden_columns() );
+		}
+
+    	return $columns;
+	}
+
+    protected function get_default_hidden_columns() {
+    	return array(
+			'weight',
+			'dimensions'
+		);
+	}
 
     public function enable_query_removing( $args ) {
         $args = array_merge( $args, array(
@@ -272,7 +288,11 @@ class Table extends WP_List_Table {
         }
 
         if ( isset( $_REQUEST['orderby'] ) ) {
-            $args['orderby'] = wc_clean( wp_unslash( $_REQUEST['orderby'] ) );
+            if ( 'weight' === $_REQUEST['orderby'] ) {
+            	$args['orderby']  = 'weight';
+			} else {
+	            $args['orderby'] = wc_clean( wp_unslash( $_REQUEST['orderby'] ) );
+            }
         }
 
         if ( isset( $_REQUEST['order'] ) ) {
@@ -668,6 +688,8 @@ class Table extends WP_List_Table {
 	    $columns['status']     = _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' );
 	    $columns['items']      = _x( 'Items', 'shipments', 'woocommerce-germanized-shipments' );
 	    $columns['address']    = _x( 'Address', 'shipments', 'woocommerce-germanized-shipments' );
+	    $columns['weight']     = _x( 'Weight', 'shipments', 'woocommerce-germanized-shipments' );
+	    $columns['dimensions'] = _x( 'Dimensions', 'shipments', 'woocommerce-germanized-shipments' );
 	    $columns['order']      = _x( 'Order', 'shipments', 'woocommerce-germanized-shipments' );
 	    $columns['actions']    = _x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' );
 

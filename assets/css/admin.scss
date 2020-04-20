@@ -301,6 +301,10 @@ table.wc-gzd-shipping-providers {
       th {
         padding: .5em 1em;
 
+        &.sortable a, &.sorted a {
+          padding: 0;
+        }
+
         &:last-child {
           padding-right: 2em;
         }

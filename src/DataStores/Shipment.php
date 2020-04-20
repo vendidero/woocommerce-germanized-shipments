@@ -427,6 +427,9 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
         $shipment->set_props( $props );
     }
 
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 */
     protected function save_shipment_data( &$shipment ) {
         $updated_props     = array();
         $meta_key_to_props = array();
@@ -458,7 +461,15 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 		            break;
             }
 
-            $updated = $this->update_or_delete_meta( $shipment, $meta_key, $value );
+	        // Force updating props that are dependent on inner content data (weight, dimensions)
+	        if ( in_array( $prop, array( 'weight', 'width', 'length', 'height' ) ) && ! $shipment->is_editable() ) {
+
+	        	// Get weight in view context to maybe allow calculating inner content props.
+		        $value   = $shipment->{"get_$prop"}( 'view' );
+		        $updated = update_metadata( 'gzd_shipment', $shipment->get_id(), $meta_key, $value );
+	        } else {
+		        $updated = $this->update_or_delete_meta( $shipment, $meta_key, $value );
+	        }
 
             if ( $updated ) {
                 $updated_props[] = $prop;

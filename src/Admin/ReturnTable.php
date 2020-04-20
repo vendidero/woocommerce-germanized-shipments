@@ -24,6 +24,8 @@ class ReturnTable extends Table {
 		$columns['status']     = _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' );
 		$columns['items']      = _x( 'Items', 'shipments', 'woocommerce-germanized-shipments' );
 		$columns['sender']     = _x( 'Sender', 'shipments', 'woocommerce-germanized-shipments' );
+		$columns['weight']     = _x( 'Weight', 'shipments', 'woocommerce-germanized-shipments' );
+		$columns['dimensions'] = _x( 'Dimensions', 'shipments', 'woocommerce-germanized-shipments' );
 		$columns['order']      = _x( 'Order', 'shipments', 'woocommerce-germanized-shipments' );
 		$columns['actions']    = _x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' );
 
