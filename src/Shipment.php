@@ -44,7 +44,7 @@ abstract class Shipment extends WC_Data {
      * @since 1.0.0
      * @var object
      */
-    protected $data_store = 'shipment';
+    protected $data_store_name = 'shipment';
 
     /**
      * Stores meta in cache for future reads.
@@ -137,7 +137,7 @@ abstract class Shipment extends WC_Data {
             $this->set_id( $data );
         }
 
-        $this->data_store = WC_Data_Store::load( 'shipment' );
+        $this->data_store = WC_Data_Store::load( $this->data_store_name );
 
         // If we have an ID, load the user from the DB.
         if ( $this->get_id() ) {
