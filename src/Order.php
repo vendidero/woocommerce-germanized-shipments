@@ -721,6 +721,31 @@ class Order {
 		return apply_filters( 'woocommerce_gzd_shipment_order_returnable_item_count', $count, $this );
 	}
 
+	protected function has_local_pickup() {
+		$shipping_methods = $this->get_order()->get_shipping_methods();
+		$has_pickup       = false;
+
+		/**
+		 * Filters which shipping methods are considered local pickup method
+		 * which by default do not require shipment.
+		 *
+		 * @param string[] $pickup_methods Array of local pickup shipping method ids.
+		 *
+		 * @since 3.1.6
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		$pickup_methods = apply_filters( 'woocommerce_gzd_shipment_local_pickup_shipping_methods', array( 'local_pickup' ) );
+
+		foreach( $shipping_methods as $shipping_method ) {
+			if ( in_array( $shipping_method->get_method_id(), $pickup_methods ) ) {
+				$has_pickup = true;
+				break;
+			}
+		}
+
+		return $has_pickup;
+	}
+
     /**
      * Checks whether the order needs shipping or not by checking quantity
      * for every line item.
@@ -734,23 +759,25 @@ class Order {
             'sent_only' => false
         ) );
 
-        $order_items    = $this->get_shippable_items();
-        $needs_shipping = false;
+        $order_items      = $this->get_shippable_items();
+        $needs_shipping   = false;
+        $has_pickup       = $this->has_local_pickup();
 
-        foreach( $order_items as $order_item ) {
-
-            if ( $this->item_needs_shipping( $order_item, $args ) ) {
-                $needs_shipping = true;
-                break;
-            }
+        if ( ! $has_pickup ) {
+	        foreach( $order_items as $order_item ) {
+		        if ( $this->item_needs_shipping( $order_item, $args ) ) {
+			        $needs_shipping = true;
+			        break;
+		        }
+	        }
         }
 
 	    /**
 	     * Filter to decide whether an order needs shipping or not.
 	     *
-	     * @param boolean                               $needs_shipping Whether the order needs shipping or not.
-	     * @param WC_Order                              $order The order object.
-	     * @param Order $order The shipment order object.
+	     * @param boolean  $needs_shipping Whether the order needs shipping or not.
+	     * @param WC_Order $order The order object.
+	     * @param Order    $order The shipment order object.
 	     *
 	     * @since 3.0.0
 	     * @package Vendidero/Germanized/Shipments
