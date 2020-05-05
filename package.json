@@ -13,7 +13,8 @@
     "build": "grunt",
     "build-watch": "grunt watch",
     "deploy": "composer install --no-dev && sh ./bin/github-deploy.sh",
-    "package-plugin": "./bin/build-plugin-zip.sh"
+    "package-plugin": "./bin/build-plugin-zip.sh",
+    "phpunit": "docker-compose up -d db && docker-compose up -d --build wordpress-unit-tests && docker exec -it --workdir /var/www/html/wp-content/plugins/woocommerce-germanized-shipments shipments_wordpress_test php ./vendor/bin/phpunit"
   },
   "devDependencies": {
     "autoprefixer": "9.6.1",

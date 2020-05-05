@@ -101,10 +101,35 @@ class Bootstrap {
 			$this->plugins_dir = getenv( 'WP_CORE_DIR' ) . '/wp-content/plugins';
 		}
 
-		$this->wc_tests_dir = $this->plugins_dir . '/woocommerce/tests';
+		$this->wc_tests_dir = $this->get_woo_dir() . '/tests/legacy';
 
 		$this->setup_hooks();
 		$this->load_framework();
+	}
+
+	/**
+	 * Returns WooCommerce main directory.
+	 *
+	 * @return string
+	 */
+	protected function get_woo_dir() {
+		static $dir = '';
+		if ( $dir === '' ) {
+			if ( defined( 'WP_CONTENT_DIR' ) && file_exists( WP_CONTENT_DIR . '/woocommerce/woocommerce.php' ) ) {
+				$dir = WP_CONTENT_DIR . '/woocommerce';
+				echo "Found WooCommerce plugin in content dir." . PHP_EOL;
+			} elseif ( file_exists( dirname( dirname( __DIR__ ) ) . '/woocommerce/woocommerce.php' ) ) {
+				$dir = dirname( dirname( __DIR__ ) ) . '/woocommerce';
+				echo "Found WooCommerce plugin in relative dir." . PHP_EOL;
+			} elseif ( file_exists( '/tmp/wordpress/wp-content/plugins/woocommerce/woocommerce.php' ) ) {
+				$dir = '/tmp/wordpress/wp-content/plugins/woocommerce';
+				echo "Found WooCommerce plugin in tmp dir." . PHP_EOL;
+			} else {
+				echo "Could not find WooCommerce plugin." . PHP_EOL;
+				exit( 1 );
+			}
+		}
+		return $dir;
 	}
 
 	/**
@@ -136,6 +161,10 @@ class Bootstrap {
 			include $this->plugins_dir . '/woocommerce/uninstall.php';
 
 			WC_Install::install();
+			// Initialize the WC API extensions.
+			\Automattic\WooCommerce\Admin\Install::create_tables();
+			\Automattic\WooCommerce\Admin\Install::create_events();
+
 			Package::install();
 
 			$GLOBALS['wp_roles'] = null; // WPCS: override ok.
