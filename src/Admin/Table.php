@@ -504,7 +504,7 @@ class Table extends WP_List_Table {
         $extra_checks = "AND shipment_status != 'auto-draft'";
 
         if ( isset( $_GET['shipment_status'] ) && 'all' !== $_GET['shipment_status'] ) {
-            $extra_checks = $wpdb->prepare( ' AND shipment_status = %s', $_GET['shipment_status'] );
+            $extra_checks = $wpdb->prepare( ' AND shipment_status = %s', wc_clean( wp_unslash( $_GET['shipment_status'] ) ) );
         }
 
         $months = $wpdb->get_results("
