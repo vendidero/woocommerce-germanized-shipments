@@ -122,6 +122,10 @@ class Package {
 
 		foreach ( $methods as $method => $class ) {
 			add_filter( 'woocommerce_shipping_instance_form_fields_' . $method, array( __CLASS__, 'add_method_settings' ), 10, 1 );
+			/**
+			 * Use this filter as a backup to support plugins like Flexible Shipping which may override methods
+			 */
+			add_filter( 'woocommerce_settings_api_form_fields_' . $method, array( __CLASS__, 'add_method_settings' ), 10, 1 );
 			add_filter( 'woocommerce_shipping_' . $method . '_instance_settings_values', array( __CLASS__, 'filter_method_settings' ), 10, 2 );
 		}
 

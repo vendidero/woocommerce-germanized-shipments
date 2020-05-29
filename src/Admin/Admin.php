@@ -588,7 +588,7 @@ class Admin {
 	    }
 
 	    // Shipping provider method
-	    if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] && isset( $_GET['zone_id'] ) ) {
+	    if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] && ( isset( $_GET['zone_id'] ) || isset( $_GET['instance_id'] ) ) ) {
 		    wp_enqueue_script( 'wc-gzd-admin-shipping-provider-method' );
 	    }
     }

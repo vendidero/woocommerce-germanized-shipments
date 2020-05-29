@@ -16,6 +16,10 @@ window.germanized.admin = window.germanized.admin || {};
 
             $( document ).on( 'change', 'select[id$=shipping_provider]', self.showOrHideAll );
             $( document.body ).on( 'wc_backbone_modal_loaded', self.onShippingMethodOpen );
+
+            if ( $( 'select[id$=shipping_provider]' ).length > 0 ) {
+                $( 'select[id$=shipping_provider]' ).trigger( 'change' );
+            }
         },
 
         onShippingMethodOpen: function( e, t ) {
