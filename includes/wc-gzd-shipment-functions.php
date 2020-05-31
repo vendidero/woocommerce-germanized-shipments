@@ -147,8 +147,21 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 	if ( is_a( $original_id, 'WC_Shipping_Rate' ) ) {
 		$instance_id = $original_id->get_instance_id();
 	} elseif( ! is_numeric( $instance_id ) ) {
-		$expl        = explode( ':', $instance_id );
-		$instance_id = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? (int) $expl[1] : 0 );
+		if ( strpos( $instance_id, ':' ) !== false ) {
+			$expl        = explode( ':', $instance_id );
+			$instance_id = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? (int) $expl[1] : 0 );
+		} else {
+			/**
+			 * Plugins like Flexible Shipping use underscores to separate instance ids.
+			 * Example: flexible_shipping_4_1. In this case, 4 ist the instance id. Let's find out.
+			 */
+			$expl    = explode( '_', $instance_id );
+			$numbers = array_values( array_filter( $expl, 'is_numeric' ) );
+
+			if ( ! empty( $numbers ) ) {
+				$instance_id = absint( $numbers[0] );
+			}
+		}
 	}
 
 	if ( ! empty( $instance_id ) ) {
