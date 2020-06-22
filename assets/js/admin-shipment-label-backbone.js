@@ -42,6 +42,8 @@ window.germanized.admin = window.germanized.admin || {};
                 } else {
                     $show.hide();
                 }
+
+                $( document.body ).trigger( 'wc_gzd_shipment_label_show_if' );
             }
         },
 
