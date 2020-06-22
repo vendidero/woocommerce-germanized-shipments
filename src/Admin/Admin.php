@@ -29,9 +29,12 @@ class Admin {
         add_action( 'admin_menu', array( __CLASS__, 'shipments_menu' ), 15 );
         add_action( 'load-woocommerce_page_wc-gzd-shipments', array( __CLASS__, 'setup_shipments_table' ), 0 );
 	    add_action( 'load-woocommerce_page_wc-gzd-return-shipments', array( __CLASS__, 'setup_returns_table' ), 0 );
-        add_filter( 'set-screen-option', array( __CLASS__, 'set_screen_option' ), 10, 3 );
 
-        add_filter( 'woocommerce_screen_ids', array( __CLASS__, 'add_table_view' ), 10 );
+	    add_filter( 'set-screen-option', array( __CLASS__, 'set_screen_option' ), 10, 3 );
+        add_filter( 'set_screen_option_woocommerce_page_wc_gzd_shipments_per_page', array( __CLASS__, 'set_screen_option' ), 10, 3 );
+	    add_filter( 'set_screen_option_woocommerce_page_wc_gzd_return_shipments_per_page', array( __CLASS__, 'set_screen_option' ), 10, 3 );
+
+	    add_filter( 'woocommerce_screen_ids', array( __CLASS__, 'add_table_view' ), 10 );
 
 	    add_filter( 'handle_bulk_actions-edit-shop_order', array( __CLASS__, 'handle_order_bulk_actions' ), 10, 3 );
 	    add_filter( 'bulk_actions-edit-shop_order', array( __CLASS__, 'define_order_bulk_actions' ), 10, 1 );
