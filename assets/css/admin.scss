@@ -848,7 +848,8 @@ table.wc-gzd-shipping-providers {
     }
 
     .form-row {
-      .wrap {
+      .input-inner-wrap {
+        clear: left;
         margin: 0;
         display: flex;
         flex-wrap: nowrap;
