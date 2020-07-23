@@ -246,11 +246,12 @@ table.wc-gzd-shipping-providers {
       vertical-align: middle; }
       .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button::after {
         font-family: Dashicons;
+        margin: 0;
+        margin-top: 2px;
         speak: none;
         font-weight: 400;
         font-variant: normal;
         text-transform: none;
-        margin: 0;
         text-indent: 0;
         position: absolute;
         top: 0;

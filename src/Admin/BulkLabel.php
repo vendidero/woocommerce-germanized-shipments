@@ -31,7 +31,7 @@ class BulkLabel extends BulkActionHandler {
 	}
 
 	public function get_file() {
-		$file = get_user_option( $this->get_file_option_name() );
+		$file = get_user_meta( get_current_user_id(), $this->get_file_option_name(), true );
 
 		if ( $file ) {
 			$uploads  = Package::get_upload_dir();
@@ -44,7 +44,7 @@ class BulkLabel extends BulkActionHandler {
 	}
 
 	protected function update_file( $path ) {
-		update_user_option( get_current_user_id(), $this->get_file_option_name(), $path );
+		update_user_meta( get_current_user_id(), $this->get_file_option_name(), $path );
 	}
 
 	protected function get_file_option_name() {
@@ -65,8 +65,8 @@ class BulkLabel extends BulkActionHandler {
 		parent::reset( $is_new );
 
 		if ( $is_new ) {
-			delete_user_option( get_current_user_id(), $this->get_file_option_name() );
-			delete_user_option( get_current_user_id(), $this->get_files_option_name() );
+			delete_user_meta( get_current_user_id(), $this->get_file_option_name() );
+			delete_user_meta( get_current_user_id(), $this->get_files_option_name() );
 		}
 	}
 
@@ -111,7 +111,7 @@ class BulkLabel extends BulkActionHandler {
 	}
 
 	protected function get_files() {
-		$files = get_user_option( $this->get_files_option_name() );
+		$files = get_user_meta( get_current_user_id(), $this->get_files_option_name(), true );
 
 		if ( empty( $files ) || ! is_array( $files ) ) {
 			$files = array();
@@ -124,21 +124,18 @@ class BulkLabel extends BulkActionHandler {
 		$files   = $this->get_files();
 		$files[] = $path;
 
-		update_user_option( get_current_user_id(), $this->get_files_option_name(), $files );
+		update_user_meta( get_current_user_id(), $this->get_files_option_name(), $files );
 	}
 
 	public function handle() {
 		$current = $this->get_current_ids();
 
 		if ( ! empty( $current ) ) {
-
 			foreach( $current as $shipment_id ) {
 				$label = false;
 
 				if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
-
 					if ( $shipment->supports_label() ) {
-
 						if ( $shipment->needs_label() ) {
 							$result = $shipment->create_label();
 
@@ -160,13 +157,11 @@ class BulkLabel extends BulkActionHandler {
 		}
 
 		if ( $this->is_last_step() ) {
-
 			try {
 				$files = $this->get_files();
 				$pdf   = new PDFMerger();
 
 				if ( ! empty( $files ) ) {
-
 					foreach( $files as $file ) {
 						if ( ! file_exists( $file ) ) {
 							continue;

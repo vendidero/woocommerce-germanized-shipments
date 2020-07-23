@@ -27,7 +27,7 @@ abstract class BulkActionHandler {
 	protected $type = 'simple';
 
 	public function __construct() {
-		$this->notices = array_filter( (array) get_user_option( $this->get_notice_option_name() ) );
+		$this->notices = array_filter( (array) get_user_meta( get_current_user_id(), $this->get_notice_option_name(), true ) );
 	}
 
 	protected function get_notice_option_name() {
@@ -97,11 +97,11 @@ abstract class BulkActionHandler {
 	}
 
 	public function update_notices() {
-		update_user_option( get_current_user_id(), $this->get_notice_option_name(), $this->notices );
+		update_user_meta( get_current_user_id(), $this->get_notice_option_name(), $this->notices );
 	}
 
 	public function reset( $is_new = false ) {
-		delete_user_option( get_current_user_id(), $this->get_notice_option_name() );
+		delete_user_meta( get_current_user_id(), $this->get_notice_option_name() );
 	}
 
 	abstract public function get_action();
