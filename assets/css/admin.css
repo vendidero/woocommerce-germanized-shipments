@@ -303,7 +303,7 @@ table.wc-gzd-shipping-providers {
   padding: 0;
   display: block !important; }
 
-#woocommerce-gzd-order-shipments .hndle, #woocommerce-gzd-order-shipments .handlediv {
+#woocommerce-gzd-order-shipments .hndle, #woocommerce-gzd-order-shipments .handlediv, #woocommerce-gzd-order-shipments .postbox-header {
   display: none; }
 
 #woocommerce-gzd-order-shipments .hide-default {
