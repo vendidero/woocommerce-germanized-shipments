@@ -30,7 +30,15 @@ class ShipmentFactory {
 		$shipment_id = self::get_shipment_id( $shipment_id );
 
 		if ( $shipment_id ) {
-			$shipment_type      = WC_Data_Store::load( 'shipment' )->get_shipment_type( $shipment_id );
+			$shipment_type = WC_Data_Store::load( 'shipment' )->get_shipment_type( $shipment_id );
+
+			/**
+			 * Shipment type cannot be found, seems to not exist.
+			 */
+			if ( empty( $shipment_type ) ) {
+				return false;
+			}
+
 			$shipment_type_data = wc_gzd_get_shipment_type_data( $shipment_type );
 		} else {
 			$shipment_type_data = wc_gzd_get_shipment_type_data( $shipment_type );
