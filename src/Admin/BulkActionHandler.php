@@ -127,7 +127,7 @@ abstract class BulkActionHandler {
 	}
 
 	public function get_current_ids() {
-		return array_slice( $this->get_ids(), ( ( $this->get_step() * $this->get_limit() ) - 1 ), $this->get_limit() );
+		return array_slice( $this->get_ids(), ( $this->get_step() - 1 ) * $this->get_limit(), $this->get_limit() );
 	}
 
 	/**
