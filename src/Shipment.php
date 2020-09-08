@@ -640,6 +640,14 @@ abstract class Shipment extends WC_Data {
 	    return $this->get_prop( 'shipping_provider', $context );
     }
 
+	public function get_shipping_provider_title() {
+		if ( $provider = $this->get_shipping_provider_instance() ) {
+			return $provider->get_title();
+		}
+
+		return '';
+	}
+
     public function get_shipping_provider_instance() {
     	$provider = $this->get_shipping_provider();
 
@@ -964,6 +972,10 @@ abstract class Shipment extends WC_Data {
             'width'  => $this->get_width(),
             'height' => $this->get_height(),
         );
+    }
+
+    public function get_formatted_dimensions() {
+	    return wc_gzd_format_shipment_dimensions( $this->get_dimensions(), $this->get_dimension_unit() );
     }
 
 	/**
