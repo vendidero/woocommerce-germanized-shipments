@@ -11,3 +11,4 @@
 /package-lock.json export-ignore
 /none export-ignore
 /Gruntfile.js export-ignore
+/docker-compose.yml export-ignore
