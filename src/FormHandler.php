@@ -131,7 +131,6 @@ class FormHandler {
 	 */
 	public static function download_label() {
 		if ( 'wc-gzd-download-shipment-label' === $_GET['action'] && wp_verify_nonce( $_REQUEST['_wpnonce'], 'download-shipment-label' ) ) {
-
 			$shipment_id = absint( $_GET['shipment_id'] );
 			$args        = wp_parse_args( $_GET, array(
 				'force'  => 'no',
@@ -140,6 +139,8 @@ class FormHandler {
 			if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
 				if ( 'return' === $shipment->get_type() && current_user_can( 'view_order', $shipment->get_order_id() ) ) {
 					if ( $shipment->has_label() ) {
+						$args['check_permissions'] = false;
+
 						$shipment->get_label()->download( $args );
 					}
 				}
