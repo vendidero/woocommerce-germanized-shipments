@@ -439,8 +439,16 @@ class Order {
             }
 
             if ( $quantity_left > 0 ) {
+            	$sku = '';
+
+            	if ( is_callable( array( $item, 'get_product' ) ) ) {
+            		if ( $product = $item->get_product() ) {
+            			$sku = $product->get_sku();
+		            }
+	            }
+
                 $items[ $item->get_id() ] = array(
-                    'name'         => $item->get_name(),
+                    'name'         => $item->get_name() . ( ! empty( $sku ) ? ' (' . esc_html( $sku ) . ')' : '' ),
                     'max_quantity' => $quantity_left,
                 );
             }
@@ -491,8 +499,10 @@ class Order {
 			}
 
 			if ( $quantity_left > 0 ) {
+				$sku = $item->get_sku();
+
 				$items[ $item->get_order_item_id() ] = array(
-					'name'         => $item->get_name(),
+					'name'         => $item->get_name() . ( ! empty( $sku ) ? ' (' . esc_html( $sku ) . ')' : '' ),
 					'max_quantity' => $quantity_left,
 				);
 			}

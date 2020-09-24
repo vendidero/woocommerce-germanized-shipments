@@ -943,7 +943,7 @@ class Table extends WP_List_Table {
                 <tr class="wc-gzd-shipment-item-preview wc-gzd-shipment-item-preview-<?php echo esc_attr( $item->get_id() ); ?>">
                     <td class="wc-gzd-shipment-item-column-name">
                         <?php if ( $product = $item->get_product() ) : ?>
-                            <a href="<?php echo get_edit_post_link( $product->get_id() ); ?>"><?php echo wp_kses_post( $item->get_name() ); ?></a>
+                            <a href="<?php echo get_edit_post_link( $product->get_parent_id() > 0 ? $product->get_parent_id() : $product->get_id() ); ?>"><?php echo wp_kses_post( $item->get_name() ); ?></a>
                         <?php else: ?>
                             <?php echo wp_kses_post( $item->get_name() ); ?>
                         <?php endif; ?>

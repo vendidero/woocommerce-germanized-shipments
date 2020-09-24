@@ -305,7 +305,6 @@ class ShipmentItem extends WC_Data {
 
 		    $args = wp_parse_args( $args, array(
 			    'order_item_id' => $item->get_id(),
-			    'product_id'    => is_callable( array( $item, 'get_product_id' ) ) ? $item->get_product_id() : 0,
 			    'quantity'      => 1,
 			    'name'          => $item->get_name(),
 			    'sku'           => $product ? $product->get_sku() : '',
@@ -348,7 +347,6 @@ class ShipmentItem extends WC_Data {
     }
 
     public function get_product() {
-
         if ( is_null( $this->product ) && 0 < $this->get_product_id() ) {
             $this->product = wc_get_product( $this->get_product_id() );
         }

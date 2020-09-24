@@ -31,12 +31,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<?php
         $product    = $item->get_product();
 		$is_visible = $product && $product->is_visible();
+		$item_sku   = $item->get_sku();
 
 		/** This filter is documented in templates/myaccount/shipment/shipment-details-item.php */
 		$product_permalink = apply_filters( 'woocommerce_gzd_shipment_item_permalink', $is_visible ? $product->get_permalink() : '', $item, $order );
 
 		/** This filter is documented in templates/emails/email-shipment-items.php */
-		echo apply_filters( 'woocommerce_gzd_shipment_item_name', $product_permalink ? sprintf( '<a href="%s">%s</a>', $product_permalink, $item->get_name() ) : $item->get_name(), $item, $is_visible ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo apply_filters( 'woocommerce_gzd_shipment_item_name', ( $product_permalink ? sprintf( '<a href="%s">%s</a>', $product_permalink, $item->get_name() ) : $item->get_name() ) . ( ! empty( $item_sku ) ? ' <small>(' . esc_html( $item_sku ) . ')</small>' : '' ), $item, $is_visible ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 	</td>
 

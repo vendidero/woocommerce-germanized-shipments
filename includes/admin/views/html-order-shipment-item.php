@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
 
                 <?php if ( 'name' === $column_name ) : ?>
 
-                    <?php echo wp_kses_post( $item->get_name() ); ?>
+                    <?php echo wp_kses_post( $item->get_name() ); ?> <?php echo ( $item->get_sku() ? '<small>(' . esc_html( $item->get_sku() ) . ')</small>' : '' ); ?>
 
                 <?php elseif ( 'return_reason' === $column_name ) : ?>
 
