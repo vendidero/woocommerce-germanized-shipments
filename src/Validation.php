@@ -187,10 +187,17 @@ class Validation {
 	 * @param WC_Order_Item $order_item
 	 */
     public static function update_order_item( $order_item_id, $order_item ) {
-    	if ( is_callable( array( $order_item, 'get_order_id' ) ) ) {
+	    /**
+	     * Prevent from firing during save_post to make sure
+	     * that no validation is done on order item saving (for each item in the order)
+	     * which might lead to performance issues.
+	     */
+	    if ( ! doing_action( 'save_post' ) ) {
+		    if ( is_callable( array( $order_item, 'get_order_id' ) ) ) {
 
-    		if ( $order_shipment = wc_gzd_get_shipment_order( $order_item->get_order_id() ) ) {
-			    $order_shipment->validate_shipments();
+			    if ( $order_shipment = wc_gzd_get_shipment_order( $order_item->get_order_id() ) ) {
+				    $order_shipment->validate_shipments();
+			    }
 		    }
 	    }
     }
