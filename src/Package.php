@@ -168,6 +168,17 @@ class Package {
 	}
 
 	public static function add_method_settings( $p_settings ) {
+    	$wc = WC();
+
+		/**
+		 * Prevent undefined index notices during REST API calls.
+		 *
+		 * @see WC_REST_Shipping_Zone_Methods_V2_Controller::get_settings()
+		 */
+    	if ( is_callable( array( $wc, 'is_rest_api_request' ) ) && $wc->is_rest_api_request() ) {
+    		return $p_settings;
+	    }
+
 		$shipping_provider_settings = self::get_method_settings();
 
 		return array_merge( $p_settings, $shipping_provider_settings );
