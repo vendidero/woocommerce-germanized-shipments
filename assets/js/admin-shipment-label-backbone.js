@@ -159,6 +159,8 @@ window.germanized.admin = window.germanized.admin || {};
                 $( document.body ).trigger( 'wc-enhanced-select-init' );
                 $( document.body ).trigger( 'wc-init-datepickers' );
 
+                $( document.body ).trigger( 'wc_gzd_shipment_label_after_init' );
+
                 $modal.find( 'input.show-if-trigger' ).trigger( 'change' );
 
                 $modal.parents( '.wc-backbone-modal' ).on( 'click', '#btn-ok', { 'shipmentId': shipmentId }, self.onSubmit );
