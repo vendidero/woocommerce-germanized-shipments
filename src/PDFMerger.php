@@ -82,9 +82,17 @@ class PDFMerger {
 	 */
 	private function _addPage( $pageNumber, $width = 210 ) {
 		$pageId = $this->_pdf->importPage( $pageNumber );
+		$size   = $this->_pdf->getTemplateSize( $pageId );
 
-		$this->_pdf->addPage();
-		$this->_pdf->useImportedPage( $pageId, 0, 0, $width, null, true );
+		$orientation = isset( $size['orientation'] ) ? $size['orientation'] : '';
+
+		$this->_pdf->addPage( $orientation, $size );
+
+		if ( ! isset( $size['width'] ) || empty( $size['width'] ) ) {
+			$this->_pdf->useImportedPage( $pageId, 0, 0, $width, null, true );
+		} else {
+			$this->_pdf->useImportedPage( $pageId );
+		}
 	}
 
 

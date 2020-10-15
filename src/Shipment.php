@@ -204,8 +204,19 @@ abstract class Shipment extends WC_Data {
      * @return string
      */
     protected function get_hook_prefix() {
-        return 'woocommerce_gzd_shipment_get_';
+        return $this->get_general_hook_prefix() . 'get_';
     }
+
+	/**
+	 * Prefix for action and filter hooks on data.
+	 *
+	 * @return string
+	 */
+	protected function get_general_hook_prefix() {
+		$shipment_prefix = 'simple' === $this->get_type() ? '' : $this->get_type() . '_';
+
+		return "woocommerce_gzd_{$shipment_prefix}shipment_";
+	}
 
     /**
      * Return the shipment statuses without gzd- internal prefix.
@@ -543,11 +554,13 @@ abstract class Shipment extends WC_Data {
 	}
 
     public function has_tracking() {
+		$has_tracking = true;
+
 	    if ( ! $this->has_tracking_instruction() && ! $this->get_tracking_url() ) {
-		    return false;
+		    $has_tracking = false;
 	    }
 
-	    return true;
+	    return apply_filters( "{$this->get_general_hook_prefix()}has_tracking", $has_tracking, $this );
     }
 
 	/**

@@ -48,15 +48,6 @@ class ReturnShipment extends Shipment {
 	}
 
 	/**
-	 * Prefix for action and filter hooks on data.
-	 *
-	 * @return string
-	 */
-	protected function get_hook_prefix() {
-		return 'woocommerce_gzd_return_shipment_get_';
-	}
-
-	/**
 	 * Returns the order id belonging to the shipment.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.

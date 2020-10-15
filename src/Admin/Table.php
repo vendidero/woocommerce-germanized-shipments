@@ -799,7 +799,7 @@ class Table extends WP_List_Table {
         }
 
 	    if ( $tracking_id = $shipment->get_tracking_id() ) {
-		    if ( $tracking_url = $shipment->get_tracking_url() ) {
+		    if ( $shipment->has_tracking() && ( $tracking_url = $shipment->get_tracking_url() ) ) {
 			    echo '<a class="shipment-tracking-id" href="' . esc_url( $tracking_url ) . '">' . $tracking_id . '</a>';
 		    } else {
 			    echo '<span class="shipment-tracking-id">' . $tracking_id . '</span>';
