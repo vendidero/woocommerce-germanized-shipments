@@ -29,8 +29,9 @@ class Emails {
 	    $emails['WC_GZD_Email_Customer_Return_Shipment']               = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-return-shipment.php';
 	    $emails['WC_GZD_Email_Customer_Return_Shipment_Delivered']     = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-return-shipment-delivered.php';
 	    $emails['WC_GZD_Email_Customer_Guest_Return_Shipment_Request'] = include Package::get_path() . '/includes/emails/class-wc-gzd-email-customer-guest-return-shipment-request.php';
+	    $emails['WC_GZD_Email_New_Return_Shipment_Request']            = include Package::get_path() . '/includes/emails/class-wc-gzd-email-new-return-shipment-request.php';
 
-        return $emails;
+	    return $emails;
     }
 
     public static function email_hooks() {

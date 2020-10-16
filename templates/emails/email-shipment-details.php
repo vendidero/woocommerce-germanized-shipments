@@ -43,7 +43,7 @@ do_action( 'woocommerce_gzd_email_before_shipment_table', $shipment, $sent_to_ad
         $after  = '';
     }
     /* translators: %s: Order ID. */
-    echo wp_kses_post( $before . sprintf( _x( 'Details to your %s', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label( $shipment->get_type() ) ) . $after );
+    echo wp_kses_post( $before . ( ! $sent_to_admin ? sprintf( _x( 'Details to your %s', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label( $shipment->get_type() ) ) : sprintf( _x( '[%s #%s]', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label( $shipment->get_type() ), $shipment->get_shipment_number() ) ) . $after );
     ?>
 </h2>
 
