@@ -44,7 +44,7 @@ window.germanized.admin = window.germanized.admin || {};
 
                 if ( provider_setting_prefix.length > 0 ) {
                     $form.find( 'table.form-table' ).each( function() {
-                        if ( $( this ).find( 'input[id*=_' + provider_setting_prefix + '_]' ).length > 0 ) {
+                        if ( $( this ).find( ':input[id*=_' + provider_setting_prefix + '_]' ).length > 0 ) {
                             self.hideTable( $( this ) );
                         }
                     });
@@ -53,7 +53,7 @@ window.germanized.admin = window.germanized.admin || {};
 
             if ( self.currentProvider.length > 0 ) {
                 $form.find( 'table.form-table' ).each( function() {
-                    if ( $( this ).find( 'input[id*=_' + self.currentProvider + '_]' ).length > 0 ) {
+                    if ( $( this ).find( ':input[id*=_' + self.currentProvider + '_]' ).length > 0 ) {
                         self.showTable( $( this ) );
                     }
                 });
