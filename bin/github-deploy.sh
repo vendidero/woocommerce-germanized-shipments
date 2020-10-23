@@ -115,4 +115,6 @@ git checkout $CURRENTBRANCH
 git branch -D $BRANCH
 git push origin --delete $BRANCH
 
+composer install || exit "$?"s
+
 output 2 "GitHub release complete."
