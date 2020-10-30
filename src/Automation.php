@@ -92,6 +92,27 @@ class Automation {
 	 */
     public static function mark_order_completed( $order_id ) {
 		if ( $order = wc_get_order( $order_id ) ) {
+
+			/**
+			 * By default do not mark orders (via invoice) as completed after shipped as
+			 * the order will be shipped before the invoice was paid.
+			 */
+			$mark_as_completed = ! in_array( $order->get_payment_method(), array( 'invoice' ) ) ? true : false;
+
+			/**
+			 * Filter that allows to conditionally disable automatic
+			 * order completion after the shipments are marked as shipped.
+			 *
+			 * @param boolean $mark_as_completed Whether to mark the order as completed or not.
+			 * @param integer $order_id The order id.
+			 *
+			 * @since 3.2.3
+			 * @package Vendidero/Germanized/Shipments
+			 */
+			if ( ! apply_filters( 'woocommerce_gzd_shipment_order_mark_as_completed', $mark_as_completed, $order_id ) ) {
+				return;
+			}
+
 			/**
 			 * Filter to adjust the new status of an order after all it's required
 			 * shipments have been marked as shipped. Does only take effect if the automation option has been set
