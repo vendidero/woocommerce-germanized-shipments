@@ -134,13 +134,24 @@ class SimpleShipment extends Shipment {
 			$default_provider_instance = wc_gzd_get_order_shipping_provider( $order );
 			$default_provider          = $default_provider_instance ? $default_provider_instance->get_name() : '';
 			$provider                  = $this->get_shipping_provider( 'edit' );
+			$address_data              = array_merge( $order->get_address( 'shipping' ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) );
+
+			/**
+			 * Fix to make sure that we are not syncing formatted customer titles (e.g. Herr)
+			 * which prevents shipment addresses from being translated.
+			 */
+			if ( isset( $address_data['title'] ) && ! empty( $address_data['title'] ) ) {
+				if ( $title = $order->get_meta( "_shipping_title", true ) ) {
+					$address_data['title'] = $title;
+				}
+			}
 
 			$args = wp_parse_args( $args, array(
 				'order_id'          => $order->get_id(),
 				'country'           => $order->get_shipping_country(),
 				'shipping_method'   => wc_gzd_get_shipment_order_shipping_method_id( $order ),
 				'shipping_provider' => ( ! empty( $provider ) ) ? $provider : $default_provider,
-				'address'           => array_merge( $order->get_address( 'shipping' ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) ),
+				'address'           => $address_data,
 				'weight'            => $this->get_weight( 'edit' ),
 				'length'            => $this->get_length( 'edit' ),
 				'width'             => $this->get_width( 'edit' ),
