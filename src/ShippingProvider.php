@@ -115,7 +115,7 @@ class ShippingProvider extends WC_Data  {
 		return false;
 	}
 
-	public function supports_customer_return_request() {
+	public function supports_customer_return_requests() {
 		return false;
 	}
 
@@ -571,7 +571,7 @@ class ShippingProvider extends WC_Data  {
 				),
 			) );
 		} else {
-			$supports_customer_returns = $this->supports_customer_return_request();
+			$supports_customer_returns = $this->supports_customer_return_requests();
 		}
 
 		$settings = array_merge( $settings, array(
