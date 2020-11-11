@@ -127,6 +127,20 @@ class Order {
 		return $status;
 	}
 
+	public function get_default_return_shipping_provider() {
+    	$default_provider_instance = wc_gzd_get_order_shipping_provider( $this->get_order() );
+		$default_provider          = $default_provider_instance ? $default_provider_instance->get_name() : '';
+	    $shipments                 = $this->get_simple_shipments();
+
+	    foreach( $shipments as $shipment ) {
+		    if ( $shipment->has_status( wc_gzd_get_shipment_sent_statuses() ) ) {
+			    $default_provider = $shipment->get_shipping_provider();
+		    }
+	    }
+
+		return apply_filters( 'woocommerce_gzd_shipment_order_return_default_shipping_provider', $default_provider, $this );
+	}
+
     public function validate_shipments( $args = array() ) {
         $args = wp_parse_args( $args, array(
             'save' => true,

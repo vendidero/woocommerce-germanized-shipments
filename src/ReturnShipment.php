@@ -426,8 +426,7 @@ class ReturnShipment extends Shipment {
 			/**
 			 * Make sure that manually adjusted providers are not overridden by syncing.
 			 */
-			$default_provider_instance = wc_gzd_get_order_shipping_provider( $order );
-			$default_provider          = $default_provider_instance ? $default_provider_instance->get_name() : '';
+			$default_provider          = $order_shipment->get_default_return_shipping_provider();
 			$provider                  = $this->get_shipping_provider( 'edit' );
 
 			$args = wp_parse_args( $args, array(

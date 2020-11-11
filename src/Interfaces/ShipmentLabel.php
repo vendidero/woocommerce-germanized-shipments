@@ -1,8 +1,5 @@
 <?php
-
 namespace Vendidero\Germanized\Shipments\Interfaces;
-
-use Vendidero\Germanized\Shipments\PDFMerger;
 
 /**
  * Shipment Label Interface
