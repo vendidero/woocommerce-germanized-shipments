@@ -115,6 +115,10 @@ class ShippingProvider extends WC_Data  {
 		return false;
 	}
 
+	public function supports_customer_return_request() {
+		return false;
+	}
+
 	/**
 	 * Some providers (e.g. DHL) create return labels automatically and the return
 	 * address is chosen dynamically depending on the country. For that reason the return address
@@ -543,7 +547,7 @@ class ShippingProvider extends WC_Data  {
 			array( 'title' => '', 'type' => 'title', 'id' => 'shipping_provider_options', 'desc' => $desc ),
 		);
 
-		$supports_returns = true;
+		$supports_customer_returns = true;
 
 		if ( $this->is_manual_integration() ) {
 			$settings = array_merge( $settings, array(
@@ -567,7 +571,7 @@ class ShippingProvider extends WC_Data  {
 				),
 			) );
 		} else {
-			$supports_returns = $this->supports_labels( 'return' );
+			$supports_customer_returns = $this->supports_customer_return_request();
 		}
 
 		$settings = array_merge( $settings, array(
@@ -594,7 +598,7 @@ class ShippingProvider extends WC_Data  {
 			)
 		) );
 
-		if ( $supports_returns ) {
+		if ( $supports_customer_returns ) {
 			$settings = array_merge( $settings, array(
 				array(
 					'title' 	        => _x( 'Customer returns', 'shipments', 'woocommerce-germanized-shipments' ),
