@@ -268,6 +268,30 @@ class Settings {
 		return $settings;
 	}
 
+	protected static function get_packaging_settings() {
+		$settings = array(
+			array( 'title' => '', 'type' => 'title', 'id' => 'packaging_options' ),
+
+			array(
+				'type' => 'packaging_list',
+			),
+
+			array(
+				'title' 	        => _x( 'Default packaging', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc_tip' 		    => _x( 'Choose a packaging which serves as fallback or default in case no suitable packaging could be matched for a certain shipment.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'id' 		        => 'woocommerce_gzd_shipments_default_packaging',
+				'default'	        => '',
+				'type'              => 'select',
+				'options'           => wc_gzd_get_packaging_select(),
+				'class'             => 'wc-enhanced-select',
+			),
+
+			array( 'type' => 'sectionend', 'id' => 'packaging_options' ),
+		);
+
+		return $settings;
+	}
+
 	public static function save_provider( $provider_name = '' ) {
 		$helper = ShippingProviders::instance();
 
@@ -326,6 +350,8 @@ class Settings {
 
 		if ( '' === $current_section ) {
 			$settings = self::get_general_settings();
+		} elseif ( 'packaging' === $current_section ) {
+			$settings = self::get_packaging_settings();
 		} elseif( 'provider' === $current_section && isset( $_GET['provider'] ) ) {
 
 			$provider_name = wc_clean( wp_unslash( $_GET['provider'] ) );
@@ -395,6 +421,7 @@ class Settings {
 	public static function get_sections() {
 		return array(
 			''          => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' ),
+			'packaging' => _x( 'Packaging', 'shipments', 'woocommerce-germanized-shipments' ),
 			'provider'  => _x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' )
 		);
 	}

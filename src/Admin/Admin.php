@@ -46,6 +46,10 @@ class Admin {
 	    add_action( 'woocommerce_admin_field_shipment_return_reasons', array( __CLASS__, 'output_return_reasons_field' ) );
 	    add_action( 'woocommerce_gzd_admin_settings_after_save_shipments', array( __CLASS__, 'save_return_reasons' ) );
 
+	    // Packaging options
+	    add_action( 'woocommerce_admin_field_packaging_list', array( __CLASS__, 'output_packaging_list' ) );
+	    add_action( 'woocommerce_gzd_admin_settings_after_save_shipments', array( __CLASS__, 'save_packaging_list' ) );
+
 	    // Menu count
 	    add_action( 'admin_head', array( __CLASS__, 'menu_return_count' ) );
     }
@@ -130,6 +134,62 @@ class Admin {
 	    return ( $a['order'] < $b['order'] ) ? -1 : 1;
     }
 
+    public static function save_packaging_list() {
+	    // phpcs:disable WordPress.Security.NonceVerification.NoNonceVerification -- Nonce verification already handled in WC_Admin_Settings::save()
+	    if ( isset( $_POST['packaging'] ) ) {
+		    $packaging_post           = wc_clean( wp_unslash( $_POST['packaging'] ) );
+		    $order                    = 0;
+		    $available_types          = array_keys( wc_gzd_get_packaging_types() );
+		    $packaging_ids_after_save = array();
+		    $current_key_list         = array();
+
+		    foreach( wc_gzd_get_packaging_list() as $pack ) {
+		        $current_key_list[] = $pack->get_id();
+            }
+
+		    foreach( $packaging_post as $packaging ) {
+		        $packaging     = wc_clean( $packaging );
+		        $packaging_id  = isset( $packaging['packaging_id'] ) ? absint( $packaging['packaging_id'] ) : 0;
+		        $packaging_obj = wc_gzd_get_packaging( $packaging_id );
+
+		        if ( $packaging_obj ) {
+		            $packaging_obj->set_props( array(
+                        'type'               => ! in_array( $packaging['type'], $available_types ) ? 'cardboard' : $packaging['type'],
+                        'weight'             => empty( $packaging['weight'] ) ? 0 : $packaging['weight'],
+                        'description'        => empty( $packaging['description'] ) ? '' : $packaging['description'],
+                        'length'             => empty( $packaging['length'] ) ? 0 : $packaging['length'],
+                        'width'              => empty( $packaging['width'] ) ? 0 : $packaging['width'],
+                        'height'             => empty( $packaging['height'] ) ? 0 : $packaging['height'],
+                        'max_content_weight' => empty( $packaging['max_content_weight'] ) ? 0 : $packaging['max_content_weight'],
+                        'order'              => ++$order,
+                    ) );
+
+		            if ( empty( $packaging_obj->get_description() ) ) {
+		                if ( $packaging_obj->get_id() > 0 ) {
+			                $packaging_obj->delete( true );
+			                continue;
+                        } else {
+		                    continue;
+                        }
+                    }
+
+		            $packaging_obj->save();
+		            $packaging_ids_after_save[] = $packaging_obj->get_id();
+                }
+		    }
+
+		    $to_delete = array_diff( $current_key_list, $packaging_ids_after_save );
+
+		    if ( ! empty( $to_delete ) ) {
+		        foreach( $to_delete as $delete_id ) {
+		           if ( $packaging = wc_gzd_get_packaging( $delete_id ) ) {
+		               $packaging->delete( true );
+                   }
+                }
+            }
+	    }
+    }
+
     public static function save_return_reasons() {
 	    $reasons = array();
 
@@ -208,6 +268,125 @@ class Admin {
 									<td style="width: 10ch;"><input type="text" name="shipment_return_reason[' + size + '][code]" /></td>\
 									<td><input type="text" name="shipment_return_reason[' + size + '][reason]" /></td>\
 								</tr>').appendTo('#shipment_return_reasons table tbody');
+
+                            return false;
+                        });
+                    });
+                </script>
+            </td>
+        </tr>
+		<?php
+		$html = ob_get_clean();
+
+		echo $html;
+	}
+
+	public static function output_packaging_list( $value ) {
+		ob_start();
+		?>
+        <tr valign="top">
+            <th scope="row" class="titledesc"><?php echo esc_html_x(  'Available Packaging', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+            <td class="forminp" id="packaging_list_wrapper">
+                <div class="wc_input_table_wrapper">
+                    <style>
+                        tbody.packaging_list tr td {
+                            padding: .5em;
+                        }
+						tbody.packaging_list select {
+							width: 100% !important;
+						}
+                        tbody.packaging_list .input-inner-wrap {
+							display: flex;
+                            flex-wrap: nowrap;
+                        }
+						tbody.packaging_list .input-inner-wrap input {
+							width: 33% !important;
+                            min-width: auto !important;
+						}
+                    </style>
+                    <table class="widefat wc_input_table sortable" cellspacing="0">
+                        <thead>
+                        <tr>
+                            <th class="sort">&nbsp;</th>
+                            <th style="width: 20ch;"><?php echo esc_html_x(  'Description', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'A description to help you by identifying the packaging.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
+                            <th style="width: 15ch;"><?php echo esc_html_x(  'Type', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'The packaging type.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
+                            <th style="width: 5ch;"><?php echo esc_html_x(  'Weight (kg)', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'The packaging weight in kg.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
+                            <th style="width: 15ch;"><?php echo esc_html_x(  'Dimensions (LxWxH, cm)', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'Dimensions in LxWxH in cm.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
+                            <th style="width: 5ch;"><?php echo esc_html_x(  'Max weight (kg)', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'The maximum weight this packaging can hold.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
+                        </tr>
+                        </thead>
+                        <tbody class="packaging_list">
+						<?php
+                        $count = 0;
+                        foreach ( wc_gzd_get_packaging_list() as $packaging ) : ?>
+                            <tr class="packaging">
+                                <td class="sort"></td>
+                                <td style="width: 20ch;">
+                                    <input type="text" name="packaging[<?php echo esc_attr( $count ); ?>][description]" value="<?php echo esc_attr( wp_unslash( $packaging->get_description() ) ); ?>" />
+                                    <input type="hidden" name="packaging[<?php echo esc_attr( $count ); ?>][packaging_id]" value="<?php echo esc_attr( $packaging->get_id() ); ?>" />
+                                </td>
+                                <td style="width: 15ch;">
+                                    <select name="packaging[<?php echo esc_attr( $count ); ?>][type]">
+                                        <?php foreach( wc_gzd_get_packaging_types() as $type => $type_title ) : ?>
+                                            <option value="<?php echo esc_attr( $type ); ?>" <?php selected( $packaging->get_type(), $type ); ?>><?php echo esc_attr( $type_title ); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </td>
+                                <td style="width: 5ch;">
+                                    <input class="wc_input_decimal" type="text" name="packaging[<?php echo esc_attr( $count ); ?>][weight]" value="<?php echo esc_attr( $packaging->get_weight() ); ?>" placeholder="0" />
+                                </td>
+                                <td style="width: 15ch;">
+                                    <span class="input-inner-wrap">
+                                        <input class="wc_input_decimal" type="text" name="packaging[<?php echo esc_attr( $count ); ?>][length]" value="<?php echo esc_attr( $packaging->get_length() ); ?>" placeholder="<?php echo esc_attr( _x( 'Length', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>" />
+                                        <input class="wc_input_decimal" type="text" name="packaging[<?php echo esc_attr( $count ); ?>][width]" value="<?php echo esc_attr( $packaging->get_width() ); ?>" placeholder="<?php echo esc_attr( _x( 'Width', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>" />
+                                        <input class="wc_input_decimal" type="text" name="packaging[<?php echo esc_attr( $count ); ?>][height]" value="<?php echo esc_attr( $packaging->get_height() ); ?>" placeholder="<?php echo esc_attr( _x( 'Height', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>" />
+                                    </span>
+                                </td>
+                                <td style="width: 5ch;">
+                                    <input class="wc_input_decimal" type="text" name="packaging[<?php echo esc_attr( $count ); ?>][max_content_weight]" value="<?php echo esc_attr( $packaging->get_max_content_weight() ); ?>" placeholder="0" />
+                                </td>
+                            </tr>
+						<?php
+	                        $count++;
+                        endforeach; ?>
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <th colspan="7"><a href="#" class="add button"><?php echo esc_html_x(  '+ Add packaging', 'shipments', 'woocommerce-germanized-shipments' ); ?></a> <a href="#" class="remove_rows button"><?php echo esc_html_x( 'Remove selected packaging', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></th>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <script type="text/javascript">
+                    jQuery(function() {
+                        jQuery('#packaging_list_wrapper').on( 'click', 'a.add', function(){
+
+                            var size = jQuery('#packaging_list_wrapper').find('tbody .packaging').length;
+
+                            jQuery('<tr class="packaging">\
+                                    <td class="sort"></td>\
+									<td style="width: 10ch;"><input type="text" name="packaging[' + size + '][description]" value="" /></td>\
+									<td style="width: 10ch;">\
+                                        <select name="packaging[' + size + '][type]">\
+                                            <?php foreach( wc_gzd_get_packaging_types() as $type => $type_title ) : ?>\
+                                                <option value="<?php echo esc_attr( $type ); ?>"><?php echo esc_attr( $type_title ); ?></option>\
+                                            <?php endforeach; ?>\
+                                        </select>\
+									</td>\
+									<td style="width: 5ch;">\
+                                        <input class="wc_input_decimal" type="text" name="packaging[' + size + '][weight]" placeholder="0" />\
+                                    </td>\
+                                    <td style="width: 15ch;">\
+                                        <span class="input-inner-wrap">\
+                                            <input class="wc_input_decimal" type="text" name="packaging[' + size + '][length]" value="" placeholder="<?php echo esc_attr( _x( 'Length', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>" />\
+                                            <input class="wc_input_decimal" type="text" name="packaging[' + size + '][width]" value="" placeholder="<?php echo esc_attr( _x( 'Width', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>" />\
+                                            <input class="wc_input_decimal" type="text" name="packaging[' + size + '][height]" value="" placeholder="<?php echo esc_attr( _x( 'Height', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>" />\
+                                        </span>\
+                                    </td>\
+                                    <td style="width: 5ch;">\
+                                        <input class="wc_input_decimal" type="text" name="packaging[' + size + '][max_content_weight]" placeholder="0" />\
+                                    </td>\
+								</tr>').appendTo('#packaging_list_wrapper table tbody');
 
                             return false;
                         });

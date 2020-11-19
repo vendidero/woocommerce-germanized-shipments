@@ -97,6 +97,13 @@ abstract class Shipment extends WC_Data {
 	 */
 	protected $heights = null;
 
+	/**
+	 * Packaging
+	 *
+	 * @var null|Packaging
+	 */
+	protected $packaging = null;
+
     /**
      * Stores shipment data.
      *
@@ -120,6 +127,7 @@ abstract class Shipment extends WC_Data {
         'total'                 => 0,
 	    'additional_total'      => 0,
         'est_delivery_date'     => null,
+	    'packaging_id'          => 0,
     );
 
 	/**
@@ -1159,7 +1167,7 @@ abstract class Shipment extends WC_Data {
     }
 
 	/**
-	 * Set shipment width in cm.
+	 * Set shipment width.
 	 *
 	 * @param string $width The width.
 	 */
@@ -1176,7 +1184,7 @@ abstract class Shipment extends WC_Data {
 	}
 
 	/**
-	 * Set shipment length in cm.
+	 * Set shipment length.
 	 *
 	 * @param string $length The length.
 	 */
@@ -1185,7 +1193,7 @@ abstract class Shipment extends WC_Data {
     }
 
 	/**
-	 * Set shipment height in cm.
+	 * Set shipment height.
 	 *
 	 * @param string $height The height.
 	 */
@@ -1278,6 +1286,17 @@ abstract class Shipment extends WC_Data {
 	 */
 	public function set_shipping_provider( $provider ) {
 		$this->set_prop( 'shipping_provider', wc_gzd_get_shipping_provider_slug( $provider ) );
+	}
+
+	/**
+	 * Set packaging id.
+	 *
+	 * @param integer $packaging_id The packaging id.
+	 */
+	public function set_packaging_id( $packaging_id ) {
+		$this->set_prop( 'packaging_id', absint( $packaging_id ) );
+
+		$this->packaging = null;
 	}
 
     /**
@@ -1562,6 +1581,24 @@ abstract class Shipment extends WC_Data {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Returns the packaging id belonging to the shipment.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return integer
+	 */
+	public function get_packaging_id( $context = 'view' ) {
+		return $this->get_prop( 'packaging_id', $context );
+	}
+
+	public function get_packaging() {
+		if ( is_null( $this->packaging ) && $this->get_packaging_id() > 0 ) {
+			$this->packaging = wc_gzd_get_packaging( $this->get_packaging_id() );
+		}
+
+		return $this->packaging;
 	}
 
 	/**
