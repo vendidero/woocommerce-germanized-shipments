@@ -190,6 +190,7 @@ class Bootstrap {
 		require_once $this->wc_tests_dir . '/framework/helpers/class-wc-helper-shipping.php';
 
 		require_once $this->tests_dir . '/Helpers/ShipmentHelper.php';
+		require_once $this->tests_dir . '/Helpers/PackagingHelper.php';
 	}
 }
 
