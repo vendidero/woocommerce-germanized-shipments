@@ -24,15 +24,15 @@ class PackagingHelper {
 	 * @return Packaging
 	 */
 	public static function create_packaging( $props = array() ) {
-
 		$props = wp_parse_args( array(
-			'type'        => 'cardboard',
-			'weight'      => 1.5,
-			'length'      => 50.3,
-			'width'       => 20.4,
-			'height'      => 10.1,
-			'description' => 'Test',
-		) );
+			'type'               => 'cardboard',
+			'weight'             => 1.51,
+			'length'             => 50.3,
+			'width'              => 20.4,
+			'height'             => 10.1,
+			'max_content_weight' => 2.53,
+			'description'        => 'Test',
+		), $props );
 
 		$packaging = wc_gzd_get_packaging( 0 );
 		$packaging->set_props( $props );
