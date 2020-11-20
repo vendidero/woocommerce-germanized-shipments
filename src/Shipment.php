@@ -493,7 +493,7 @@ abstract class Shipment extends WC_Data {
             $this->heights = array();
 
             foreach( $this->get_items() as $item ) {
-                $this->heights[ $item->get_id() ] = $item->get_height() === '' ? 0 : $item->get_height();
+                $this->heights[ $item->get_id() ] = ( $item->get_height() === '' ? 0 : $item->get_height() ) * $item->get_quantity();
             }
 
             if ( empty( $this->heights ) ) {
