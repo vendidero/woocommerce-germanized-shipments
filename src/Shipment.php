@@ -537,7 +537,7 @@ abstract class Shipment extends WC_Data {
 	 * @return float
 	 */
     public function get_content_height() {
-        return wc_format_decimal( max( $this->get_item_heights() ) );
+        return wc_format_decimal( array_sum( $this->get_item_heights() ) );
     }
 
 	/**
