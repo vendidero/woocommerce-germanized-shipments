@@ -151,6 +151,7 @@ class SimpleShipment extends Shipment {
 				'country'           => $order->get_shipping_country(),
 				'shipping_method'   => wc_gzd_get_shipment_order_shipping_method_id( $order ),
 				'shipping_provider' => ( ! empty( $provider ) ) ? $provider : $default_provider,
+				'packaging_id'      => $this->get_packaging_id( 'edit' ),
 				'address'           => $address_data,
 				'weight'            => $this->get_weight( 'edit' ),
 				'length'            => $this->get_length( 'edit' ),

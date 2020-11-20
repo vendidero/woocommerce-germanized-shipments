@@ -711,6 +711,7 @@ class Admin {
                     'remove_label_nonce'              => wp_create_nonce( 'remove-shipment-label' ),
                     'edit_label_nonce'                => wp_create_nonce( 'edit-shipment-label' ),
                     'send_return_notification_nonce'  => wp_create_nonce( 'send-return-shipment-notification' ),
+                    'refresh_packaging_nonce'         => wp_create_nonce( 'refresh-shipment-packaging' ),
                     'confirm_return_request_nonce'    => wp_create_nonce( 'confirm-return-request' ),
                     'i18n_remove_label_notice'        => _x( 'Do you really want to delete the label?', 'shipments', 'woocommerce-germanized-shipments' ),
                     'i18n_create_label_enabled'       => _x( 'Create new label', 'shipments', 'woocommerce-germanized-shipments' ),

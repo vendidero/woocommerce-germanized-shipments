@@ -52,6 +52,8 @@ window.germanized.admin = window.germanized.admin || {};
 
             $( '#shipment-' + this.vars.id + ' #shipment-shipping-provider-' + this.vars.id ).on( 'change', this.onChangeProvider.bind( this ) );
 
+            $( '#shipment-' + this.vars.id + ' .wc-gzd-shipment-dimension, #shipment-' + this.vars.id + ' .wc-gzd-shipment-weight' ).on( 'change', this.onChangeDimensions.bind( this ) );
+
             $( '#shipment-' + this.vars.id + ' #shipment-items-' + this.vars.id )
                 .on( 'change', '.item-quantity', this.onChangeQuantity.bind( this ) )
                 .on( 'click', 'a.remove-shipment-item', this.onRemoveItem.bind( this ) )
@@ -65,6 +67,35 @@ window.germanized.admin = window.germanized.admin || {};
             $( '#shipment-' + this.vars.id + ' .wc-gzd-shipment-label' )
                 .on( 'click', '.create-shipment-label:not(.disabled)', this.onCreateLabel.bind( this ) )
                 .on( 'click', '.remove-shipment-label', this.onRemoveLabel.bind( this ) );
+        };
+
+        this.blockPackaging = function() {
+            this.getShipmentContent().find( '.wc-gzd-shipment-packaging-wrapper' ).block({
+                message: null,
+                overlayCSS: {
+                    background: '#fff',
+                    opacity: 0.6
+                }
+            });
+        };
+
+        this.unblockPackaging = function() {
+            this.getShipmentContent().find( '.wc-gzd-shipment-packaging-wrapper' ).unblock();
+        };
+
+        this.refreshPackaging = function() {
+            var params = {
+                'action'       : 'woocommerce_gzd_refresh_shipment_packaging',
+                'shipment_id'  : this.getId(),
+                'security'     : germanized.admin.shipments.getParams().refresh_packaging_nonce
+            };
+
+            this.blockPackaging();
+            germanized.admin.shipments.doAjax( params, this.unblockPackaging.bind( this ), this.unblockPackaging.bind( this ) );
+        };
+
+        this.onChangeDimensions = function() {
+            this.refreshPackaging();
         };
 
         this.onSendReturnNotification = function() {
@@ -193,6 +224,10 @@ window.germanized.admin = window.germanized.admin || {};
 
         this.setHeight = function( height ) {
             this.getShipment().find( '#shipment-height-' + this.getId() ).attr( 'placeholder', height );
+        };
+
+        this.setTotalWeight = function( weight ) {
+
         };
 
         this.setIsEditable = function( isEditable ) {

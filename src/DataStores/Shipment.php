@@ -58,7 +58,8 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	    'est_delivery_date_gmt',
         'status',
 	    'shipping_provider',
-	    'shipping_method'
+	    'shipping_method',
+	    'packaging_id'
     );
 
     /*
@@ -86,6 +87,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
             'shipment_tracking_id'       => $shipment->get_tracking_id(),
             'shipment_status'            => $this->get_status( $shipment ),
             'shipment_search_index'      => $this->get_search_index( $shipment ),
+            'shipment_packaging_id'      => $shipment->get_packaging_id(),
             'shipment_type'              => $shipment->get_type(),
             'shipment_shipping_provider' => $shipment->get_shipping_provider(),
             'shipment_shipping_method'   => $shipment->get_shipping_method(),
@@ -321,6 +323,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
                     'tracking_id'       => $data->shipment_tracking_id,
                     'shipping_provider' => $data->shipment_shipping_provider,
                     'shipping_method'   => $data->shipment_shipping_method,
+                    'packaging_id'      => $data->shipment_packaging_id,
                     'date_created'      => 0 < $data->shipment_date_created_gmt ? wc_string_to_timestamp( $data->shipment_date_created_gmt ) : null,
                     'date_sent'         => 0 < $data->shipment_date_sent_gmt ? wc_string_to_timestamp( $data->shipment_date_sent_gmt ) : null,
                     'est_delivery_date' => 0 < $data->shipment_est_delivery_date_gmt ? wc_string_to_timestamp( $data->shipment_est_delivery_date_gmt ) : null,

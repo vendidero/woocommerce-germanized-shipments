@@ -322,6 +322,16 @@ abstract class Shipment extends WC_Data {
         return $weight;
     }
 
+    public function get_total_weight() {
+    	$weight = $this->get_weight();
+
+    	if ( $packaging = $this->get_packaging() ) {
+    		$weight += $packaging->get_weight();
+	    }
+
+    	return apply_filters( "{$this->get_hook_prefix()}total_weight", $weight, $this );
+    }
+
 	/**
 	 * Returns the shipment weight unit.
 	 *
@@ -1599,6 +1609,27 @@ abstract class Shipment extends WC_Data {
 		}
 
 		return $this->packaging;
+	}
+
+	public function get_available_packaging() {
+		$packaging_store = \WC_Data_Store::load( 'packaging' );
+
+		return apply_filters( "{$this->get_hook_prefix()}available_packaging", $packaging_store->find_available_packaging_for_shipment( $this ), $this );
+	}
+
+	public function get_default_packaging() {
+		$packaging_store   = \WC_Data_Store::load( 'packaging' );
+		$default_packaging = $packaging_store->find_best_match_for_shipment( $this );
+
+		if ( ! $default_packaging ) {
+			$setting = Package::get_setting( 'default_packaging' );
+
+			if ( ! empty( $setting ) && wc_gzd_get_packaging( $setting ) ) {
+				$default_packaging = wc_gzd_get_packaging( $setting );
+			}
+		}
+
+		return apply_filters( "{$this->get_hook_prefix()}default_packaging_id", $default_packaging, $this );
 	}
 
 	/**
