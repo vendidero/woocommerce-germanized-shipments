@@ -491,10 +491,10 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 	public function find_available_packaging_for_shipment( $shipment, $types = array(), $limit = -1 ) {
 		global $wpdb;
 
-		$weight = wc_format_decimal( empty( $shipment->get_weight() ) ? 0 : wc_get_weight( $shipment->get_weight(), 'kg', $shipment->get_weight_unit() ), 1 );
-		$length = wc_format_decimal( empty( $shipment->get_length() ) ? 0 : wc_get_dimension( $shipment->get_length(), 'cm', $shipment->get_dimension_unit() ), 1 );
-		$width  = wc_format_decimal( empty( $shipment->get_width() ) ? 0 : wc_get_dimension( $shipment->get_width(), 'cm', $shipment->get_dimension_unit() ), 1 );
-		$height = wc_format_decimal( empty( $shipment->get_height() ) ? 0 :  wc_get_dimension( $shipment->get_height(), 'cm', $shipment->get_dimension_unit() ), 1 );
+		$weight = wc_format_decimal( empty( $shipment->get_weight() ) ? 0 : wc_get_weight( $shipment->get_weight(), wc_gzd_get_packaging_weight_unit(), $shipment->get_weight_unit() ), 1 );
+		$length = wc_format_decimal( empty( $shipment->get_length() ) ? 0 : wc_get_dimension( $shipment->get_length(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );
+		$width  = wc_format_decimal( empty( $shipment->get_width() ) ? 0 : wc_get_dimension( $shipment->get_width(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );
+		$height = wc_format_decimal( empty( $shipment->get_height() ) ? 0 :  wc_get_dimension( $shipment->get_height(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );
 
 		if ( ! is_array( $types ) ) {
 			$types = array( $types );

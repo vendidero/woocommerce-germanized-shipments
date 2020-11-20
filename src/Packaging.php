@@ -231,14 +231,14 @@ class Packaging extends WC_Data {
 	 */
 	public function get_dimensions() {
 		return array(
-			'length' => $this->get_length(),
-			'width'  => $this->get_width(),
-			'height' => $this->get_height(),
+			'length' => wc_format_decimal( $this->get_length(), false, true ),
+			'width'  => wc_format_decimal( $this->get_width(), false, true ),
+			'height' => wc_format_decimal( $this->get_height(), false, true ),
 		);
 	}
 
 	public function get_formatted_dimensions() {
-		return wc_gzd_format_shipment_dimensions( $this->get_dimensions(), 'kg' );
+		return wc_gzd_format_shipment_dimensions( $this->get_dimensions(), wc_gzd_get_packaging_dimension_unit() );
 	}
 
 	/**
@@ -257,6 +257,17 @@ class Packaging extends WC_Data {
 	 */
 	public function set_weight( $weight ) {
 		$this->set_prop( 'weight', empty( $weight ) ? 0 : wc_format_decimal( $weight, 2 ) );
+	}
+
+	public function get_title() {
+		$description = $this->get_description();
+
+		return sprintf(
+			_x( '%1$s (%2$s, %3$s)', 'shipments-packaging-title', 'woocommerce-germanized-shipments' ),
+			$description,
+			$this->get_formatted_dimensions(),
+			wc_gzd_format_shipment_weight( wc_format_decimal( $this->get_weight(), false, true ), wc_gzd_get_packaging_weight_unit() )
+		);
 	}
 
 	/**

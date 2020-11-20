@@ -20,10 +20,10 @@ $default_exists_in_list = false;
             $default_exists_in_list = true;
         }
         ?>
-		<option value="<?php echo esc_attr( $packaging->get_id() ); ?>" <?php selected( $packaging->get_id(), $shipment->get_packaging_id(), true ); ?>><?php echo $packaging->get_description(); ?></option>
+		<option value="<?php echo esc_attr( $packaging->get_id() ); ?>" <?php selected( $packaging->get_id(), $shipment->get_packaging_id(), true ); ?>><?php echo $packaging->get_title(); ?></option>
 	<?php endforeach; ?>
 
     <?php if ( ! $default_exists_in_list && $default_packaging ) : ?>
-        <option value="<?php echo esc_attr( $default_packaging->get_id() ); ?>" <?php selected( $default_packaging->get_id(), $shipment->get_packaging_id(), true ); ?>><?php echo $default_packaging->get_description(); ?> (<?php _ex( 'Does not fit', 'shipments', 'woocommerce-germanized-shipments' ); ?>)</option>
+        <option value="<?php echo esc_attr( $default_packaging->get_id() ); ?>" <?php selected( $default_packaging->get_id(), $shipment->get_packaging_id(), true ); ?>><?php echo $default_packaging->get_title(); ?> (<?php _ex( 'Does not fit', 'shipments', 'woocommerce-germanized-shipments' ); ?>)</option>
     <?php endif; ?>
 </select>

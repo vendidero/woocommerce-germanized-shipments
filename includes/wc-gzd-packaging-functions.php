@@ -38,6 +38,14 @@ function wc_gzd_get_packaging_list() {
 	return $list;
 }
 
+function wc_gzd_get_packaging_weight_unit() {
+	return apply_filters( 'woocommerce_gzd_packaging_weight_unit', 'kg' );
+}
+
+function wc_gzd_get_packaging_dimension_unit() {
+	return apply_filters( 'woocommerce_gzd_packaging_dimension_unit', 'cm' );
+}
+
 function wc_gzd_get_packaging_select() {
 	$list   = wc_gzd_get_packaging_list();
 	$select = array(
@@ -45,7 +53,7 @@ function wc_gzd_get_packaging_select() {
 	);
 
 	foreach( $list as $packaging ) {
-		$select[ $packaging->get_id() ] = $packaging->get_description();
+		$select[ $packaging->get_id() ] = $packaging->get_title();
 	}
 
 	return $select;
