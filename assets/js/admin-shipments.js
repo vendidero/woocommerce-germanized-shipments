@@ -251,6 +251,7 @@ window.germanized.admin = window.germanized.admin || {};
                                 shipment.setLength( shipmentData[ shipmentId ].length );
                                 shipment.setWidth( shipmentData[ shipmentId ].width );
                                 shipment.setHeight( shipmentData[ shipmentId ].height );
+                                shipment.setTotalWeight( shipmentData[ shipmentId ].total_weight );
                             }
                         });
 

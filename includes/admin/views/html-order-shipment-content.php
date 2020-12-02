@@ -26,19 +26,30 @@ defined( 'ABSPATH' ) || exit;
         do_action( 'woocommerce_gzd_shipment_admin_before_columns', $shipment ); ?>
 
         <div class="column col-6">
-            <p class="form-row">
-                <label for="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php printf( _x( 'Weight (%s)', 'shipments', 'woocommerce-germanized-shipments' ), $shipment->get_weight_unit() ); ?></label>
-                <input type="text" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_weight( 'edit' ) ) ); ?>" name="shipment_weight[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_weight() ) ); ?>" />
-            </p>
+            <div class="columns">
+                <div class="column col-4">
+                    <p class="form-row">
+                        <label for="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php printf( _x( 'Content (%s)', 'shipments', 'woocommerce-germanized-shipments' ), $shipment->get_weight_unit() ); ?></label>
+                        <input type="text" class="wc_input_decimal wc-gzd-shipment-weight" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_weight( 'edit' ) ) ); ?>" name="shipment_weight[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-weight-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_weight() ) ); ?>" />
+                    </p>
+                </div>
+                <div class="column col-8">
+                    <p class="form-row dimensions_field">
+                        <label for="shipment-length-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php printf( _x( 'Dimensions (%s)', 'shipments', 'woocommerce-germanized-shipments' ), $shipment->get_dimension_unit() ); ?><?php echo wc_help_tip( _x( 'LxWxH in decimal form.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></label>
 
-            <p class="form-row dimensions_field">
-                <label for="shipment-length-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php printf( _x( 'Dimensions (%s)', 'shipments', 'woocommerce-germanized-shipments' ), $shipment->get_dimension_unit() ); ?><?php echo wc_help_tip( _x( 'LxWxH in decimal form.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></label>
+                        <span class="input-inner-wrap">
+                            <input type="text" size="6" class="wc_input_decimal wc-gzd-shipment-dimension" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_length( 'edit' ) ) ); ?>" name="shipment_length[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-length-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_length() ) ); ?>" />
+                            <input type="text" size="6" class="wc_input_decimal wc-gzd-shipment-dimension" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_width( 'edit' ) ) ); ?>" name="shipment_width[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-width-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_width() ) ); ?>" />
+                            <input type="text" size="6" class="wc_input_decimal wc-gzd-shipment-dimension" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_height( 'edit' ) ) ); ?>" name="shipment_height[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-height-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_height() ) ); ?>" />
+                        </span>
+                    </p>
+                </div>
+            </div>
 
-                <span class="input-inner-wrap">
-                    <input type="text" size="6" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_length( 'edit' ) ) ); ?>" name="shipment_length[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-length-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_length() ) ); ?>" />
-                    <input type="text" size="6" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_width( 'edit' ) ) ); ?>" name="shipment_width[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-width-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_width() ) ); ?>" />
-                    <input type="text" size="6" class="wc_input_decimal" value="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_height( 'edit' ) ) ); ?>" name="shipment_height[<?php echo esc_attr( $shipment->get_id() ); ?>]" id="shipment-height-<?php echo esc_attr( $shipment->get_id() ); ?>" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $shipment->get_content_height() ) ); ?>" />
-                </span>
+            <p class="form-row wc-gzd-shipment-packaging-wrapper">
+                <label for="shipment-packaging-<?php echo esc_attr( $shipment->get_id() ); ?>"><?php _ex( 'Packaging', 'shipments', 'woocommerce-germanized-shipments' ); ?></label>
+
+                <?php include 'html-order-shipment-packaging-select.php'; ?>
             </p>
         </div>
 

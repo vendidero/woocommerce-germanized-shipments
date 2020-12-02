@@ -30,6 +30,7 @@ class Ajax {
             'add_shipment',
             'remove_shipment',
             'remove_shipment_item',
+            'refresh_shipment_packaging',
             'limit_shipment_item_quantity',
             'save_shipments',
             'sync_shipment_items',
@@ -771,7 +772,7 @@ class Ajax {
             '#shipment-' . $shipment->get_id() . ' .item-count:first' => self::get_item_count_html( $shipment, $order_shipment ),
         );
 
-        self::send_json_success( $response, $order_shipment );
+        self::send_json_success( $response, $order_shipment, $shipment );
     }
 
     public static function json_search_orders() {
@@ -839,6 +840,67 @@ class Ajax {
 		$status_html = '<span class="order-return-status status-' . esc_attr( $order_shipment->get_return_status() ) . '">' . wc_gzd_get_shipment_order_return_status_name( $order_shipment->get_return_status() ) . '</span>';
 
 		return $status_html;
+	}
+
+	public static function refresh_shipment_packaging() {
+		check_ajax_referer( 'refresh-shipment-packaging', 'security' );
+
+		if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['shipment_id'] ) ) {
+			wp_die( -1 );
+		}
+
+		$response_error = array(
+			'success' => false,
+			'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
+		);
+
+		$response = array(
+			'success' => true,
+			'message' => '',
+		);
+
+		$shipment_id = absint( $_POST['shipment_id'] );
+
+		if ( ! $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
+			wp_send_json( $response_error );
+		}
+
+		$response['fragments'] = array(
+			'#shipment-' . $shipment->get_id() . ' .shipment-packaging-select' => self::get_packaging_select_html( $shipment ),
+		);
+
+		wp_send_json( $response );
+	}
+
+	protected static function get_packaging_select_html( $shipment ) {
+    	$shipment_id = $shipment->get_id();
+
+		$data = array(
+			'weight' => isset( $_POST['shipment_weight'][ $shipment_id ] ) ? wc_clean( wp_unslash( $_POST['shipment_weight'][ $shipment_id ] ) ) : '',
+			'length' => isset( $_POST['shipment_length'][ $shipment_id ] ) ? wc_clean( wp_unslash( $_POST['shipment_length'][ $shipment_id ] ) ) : '',
+			'width'  => isset( $_POST['shipment_width'][ $shipment_id ] ) ? wc_clean( wp_unslash( $_POST['shipment_width'][ $shipment_id ] ) ) : '',
+			'height' => isset( $_POST['shipment_height'][ $shipment_id ] ) ? wc_clean( wp_unslash( $_POST['shipment_height'][ $shipment_id ] ) ) : '',
+		);
+
+		$data = array_filter( $data );
+
+		/**
+		 * In case no data was transmitted - use content data instead.
+		 */
+		$data = wp_parse_args( $data, array(
+			'weight' => $shipment->get_content_weight(),
+			'length' => $shipment->get_content_length(),
+			'width'  => $shipment->get_content_width(),
+			'height' => $shipment->get_content_height()
+		) );
+
+		$shipment->set_props( $data );
+
+		ob_start();
+		include( Package::get_path() . '/includes/admin/views/html-order-shipment-packaging-select.php' );
+		$html = ob_get_clean();
+
+		return $html;
 	}
 
     public static function save_shipments() {
@@ -1055,7 +1117,7 @@ class Ajax {
             '#shipment-' . $shipment->get_id() . ' .item-count:first' => self::get_item_count_html( $shipment, $order_shipment ),
         );
 
-        self::send_json_success( $response, $order_shipment );
+        self::send_json_success( $response, $order_shipment, $shipment );
     }
 
 	/**
@@ -1195,7 +1257,7 @@ class Ajax {
             '#shipment-' . $shipment->get_id() . ' .item-count:first' => self::get_item_count_html( $shipment, $order_shipment ),
         );
 
-        self::send_json_success( $response, $order_shipment );
+        self::send_json_success( $response, $order_shipment, $shipment );
     }
 
     public static function limit_shipment_item_quantity() {
@@ -1276,7 +1338,7 @@ class Ajax {
             '#shipment-' . $shipment->get_id() . ' .item-count:first' => self::get_item_count_html( $shipment, $order_shipment ),
         );
 
-        self::send_json_success( $response, $order_shipment );
+        self::send_json_success( $response, $order_shipment, $shipment );
     }
 
     /**
@@ -1284,13 +1346,12 @@ class Ajax {
      * @param Order $order_shipment
      * @param Shipment|bool $shipment
      */
-    private static function send_json_success( $response, $order_shipment ) {
+    private static function send_json_success( $response, $order_shipment, $current_shipment = false ) {
 
         $available_items       = $order_shipment->get_available_items_for_shipment();
         $response['shipments'] = array();
 
         foreach( $order_shipment->get_shipments() as $shipment ) {
-
         	$shipment->set_order_shipment( $order_shipment );
 
             $response['shipments'][ $shipment->get_id() ] = array(
@@ -1300,11 +1361,20 @@ class Ajax {
                 'length'        => wc_format_localized_decimal( $shipment->get_content_length() ),
                 'width'         => wc_format_localized_decimal( $shipment->get_content_width() ),
                 'height'        => wc_format_localized_decimal( $shipment->get_content_height() ),
+	            'total_weight'  => wc_format_localized_decimal( $shipment->get_total_weight() ),
             );
         }
 
         $response['order_needs_new_shipments'] = $order_shipment->needs_shipping();
 	    $response['order_needs_new_returns']   = $order_shipment->needs_return();
+
+	    if ( $current_shipment ) {
+	    	if ( ! isset( $response['fragments'] ) ) {
+	    		$response['fragments'] = array();
+		    }
+
+		    $response['fragments']['#shipment-' . $shipment->get_id() . ' .shipment-packaging-select'] = self::get_packaging_select_html( $current_shipment );
+	    }
 
         wp_send_json( $response );
     }

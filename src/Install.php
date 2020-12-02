@@ -112,6 +112,7 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipments (
   shipment_est_delivery_date_gmt datetime default NULL,
   shipment_status varchar(20) NOT NULL default 'gzd-draft',
   shipment_order_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  shipment_packaging_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
   shipment_parent_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
   shipment_country varchar(2) NOT NULL DEFAULT '',
   shipment_tracking_id varchar(200) NOT NULL DEFAULT '',
@@ -121,6 +122,7 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipments (
   shipment_shipping_method varchar(200) NOT NULL DEFAULT '',
   PRIMARY KEY  (shipment_id),
   KEY shipment_order_id (shipment_order_id),
+  KEY shipment_packaging_id (shipment_packaging_id),
   KEY shipment_parent_id (shipment_parent_id)
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipmentmeta (
@@ -130,6 +132,29 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipmentmeta (
   meta_value longtext NULL,
   PRIMARY KEY  (meta_id),
   KEY gzd_shipment_id (gzd_shipment_id),
+  KEY meta_key (meta_key(32))
+) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_packaging (
+  packaging_id BIGINT UNSIGNED NOT NULL auto_increment,
+  packaging_date_created datetime NOT NULL default '0000-00-00 00:00:00',
+  packaging_date_created_gmt datetime NOT NULL default '0000-00-00 00:00:00',
+  packaging_type varchar(200) NOT NULL DEFAULT '',
+  packaging_description TINYTEXT NOT NULL DEFAULT '',
+  packaging_weight DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT 0,
+  packaging_order BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  packaging_max_content_weight DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT 0,
+  packaging_length DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT 0,
+  packaging_width DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT 0,
+  packaging_height DECIMAL(6,2) UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY  (packaging_id)
+) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_packagingmeta (
+  meta_id BIGINT UNSIGNED NOT NULL auto_increment,
+  gzd_packaging_id BIGINT UNSIGNED NOT NULL,
+  meta_key varchar(255) default NULL,
+  meta_value longtext NULL,
+  PRIMARY KEY  (meta_id),
+  KEY gzd_packaging_id (gzd_packaging_id),
   KEY meta_key (meta_key(32))
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_provider (

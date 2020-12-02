@@ -54,6 +54,25 @@ class Package {
 	    add_action( 'init', array( __CLASS__, 'register_shortcodes' ) );
 
 	    add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
+
+	    /**
+	     * Sync packaging after items have been synced to make sure
+	     * content weights are available while choosing the matching packaging.
+	     */
+	    add_action( 'woocommerce_gzd_return_shipment_items_synced', array( __CLASS__, 'sync_packaging' ), 10 );
+	    add_action( 'woocommerce_gzd_shipment_items_synced', array( __CLASS__, 'sync_packaging' ), 10 );
+    }
+
+	/**
+	 * @param Shipment $shipment
+	 */
+    public static function sync_packaging( $shipment ) {
+	    $default_packaging = $shipment->get_default_packaging();
+	    $packaging_id      = $shipment->get_packaging_id( 'edit' );
+
+	    if ( empty( $packaging_id ) && $default_packaging ) {
+	    	$shipment->set_packaging_id( $default_packaging->get_id() );
+	    }
     }
 
     public static function add_return_shipment_guest_endpoints( $template, $template_name ) {
@@ -340,6 +359,7 @@ class Package {
         }
 
         include_once self::get_path() . '/includes/wc-gzd-shipment-functions.php';
+	    include_once self::get_path() . '/includes/wc-gzd-packaging-functions.php';
     }
 
     private static function is_frontend_request() {
@@ -376,6 +396,8 @@ class Package {
             'gzd_shipment_items'        => 'woocommerce_gzd_shipment_items',
             'gzd_shipping_provider'     => 'woocommerce_gzd_shipping_provider',
             'gzd_shipping_providermeta' => 'woocommerce_gzd_shipping_providermeta',
+            'gzd_packaging'             => 'woocommerce_gzd_packaging',
+            'gzd_packagingmeta'         => 'woocommerce_gzd_packagingmeta',
         );
 
         foreach ( $tables as $name => $table ) {
@@ -386,6 +408,7 @@ class Package {
 
     public static function register_data_stores( $stores ) {
         $stores['shipment']          = 'Vendidero\Germanized\Shipments\DataStores\Shipment';
+	    $stores['packaging']         = 'Vendidero\Germanized\Shipments\DataStores\Packaging';
         $stores['shipment-item']     = 'Vendidero\Germanized\Shipments\DataStores\ShipmentItem';
 	    $stores['shipping-provider'] = 'Vendidero\Germanized\Shipments\DataStores\ShippingProvider';
 

@@ -97,6 +97,13 @@ abstract class Shipment extends WC_Data {
 	 */
 	protected $heights = null;
 
+	/**
+	 * Packaging
+	 *
+	 * @var null|Packaging
+	 */
+	protected $packaging = null;
+
     /**
      * Stores shipment data.
      *
@@ -120,6 +127,7 @@ abstract class Shipment extends WC_Data {
         'total'                 => 0,
 	    'additional_total'      => 0,
         'est_delivery_date'     => null,
+	    'packaging_id'          => 0,
     );
 
 	/**
@@ -314,6 +322,16 @@ abstract class Shipment extends WC_Data {
         return $weight;
     }
 
+    public function get_total_weight() {
+    	$weight = $this->get_weight();
+
+    	if ( $packaging = $this->get_packaging() ) {
+    		$weight += $packaging->get_weight();
+	    }
+
+    	return apply_filters( "{$this->get_hook_prefix()}total_weight", $weight, $this );
+    }
+
 	/**
 	 * Returns the shipment weight unit.
 	 *
@@ -475,7 +493,7 @@ abstract class Shipment extends WC_Data {
             $this->heights = array();
 
             foreach( $this->get_items() as $item ) {
-                $this->heights[ $item->get_id() ] = $item->get_height() === '' ? 0 : $item->get_height();
+                $this->heights[ $item->get_id() ] = ( $item->get_height() === '' ? 0 : $item->get_height() ) * $item->get_quantity();
             }
 
             if ( empty( $this->heights ) ) {
@@ -519,7 +537,7 @@ abstract class Shipment extends WC_Data {
 	 * @return float
 	 */
     public function get_content_height() {
-        return wc_format_decimal( max( $this->get_item_heights() ) );
+        return wc_format_decimal( array_sum( $this->get_item_heights() ) );
     }
 
 	/**
@@ -1159,7 +1177,7 @@ abstract class Shipment extends WC_Data {
     }
 
 	/**
-	 * Set shipment width in cm.
+	 * Set shipment width.
 	 *
 	 * @param string $width The width.
 	 */
@@ -1176,7 +1194,7 @@ abstract class Shipment extends WC_Data {
 	}
 
 	/**
-	 * Set shipment length in cm.
+	 * Set shipment length.
 	 *
 	 * @param string $length The length.
 	 */
@@ -1185,7 +1203,7 @@ abstract class Shipment extends WC_Data {
     }
 
 	/**
-	 * Set shipment height in cm.
+	 * Set shipment height.
 	 *
 	 * @param string $height The height.
 	 */
@@ -1278,6 +1296,17 @@ abstract class Shipment extends WC_Data {
 	 */
 	public function set_shipping_provider( $provider ) {
 		$this->set_prop( 'shipping_provider', wc_gzd_get_shipping_provider_slug( $provider ) );
+	}
+
+	/**
+	 * Set packaging id.
+	 *
+	 * @param integer $packaging_id The packaging id.
+	 */
+	public function set_packaging_id( $packaging_id ) {
+		$this->set_prop( 'packaging_id', absint( $packaging_id ) );
+
+		$this->packaging = null;
 	}
 
     /**
@@ -1562,6 +1591,45 @@ abstract class Shipment extends WC_Data {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Returns the packaging id belonging to the shipment.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return integer
+	 */
+	public function get_packaging_id( $context = 'view' ) {
+		return $this->get_prop( 'packaging_id', $context );
+	}
+
+	public function get_packaging() {
+		if ( is_null( $this->packaging ) && $this->get_packaging_id() > 0 ) {
+			$this->packaging = wc_gzd_get_packaging( $this->get_packaging_id() );
+		}
+
+		return $this->packaging;
+	}
+
+	public function get_available_packaging() {
+		$packaging_store = \WC_Data_Store::load( 'packaging' );
+
+		return apply_filters( "{$this->get_hook_prefix()}available_packaging", $packaging_store->find_available_packaging_for_shipment( $this ), $this );
+	}
+
+	public function get_default_packaging() {
+		$packaging_store   = \WC_Data_Store::load( 'packaging' );
+		$default_packaging = $packaging_store->find_best_match_for_shipment( $this );
+
+		if ( ! $default_packaging ) {
+			$setting = Package::get_setting( 'default_packaging' );
+
+			if ( ! empty( $setting ) && wc_gzd_get_packaging( $setting ) ) {
+				$default_packaging = wc_gzd_get_packaging( $setting );
+			}
+		}
+
+		return apply_filters( "{$this->get_hook_prefix()}default_packaging_id", $default_packaging, $this );
 	}
 
 	/**
