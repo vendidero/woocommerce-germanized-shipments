@@ -713,6 +713,10 @@ table.wc-gzd-shipping-providers {
       p.form-row {
         margin-bottom: 1.5em;
 
+        &.wc-gzd-shipment-packaging-wrapper {
+          margin-top: 0;
+        }
+
         input[type=text], input[type=number], input[type=email] {
           height: 30px;
         }

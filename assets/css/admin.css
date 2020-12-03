@@ -431,6 +431,8 @@ table.wc-gzd-shipping-providers {
     display: block; }
   .germanized-shipments #panel-order-shipments .order-shipment p.form-row {
     margin-bottom: 1.5em; }
+    .germanized-shipments #panel-order-shipments .order-shipment p.form-row.wc-gzd-shipment-packaging-wrapper {
+      margin-top: 0; }
     .germanized-shipments #panel-order-shipments .order-shipment p.form-row input[type=text], .germanized-shipments #panel-order-shipments .order-shipment p.form-row input[type=number], .germanized-shipments #panel-order-shipments .order-shipment p.form-row input[type=email] {
       height: 30px; }
     .germanized-shipments #panel-order-shipments .order-shipment p.form-row select {
