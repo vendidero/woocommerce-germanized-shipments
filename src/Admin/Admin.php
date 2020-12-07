@@ -44,11 +44,11 @@ class Admin {
 
 	    // Return reason options
 	    add_action( 'woocommerce_admin_field_shipment_return_reasons', array( __CLASS__, 'output_return_reasons_field' ) );
-	    add_action( 'woocommerce_gzd_admin_settings_after_save_shipments', array( __CLASS__, 'save_return_reasons' ) );
+	    add_action( 'woocommerce_gzd_admin_settings_after_save_shipments', array( __CLASS__, 'save_return_reasons' ), 10, 2 );
 
 	    // Packaging options
 	    add_action( 'woocommerce_admin_field_packaging_list', array( __CLASS__, 'output_packaging_list' ) );
-	    add_action( 'woocommerce_gzd_admin_settings_after_save_shipments', array( __CLASS__, 'save_packaging_list' ) );
+	    add_action( 'woocommerce_gzd_admin_settings_after_save_shipments_packaging', array( __CLASS__, 'save_packaging_list' ), 10 );
 
 	    // Menu count
 	    add_action( 'admin_head', array( __CLASS__, 'menu_return_count' ) );
@@ -135,17 +135,18 @@ class Admin {
     }
 
     public static function save_packaging_list() {
+	    $current_key_list         = array();
+	    $packaging_ids_after_save = array();
+
+	    foreach( wc_gzd_get_packaging_list() as $pack ) {
+		    $current_key_list[] = $pack->get_id();
+	    }
+
 	    // phpcs:disable WordPress.Security.NonceVerification.NoNonceVerification -- Nonce verification already handled in WC_Admin_Settings::save()
 	    if ( isset( $_POST['packaging'] ) ) {
-		    $packaging_post           = wc_clean( wp_unslash( $_POST['packaging'] ) );
-		    $order                    = 0;
-		    $available_types          = array_keys( wc_gzd_get_packaging_types() );
-		    $packaging_ids_after_save = array();
-		    $current_key_list         = array();
-
-		    foreach( wc_gzd_get_packaging_list() as $pack ) {
-		        $current_key_list[] = $pack->get_id();
-            }
+		    $packaging_post  = wc_clean( wp_unslash( $_POST['packaging'] ) );
+		    $order           = 0;
+		    $available_types = array_keys( wc_gzd_get_packaging_types() );
 
 		    foreach( $packaging_post as $packaging ) {
 		        $packaging     = wc_clean( $packaging );
@@ -177,20 +178,24 @@ class Admin {
 		            $packaging_ids_after_save[] = $packaging_obj->get_id();
                 }
 		    }
+	    }
 
-		    $to_delete = array_diff( $current_key_list, $packaging_ids_after_save );
+	    $to_delete = array_diff( $current_key_list, $packaging_ids_after_save );
 
-		    if ( ! empty( $to_delete ) ) {
-		        foreach( $to_delete as $delete_id ) {
-		           if ( $packaging = wc_gzd_get_packaging( $delete_id ) ) {
-		               $packaging->delete( true );
-                   }
-                }
-            }
+	    if ( ! empty( $to_delete ) ) {
+		    foreach( $to_delete as $delete_id ) {
+			    if ( $packaging = wc_gzd_get_packaging( $delete_id ) ) {
+				    $packaging->delete( true );
+			    }
+		    }
 	    }
     }
 
-    public static function save_return_reasons() {
+    public static function save_return_reasons( $tab, $current_section ) {
+        if ( '' !== $current_section ) {
+            return;
+        }
+
 	    $reasons = array();
 
 	    // phpcs:disable WordPress.Security.NonceVerification.NoNonceVerification -- Nonce verification already handled in WC_Admin_Settings::save()

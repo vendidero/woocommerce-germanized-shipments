@@ -13,6 +13,9 @@ class Install {
 		self::create_upload_dir();
 		self::create_tables();
 		self::maybe_create_return_reasons();
+		self::maybe_create_packaging();
+
+		update_option( 'woocommerce_gzd_shipments_db_version', Package::get_version() );
 
 		do_action( 'woocommerce_flush_rewrite_rules' );
 	}
@@ -40,6 +43,71 @@ class Install {
 			);
 
 			update_option( 'woocommerce_gzd_shipments_return_reasons', $default_reasons );
+		}
+	}
+
+	private static function get_db_version() {
+		return get_option( 'woocommerce_gzd_shipments_db_version', null );
+	}
+
+	private static function maybe_create_packaging() {
+		$packaging  = wc_gzd_get_packaging_list();
+		$db_version = self::get_db_version();
+
+		if ( empty( $packaging ) && is_null( $db_version ) ) {
+			$defaults = array(
+				array(
+					'description'        => _x( 'Cardboard S', 'shipments', 'woocommerce-germanized-shipments' ),
+					'length'             => 25,
+					'width'              => 17.5,
+					'height'             => 10,
+					'weight'             => 0.14,
+					'max_content_weight' => 30,
+					'type'               => 'cardboard'
+				),
+				array(
+					'description'        => _x( 'Cardboard M', 'shipments', 'woocommerce-germanized-shipments' ),
+					'length'             => 37.5,
+					'width'              => 30,
+					'height'             => 13.5,
+					'weight'             => 0.23,
+					'max_content_weight' => 30,
+					'type'               => 'cardboard'
+				),
+				array(
+					'description'        => _x( 'Cardboard L', 'shipments', 'woocommerce-germanized-shipments' ),
+					'length'             => 45,
+					'width'              => 35,
+					'height'             => 20,
+					'weight'             => 0.3,
+					'max_content_weight' => 30,
+					'type'               => 'cardboard'
+				),
+				array(
+					'description'        => _x( 'Letter C5/6', 'shipments', 'woocommerce-germanized-shipments' ),
+					'length'             => 22,
+					'width'              => 11,
+					'height'             => 1,
+					'weight'             => 0,
+					'max_content_weight' => 0.05,
+					'type'               => 'letter'
+				),
+				array(
+					'description'        => _x( 'Letter C4', 'shipments', 'woocommerce-germanized-shipments' ),
+					'length'             => 22.9,
+					'width'              => 32.4,
+					'height'             => 2,
+					'weight'             => 0.01,
+					'max_content_weight' => 1,
+					'type'               => 'letter'
+				),
+			);
+
+			foreach( $defaults as $default ) {
+				$packaging = new Packaging();
+				$packaging->set_props( $default );
+				$packaging->save();
+			}
 		}
 	}
 
