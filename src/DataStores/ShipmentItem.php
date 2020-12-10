@@ -1,6 +1,8 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\DataStores;
+
+use Exception;
 use WC_Data;
 use WC_Data_Store_WP;
 use WC_Object_Data_Store_Interface;
