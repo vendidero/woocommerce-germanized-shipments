@@ -33,9 +33,9 @@ jobs:
           coverage: xdebug #optional, setup coverage driver
 
       - name: Composer install
-          run: composer config github-oauth.github.com ${{ secrets.GH_TOKEN }} && composer install --optimize-autoloader --prefer-dist
-          env:
-            GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: composer config github-oauth.github.com ${{ secrets.GH_TOKEN }} && composer install --optimize-autoloader --prefer-dist
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
       - name: Check PHP Version
         run: php -v
