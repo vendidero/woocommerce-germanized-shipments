@@ -778,6 +778,15 @@ class Admin {
 	    // Shipping provider method
 	    if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] && ( isset( $_GET['zone_id'] ) || isset( $_GET['instance_id'] ) ) ) {
 		    wp_enqueue_script( 'wc-gzd-admin-shipping-provider-method' );
+		    $providers = array_filter( array_keys( wc_gzd_get_shipping_provider_select() ) );
+
+		    wp_localize_script(
+			    'wc-gzd-admin-shipping-provider-method',
+			    'wc_gzd_admin_shipping_provider_method_params',
+			    array(
+				    'shipping_providers' => $providers,
+			    )
+		    );
 	    }
     }
 

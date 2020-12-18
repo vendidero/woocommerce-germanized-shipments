@@ -14,6 +14,8 @@ window.germanized.admin = window.germanized.admin || {};
         init: function () {
             var self = germanized.admin.shipping_provider_method;
 
+            self.params = wc_gzd_admin_shipping_provider_method_params;
+
             $( document ).on( 'change', 'select[id$=shipping_provider]', self.showOrHideAll );
             $( document.body ).on( 'wc_backbone_modal_loaded', self.onShippingMethodOpen );
 
