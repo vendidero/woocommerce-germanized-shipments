@@ -380,6 +380,16 @@ abstract class Shipment extends WC_Data {
         return $length;
     }
 
+    public function get_package_length() {
+    	if ( $packaging = $this->get_packaging() ) {
+    		$length = wc_get_dimension( $packaging->get_length(), $this->get_dimension_unit(), 'cm' );
+	    } else {
+		    $length = $this->get_length();
+	    }
+
+    	return $length;
+    }
+
 	/**
 	 * Returns the shipment width. In case view context was chosen and width is not yet set, returns the content width.
 	 *
@@ -396,6 +406,16 @@ abstract class Shipment extends WC_Data {
         return $width;
     }
 
+	public function get_package_width() {
+		if ( $packaging = $this->get_packaging() ) {
+			$width = wc_get_dimension( $packaging->get_width(), $this->get_dimension_unit(), 'cm' );
+		} else {
+			$width = $this->get_width();
+		}
+
+		return $width;
+	}
+
 	/**
 	 * Returns the shipment height. In case view context was chosen and height is not yet set, returns the content height.
 	 *
@@ -411,6 +431,16 @@ abstract class Shipment extends WC_Data {
 
         return $height;
     }
+
+	public function get_package_height() {
+		if ( $packaging = $this->get_packaging() ) {
+			$height = wc_get_dimension( $packaging->get_height(), $this->get_dimension_unit(), 'cm' );
+		} else {
+			$height = $this->get_height();
+		}
+
+		return $height;
+	}
 
     public function has_dimensions() {
     	$width  = $this->get_width();
@@ -1004,6 +1034,19 @@ abstract class Shipment extends WC_Data {
             'height' => $this->get_height(),
         );
     }
+
+	/**
+	 * Returns dimensions.
+	 *
+	 * @return string|array
+	 */
+	public function get_package_dimensions() {
+		return array(
+			'length' => $this->get_package_length(),
+			'width'  => $this->get_package_width(),
+			'height' => $this->get_package_height(),
+		);
+	}
 
     public function get_formatted_dimensions() {
 	    return wc_gzd_format_shipment_dimensions( $this->get_dimensions(), $this->get_dimension_unit() );
