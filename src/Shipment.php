@@ -942,6 +942,14 @@ abstract class Shipment extends WC_Data {
         return $this->get_address_prop( 'state', $context );
     }
 
+    public function get_formatted_state() {
+    	if ( '' === $this->get_state() || '' === $this->get_country() ) {
+    		return '';
+	    }
+
+	    return wc_gzd_get_formatted_state( $this->get_state(), $this->get_country() );
+    }
+
 	/**
 	 * Returns the shipment address country.
 	 *
@@ -1317,10 +1325,20 @@ abstract class Shipment extends WC_Data {
 	 * @param string $country The country in ISO format.
 	 */
     public function set_country( $country ) {
-        $address            = $this->get_address();
-        $address['country'] = $country;
+        $this->set_address_prop( 'country', $country );
+    }
 
-        $this->set_address( $address );
+	/**
+	 * Update a specific address prop.
+	 *
+	 * @param $prop
+	 * @param $value
+	 */
+    protected function set_address_prop( $prop, $value ) {
+	    $address          = $this->get_address();
+	    $address[ $prop ] = $value;
+
+	    $this->set_address( $address );
     }
 
 	/**

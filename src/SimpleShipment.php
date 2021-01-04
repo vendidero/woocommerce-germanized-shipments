@@ -160,6 +160,18 @@ class SimpleShipment extends Shipment {
 				'additional_total'  => $this->calculate_additional_total( $order ),
 			) );
 
+			/**
+			 * Filter to allow adjusting the shipment props synced from the corresponding order.
+			 *
+			 * @param mixed          $args The properties in key => value pairs.
+			 * @param SimpleShipment $shipment The shipment object.
+			 * @param Order          $order_shipment The shipment order object.
+			 *
+			 * @since 3.0.0
+			 * @package Vendidero/Germanized/Shipments
+			 */
+			$args = apply_filters( 'woocommerce_gzd_shipment_sync_props', $args, $this, $order_shipment );
+
 			$this->set_props( $args );
 
 			/**

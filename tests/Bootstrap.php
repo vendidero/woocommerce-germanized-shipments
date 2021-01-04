@@ -129,6 +129,7 @@ class Bootstrap {
 				exit( 1 );
 			}
 		}
+
 		return $dir;
 	}
 

@@ -386,6 +386,14 @@ class ReturnShipment extends Shipment {
 		return $this->get_sender_address_prop( 'state', $context );
 	}
 
+	public function get_formatted_sender_state() {
+		if ( '' === $this->get_sender_state() || '' === $this->get_sender_country() ) {
+			return '';
+		}
+
+		return wc_gzd_get_formatted_state( $this->get_sender_state(), $this->get_sender_country() );
+	}
+
 	/**
 	 * Returns the sender address country.
 	 *
@@ -441,6 +449,18 @@ class ReturnShipment extends Shipment {
 				'width'             => $this->get_width( 'edit' ),
 				'height'            => $this->get_height( 'edit' ),
 			) );
+
+			/**
+			 * Filter to allow adjusting the return shipment props synced from the corresponding order.
+			 *
+			 * @param mixed          $args The properties in key => value pairs.
+			 * @param ReturnShipment $shipment The shipment object.
+			 * @param Order          $order_shipment The shipment order object.
+			 *
+			 * @since 3.0.0
+			 * @package Vendidero/Germanized/Shipments
+			 */
+			$args = apply_filters( 'woocommerce_gzd_return_shipment_sync_props', $args, $this, $order_shipment );
 
 			$this->set_props( $args );
 

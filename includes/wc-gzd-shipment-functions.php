@@ -25,6 +25,17 @@ use Vendidero\Germanized\Shipments\ShippingProvider;
 
 defined( 'ABSPATH' ) || exit;
 
+function wc_gzd_get_formatted_state( $country = '', $state = '' ) {
+	if ( empty( $country ) ) {
+		return '';
+	}
+
+	$states          = WC()->countries ? WC()->countries->get_states( $country ) : array();
+	$formatted_state = ( $states && isset( $states[ $state ] ) ) ? $states[ $state ] : $state;
+
+	return $formatted_state;
+}
+
 function wc_gzd_get_shipment_order( $order ) {
     if ( is_numeric( $order ) ) {
         $order = wc_get_order( $order);
