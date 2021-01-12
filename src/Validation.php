@@ -20,8 +20,9 @@ class Validation {
         add_action( 'woocommerce_new_order', array( __CLASS__, 'new_order' ), 10, 1 );
         add_action( 'woocommerce_delete_order', array( __CLASS__, 'delete_order' ), 10, 1 );
 
-        add_action( 'woocommerce_order_status_cancelled', array( __CLASS__, 'maybe_cancel_shipments' ), 10, 2 );
-	    add_action( 'woocommerce_order_status_failed', array( __CLASS__, 'maybe_cancel_shipments' ), 10, 2 );
+        foreach( array( 'cancelled', 'failed', 'refunded' ) as $cancelled_status ) {
+	        add_action( "woocommerce_order_status_{$cancelled_status}", array( __CLASS__, 'maybe_cancel_shipments' ), 10, 2 );
+        }
 
         add_action( 'before_delete_post', array( __CLASS__, 'before_delete_refund' ), 10, 1 );
         add_action( 'woocommerce_delete_order_refund', array( __CLASS__, 'delete_refund_order' ), 10, 1 );
