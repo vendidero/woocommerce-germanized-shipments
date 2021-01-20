@@ -52,6 +52,72 @@ class Admin {
 
 	    // Menu count
 	    add_action( 'admin_head', array( __CLASS__, 'menu_return_count' ) );
+
+	    // Register endpoints within settings
+        add_filter( 'woocommerce_get_settings_advanced', array( __CLASS__, 'register_endpoint_settings' ), 20, 2 );
+    }
+
+	private static function get_setting_key_by_id( $settings, $id, $type = '' ) {
+		if ( ! empty( $settings ) ) {
+			foreach ( $settings as $key => $value ) {
+				if ( isset( $value['id'] ) && $value['id'] == $id ) {
+					if ( ! empty( $type ) && $type !== $value['type'] ) {
+						continue;
+					}
+					return $key;
+				}
+			}
+		}
+
+		return false;
+	}
+
+    protected static function add_settings_after( $settings, $id, $insert = array(), $type = '' ) {
+	    $key = self::get_setting_key_by_id( $settings, $id, $type );
+
+	    if ( is_numeric( $key ) ) {
+		    $key ++;
+		    $settings = array_merge( array_merge( array_slice( $settings, 0, $key, true ), $insert ), array_slice( $settings, $key, count( $settings ) - 1, true ) );
+	    } else {
+		    $settings += $insert;
+	    }
+
+	    return $settings;
+    }
+
+    public static function register_endpoint_settings( $settings, $current_section ) {
+        if ( '' === $current_section ) {
+            $endpoints = array(
+	            array(
+		            'title'    => _x( 'View Shipments', 'shipments', 'woocommerce-germanized-shipments' ),
+		            'desc'     => _x( 'Endpoint for the "My account &rarr; View shipments" page.', 'shipments', 'woocommerce-germanized-shipments' ),
+		            'id'       => 'woocommerce_gzd_shipments_view_shipments_endpoint',
+		            'type'     => 'text',
+		            'default'  => 'view-shipments',
+		            'desc_tip' => true,
+	            ),
+	            array(
+		            'title'    => _x( 'View shipment', 'shipments', 'woocommerce-germanized-shipments' ),
+		            'desc'     => _x( 'Endpoint for the "My account &rarr; View shipment" page.', 'shipments', 'woocommerce-germanized-shipments' ),
+		            'id'       => 'woocommerce_gzd_shipments_view_shipment_endpoint',
+		            'type'     => 'text',
+		            'default'  => 'view-shipment',
+		            'desc_tip' => true,
+	            ),
+	            array(
+		            'title'    => _x( 'Add Return Shipment', 'shipments', 'woocommerce-germanized-shipments' ),
+		            'desc'     => _x( 'Endpoint for the "My account &rarr; Add return shipment" page.', 'shipments', 'woocommerce-germanized-shipments' ),
+		            'id'       => 'woocommerce_gzd_shipments_add_return_shipment_endpoint',
+		            'type'     => 'text',
+		            'default'  => 'add-return-shipment',
+		            'desc_tip' => true,
+	            ),
+            );
+
+            $settings = self::add_settings_after( $settings, 'woocommerce_myaccount_downloads_endpoint', $endpoints );
+        }
+
+        return $settings;
     }
 
     public static function menu_return_count() {

@@ -46,6 +46,12 @@ class Package {
 
 	    add_filter( 'woocommerce_get_query_vars', array( __CLASS__, 'register_endpoints' ), 10, 1 );
 
+	    if ( ! did_action( 'woocommerce_loaded' ) ) {
+		    add_action( 'woocommerce_loaded', array( __CLASS__, 'inject_endpoints' ), 10 );
+	    } else {
+	    	self::inject_endpoints();
+	    }
+
 	    add_action( 'woocommerce_load_shipping_methods', array( __CLASS__, 'load_shipping_methods' ), 5, 1 );
 	    add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'set_method_filters' ), 200, 1 );
 
@@ -211,10 +217,32 @@ class Package {
 		}
 	}
 
+	public static function inject_endpoints() {
+    	if ( function_exists( 'WC' ) && WC()->query ) {
+			foreach( self::get_endpoints() as $endpoint ) {
+				if ( ! array_key_exists( $endpoint, WC()->query->query_vars ) ) {
+					$option_name = str_replace( '-', '_', $endpoint );
+					WC()->query->query_vars[ $endpoint ] = get_option( "woocommerce_gzd_shipments_{$option_name}_endpoint", $endpoint );
+				}
+			}
+	    }
+	}
+
+	public static function get_endpoints() {
+    	return array(
+    		'view-shipment',
+		    'add-return-shipment',
+		    'view-shipments'
+	    );
+	}
+
     public static function register_endpoints( $query_vars ) {
-    	$query_vars['view-shipment']       = get_option( 'woocommerce_gzd_shipments_view_shipment_endpoint', 'view-shipment' );
-	    $query_vars['add-return-shipment'] = get_option( 'woocommerce_gzd_shipments_add_return_shipment_endpoint', 'add-return-shipment' );
-	    $query_vars['view-shipments']      = get_option( 'woocommerce_gzd_shipments_view_shipments_endpoint', 'view-shipments' );
+	    foreach( self::get_endpoints() as $endpoint ) {
+		    if ( ! array_key_exists( $endpoint, $query_vars ) ) {
+			    $option_name = str_replace( '-', '_', $endpoint );
+			    $query_vars[ $endpoint ] = get_option( "woocommerce_gzd_shipments_{$option_name}_endpoint", $endpoint );
+		    }
+	    }
 
     	return $query_vars;
     }
