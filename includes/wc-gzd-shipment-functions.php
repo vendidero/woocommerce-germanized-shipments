@@ -152,7 +152,6 @@ function wc_gzd_get_shipment_order_return_statuses() {
  * @return ShippingProviderMethod
  */
 function wc_gzd_get_shipping_provider_method( $instance_id ) {
-
 	$original_id = $instance_id;
 
 	if ( is_a( $original_id, 'WC_Shipping_Rate' ) ) {
@@ -179,8 +178,24 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 		// Make sure shipping zones are loaded
 		include_once WC_ABSPATH . 'includes/class-wc-shipping-zones.php';
 
-		if ( $method = WC_Shipping_Zones::get_shipping_method( $instance_id ) ) {
+		/**
+		 * Cache methods within frontend
+		 */
+		if ( WC()->session ) {
+			$cache_key = 'woocommerce_gzd_method_' . $instance_id;
 
+			if ( ! $method = WC()->session->get( $cache_key ) ) {
+				$method = WC_Shipping_Zones::get_shipping_method( $instance_id );
+
+				if ( $method ) {
+					WC()->session->set( $cache_key, $method );
+				}
+			}
+		} else {
+			$method = WC_Shipping_Zones::get_shipping_method( $instance_id );
+		}
+
+		if ( $method ) {
 			/**
 			 * Filter to adjust the classname used to construct the shipping provider method
 			 * which contains additional provider related settings useful for shipments.
