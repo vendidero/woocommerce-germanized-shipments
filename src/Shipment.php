@@ -323,11 +323,7 @@ abstract class Shipment extends WC_Data {
     }
 
     public function get_total_weight() {
-    	$weight = $this->get_weight();
-
-    	if ( $packaging = $this->get_packaging() ) {
-    		$weight += $packaging->get_weight();
-	    }
+    	$weight = $this->get_weight() + $this->get_packaging_weight();
 
     	return apply_filters( "{$this->get_hook_prefix()}total_weight", $weight, $this );
     }
@@ -380,9 +376,21 @@ abstract class Shipment extends WC_Data {
         return $length;
     }
 
+    public function get_packaging_weight() {
+    	$packaging_weight = 0;
+
+	    if ( $packaging = $this->get_packaging() ) {
+	    	if ( ! empty( $packaging->get_weight() ) ) {
+			    $packaging_weight = wc_get_weight( $packaging->get_weight(), $this->get_weight_unit(), wc_gzd_get_packaging_weight_unit() );
+		    }
+	    }
+
+	    return $packaging_weight;
+    }
+
     public function get_package_length() {
     	if ( $packaging = $this->get_packaging() ) {
-    		$length = wc_get_dimension( $packaging->get_length(), $this->get_dimension_unit(), 'cm' );
+    		$length = wc_get_dimension( $packaging->get_length(), $this->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() );
 	    } else {
 		    $length = $this->get_length();
 	    }
@@ -408,7 +416,7 @@ abstract class Shipment extends WC_Data {
 
 	public function get_package_width() {
 		if ( $packaging = $this->get_packaging() ) {
-			$width = wc_get_dimension( $packaging->get_width(), $this->get_dimension_unit(), 'cm' );
+			$width = wc_get_dimension( $packaging->get_width(), $this->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() );
 		} else {
 			$width = $this->get_width();
 		}
@@ -434,7 +442,7 @@ abstract class Shipment extends WC_Data {
 
 	public function get_package_height() {
 		if ( $packaging = $this->get_packaging() ) {
-			$height = wc_get_dimension( $packaging->get_height(), $this->get_dimension_unit(), 'cm' );
+			$height = wc_get_dimension( $packaging->get_height(), $this->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() );
 		} else {
 			$height = $this->get_height();
 		}
