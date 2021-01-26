@@ -367,12 +367,12 @@ class Admin {
 							width: 100% !important;
 						}
                         tbody.packaging_list .input-inner-wrap {
-							display: flex;
-                            flex-wrap: nowrap;
+							clear: both;
                         }
-						tbody.packaging_list .input-inner-wrap input {
+						tbody.packaging_list .input-inner-wrap input.wc_input_decimal {
 							width: 33% !important;
                             min-width: auto !important;
+                            float: left !important;
 						}
                     </style>
                     <table class="widefat wc_input_table sortable" cellspacing="0">
