@@ -183,17 +183,27 @@ class Validation {
         }
     }
 
+	protected static function is_admin_save_order_request() {
+		$is_admin_order_save_request = doing_action( 'save_post' );
+
+		/**
+		 * Detect admin order adjustments e.g. add item, remove item, save post etc. and
+		 * prevent singular order item hooks from executing to prevent multiple shipment validation requests
+		 * which will execute on order save hook as well.
+		 */
+		if ( ! $is_admin_order_save_request && is_ajax() && isset( $_REQUEST['action'] ) && isset( $_REQUEST['order_id'] ) && strpos( $_REQUEST['action'], 'woocommerce_' ) !== false ) {
+			$is_admin_order_save_request = true;
+		}
+
+		return $is_admin_order_save_request;
+	}
+
 	/**
 	 * @param $order_item_id
 	 * @param WC_Order_Item $order_item
 	 */
     public static function update_order_item( $order_item_id, $order_item ) {
-	    /**
-	     * Prevent from firing during save_post to make sure
-	     * that no validation is done on order item saving (for each item in the order)
-	     * which might lead to performance issues.
-	     */
-	    if ( ! doing_action( 'save_post' ) ) {
+	    if ( ! self::is_admin_save_order_request() ) {
 		    if ( is_callable( array( $order_item, 'get_order_id' ) ) ) {
 
 			    if ( $order_shipment = wc_gzd_get_shipment_order( $order_item->get_order_id() ) ) {
