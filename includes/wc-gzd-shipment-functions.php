@@ -181,7 +181,7 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 		/**
 		 * Cache methods within frontend
 		 */
-		if ( WC()->session ) {
+		if ( WC()->session && did_action( 'woocommerce_shipping_init' ) ) {
 			$cache_key = 'woocommerce_gzd_method_' . $instance_id;
 
 			if ( ! $method = WC()->session->get( $cache_key ) ) {
