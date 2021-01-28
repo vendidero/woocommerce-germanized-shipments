@@ -45,7 +45,7 @@ class ShippingProviderMethod {
 		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( 'woocommerce_gzd_shipping_provider_method_admin_settings', array(
+		$settings = apply_filters( 'woocommerce_gzd_shipping_provider_method_admin_settings', array(
 			'shipping_provider_title' => array(
 				'title'       => _x( 'Shipping Provider Settings', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'        => 'title',
@@ -68,6 +68,19 @@ class ShippingProviderMethod {
 				'description' => _x( 'Choose a shipping provider which will be selected by default for an eligible shipment.', 'shipments', 'woocommerce-germanized-shipments' ),
 			),
 		) );
+
+		/**
+		 * Append a stop title to make sure the table is closed within settings.
+		 */
+		$settings = array_merge( $settings, array(
+			'shipping_provider_stop_title' => array(
+				'title'       => '',
+				'type'        => 'title',
+				'default'     => '',
+			),
+		) );
+
+		return $settings;
 	}
 
 	protected function init() {
