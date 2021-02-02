@@ -513,7 +513,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			FROM {$wpdb->gzd_packaging} 
 			WHERE ( packaging_max_content_weight = 0 OR packaging_max_content_weight >= %f ) AND packaging_type IN ( '" . implode( "','", $types ) . "' )
 			HAVING length_diff >= %f AND width_diff >= %f AND height_diff >= %f
-			ORDER BY total_diff DESC, packaging_weight ASC, packaging_order ASC
+			ORDER BY total_diff ASC, packaging_weight ASC, packaging_order ASC
 		";
 
 		if ( $limit > 0 ) {

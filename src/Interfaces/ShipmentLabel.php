@@ -69,4 +69,11 @@ interface ShipmentLabel {
 	 * Delete the label from DB.
 	 */
 	public function delete( $force = false );
+
+	/**
+	 * Returns whether the label is trackable or not.
+	 *
+	 * @return boolean
+	 */
+	public function is_trackable();
 }

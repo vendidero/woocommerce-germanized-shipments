@@ -616,6 +616,15 @@ abstract class Shipment extends WC_Data {
 		    $has_tracking = false;
 	    }
 
+	    /**
+	     * Check whether the label supports tracking or not
+	     */
+	    if ( $this->has_label() && ( $label = $this->get_label() ) ) {
+	    	if ( ! $label->is_trackable() ) {
+	    		$has_tracking = false;
+		    }
+	    }
+
 	    return apply_filters( "{$this->get_general_hook_prefix()}has_tracking", $has_tracking, $this );
     }
 
