@@ -193,6 +193,34 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipments (
   KEY shipment_packaging_id (shipment_packaging_id),
   KEY shipment_parent_id (shipment_parent_id)
 ) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_rule_groups (
+  shipment_rule_group_id BIGINT UNSIGNED NOT NULL auto_increment,
+  shipment_rule_group_name varchar(200) NOT NULL DEFAULT '',
+  shipment_rule_group_slug varchar(250) NOT NULL DEFAULT '',
+  shipment_rule_group_desc longtext NOT NULL DEFAULT '',
+  shipment_rule_group_priority INT NOT NULL DEFAULT 0,
+  PRIMARY KEY  (shipment_rule_group_id)
+) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_rule_groupmeta (
+  meta_id BIGINT UNSIGNED NOT NULL auto_increment,
+  gzd_shipment_rule_group_id BIGINT UNSIGNED NOT NULL,
+  meta_key varchar(255) default NULL,
+  meta_value longtext NULL,
+  PRIMARY KEY  (meta_id),
+  KEY gzd_shipment_rule_group_id (gzd_shipment_rule_group_id),
+  KEY meta_key (meta_key(32))
+) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_rules (
+  shipment_rule_id BIGINT UNSIGNED NOT NULL auto_increment,
+  shipment_rule_group_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  shipment_rule_type varchar(150) NOT NULL default '',
+  shipment_rule_desc longtext NOT NULL DEFAULT '',
+  shipment_rule_value varchar(200) NOT NULL DEFAULT '',
+  shipment_rule_compare_type varchar(20) NOT NULL DEFAULT '',
+  shipment_rule_priority INT NOT NULL DEFAULT 0,
+  PRIMARY KEY  (shipment_rule_id),
+  KEY shipment_rule_group_id (shipment_rule_group_id)
+) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipmentmeta (
   meta_id BIGINT UNSIGNED NOT NULL auto_increment,
   gzd_shipment_id BIGINT UNSIGNED NOT NULL,

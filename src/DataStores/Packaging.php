@@ -436,7 +436,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		 * @since 3.3.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( 'woocommerce_gzd_packaging_data_store_get_shipments_query', $wp_query_args, $query_vars, $this );
+		return apply_filters( 'woocommerce_gzd_packaging_data_store_get_packagings_query', $wp_query_args, $query_vars, $this );
 	}
 
 	public function get_packaging_list( $args = array() ) {

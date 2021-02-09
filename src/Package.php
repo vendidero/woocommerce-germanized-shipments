@@ -418,14 +418,17 @@ class Package {
 
         // List of tables without prefixes.
         $tables = array(
-            'gzd_shipment_itemmeta'     => 'woocommerce_gzd_shipment_itemmeta',
-            'gzd_shipmentmeta'          => 'woocommerce_gzd_shipmentmeta',
-            'gzd_shipments'             => 'woocommerce_gzd_shipments',
-            'gzd_shipment_items'        => 'woocommerce_gzd_shipment_items',
-            'gzd_shipping_provider'     => 'woocommerce_gzd_shipping_provider',
-            'gzd_shipping_providermeta' => 'woocommerce_gzd_shipping_providermeta',
-            'gzd_packaging'             => 'woocommerce_gzd_packaging',
-            'gzd_packagingmeta'         => 'woocommerce_gzd_packagingmeta',
+            'gzd_shipment_itemmeta'       => 'woocommerce_gzd_shipment_itemmeta',
+            'gzd_shipmentmeta'            => 'woocommerce_gzd_shipmentmeta',
+            'gzd_shipments'               => 'woocommerce_gzd_shipments',
+            'gzd_shipment_items'          => 'woocommerce_gzd_shipment_items',
+            'gzd_shipping_provider'       => 'woocommerce_gzd_shipping_provider',
+            'gzd_shipping_providermeta'   => 'woocommerce_gzd_shipping_providermeta',
+            'gzd_packaging'               => 'woocommerce_gzd_packaging',
+            'gzd_packagingmeta'           => 'woocommerce_gzd_packagingmeta',
+            'gzd_shipment_rules'          => 'woocommerce_gzd_shipment_rules',
+            'gzd_shipment_rule_groups'    => 'woocommerce_gzd_shipment_rule_groups',
+            'gzd_shipment_rule_groupmeta' => 'woocommerce_gzd_shipment_rule_groupmeta',
         );
 
         foreach ( $tables as $name => $table ) {
@@ -435,10 +438,12 @@ class Package {
     }
 
     public static function register_data_stores( $stores ) {
-        $stores['shipment']          = 'Vendidero\Germanized\Shipments\DataStores\Shipment';
-	    $stores['packaging']         = 'Vendidero\Germanized\Shipments\DataStores\Packaging';
-        $stores['shipment-item']     = 'Vendidero\Germanized\Shipments\DataStores\ShipmentItem';
-	    $stores['shipping-provider'] = 'Vendidero\Germanized\Shipments\DataStores\ShippingProvider';
+        $stores['shipment']            = 'Vendidero\Germanized\Shipments\DataStores\Shipment';
+	    $stores['packaging']           = 'Vendidero\Germanized\Shipments\DataStores\Packaging';
+        $stores['shipment-item']       = 'Vendidero\Germanized\Shipments\DataStores\ShipmentItem';
+	    $stores['shipping-provider']   = 'Vendidero\Germanized\Shipments\DataStores\ShippingProvider';
+	    $stores['shipment-rule']       = 'Vendidero\Germanized\Shipments\DataStores\Rule';
+	    $stores['shipment-rule-group'] = 'Vendidero\Germanized\Shipments\DataStores\Group';
 
         return $stores;
     }

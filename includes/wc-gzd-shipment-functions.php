@@ -1311,3 +1311,19 @@ function wc_gzd_get_account_shipments_actions( $shipment ) {
 	 */
 	return apply_filters( 'woocommerce_gzd_account_shipments_actions', $actions, $shipment );
 }
+
+function wc_gzd_get_shipment_group( $group_id ) {
+	return \Vendidero\Germanized\Shipments\Rules\Factory::get_group( $group_id );
+}
+
+function wc_gzd_get_shipment_rule( $rule_id ) {
+	return \Vendidero\Germanized\Shipments\Rules\Factory::get_rule( $rule_id );
+}
+
+function wc_gzd_get_shipment_rule_types() {
+	$types = array(
+		'shipping_class' => '\Vendidero\Germanized\Shipments\Rules\RuleShippingClass'
+	);
+
+	return apply_filters( 'woocommerce_gzd_shipment_rule_types', $types );
+}
