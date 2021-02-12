@@ -146,13 +146,19 @@ class SimpleShipment extends Shipment {
 				}
 			}
 
+			/**
+			 * Force the country to have a max length of 2.
+			 * https://github.com/woocommerce/woocommerce/issues/27521
+			 */
+			$country = substr( strtoupper( $order->get_shipping_country() ), 0, 2 );
+
 			$args = wp_parse_args( $args, array(
 				'order_id'          => $order->get_id(),
-				'country'           => $order->get_shipping_country(),
 				'shipping_method'   => wc_gzd_get_shipment_order_shipping_method_id( $order ),
 				'shipping_provider' => ( ! empty( $provider ) ) ? $provider : $default_provider,
 				'packaging_id'      => $this->get_packaging_id( 'edit' ),
 				'address'           => $address_data,
+				'country'           => $country,
 				'weight'            => $this->get_weight( 'edit' ),
 				'length'            => $this->get_length( 'edit' ),
 				'width'             => $this->get_width( 'edit' ),
