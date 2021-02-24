@@ -38,6 +38,7 @@ class ShipmentItem extends WC_Data {
         'sku'           => '',
         'name'          => '',
         'total'         => 0,
+	    'subtotal'      => 0,
     );
 
     /**
@@ -174,6 +175,22 @@ class ShipmentItem extends WC_Data {
         return $this->get_prop( 'total', $context );
     }
 
+	/**
+	 * Get order ID this meta belongs to.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return int
+	 */
+	public function get_subtotal( $context = 'view' ) {
+		$subtotal = $this->get_prop( 'subtotal', $context );
+
+		if ( 'view' === $context && empty( $subtotal ) ) {
+			$subtotal = $this->get_total();
+		}
+
+		return $subtotal;
+	}
+
     /**
      * Get quantity.
      *
@@ -299,9 +316,11 @@ class ShipmentItem extends WC_Data {
 			    $this->set_product_id( $item->get_product_id() );
 		    }
 
-		    $product    = $this->get_product();
-		    $tax_total  = is_callable( array( $item, 'get_total_tax' ) ) ? $item->get_total_tax() : 0;;
-		    $total      = is_callable( array( $item, 'get_total' ) ) ? $item->get_total() : 0;
+		    $product      = $this->get_product();
+		    $tax_total    = is_callable( array( $item, 'get_total_tax' ) ) ? $item->get_total_tax() : 0;;
+		    $total        = is_callable( array( $item, 'get_total' ) ) ? $item->get_total() : 0;
+		    $subtotal     = is_callable( array( $item, 'get_subtotal' ) ) ? $item->get_subtotal() : 0;
+		    $tax_subtotal = is_callable( array( $item, 'get_subtotal_tax' ) ) ? $item->get_subtotal_tax() : 0;
 
 		    $args = wp_parse_args( $args, array(
 			    'order_item_id' => $item->get_id(),
@@ -309,6 +328,7 @@ class ShipmentItem extends WC_Data {
 			    'name'          => $item->get_name(),
 			    'sku'           => $product ? $product->get_sku() : '',
 			    'total'         => $total + $tax_total,
+			    'subtotal'      => $subtotal + $tax_subtotal,
 			    'weight'        => $product ? wc_get_weight( $product->get_weight(), $shipment->get_weight_unit() ) : '',
 			    'length'        => $product ? wc_get_dimension( $product->get_length(), $shipment->get_dimension_unit() ) : '',
 			    'width'         => $product ? wc_get_dimension( $product->get_width(), $shipment->get_dimension_unit() ) : '',
@@ -397,6 +417,21 @@ class ShipmentItem extends WC_Data {
 
         $this->set_prop( 'total', $value );
     }
+
+	/**
+	 * Set order ID.
+	 *
+	 * @param int $value Order ID.
+	 */
+	public function set_subtotal( $value ) {
+		$value = wc_format_decimal( $value );
+
+		if ( ! is_numeric( $value ) ) {
+			$value = 0;
+		}
+
+		$this->set_prop( 'subtotal', $value );
+	}
 
     /**
      * Set order ID.

@@ -125,6 +125,7 @@ abstract class Shipment extends WC_Data {
         'shipping_provider'     => '',
         'shipping_method'       => '',
         'total'                 => 0,
+        'subtotal'              => 0,
 	    'additional_total'      => 0,
         'est_delivery_date'     => null,
 	    'packaging_id'          => 0,
@@ -597,6 +598,22 @@ abstract class Shipment extends WC_Data {
     public function get_total( $context = 'view' ) {
         return $this->get_prop( 'total', $context );
     }
+
+	/**
+	 * Returns the shipment total.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return float
+	 */
+	public function get_subtotal( $context = 'view' ) {
+		$subtotal = $this->get_prop( 'subtotal', $context );
+
+		if ( 'view' === $context && empty( $subtotal ) ) {
+			$subtotal = $this->get_total();
+		}
+
+		return $subtotal;
+	}
 
 	/**
 	 * Returns the additional total amount containing shipping and fee costs.
@@ -1320,6 +1337,21 @@ abstract class Shipment extends WC_Data {
 
         $this->set_prop( 'total', $value );
     }
+
+	/**
+	 * Set shipment total.
+	 *
+	 * @param float|string $value The shipment total.
+	 */
+	public function set_subtotal( $value ) {
+		$value = wc_format_decimal( $value );
+
+		if ( ! is_numeric( $value ) ) {
+			$value = 0;
+		}
+
+		$this->set_prop( 'subtotal', $value );
+	}
 
 	/**
 	 * Set shipment additional total.
@@ -2080,13 +2112,21 @@ abstract class Shipment extends WC_Data {
 	 * Calculate totals based on contained items.
 	 */
     protected function calculate_totals() {
-        $total = 0;
+        $total    = 0;
+        $subtotal = 0;
 
         foreach( $this->get_items() as $item ) {
-            $total += round( $item->get_total(), wc_get_price_decimals() );
+            $total    += round( $item->get_total(), wc_get_price_decimals() );
+	        $subtotal += round( $item->get_subtotal(), wc_get_price_decimals() );
         }
 
         $this->set_total( $total );
+
+        if ( empty( $subtotal ) ) {
+        	$subtotal = $total;
+        }
+
+	    $this->set_subtotal( $subtotal );
     }
 
     public function delete( $force_delete = false ) {
