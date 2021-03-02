@@ -699,6 +699,19 @@ function wc_gzd_get_shipping_provider_title( $slug ) {
 	return apply_filters( 'woocommerce_gzd_shipping_provider_title', $title, $slug );
 }
 
+/**
+ * @param Shipment $shipment
+ */
+function wc_gzd_get_shipment_shipping_provider_title( $shipment ) {
+	$title = $shipment->get_shipping_provider_title();
+
+	if ( empty( $title ) ) {
+		$title =  apply_filters( 'woocommerce_gzd_shipping_provider_unknown_title', _x( 'Unknown', 'shipments-shipping-provider', 'woocommerce-germanized-shipments' ) );
+	}
+
+	return $title;
+}
+
 function wc_gzd_get_shipping_provider_slug( $provider ) {
 	$providers = wc_gzd_get_shipping_providers();
 
