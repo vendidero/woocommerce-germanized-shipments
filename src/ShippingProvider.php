@@ -513,6 +513,7 @@ class ShippingProvider extends WC_Data  {
 			'{shipment_number}'   => $shipment ? $shipment->get_shipment_number() : '',
 			'{order_number}'      => $shipment ? $shipment->get_order_number() : '',
 			'{tracking_id}'       => $shipment ? $shipment->get_tracking_id() : '',
+			'{postcode}'          => $shipment ? $shipment->get_postcode() : '',
 			'{date_sent_day}'     => $shipment && $shipment->get_date_sent() ? $shipment->get_date_sent()->format( 'd' ) : '',
 			'{date_sent_month}'   => $shipment && $shipment->get_date_sent() ? $shipment->get_date_sent()->format( 'm' ) : '',
 			'{date_sent_year}'    => $shipment && $shipment->get_date_sent() ? $shipment->get_date_sent()->format( 'Y' ) : '',
