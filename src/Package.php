@@ -387,6 +387,7 @@ class Package {
         }
 
         include_once self::get_path() . '/includes/wc-gzd-shipment-functions.php';
+	    include_once self::get_path() . '/includes/wc-gzd-label-functions.php';
 	    include_once self::get_path() . '/includes/wc-gzd-packaging-functions.php';
     }
 
@@ -421,6 +422,8 @@ class Package {
             'gzd_shipment_itemmeta'     => 'woocommerce_gzd_shipment_itemmeta',
             'gzd_shipmentmeta'          => 'woocommerce_gzd_shipmentmeta',
             'gzd_shipments'             => 'woocommerce_gzd_shipments',
+            'gzd_shipment_labelmeta'    => 'woocommerce_gzd_shipment_labelmeta',
+            'gzd_shipment_labels'       => 'woocommerce_gzd_shipment_labels',
             'gzd_shipment_items'        => 'woocommerce_gzd_shipment_items',
             'gzd_shipping_provider'     => 'woocommerce_gzd_shipping_provider',
             'gzd_shipping_providermeta' => 'woocommerce_gzd_shipping_providermeta',
@@ -436,6 +439,7 @@ class Package {
 
     public static function register_data_stores( $stores ) {
         $stores['shipment']          = 'Vendidero\Germanized\Shipments\DataStores\Shipment';
+	    $stores['shipment-label']    = 'Vendidero\Germanized\Shipments\DataStores\Label';
 	    $stores['packaging']         = 'Vendidero\Germanized\Shipments\DataStores\Packaging';
         $stores['shipment-item']     = 'Vendidero\Germanized\Shipments\DataStores\ShipmentItem';
 	    $stores['shipping-provider'] = 'Vendidero\Germanized\Shipments\DataStores\ShippingProvider';

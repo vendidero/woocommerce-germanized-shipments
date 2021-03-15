@@ -193,6 +193,30 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipments (
   KEY shipment_packaging_id (shipment_packaging_id),
   KEY shipment_parent_id (shipment_parent_id)
 ) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_labels (
+  label_id BIGINT UNSIGNED NOT NULL auto_increment,
+  label_date_created datetime NOT NULL default '0000-00-00 00:00:00',
+  label_date_created_gmt datetime NOT NULL default '0000-00-00 00:00:00',
+  label_shipment_id BIGINT UNSIGNED NOT NULL,
+  label_parent_id BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  label_number varchar(200) NOT NULL DEFAULT '',
+  label_product_id varchar(200) NOT NULL DEFAULT '',
+  label_shipping_provider varchar(200) NOT NULL DEFAULT '',
+  label_path varchar(200) NOT NULL DEFAULT '',
+  label_type varchar(200) NOT NULL DEFAULT '',
+  PRIMARY KEY  (label_id),
+  KEY label_shipment_id (label_shipment_id),
+  KEY label_parent_id (label_parent_id)
+) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_labelmeta (
+  meta_id BIGINT UNSIGNED NOT NULL auto_increment,
+  gzd_shipment_label_id BIGINT UNSIGNED NOT NULL,
+  meta_key varchar(255) default NULL,
+  meta_value longtext NULL,
+  PRIMARY KEY  (meta_id),
+  KEY gzd_shipment_label_id (gzd_shipment_label_id),
+  KEY meta_key (meta_key(32))
+) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipmentmeta (
   meta_id BIGINT UNSIGNED NOT NULL auto_increment,
   gzd_shipment_id BIGINT UNSIGNED NOT NULL,

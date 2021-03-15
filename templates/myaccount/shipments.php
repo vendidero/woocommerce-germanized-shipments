@@ -65,7 +65,7 @@ do_action( 'woocommerce_gzd_before_account_shipments', $shipments, $order ); ?>
 
                     <?php elseif ( 'shipment-number' === $column_id ) : ?>
                         <a href="<?php echo esc_url( $shipment->get_view_shipment_url() ); ?>">
-                            <?php echo esc_html( sprintf( _x( '%s #%s', 'shipment title', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label( $shipment->get_type() ), $shipment->get_shipment_number() ) ); ?>
+                            <?php echo esc_html( sprintf( _x( '%s #%s', 'shipment title', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label_title( $shipment->get_type() ), $shipment->get_shipment_number() ) ); ?>
                         </a>
 
                     <?php elseif ( 'shipment-date' === $column_id ) : ?>

@@ -32,12 +32,16 @@ interface ShipmentLabel {
 	 */
 	public function download( $args = array() );
 
+	public function supports_additional_file_type( $file_type );
+
+	public function get_additional_file_types();
+
 	/**
 	 * Returns the (local) label file path. False in case the label is not stored locally.
 	 *
 	 * @return bool|string
 	 */
-	public function get_file();
+	public function get_file( $file_type = '' );
 
 	/**
 	 * Returns the label number which is used as a tracking id for the corresponding shipment.
@@ -53,12 +57,18 @@ interface ShipmentLabel {
 	 */
 	public function has_number();
 
+	public function get_product_id();
+
+	public function get_services();
+
 	/**
 	 * Returns the label shipment type, e.g. simple or return.
 	 *
 	 * @return string
 	 */
 	public function get_type();
+
+	public function get_parent_id();
 
 	/**
 	 * Saves the label to DB.

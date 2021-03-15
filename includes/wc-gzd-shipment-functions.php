@@ -53,7 +53,7 @@ function wc_gzd_get_shipment_order( $order ) {
     return false;
 }
 
-function wc_gzd_get_shipment_label( $type, $plural = false ) {
+function wc_gzd_get_shipment_label_title( $type, $plural = false ) {
 	$type_data = wc_gzd_get_shipment_type_data( $type );
 
 	return ( ! $plural ? $type_data['labels']['singular'] : $type_data['labels']['plural'] );

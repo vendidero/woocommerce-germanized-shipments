@@ -782,7 +782,7 @@ class Table extends WP_List_Table {
      */
     public function column_title( $shipment ) {
 
-        $title = sprintf( _x( '%s #%s', 'shipment title', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label( $shipment->get_type() ), $shipment->get_id() );
+        $title = sprintf( _x( '%s #%s', 'shipment title', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label_title( $shipment->get_type() ), $shipment->get_id() );
 
         if ( $order = $shipment->get_order() ) {
             echo '<a href="' . $shipment->get_edit_shipment_url() . '">' . $title . '</a> ';

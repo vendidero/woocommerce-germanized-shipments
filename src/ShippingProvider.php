@@ -89,6 +89,10 @@ class ShippingProvider extends WC_Data  {
 		}
 	}
 
+	public function get_label_classname( $type ) {
+		return '\Vendidero\Germanized\Shipments\Label';
+	}
+
 	/**
 	 * Whether or not this instance is a manual integration.
 	 * Manual integrations are constructed dynamically from DB and do not support
