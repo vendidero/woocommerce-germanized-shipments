@@ -8,7 +8,6 @@ use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Admin\Admin;
 use Vendidero\Germanized\Shipments\Shipment;
-
 ?>
 
 <div class="wc-gzd-shipment-label column column-spaced col-12 show-if show-if-provider show-if-provider-<?php echo esc_attr( $shipment->get_shipping_provider() ); ?>" data-shipment="<?php echo $shipment->get_id(); ?>">
@@ -37,6 +36,7 @@ use Vendidero\Germanized\Shipments\Shipment;
 	        <?php else: ?>
                 <div class="shipment-label-actions-wrapper shipment-label-actions-create">
                     <a class="button button-secondary create-shipment-label" href="#" title="<?php _ex(  'Create new label', 'shipments', 'woocommerce-germanized-shipments' ); ?>"><?php _ex( 'Create label', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+
                     <?php include( 'html-shipment-label-backbone.php' ); ?>
                 </div>
 	        <?php endif; ?>

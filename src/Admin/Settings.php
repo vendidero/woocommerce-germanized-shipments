@@ -292,59 +292,6 @@ class Settings {
 		return $settings;
 	}
 
-	public static function save_provider( $provider_name = '' ) {
-		$helper = ShippingProviders::instance();
-
-		$helper->load_shipping_providers();
-
-		if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
-			$provider = $helper->get_shipping_provider( $provider_name );
-		} else {
-			$provider = new ShippingProvider();
-		}
-
-		$settings = $provider->get_settings();
-
-		foreach ( $settings as $setting ) {
-
-			if ( ! isset( $setting['id'] ) || empty( $setting['id'] ) ) {
-				continue;
-			}
-
-			add_filter( 'woocommerce_admin_settings_sanitize_option_' . $setting['id'], function( $value, $option, $raw_value ) use( &$provider ) {
-				$option_name = str_replace( 'shipping_provider_', '', $option['id'] );
-				$setter      = 'set_' . $option_name;
-
-				try {
-					if ( is_callable( array( $provider, $setter ) ) ) {
-						$provider->{$setter}( $value );
-					}
-				} catch( Exception $e ) {}
-
-				return null;
-			}, 10, 3 );
-		}
-
-		WC_Admin_Settings::save_fields( $settings );
-
-		if ( $provider->get_id() <= 0 ) {
-			if ( empty( $provider->get_tracking_desc_placeholder( 'edit' ) ) ) {
-				$provider->set_tracking_desc_placeholder( $provider->get_default_tracking_desc_placeholder() );
-			}
-
-			if ( empty( $provider->get_tracking_url_placeholder( 'edit' ) ) ) {
-				$provider->set_tracking_url_placeholder( $provider->get_default_tracking_url_placeholder() );
-			}
-		}
-
-		$provider->save();
-
-		if ( 'new' === $provider_name ) {
-			$url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=' . $provider->get_name() );
-			wp_safe_redirect( $url );
-		}
-	}
-
 	public static function get_settings( $current_section = '' ) {
 		$settings = array();
 
@@ -352,61 +299,12 @@ class Settings {
 			$settings = self::get_general_settings();
 		} elseif ( 'packaging' === $current_section ) {
 			$settings = self::get_packaging_settings();
-		} elseif( 'provider' === $current_section && isset( $_GET['provider'] ) ) {
-
-			$provider_name = wc_clean( wp_unslash( $_GET['provider'] ) );
-			$helper        = ShippingProviders::instance();
-
-			$helper->get_shipping_providers();
-
-			if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
-				$provider = $helper->get_shipping_provider( $provider_name );
-			} else {
-				$provider = new ShippingProvider();
-			}
-
-			if ( $provider ) {
-				$settings = $provider->get_settings();
-			}
 		}
 
 		return $settings;
 	}
 
 	public static function get_additional_breadcrumb_items( $breadcrumb ) {
-		if ( isset( $_GET['section'] ) && 'provider' === $_GET['section'] && isset( $_GET['provider'] ) ) {
-			$provider_name = wc_clean( wp_unslash( $_GET['provider'] ) );
-			$title         = 'new' === $provider_name ? _x( 'New provider', 'shipments', 'woocommerce-germanized-shipments' ) : '';
-			$helper        = ShippingProviders::instance();
-
-			$helper->get_shipping_providers();
-
-			if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
-				if ( $provider = $helper->get_shipping_provider( $provider_name ) ) {
-					$title = $provider->get_title();
-
-					if ( ! $provider->is_manual_integration() && $provider->get_additional_options_url() ) {
-						$title = $title . '<a href="' . $provider->get_additional_options_url() . '" class="page-title-action">' . _x( 'Additional settings', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
-					}
-				}
-			}
-
-			if ( ! empty( $title ) ) {
-
-				foreach( $breadcrumb as $key => $breadcrumb_item ) {
-					if ( 'section' === $breadcrumb_item['class'] ) {
-						$breadcrumb[ $key ]['href'] = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider' );
-					}
-				}
-
-				$breadcrumb[] = array(
-					'class' => 'provider',
-					'href'  => '',
-					'title' => $title,
-				);
-			}
-		}
-
 		return $breadcrumb;
 	}
 
@@ -421,8 +319,8 @@ class Settings {
 	public static function get_sections() {
 		return array(
 			''          => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' ),
+			'provider'  => _x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' ),
 			'packaging' => _x( 'Packaging', 'shipments', 'woocommerce-germanized-shipments' ),
-			'provider'  => _x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' )
 		);
 	}
 

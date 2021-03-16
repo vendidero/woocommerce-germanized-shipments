@@ -8,13 +8,14 @@
     line-height: 1.5; }
 
 .germanized-create-label p.form-field {
-  display: inline-block;
-  width: 100%;
   margin-bottom: 5px !important;
   margin-top: 5px !important; }
   .germanized-create-label p.form-field:first-child, .germanized-create-label p.form-field:last-child {
     margin-bottom: 5px !important;
     margin-top: 5px !important; }
+  .germanized-create-label p.form-field:not(.column) {
+    display: inline-block;
+    width: 100%; }
 
 .germanized-create-label .columns {
   margin-left: -.5rem !important;

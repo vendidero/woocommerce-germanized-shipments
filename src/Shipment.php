@@ -1847,11 +1847,12 @@ abstract class Shipment extends WC_Data {
 	 * @return boolean|ShipmentLabel|ShipmentReturnLabel
 	 */
 	public function get_label() {
+		$label  = false;
+		$prefix = '';
 
-		$provider = $this->get_shipping_provider();
-
-		if ( ! empty( $provider ) ) {
-			$provider = $provider . '_';
+		if ( $provider = $this->get_shipping_provider_instance() ) {
+			$prefix = $provider->get_name() . '_';
+			$label  = $provider->get_label( $this );
 		}
 
 		/**
@@ -1869,20 +1870,19 @@ abstract class Shipment extends WC_Data {
 		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( "{$this->get_hook_prefix()}{$provider}label", false, $this );
+		return apply_filters( "{$this->get_hook_prefix()}{$prefix}label", $label, $this );
 	}
 
 	/**
 	 * Output label admin fields.
 	 */
-	public function print_label_admin_fields() {
+	public function get_label_settings_html() {
+		$hook_prefix = $this->get_general_hook_prefix();
+		$html        = '';
 
-		$provider    = $this->get_shipping_provider();
-		// Cut away _get from prefix
-		$hook_prefix = substr( $this->get_hook_prefix(), 0, -4 );
-
-		if ( ! empty( $provider ) ) {
-			$provider = $provider . '_';
+		if ( $provider = $this->get_shipping_provider_instance() ) {
+			$hook_prefix = $hook_prefix . '_' . $provider->get_name();
+			$html        = $provider->get_label_settings_html( $this );
 		}
 
 		/**
@@ -1899,7 +1899,7 @@ abstract class Shipment extends WC_Data {
 		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		do_action( "{$hook_prefix}print_{$provider}label_admin_fields", $this );
+		return apply_filters( "{$hook_prefix}label_settings_html", $html, $this );
 	}
 
 	public function create_label( $props = array(), $raw_data = array() ) {
@@ -2003,8 +2003,7 @@ abstract class Shipment extends WC_Data {
 	public function needs_label( $check_status = true ) {
 		$needs_label = true;
 		$provider    = $this->get_shipping_provider();
-		// Cut away _get from prefix
-		$hook_prefix = substr( $this->get_hook_prefix(), 0, -4 );
+		$hook_prefix = $this->get_general_hook_prefix();
 
 		if ( ! empty( $provider ) ) {
 			$provider = $provider . '_';

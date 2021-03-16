@@ -93,6 +93,10 @@ class ShippingProvider extends WC_Data  {
 		return '\Vendidero\Germanized\Shipments\Label';
 	}
 
+	public function get_help_link() {
+		return '';
+	}
+
 	/**
 	 * Whether or not this instance is a manual integration.
 	 * Manual integrations are constructed dynamically from DB and do not support
@@ -135,7 +139,7 @@ class ShippingProvider extends WC_Data  {
 	}
 
 	public function get_edit_link() {
-		return admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=' . esc_attr( $this->get_name() ) );
+		return admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=' . esc_attr( $this->get_name() ) );
 	}
 
 	/**
@@ -538,18 +542,18 @@ class ShippingProvider extends WC_Data  {
 	 * @return string
 	 */
 	protected function get_hook_prefix() {
-		return "woocommerce_gzd_shipping_provider_get_";
+		$name = sanitize_key( $this->get_name() );
+
+		if ( empty( $name ) ) {
+			return "woocommerce_gzd_shipping_provider_get_";
+		} else {
+			return "woocommerce_gzd_shipping_provider_{$name}_get_";
+		}
 	}
 
-	public function get_settings() {
-		$desc = '';
-
-		if ( ! $this->is_manual_integration() && $this->get_additional_options_url() ) {
-			$desc = sprintf( _x( '%s supports many more options. Explore %s.', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title(), '<a class="" href="' . $this->get_additional_options_url() . '" target="_blank">' . sprintf( _x( '%s specific settings', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title() ) . '</a>' );
-		}
-
+	protected function get_general_settings() {
 		$settings = array(
-			array( 'title' => '', 'type' => 'title', 'id' => 'shipping_provider_options', 'desc' => $desc ),
+			array( 'title' => '', 'type' => 'title', 'id' => 'shipping_provider_options' ),
 		);
 
 		$supports_customer_returns = true;
@@ -660,6 +664,16 @@ class ShippingProvider extends WC_Data  {
 			array( 'type' => 'sectionend', 'id' => 'shipping_provider_options' ),
 		) );
 
+		return $settings;
+	}
+
+	public function get_settings( $section = '' ) {
+		$settings = array();
+
+		if ( '' === $section || 'general' === $section ) {
+			$settings = $this->get_general_settings();
+		}
+
 		/**
 		 * This filter returns the admin settings available for a certain shipping provider.
 		 *
@@ -674,10 +688,86 @@ class ShippingProvider extends WC_Data  {
 		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( $this->get_hook_prefix() . 'settings', $settings, $this );
+		return apply_filters( $this->get_hook_prefix() . 'settings', $settings, $section, $this );
+	}
+
+	public function get_setting_sections() {
+		$sections = array(
+			'' => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' )
+		);
+
+		if ( ! $this->is_manual_integration() ) {
+			$sections['labels'] = _x( 'Labels', 'shipments', 'woocommerce-germanized-shipments' );
+		}
+
+		return $sections;
 	}
 
 	public function save() {
 		return parent::save();
+	}
+
+	/**
+	 * @param Shipment $shipment
+	 *
+	 * @return mixed|void
+	 */
+	public function get_label( $shipment ) {
+		$label = false;
+		$type  = wc_gzd_get_label_type_by_shipment( $shipment );
+
+		if ( ! $this->is_manual_integration() ) {
+			$label = wc_gzd_get_label_by_shipment( $shipment, $type );
+		}
+
+		return apply_filters( "{$this->get_hook_prefix()}label", $label, $type, $shipment, $this );
+	}
+
+	/**
+	 * @param Shipment $shipment
+	 */
+	public function get_label_settings_html( $shipment ) {
+		$settings = $this->get_label_settings( $shipment );
+
+		ob_start();
+		include( Package::get_path() . '/includes/admin/views/label/html-shipment-label-backbone-form.php' );
+		$html = ob_get_clean();
+
+		return apply_filters( "{$this->get_hook_prefix()}label_settings_html", $html, $settings, $shipment, $this );
+	}
+
+	/**
+	 * @param Shipment $shipment
+	 */
+	public function get_label_settings( $shipment ) {
+		$default   = $this->get_default_label_product( $shipment );
+		$available = $this->get_available_label_products( $shipment );
+
+		$settings = array(
+			array(
+				'id'          => 'product_id',
+				'label'       => sprintf( _x( '%s Product', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title() ),
+				'description' => '',
+				'options'	  => $this->get_available_label_products( $shipment ),
+				'value'       => $default && array_key_exists( $default, $available ) ? $default : '',
+				'type'        => 'select'
+			)
+		);
+
+		return $settings;
+	}
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 */
+	public function get_available_label_products( $shipment ) {
+		return array();
+	}
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 */
+	public function get_default_label_product( $shipment ) {
+		return false;
 	}
 }

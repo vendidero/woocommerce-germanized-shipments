@@ -180,9 +180,7 @@ class Ajax {
 	    }
 
 	    if ( $shipment->supports_label() && $shipment->needs_label() ) {
-		    ob_start();
-		    $shipment->print_label_admin_fields();
-		    $html = ob_get_clean();
+		    $html = $shipment->get_label_settings_html();
 	    }
 
 	    $response = array(
