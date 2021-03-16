@@ -124,6 +124,10 @@ class ShippingProvider extends WC_Data  {
 	}
 
 	public function supports_customer_return_requests() {
+		if ( $this->is_manual_integration() ) {
+			return true;
+		}
+
 		return false;
 	}
 
@@ -542,7 +546,7 @@ class ShippingProvider extends WC_Data  {
 	 * @return string
 	 */
 	protected function get_hook_prefix() {
-		$name = sanitize_key( $this->get_name() );
+		$name = sanitize_key( $this->get_name( 'edit' ) );
 
 		if ( empty( $name ) ) {
 			return "woocommerce_gzd_shipping_provider_get_";
@@ -555,8 +559,6 @@ class ShippingProvider extends WC_Data  {
 		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'shipping_provider_options' ),
 		);
-
-		$supports_customer_returns = true;
 
 		if ( $this->is_manual_integration() ) {
 			$settings = array_merge( $settings, array(
@@ -579,8 +581,6 @@ class ShippingProvider extends WC_Data  {
 					'css'               => 'width: 100%;',
 				),
 			) );
-		} else {
-			$supports_customer_returns = $this->supports_customer_return_requests();
 		}
 
 		$settings = array_merge( $settings, array(
@@ -607,59 +607,6 @@ class ShippingProvider extends WC_Data  {
 			)
 		) );
 
-		if ( $supports_customer_returns ) {
-			$settings = array_merge( $settings, array(
-				array(
-					'title' 	        => _x( 'Customer returns', 'shipments', 'woocommerce-germanized-shipments' ),
-					'desc'              => _x( 'Allow customers to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'This option will allow your customers to submit return requests to orders. Return requests will be visible within your %s. To learn more about return requests by customers and/or guests, please check the %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . admin_url( 'admin.php?page=wc-gzd-return-shipments' ) . '">' . _x( 'Return Dashboard', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>', '<a href="https://vendidero.de/dokument/retouren-konfigurieren-und-verwalten" target="_blank">' . _x( 'docs', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
-					'id' 		        => 'shipping_provider_supports_customer_returns',
-					'placeholder'       => '',
-					'value'             => $this->get_supports_customer_returns( 'edit' ) ? 'yes' : 'no',
-					'default'	        => 'no',
-					'type' 		        => 'gzd_toggle',
-				),
-
-				array(
-					'title' 	        => _x( 'Guest returns', 'shipments', 'woocommerce-germanized-shipments' ),
-					'desc' 		        => _x( 'Allow guests to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Guests will need to provide their email address and the order id to receive a one-time link to submit a return request. The placeholder %s might be used to place the request form on your site.', 'shipments', 'woocommerce-germanized-shipments' ), '<code>[gzd_return_request_form]</code>' ) . '</div>',
-					'id' 		        => 'shipping_provider_supports_guest_returns',
-					'default'	        => 'no',
-					'value'             => $this->get_supports_guest_returns( 'edit' ) ? 'yes' : 'no',
-					'type' 		        => 'gzd_toggle',
-					'custom_attributes' => array(
-						'data-show_if_shipping_provider_supports_customer_returns' => '',
-					),
-				),
-
-				array(
-					'title' 	        => _x( 'Manual confirmation', 'shipments', 'woocommerce-germanized-shipments' ),
-					'desc'              => _x( 'Return requests need manual confirmation.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . _x( 'By default return request need manual confirmation e.g. a shop manager needs to review return requests which by default are added with the status "requested" after a customer submitted a return request. If you choose to disable this option, customer return requests will be added as "processing" and an email confirmation including instructions will be sent immediately to the customer.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
-					'id' 		        => 'shipping_provider_return_manual_confirmation',
-					'placeholder'       => '',
-					'value'             => $this->get_return_manual_confirmation( 'edit' ) ? 'yes' : 'no',
-					'default'	        => 'yes',
-					'type' 		        => 'gzd_toggle',
-					'custom_attributes' => array(
-						'data-show_if_shipping_provider_supports_customer_returns' => '',
-					),
-				),
-
-				array(
-					'title' 	        => _x( 'Return instructions', 'shipments', 'woocommerce-germanized-shipments' ),
-					'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Provide your customer with instructions on how to return the shipment after a return request has been confirmed e.g. explain how to prepare the return for shipment. In case a label cannot be generated automatically, make sure to provide your customer with information on how to obain a return label.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
-					'id' 		        => 'shipping_provider_return_instructions',
-					'placeholder'       => '',
-					'value'             => $this->get_return_instructions( 'edit' ),
-					'default'	        => '',
-					'type' 		        => 'textarea',
-					'css'               => 'width: 100%; min-height: 60px; margin-top: 1em;',
-					'custom_attributes' => array(
-						'data-show_if_shipping_provider_supports_customer_returns' => '',
-					),
-				),
-			) );
-		}
-
 		$settings = array_merge( $settings, array(
 			array( 'type' => 'sectionend', 'id' => 'shipping_provider_options' ),
 		) );
@@ -672,6 +619,8 @@ class ShippingProvider extends WC_Data  {
 
 		if ( '' === $section || 'general' === $section ) {
 			$settings = $this->get_general_settings();
+		} elseif( 'returns' === $section ) {
+			$settings = $this->get_return_settings();
 		}
 
 		/**
@@ -691,6 +640,69 @@ class ShippingProvider extends WC_Data  {
 		return apply_filters( $this->get_hook_prefix() . 'settings', $settings, $section, $this );
 	}
 
+	protected function get_return_settings() {
+		$settings = array(
+			array( 'title' => '', 'type' => 'title', 'id' => 'shipping_provider_return_options' ),
+		);
+
+		$settings = array_merge( $settings, array(
+			array(
+				'title' 	        => _x( 'Customer returns', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc'              => _x( 'Allow customers to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'This option will allow your customers to submit return requests to orders. Return requests will be visible within your %s. To learn more about return requests by customers and/or guests, please check the %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . admin_url( 'admin.php?page=wc-gzd-return-shipments' ) . '">' . _x( 'Return Dashboard', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>', '<a href="https://vendidero.de/dokument/retouren-konfigurieren-und-verwalten" target="_blank">' . _x( 'docs', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
+				'id' 		        => 'shipping_provider_supports_customer_returns',
+				'placeholder'       => '',
+				'value'             => $this->get_supports_customer_returns( 'edit' ) ? 'yes' : 'no',
+				'default'	        => 'no',
+				'type' 		        => 'gzd_toggle',
+			),
+
+			array(
+				'title' 	        => _x( 'Guest returns', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc' 		        => _x( 'Allow guests to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Guests will need to provide their email address and the order id to receive a one-time link to submit a return request. The placeholder %s might be used to place the request form on your site.', 'shipments', 'woocommerce-germanized-shipments' ), '<code>[gzd_return_request_form]</code>' ) . '</div>',
+				'id' 		        => 'shipping_provider_supports_guest_returns',
+				'default'	        => 'no',
+				'value'             => $this->get_supports_guest_returns( 'edit' ) ? 'yes' : 'no',
+				'type' 		        => 'gzd_toggle',
+				'custom_attributes' => array(
+					'data-show_if_shipping_provider_supports_customer_returns' => '',
+				),
+			),
+
+			array(
+				'title' 	        => _x( 'Manual confirmation', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc'              => _x( 'Return requests need manual confirmation.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . _x( 'By default return request need manual confirmation e.g. a shop manager needs to review return requests which by default are added with the status "requested" after a customer submitted a return request. If you choose to disable this option, customer return requests will be added as "processing" and an email confirmation including instructions will be sent immediately to the customer.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
+				'id' 		        => 'shipping_provider_return_manual_confirmation',
+				'placeholder'       => '',
+				'value'             => $this->get_return_manual_confirmation( 'edit' ) ? 'yes' : 'no',
+				'default'	        => 'yes',
+				'type' 		        => 'gzd_toggle',
+				'custom_attributes' => array(
+					'data-show_if_shipping_provider_supports_customer_returns' => '',
+				),
+			),
+
+			array(
+				'title' 	        => _x( 'Return instructions', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Provide your customer with instructions on how to return the shipment after a return request has been confirmed e.g. explain how to prepare the return for shipment. In case a label cannot be generated automatically, make sure to provide your customer with information on how to obain a return label.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
+				'id' 		        => 'shipping_provider_return_instructions',
+				'placeholder'       => '',
+				'value'             => $this->get_return_instructions( 'edit' ),
+				'default'	        => '',
+				'type' 		        => 'textarea',
+				'css'               => 'width: 100%; min-height: 60px; margin-top: 1em;',
+				'custom_attributes' => array(
+					'data-show_if_shipping_provider_supports_customer_returns' => '',
+				),
+			),
+		) );
+
+		$settings = array_merge( $settings, array(
+			array( 'type' => 'sectionend', 'id' => 'shipping_provider_return_options' ),
+		) );
+
+		return $settings;
+	}
+
 	public function get_setting_sections() {
 		$sections = array(
 			'' => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' )
@@ -698,6 +710,10 @@ class ShippingProvider extends WC_Data  {
 
 		if ( ! $this->is_manual_integration() ) {
 			$sections['labels'] = _x( 'Labels', 'shipments', 'woocommerce-germanized-shipments' );
+		}
+
+		if ( $this->supports_customer_return_requests() ) {
+			$sections['returns'] = _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' );
 		}
 
 		return $sections;

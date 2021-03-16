@@ -309,8 +309,8 @@ class Settings {
 	}
 
 	public static function get_section_title_link( $section ) {
-		if ( 'provider' === $section && ! isset( $_GET['provider'] ) ) {
-			return '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=new' ) . '" class="page-title-action">' . _x( 'Add provider', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+		if ( 'provider' === $section ) {
+			return '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=new' ) . '" class="page-title-action">' . _x( 'Add provider', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
 		}
 
 		return '';

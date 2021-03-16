@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
  */
 class ProviderSettings {
 
-	protected static function get_current_provider() {
+	public static function get_current_provider() {
 		$provider = false;
 
 		if ( isset( $_REQUEST['provider'] ) ) {
@@ -43,7 +43,7 @@ class ProviderSettings {
 
 	public static function get_description() {
 		if ( $provider = self::get_current_provider() ) {
-			return $provider->get_description();
+			return $provider->get_description( 'edit' );
 		}
 
 		return '';
@@ -60,7 +60,7 @@ class ProviderSettings {
 			$breadcrumb[] = array(
 				'class' => 'section',
 				'href'  => '',
-				'title' => $provider->get_title(),
+				'title' => $provider->get_id() <= 0 ? _x( 'New', 'shipments-shipping-provider', 'woocommerce-germanized-shipments' ) : $provider->get_title(),
 			);
 		}
 
