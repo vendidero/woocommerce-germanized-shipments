@@ -158,7 +158,6 @@ class Package {
 	}
 
 	protected static function get_method_settings() {
-
 		if ( is_null( self::$method_settings ) ) {
 			self::$method_settings = ShippingProviderMethod::get_admin_settings();
 		}
@@ -168,11 +167,22 @@ class Package {
 
 	public static function filter_method_settings( $p_settings, $method ) {
 		$shipping_provider_settings = self::get_method_settings();
+		$shipping_provider          = isset( $p_settings['shipping_provider'] ) ? $p_settings['shipping_provider'] : '';
+		$shipping_method            = wc_gzd_get_shipping_provider_method( $method );
+
+		/**
+		 * Make sure the (maybe) new selected provider is used on updating the settings.
+		 */
+		$shipping_method->set_provider( $shipping_provider );
 
 		foreach( $p_settings as $setting => $value ) {
-
 			if ( array_key_exists( $setting, $shipping_provider_settings ) ) {
-				if ( self::get_setting( $setting ) === $value ) {
+				// Check if setting does neither belong to global setting nor shipping provider prefix
+				if ( 'shipping_provider' !== $setting && ! $shipping_method->setting_belongs_to_provider( $setting ) ) {
+					unset( $p_settings[ $setting ] );
+				} elseif ( $shipping_method && $shipping_method->get_fallback_setting_value( $setting ) === $value ) {
+					unset( $p_settings[ $setting ] );
+				} elseif( '' === $value ) {
 					unset( $p_settings[ $setting ] );
 				}
 			}
@@ -478,9 +488,9 @@ class Package {
         return self::get_url() . '/assets';
     }
 
-	public static function get_setting( $name ) {
+	public static function get_setting( $name, $default = false ) {
 		$option_name = "woocommerce_gzd_shipments_{$name}";
 
-		return get_option( $option_name );
+		return get_option( $option_name, $default );
 	}
 }

@@ -67,30 +67,11 @@ class ProviderSettings {
 		return $breadcrumb;
 	}
 
-	public static function save( $provider_name = '' ) {
+	public static function save( $section = '' ) {
 		if ( $provider = self::get_current_provider() ) {
-			$settings = $provider->get_settings();
+			$is_new = $provider->get_id() <= 0 ? true : false;
 
-			foreach ( $settings as $setting ) {
-				if ( ! isset( $setting['id'] ) || empty( $setting['id'] ) ) {
-					continue;
-				}
-
-				add_filter( 'woocommerce_admin_settings_sanitize_option_' . $setting['id'], function( $value, $option, $raw_value ) use( &$provider ) {
-					$option_name = str_replace( 'shipping_provider_', '', $option['id'] );
-					$setter      = 'set_' . $option_name;
-
-					try {
-						if ( is_callable( array( $provider, $setter ) ) ) {
-							$provider->{$setter}( $value );
-						}
-					} catch( Exception $e ) {}
-
-					return null;
-				}, 10, 3 );
-			}
-
-			WC_Admin_Settings::save_fields( $settings );
+			$provider->update_settings( $section, null, false );
 
 			if ( $provider->get_id() <= 0 ) {
 				if ( empty( $provider->get_tracking_desc_placeholder( 'edit' ) ) ) {
@@ -104,8 +85,8 @@ class ProviderSettings {
 
 			$provider->save();
 
-			if ( 'new' === $provider_name ) {
-				$url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=' . $provider->get_name() );
+			if ( $is_new ) {
+				$url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=' . $provider->get_name() );
 				wp_safe_redirect( $url );
 			}
 		}

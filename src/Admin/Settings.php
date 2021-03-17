@@ -341,4 +341,72 @@ class Settings {
 
 		include_once Package::get_path() . '/includes/admin/views/html-settings-provider-list.php';
 	}
+
+	public static function get_sanitized_settings( $settings, $data = null ) {
+		if ( is_null( $data ) ) {
+			$data = $_POST; // WPCS: input var okay, CSRF ok.
+		}
+
+		if ( empty( $data ) ) {
+			return false;
+		}
+
+		$settings_to_save = array();
+
+		// Loop options and get values to save.
+		foreach ( $settings as $option ) {
+
+			if ( ! isset( $option['id'] ) || empty( $option['id'] ) || ! isset( $option['type'] ) || in_array( $option['type'], array( 'title', 'sectionend' ) ) || ( isset( $option['is_option'] ) && false === $option['is_option'] ) ) {
+				continue;
+			}
+
+			$option_key = $option['id'];
+			$raw_value  = isset( $data[ $option_key ] ) ? wp_unslash( $data[ $option_key ] ) : null;
+
+			// Format the value based on option type.
+			switch ( $option['type'] ) {
+				case 'checkbox':
+					$value = '1' === $raw_value || 'yes' === $raw_value ? 'yes' : 'no';
+					break;
+				case 'textarea':
+					$value = wp_kses_post( trim( $raw_value ) );
+					break;
+				case 'multiselect':
+				case 'multi_select_countries':
+					$value = array_filter( array_map( 'wc_clean', (array) $raw_value ) );
+					break;
+				case 'image_width':
+					$value = array();
+					if ( isset( $raw_value['width'] ) ) {
+						$value['width']  = wc_clean( $raw_value['width'] );
+						$value['height'] = wc_clean( $raw_value['height'] );
+						$value['crop']   = isset( $raw_value['crop'] ) ? 1 : 0;
+					} else {
+						$value['width']  = $option['default']['width'];
+						$value['height'] = $option['default']['height'];
+						$value['crop']   = $option['default']['crop'];
+					}
+					break;
+				case 'select':
+					$allowed_values = empty( $option['options'] ) ? array() : array_map( 'strval', array_keys( $option['options'] ) );
+					if ( empty( $option['default'] ) && empty( $allowed_values ) ) {
+						$value = null;
+						break;
+					}
+					$default = ( empty( $option['default'] ) ? $allowed_values[0] : $option['default'] );
+					$value   = in_array( $raw_value, $allowed_values, true ) ? $raw_value : $default;
+					break;
+				case 'relative_date_selector':
+					$value = wc_parse_relative_date_option( $raw_value );
+					break;
+				default:
+					$value = wc_clean( $raw_value );
+					break;
+			}
+
+			$settings_to_save[ $option_key ] = $value;
+		}
+
+		return $settings_to_save;
+	}
 }

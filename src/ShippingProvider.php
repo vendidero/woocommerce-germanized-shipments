@@ -7,6 +7,7 @@
 namespace Vendidero\Germanized\Shipments;
 
 use Exception;
+use Vendidero\Germanized\Shipments\Admin\Settings;
 use WC_Data;
 use WC_Data_Store;
 
@@ -612,6 +613,51 @@ class ShippingProvider extends WC_Data  {
 		) );
 
 		return $settings;
+	}
+
+	public function get_setting( $key, $default = null ) {
+		$key    = $this->unprefix_setting_key( $key );
+		$getter = "get_{$key}";
+
+		if ( is_callable( array( $this, $getter ) ) ) {
+			return $this->$getter();
+		} else {
+			return $default;
+		}
+	}
+
+	protected function unprefix_setting_key( $key ) {
+		$prefixes = array(
+			'shipping_provider_',
+			$this->get_name() . '_',
+		);
+
+		foreach( $prefixes as $prefix ) {
+			if ( substr( $key, 0, strlen( $prefix ) ) === $prefix ) {
+				$key = substr( $key, strlen( $prefix ) );
+			}
+		}
+
+		return $key;
+	}
+
+	public function update_settings( $section = '', $data = null, $save = true ) {
+		$settings_to_save = Settings::get_sanitized_settings( $this->get_settings( $section ), $data );
+
+		foreach( $settings_to_save as $option_name => $value ) {
+			$option_name_clean = $this->unprefix_setting_key( $option_name );
+			$setter            = 'set_' . $option_name_clean;
+
+			try {
+				if ( is_callable( array( $this, $setter ) ) ) {
+					$this->{$setter}( $value );
+				}
+			} catch( Exception $e ) {}
+		}
+
+		if ( $save ) {
+			$this->save();
+		}
 	}
 
 	public function get_settings( $section = '' ) {
