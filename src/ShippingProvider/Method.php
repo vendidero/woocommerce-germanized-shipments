@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments\ShippingProvider;
 use Exception;
+use Vendidero\Germanized\Shipments\Package;
 use WC_Shipping_Method;
 
 defined( 'ABSPATH' ) || exit;

@@ -206,7 +206,7 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 			 * @since 3.0.6
 			 * @package Vendidero/Germanized/Shipments
 			 */
-			$classname = apply_filters( 'woocommerce_gzd_shipping_provider_method_classname', 'Vendidero\Germanized\Shipments\ShippingProviderMethod', $method );
+			$classname = apply_filters( 'woocommerce_gzd_shipping_provider_method_classname', 'Vendidero\Germanized\Shipments\ShippingProvider\Method', $method );
 
 			return new $classname( $method );
 		}
@@ -1186,7 +1186,7 @@ function wc_gzd_order_is_customer_returnable( $order, $check_date = true ) {
 /**
  * @param $order
  *
- * @return bool|ShippingProvider
+ * @return bool|\Vendidero\Germanized\Shipments\Interfaces\ShippingProvider
  */
 function wc_gzd_get_order_shipping_provider( $order ) {
 	if ( is_numeric( $order ) ) {
@@ -1206,7 +1206,7 @@ function wc_gzd_get_order_shipping_provider( $order ) {
 	/**
 	 * Filters the shipping provider detected for a specific order.
 	 *
-	 * @param bool|ShippingProvider $provider The shipping provider instance.
+	 * @param bool|\Vendidero\Germanized\Shipments\Interfaces\ShippingProvider $provider The shipping provider instance.
 	 * @param WC_Order              $order The order instance.
 	 *
 	 * @since 3.1.0
