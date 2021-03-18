@@ -15,7 +15,12 @@
     "phpunit/phpunit": "7.5.14"
   },
   "config": {
-    "optimize-autoloader": true
+    "optimize-autoloader": true,
+    "platform": {
+      "php": "7.1"
+    },
+    "preferred-install": "dist",
+    "sort-packages": true
   },
   "scripts": {
     "post-install-cmd": [
