@@ -1,6 +1,6 @@
 <?php
 
-namespace Vendidero\Germanized\Shipments;
+namespace Vendidero\Germanized\Shipments\Labels;
 use WC_Object_Query;
 use WC_Data_Store;
 use WP_Date_Query;
@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  * @version  3.1.0
  * @package  WooCommerce/Abstracts
  */
-class LabelQuery extends WC_Object_Query {
+class Query extends WC_Object_Query {
 
 	protected $args = array();
 

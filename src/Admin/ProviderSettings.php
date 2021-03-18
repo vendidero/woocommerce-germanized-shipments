@@ -3,8 +3,8 @@
 namespace Vendidero\Germanized\Shipments\Admin;
 use Exception;
 use Vendidero\Germanized\Shipments\Package;
-use Vendidero\Germanized\Shipments\ShippingProvider;
-use Vendidero\Germanized\Shipments\ShippingProviders;
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
+use Vendidero\Germanized\Shipments\ShippingProvider\Simple;
 use WC_Admin_Settings;
 
 defined( 'ABSPATH' ) || exit;
@@ -19,14 +19,14 @@ class ProviderSettings {
 
 		if ( isset( $_REQUEST['provider'] ) ) {
 			$provider_name = wc_clean( wp_unslash( $_REQUEST['provider'] ) );
-			$helper        = ShippingProviders::instance();
+			$helper        = Helper::instance();
 
 			$helper->get_shipping_providers();
 
 			if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
 				$provider = $helper->get_shipping_provider( $provider_name );
 			} else {
-				$provider = new ShippingProvider();
+				$provider = new Simple();
 			}
 		}
 

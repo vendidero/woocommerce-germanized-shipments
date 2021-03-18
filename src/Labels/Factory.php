@@ -7,7 +7,7 @@
  * @version 1.0.0
  * @package Vendidero/Germanized/DHL
  */
-namespace Vendidero\Germanized\Shipments;
+namespace Vendidero\Germanized\Shipments\Labels;
 
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use \WC_Data_Store;
@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Label factory class
  */
-class LabelFactory {
+class Factory {
 
 	/**
 	 * Get label.

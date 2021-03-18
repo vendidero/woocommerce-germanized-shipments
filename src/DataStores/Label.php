@@ -59,7 +59,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	/**
 	 * Method to create a new shipment in the database.
 	 *
-	 * @param \Vendidero\Germanized\Shipments\Label $label Label object.
+	 * @param \Vendidero\Germanized\Shipments\Labels\Label $label Label object.
 	 */
 	public function create( &$label ) {
 		global $wpdb;
@@ -124,7 +124,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	/**
 	 * Method to update a label in the database.
 	 *
-	 * @param \Vendidero\Germanized\Shipments\Label $label Label object.
+	 * @param \Vendidero\Germanized\Shipments\Labels\Label $label Label object.
 	 */
 	public function update( &$label ) {
 		global $wpdb;
@@ -189,7 +189,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	 * Remove a shipment from the database.
 	 *
 	 * @since 3.0.0
-	 * @param \Vendidero\Germanized\Shipments\Label $label Label object.
+	 * @param \Vendidero\Germanized\Shipments\Labels\Label $label Label object.
 	 * @param bool                $force_delete Unused param.
 	 */
 	public function delete( &$label, $force_delete = false ) {
@@ -241,7 +241,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param \Vendidero\Germanized\Shipments\Label $label Label object.
+	 * @param \Vendidero\Germanized\Shipments\Labels\Label $label Label object.
 	 *
 	 * @throws Exception Throw exception if invalid shipment.
 	 */
@@ -294,7 +294,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	/**
 	 * Clear any caches.
 	 *
-	 * @param \Vendidero\Germanized\Shipments\Label $label Label object.
+	 * @param \Vendidero\Germanized\Shipments\Labels\Label $label Label object.
 	 * @since 3.0.0
 	 */
 	protected function clear_caches( &$label ) {
@@ -336,7 +336,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	/**
 	 * Read extra data associated with the shipment.
 	 *
-	 * @param \Vendidero\Germanized\Shipments\Label $label Label object.
+	 * @param \Vendidero\Germanized\Shipments\Labels\Label $label Label object.
 	 * @since 3.0.0
 	 */
 	protected function read_label_data( &$label ) {
@@ -384,7 +384,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 		/**
 		 * Action fires after DHL label meta properties have been updated.
 		 *
-		 * @param \Vendidero\Germanized\Shipments\Label $label The label object.
+		 * @param \Vendidero\Germanized\Shipments\Labels\Label $label The label object.
 		 * @param array                           $updated_props The updated properties.
 		 *
 		 * @since 3.0.0

@@ -4,16 +4,19 @@
  *
  * @package WooCommerce/Blocks
  */
-namespace Vendidero\Germanized\Shipments;
+namespace Vendidero\Germanized\Shipments\ShippingProvider;
 
 use Exception;
 use Vendidero\Germanized\Shipments\Admin\Settings;
+use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
+use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
+use Vendidero\Germanized\Shipments\Shipment;
 use WC_Data;
 use WC_Data_Store;
 
 defined( 'ABSPATH' ) || exit;
 
-class ShippingProvider extends WC_Data  {
+class Simple extends WC_Data implements ShippingProvider {
 
 	/**
 	 * This is the name of this object type.
@@ -88,10 +91,6 @@ class ShippingProvider extends WC_Data  {
 		} else {
 			$this->set_object_read( true );
 		}
-	}
-
-	public function get_label_classname( $type ) {
-		return '\Vendidero\Germanized\Shipments\Label';
 	}
 
 	public function get_help_link() {
@@ -260,7 +259,14 @@ class ShippingProvider extends WC_Data  {
 	 * @return mixed
 	 */
 	public function get_tracking_url_placeholder( $context = 'view' ) {
-		return $this->get_prop( 'tracking_url_placeholder', $context );
+		$data = $this->get_prop( 'tracking_url_placeholder', $context );
+
+		// In case the option value is not stored in DB yet
+		if ( 'view' === $context && empty( $data ) ) {
+			$data = $this->get_default_tracking_url_placeholder();
+		}
+
+		return $data;
 	}
 
 	public function get_default_tracking_url_placeholder() {
@@ -276,7 +282,14 @@ class ShippingProvider extends WC_Data  {
 	 * @return mixed
 	 */
 	public function get_tracking_desc_placeholder( $context = 'view' ) {
-		return $this->get_prop( 'tracking_desc_placeholder', $context );
+		$data = $this->get_prop( 'tracking_desc_placeholder', $context );
+
+		// In case the option value is not stored in DB yet
+		if ( 'view' === $context && empty( $data ) ) {
+			$data = $this->get_default_tracking_desc_placeholder();
+		}
+
+		return $data;
 	}
 
 	public function get_default_tracking_desc_placeholder() {
@@ -616,11 +629,13 @@ class ShippingProvider extends WC_Data  {
 	}
 
 	public function get_setting( $key, $default = null ) {
-		$key    = $this->unprefix_setting_key( $key );
-		$getter = "get_{$key}";
+		$clean_key = $this->unprefix_setting_key( $key );
+		$getter    = "get_{$clean_key}";
 
 		if ( is_callable( array( $this, $getter ) ) ) {
 			return $this->$getter();
+		} elseif ( $this->meta_exists( $clean_key ) ) {
+			return $this->get_meta( $clean_key, true );
 		} else {
 			return $default;
 		}
@@ -645,19 +660,25 @@ class ShippingProvider extends WC_Data  {
 		$settings_to_save = Settings::get_sanitized_settings( $this->get_settings( $section ), $data );
 
 		foreach( $settings_to_save as $option_name => $value ) {
-			$option_name_clean = $this->unprefix_setting_key( $option_name );
-			$setter            = 'set_' . $option_name_clean;
-
-			try {
-				if ( is_callable( array( $this, $setter ) ) ) {
-					$this->{$setter}( $value );
-				}
-			} catch( Exception $e ) {}
+			$this->update_setting( $option_name, $value );
 		}
 
 		if ( $save ) {
 			$this->save();
 		}
+	}
+
+	protected function update_setting( $setting, $value ) {
+		$setting_name_clean = $this->unprefix_setting_key( $setting );
+		$setter             = 'set_' . $setting_name_clean;
+
+		try {
+			if ( is_callable( array( $this, $setter ) ) ) {
+				$this->{$setter}( $value );
+			} else {
+				$this->update_meta_data( $setting_name_clean, $value );
+			}
+		} catch( Exception $e ) {}
 	}
 
 	public function get_settings( $section = '' ) {
@@ -667,6 +688,8 @@ class ShippingProvider extends WC_Data  {
 			$settings = $this->get_general_settings();
 		} elseif( 'returns' === $section ) {
 			$settings = $this->get_return_settings();
+		} elseif( is_callable( array( $this, "get_{$section}_settings" ) ) ) {
+			$settings = $this->{"get_{$section}_settings"}();
 		}
 
 		/**
@@ -695,9 +718,9 @@ class ShippingProvider extends WC_Data  {
 			array(
 				'title' 	        => _x( 'Customer returns', 'shipments', 'woocommerce-germanized-shipments' ),
 				'desc'              => _x( 'Allow customers to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'This option will allow your customers to submit return requests to orders. Return requests will be visible within your %s. To learn more about return requests by customers and/or guests, please check the %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . admin_url( 'admin.php?page=wc-gzd-return-shipments' ) . '">' . _x( 'Return Dashboard', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>', '<a href="https://vendidero.de/dokument/retouren-konfigurieren-und-verwalten" target="_blank">' . _x( 'docs', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
-				'id' 		        => 'shipping_provider_supports_customer_returns',
+				'id' 		        => 'supports_customer_returns',
 				'placeholder'       => '',
-				'value'             => $this->get_supports_customer_returns( 'edit' ) ? 'yes' : 'no',
+				'value'             => wc_bool_to_string( $this->get_supports_customer_returns( 'edit' ) ),
 				'default'	        => 'no',
 				'type' 		        => 'gzd_toggle',
 			),
@@ -705,9 +728,9 @@ class ShippingProvider extends WC_Data  {
 			array(
 				'title' 	        => _x( 'Guest returns', 'shipments', 'woocommerce-germanized-shipments' ),
 				'desc' 		        => _x( 'Allow guests to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Guests will need to provide their email address and the order id to receive a one-time link to submit a return request. The placeholder %s might be used to place the request form on your site.', 'shipments', 'woocommerce-germanized-shipments' ), '<code>[gzd_return_request_form]</code>' ) . '</div>',
-				'id' 		        => 'shipping_provider_supports_guest_returns',
+				'id' 		        => 'supports_guest_returns',
 				'default'	        => 'no',
-				'value'             => $this->get_supports_guest_returns( 'edit' ) ? 'yes' : 'no',
+				'value'             => wc_bool_to_string( $this->get_supports_guest_returns( 'edit' ) ),
 				'type' 		        => 'gzd_toggle',
 				'custom_attributes' => array(
 					'data-show_if_shipping_provider_supports_customer_returns' => '',
@@ -717,9 +740,9 @@ class ShippingProvider extends WC_Data  {
 			array(
 				'title' 	        => _x( 'Manual confirmation', 'shipments', 'woocommerce-germanized-shipments' ),
 				'desc'              => _x( 'Return requests need manual confirmation.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . _x( 'By default return request need manual confirmation e.g. a shop manager needs to review return requests which by default are added with the status "requested" after a customer submitted a return request. If you choose to disable this option, customer return requests will be added as "processing" and an email confirmation including instructions will be sent immediately to the customer.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
-				'id' 		        => 'shipping_provider_return_manual_confirmation',
+				'id' 		        => 'return_manual_confirmation',
 				'placeholder'       => '',
-				'value'             => $this->get_return_manual_confirmation( 'edit' ) ? 'yes' : 'no',
+				'value'             => wc_bool_to_string( $this->get_return_manual_confirmation( 'edit' ) ),
 				'default'	        => 'yes',
 				'type' 		        => 'gzd_toggle',
 				'custom_attributes' => array(
@@ -730,7 +753,7 @@ class ShippingProvider extends WC_Data  {
 			array(
 				'title' 	        => _x( 'Return instructions', 'shipments', 'woocommerce-germanized-shipments' ),
 				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Provide your customer with instructions on how to return the shipment after a return request has been confirmed e.g. explain how to prepare the return for shipment. In case a label cannot be generated automatically, make sure to provide your customer with information on how to obain a return label.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
-				'id' 		        => 'shipping_provider_return_instructions',
+				'id' 		        => 'return_instructions',
 				'placeholder'       => '',
 				'value'             => $this->get_return_instructions( 'edit' ),
 				'default'	        => '',
@@ -754,10 +777,6 @@ class ShippingProvider extends WC_Data  {
 			'' => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' )
 		);
 
-		if ( ! $this->is_manual_integration() ) {
-			$sections['labels'] = _x( 'Labels', 'shipments', 'woocommerce-germanized-shipments' );
-		}
-
 		if ( $this->supports_customer_return_requests() ) {
 			$sections['returns'] = _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' );
 		}
@@ -770,66 +789,18 @@ class ShippingProvider extends WC_Data  {
 	}
 
 	/**
-	 * @param Shipment $shipment
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 *
-	 * @return mixed|void
+	 * @return ShipmentLabel|false
 	 */
 	public function get_label( $shipment ) {
-		$label = false;
-		$type  = wc_gzd_get_label_type_by_shipment( $shipment );
-
-		if ( ! $this->is_manual_integration() ) {
-			$label = wc_gzd_get_label_by_shipment( $shipment, $type );
-		}
-
-		return apply_filters( "{$this->get_hook_prefix()}label", $label, $type, $shipment, $this );
-	}
-
-	/**
-	 * @param Shipment $shipment
-	 */
-	public function get_label_settings_html( $shipment ) {
-		$settings = $this->get_label_settings( $shipment );
-
-		ob_start();
-		include( Package::get_path() . '/includes/admin/views/label/html-shipment-label-backbone-form.php' );
-		$html = ob_get_clean();
-
-		return apply_filters( "{$this->get_hook_prefix()}label_settings_html", $html, $settings, $shipment, $this );
-	}
-
-	/**
-	 * @param Shipment $shipment
-	 */
-	public function get_label_settings( $shipment ) {
-		$default   = $this->get_default_label_product( $shipment );
-		$available = $this->get_available_label_products( $shipment );
-
-		$settings = array(
-			array(
-				'id'          => 'product_id',
-				'label'       => sprintf( _x( '%s Product', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title() ),
-				'description' => '',
-				'options'	  => $this->get_available_label_products( $shipment ),
-				'value'       => $default && array_key_exists( $default, $available ) ? $default : '',
-				'type'        => 'select'
-			)
-		);
-
-		return $settings;
+		return apply_filters( "{$this->get_hook_prefix()}label", false, $shipment, $this );
 	}
 
 	/**
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
-	public function get_available_label_products( $shipment ) {
-		return array();
-	}
-
-	/**
-	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
-	 */
-	public function get_default_label_product( $shipment ) {
-		return false;
+	public function get_label_fields_html( $shipment ) {
+		return apply_filters( "{$this->get_hook_prefix()}label_fields_html", '', $shipment, $this );
 	}
 }

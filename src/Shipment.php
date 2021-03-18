@@ -1882,7 +1882,7 @@ abstract class Shipment extends WC_Data {
 
 		if ( $provider = $this->get_shipping_provider_instance() ) {
 			$hook_prefix = $hook_prefix . '_' . $provider->get_name();
-			$html        = $provider->get_label_settings_html( $this );
+			$html        = $provider->get_label_fields_html( $this );
 		}
 
 		/**

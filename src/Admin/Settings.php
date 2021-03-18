@@ -3,8 +3,9 @@
 namespace Vendidero\Germanized\Shipments\Admin;
 use Exception;
 use Vendidero\Germanized\Shipments\Package;
-use Vendidero\Germanized\Shipments\ShippingProvider;
-use Vendidero\Germanized\Shipments\ShippingProviders;
+use Vendidero\Germanized\Shipments\Provider\ShippingProvider;
+use Vendidero\Germanized\Shipments\Provider\ShippingProviders;
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use WC_Admin_Settings;
 
 defined( 'ABSPATH' ) || exit;
@@ -335,8 +336,7 @@ class Settings {
 	}
 
 	protected static function provider_screen() {
-
-		$helper    = ShippingProviders::instance();
+		$helper    = Helper::instance();
 		$providers = $helper->get_shipping_providers();
 
 		include_once Package::get_path() . '/includes/admin/views/html-settings-provider-list.php';
@@ -371,6 +371,10 @@ class Settings {
 				case 'textarea':
 					$value = wp_kses_post( trim( $raw_value ) );
 					break;
+				case 'password':
+					$value = is_null( $raw_value ) ? '' : addslashes( $raw_value );
+					$value = trim( $value );
+					break;
 				case 'multiselect':
 				case 'multi_select_countries':
 					$value = array_filter( array_map( 'wc_clean', (array) $raw_value ) );
@@ -403,6 +407,13 @@ class Settings {
 					$value = wc_clean( $raw_value );
 					break;
 			}
+
+			/**
+			 * Sanitize the value of an option.
+			 *
+			 * @since 2.4.0
+			 */
+			$value = apply_filters( 'woocommerce_admin_settings_sanitize_option', $value, $option, $raw_value );
 
 			$settings_to_save[ $option_key ] = $value;
 		}

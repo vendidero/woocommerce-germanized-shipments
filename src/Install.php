@@ -10,10 +10,19 @@ defined( 'ABSPATH' ) || exit;
 class Install {
 
 	public static function install() {
+		$current_version = get_option( 'woocommerce_gzd_shipments_version', null );
+
 		self::create_upload_dir();
 		self::create_tables();
 		self::maybe_create_return_reasons();
 		self::maybe_create_packaging();
+
+		/**
+		 * Older versions did not support custom versioning
+		 */
+		if ( is_null( $current_version ) ) {
+			add_option( 'woocommerce_gzd_shipments_version', Package::get_version() );
+		}
 
 		update_option( 'woocommerce_gzd_shipments_db_version', Package::get_version() );
 

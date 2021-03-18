@@ -149,7 +149,7 @@ function wc_gzd_get_shipment_order_return_statuses() {
 /**
  * @param $instance_id
  *
- * @return ShippingProviderMethod
+ * @return ShippingProvider\Method
  */
 function wc_gzd_get_shipping_provider_method( $instance_id ) {
 	$original_id = $instance_id;
@@ -640,11 +640,11 @@ function wc_gzd_split_shipment_street( $streetStr ) {
 }
 
 function wc_gzd_get_shipping_providers() {
-	return ShippingProviders::instance()->get_shipping_providers();
+	return ShippingProvider\Helper::instance()->get_shipping_providers();
 }
 
 function wc_gzd_get_shipping_provider( $name ) {
-	return ShippingProviders::instance()->get_shipping_provider( $name );
+	return ShippingProvider\Helper::instance()->get_shipping_provider( $name );
 }
 
 function wc_gzd_get_default_shipping_provider() {

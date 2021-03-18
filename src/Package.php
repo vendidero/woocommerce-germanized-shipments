@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments;
 
 use Exception;
+use Vendidero\Germanized\Shipments\ShippingProvider\Method;
 use WC_Shipping;
 use WC_Shipping_Method;
 
@@ -17,7 +18,7 @@ class Package {
      *
      * @var string
      */
-    const VERSION = '1.4.6';
+    const VERSION = '1.5.0';
 
     public static $upload_dir_suffix = '';
 
@@ -159,7 +160,7 @@ class Package {
 
 	protected static function get_method_settings() {
 		if ( is_null( self::$method_settings ) ) {
-			self::$method_settings = ShippingProviderMethod::get_admin_settings();
+			self::$method_settings = Method::get_admin_settings();
 		}
 
 		return self::$method_settings;
@@ -223,7 +224,7 @@ class Package {
 		$shipping = WC_Shipping::instance();
 
 		foreach( $shipping->shipping_methods as $key => $method ) {
-			$shipping_provider_method = new ShippingProviderMethod( $method );
+			$shipping_provider_method = new Method( $method );
 		}
 	}
 
@@ -492,5 +493,23 @@ class Package {
 		$option_name = "woocommerce_gzd_shipments_{$name}";
 
 		return get_option( $option_name, $default );
+	}
+
+	public static function get_store_address_country() {
+		$default = get_option( 'woocommerce_store_country' );
+
+		return $default;
+	}
+
+	public static function get_store_address_street() {
+		$store_address = wc_gzd_split_shipment_street( get_option( 'woocommerce_store_address' ) );
+
+		return $store_address['street'];
+	}
+
+	public static function get_store_address_street_number() {
+		$store_address = wc_gzd_split_shipment_street( get_option( 'woocommerce_store_address' ) );
+
+		return $store_address['number'];
 	}
 }

@@ -1,18 +1,18 @@
 <?php
 
-namespace Vendidero\Germanized\Shipments;
+namespace Vendidero\Germanized\Shipments\ShippingProvider;
 
-use PHPUnit\Runner\Exception;
+use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
 use WC_Data_Store;
 
 defined( 'ABSPATH' ) || exit;
 
-class ShippingProviders {
+class Helper {
 
 	/**
 	 * The single instance of the class
 	 *
-	 * @var ShippingProviders
+	 * @var Helper
 	 * @since 1.0.5
 	 */
 	protected static $_instance = null;
@@ -20,7 +20,7 @@ class ShippingProviders {
 	/**
 	 * Stores shipping providers loaded.
 	 *
-	 * @var ShippingProvider[]|null
+	 * @var Simple[]|null
 	 */
 	public $shipping_providers = null;
 
@@ -29,8 +29,8 @@ class ShippingProviders {
 	 *
 	 * Ensures only one instance of ShippingProviders is loaded or can be loaded.
 	 *
-	 * @since 1.0.5
-	 * @return ShippingProviders Main instance
+	 * @return Helper Main instance
+	 *@since 1.0.5
 	 */
 	public static function instance() {
 		if ( is_null( self::$_instance ) ) {
@@ -81,14 +81,13 @@ class ShippingProviders {
 		$classes = $this->get_shipping_provider_class_names();
 
 		if ( ! is_object( $provider ) ) {
-
 			if ( ! class_exists( $provider ) ) {
 				return false;
 			}
 
 			$provider = new $provider();
 		} else {
-			$classname = '\Vendidero\Germanized\Shipments\ShippingProvider';
+			$classname = '\Vendidero\Germanized\Shipments\ShippingProvider\Simple';
 
 			if ( array_key_exists( $provider->shipping_provider_name, $classes ) ) {
 				$classname = $classes[ $provider->shipping_provider_name ];
@@ -97,13 +96,13 @@ class ShippingProviders {
 			$classname = apply_filters( 'woocommerce_gzd_shipping_provider_class_name', $classname, $provider->shipping_provider_name, $provider );
 
 			if ( ! class_exists( $classname ) ) {
-				$classname = '\Vendidero\Germanized\Shipments\ShippingProvider';
+				$classname = '\Vendidero\Germanized\Shipments\ShippingProvider\Simple';
 			}
 
 			$provider = new $classname( $provider );
 		}
 
-		if ( ! $provider || ! is_a( $provider, 'Vendidero\Germanized\Shipments\ShippingProvider' ) ) {
+		if ( ! $provider || ! is_a( $provider, '\Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
 			return false;
 		}
 
@@ -154,7 +153,7 @@ class ShippingProviders {
 		 * This hook fires as soon as shipping providers are loaded.
 		 * Additional shipping provider may be registered manually afterwards.
 		 *
-		 * @param ShippingProviders $providers The shipping providers instance
+		 * @param Helper $providers The shipping providers instance
 		 *
 		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
@@ -168,7 +167,7 @@ class ShippingProviders {
 	/**
 	 * Returns all registered shipping providers for usage.
 	 *
-	 * @return ShippingProvider[]
+	 * @return Simple|Auto|ShippingProvider[]
 	 */
 	public function get_shipping_providers() {
 		if ( is_null( $this->shipping_providers ) ) {
@@ -178,6 +177,11 @@ class ShippingProviders {
 		return $this->shipping_providers;
 	}
 
+	/**
+	 * @param $name
+	 *
+	 * @return false|Simple|Auto|ShippingProvider
+	 */
 	public function get_shipping_provider( $name ) {
 		$providers = $this->get_shipping_providers();
 

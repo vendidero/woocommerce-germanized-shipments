@@ -1,8 +1,9 @@
 <?php
 
-namespace Vendidero\Germanized\Shipments;
+namespace Vendidero\Germanized\Shipments\Labels;
 
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
+use Vendidero\Germanized\Shipments\Shipment;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
@@ -69,7 +70,7 @@ class Label extends WC_Data implements ShipmentLabel {
 	public function __construct( $data = 0 ) {
 		parent::__construct( $data );
 
-		if ( $data instanceof Label ) {
+		if ( $data instanceof ShipmentLabel ) {
 			$this->set_id( absint( $data->get_id() ) );
 		} elseif ( is_numeric( $data ) ) {
 			$this->set_id( $data );
