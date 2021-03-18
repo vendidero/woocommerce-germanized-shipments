@@ -213,15 +213,15 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 	}
 
 	// Load placeholder
-	$placeholder = new ShippingProviderMethodPlaceholder( $original_id );
+	$placeholder = new ShippingProvider\MethodPlaceholder( $original_id );
 
 	/**
 	 * Filter to adjust the fallback shipping method to be loaded if no real
 	 * shipping method was able to be constructed (e.g. a custom plugin is being used which
 	 * replaces the default Woo shipping zones integration).
 	 *
-	 * @param ShippingProviderMethod $placeholder The placeholder impl.
-	 * @param string                 $original_id The shipping method id.
+	 * @param ShippingProvider\MethodPlaceholder $placeholder The placeholder impl.
+	 * @param string                             $original_id The shipping method id.
 	 *
 	 * @since 3.0.6
 	 * @package Vendidero/Germanized/Shipments
