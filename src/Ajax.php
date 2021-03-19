@@ -258,19 +258,17 @@ class Ajax {
 	    }
 
 	    if ( $shipment->supports_label() && $shipment->needs_label() ) {
-
-	    	$data     = array();
-		    $raw_data = $_POST;
-	    	$prefix   = "{$shipment->get_shipping_provider()}_label_";
+	    	$data = array();
 
 		    foreach( $_POST as $key => $value ) {
-			    if ( substr( $key, 0, strlen( $prefix ) ) === $prefix ) {
-				    $new_key           = substr( $key, ( strlen( $prefix ) ) );
-				    $data[ $new_key ]  = wc_clean( wp_unslash( $value ) );
+		    	if ( in_array( $key, array( 'action', 'security' ) ) ) {
+		    		continue;
 			    }
+
+			    $data[ $key ]  = wc_clean( wp_unslash( $value ) );
 		    }
 
-	    	$result = $shipment->create_label( $data, $raw_data );
+	    	$result = $shipment->create_label( $data );
 	    }
 
 	    if ( is_wp_error( $result ) ) {

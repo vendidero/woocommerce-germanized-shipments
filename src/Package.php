@@ -36,6 +36,8 @@ class Package {
 	    self::maybe_set_upload_dir();
 	    self::init_hooks();
         self::includes();
+
+        do_action( 'woocommerce_gzd_shipments_init' );
     }
 
     protected static function init_hooks() {

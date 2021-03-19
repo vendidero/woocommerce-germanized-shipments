@@ -17,9 +17,6 @@ use Vendidero\Germanized\Shipments\ShipmentItem;
 use Vendidero\Germanized\Shipments\ShipmentReturnItem;
 use Vendidero\Germanized\Shipments\SimpleShipment;
 use Vendidero\Germanized\Shipments\ReturnShipment;
-use Vendidero\Germanized\Shipments\ShippingProviders;
-use Vendidero\Germanized\Shipments\ShippingProviderMethod;
-use Vendidero\Germanized\Shipments\ShippingProviderMethodPlaceholder;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\ShippingProvider;
 

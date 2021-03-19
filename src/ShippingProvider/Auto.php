@@ -7,7 +7,9 @@
 namespace Vendidero\Germanized\Shipments\ShippingProvider;
 
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto;
+use Vendidero\Germanized\Shipments\Labels\Factory;
 use Vendidero\Germanized\Shipments\Package;
+use Vendidero\Germanized\Shipments\Shipment;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -587,7 +589,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	protected function get_automation_settings() {
 		$settings = array(
-			array( 'title' => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipping_provider_label_auto_options' ),
+			array( 'title' => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ), 'allow_override' => true, 'type' => 'title', 'id' => 'shipping_provider_label_auto_options' ),
 		);
 
 		$shipment_statuses = array_diff_key( wc_gzd_get_shipment_statuses(), array_fill_keys( array( 'gzd-draft', 'gzd-delivered', 'gzd-returned', 'gzd-requested' ), '' ) );
@@ -651,7 +653,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return $settings;
 	}
 
-	protected function get_labels_settings() {
+	protected function get_label_settings() {
 		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'shipping_provider_label_options' ),
 
@@ -678,53 +680,59 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			),
 
 			array( 'type' => 'sectionend', 'id' => 'shipping_provider_label_options' ),
+		);
 
+		return $settings;
+	}
+
+	protected function get_address_settings() {
+		$settings = array(
 			array( 'title' => _x( 'Shipper address', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipping_provider_label_address_options' ),
 
 			array(
-				'title'             => _x( 'Name', 'dhl', 'woocommerce-germanized-dhl' ),
+				'title'             => _x( 'Name', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'              => 'text',
 				'id' 		        => 'shipper_address_name',
 				'value'             => $this->get_setting( 'shipper_address_name' )
 			),
 
 			array(
-				'title'             => _x( 'Company', 'dhl', 'woocommerce-germanized-dhl' ),
+				'title'             => _x( 'Company', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'              => 'text',
 				'id' 		        => 'shipper_address_company',
 				'value'             => $this->get_setting( 'shipper_address_company' )
 			),
 
 			array(
-				'title'             => _x( 'Street', 'dhl', 'woocommerce-germanized-dhl' ),
+				'title'             => _x( 'Street', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'              => 'text',
 				'id' 		        => 'shipper_address_street',
 				'value'             => $this->get_setting( 'shipper_address_street' )
 			),
 
 			array(
-				'title'             => _x( 'Street Number', 'dhl', 'woocommerce-germanized-dhl' ),
+				'title'             => _x( 'Street Number', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'              => 'text',
 				'id' 		        => 'shipper_address_street_number',
 				'value'             => $this->get_setting( 'shipper_address_street_number' )
 			),
 
 			array(
-				'title'             => _x( 'City', 'dhl', 'woocommerce-germanized-dhl' ),
+				'title'             => _x( 'City', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'              => 'text',
 				'id' 		        => 'shipper_address_city',
 				'value'             => $this->get_setting( 'shipper_address_city' )
 			),
 
 			array(
-				'title'             => _x( 'Postcode', 'dhl', 'woocommerce-germanized-dhl' ),
+				'title'             => _x( 'Postcode', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'              => 'text',
 				'id' 		        => 'shipper_address_postcode',
 				'value'             => $this->get_setting( 'shipper_address_postcode' )
 			),
 
 			array(
-				'title'             => _x( 'Country', 'dhl', 'woocommerce-germanized-dhl' ),
+				'title'             => _x( 'Country', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'              => 'select',
 				'class'		        => 'wc-enhanced-select',
 				'options'           => $this->get_available_base_countries(),
@@ -733,14 +741,14 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			),
 
 			array(
-				'title'             => _x( 'Phone', 'dhl', 'woocommerce-germanized-dhl' ),
+				'title'             => _x( 'Phone', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'              => 'text',
 				'id' 		        => 'shipper_address_phone',
 				'value'             => $this->get_setting( 'shipper_address_phone' )
 			),
 
 			array(
-				'title'             => _x( 'Email', 'dhl', 'woocommerce-germanized-dhl' ),
+				'title'             => _x( 'Email', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'              => 'text',
 				'id' 		        => 'shipper_address_email',
 				'value'             => $this->get_setting( 'shipper_address_email' )
@@ -748,6 +756,79 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 			array( 'type' => 'sectionend', 'id' => 'shipping_provider_label_address_options' ),
 		);
+
+		if ( $this->supports_labels( 'return' ) ) {
+			$settings = array_merge( $settings, array(
+				array( 'title' => _x( 'Return address', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipping_provider_label_return_address_options' ),
+
+				array(
+					'title'             => _x( 'Name', 'shipments', 'woocommerce-germanized-shipments' ),
+					'type'              => 'text',
+					'id' 		        => 'return_address_name',
+					'value'             => $this->get_setting( 'return _address_name' )
+				),
+
+				array(
+					'title'             => _x( 'Company', 'shipments', 'woocommerce-germanized-shipments' ),
+					'type'              => 'text',
+					'id' 		        => 'return_address_company',
+					'value'             => $this->get_setting( 'return_address_company' )
+				),
+
+				array(
+					'title'             => _x( 'Street', 'shipments', 'woocommerce-germanized-shipments' ),
+					'type'              => 'text',
+					'id' 		        => 'return_address_street',
+					'value'             => $this->get_setting( 'return_address_street' )
+				),
+
+				array(
+					'title'             => _x( 'Street Number', 'shipments', 'woocommerce-germanized-shipments' ),
+					'type'              => 'text',
+					'id' 		        => 'return_address_street_number',
+					'value'             => $this->get_setting( 'return_address_street_number' )
+				),
+
+				array(
+					'title'             => _x( 'City', 'shipments', 'woocommerce-germanized-shipments' ),
+					'type'              => 'text',
+					'id' 		        => 'return_address_city',
+					'value'             => $this->get_setting( 'return_address_city' )
+				),
+
+				array(
+					'title'             => _x( 'Postcode', 'shipments', 'woocommerce-germanized-shipments' ),
+					'type'              => 'text',
+					'id' 		        => 'return_address_postcode',
+					'value'             => $this->get_setting( 'return_address_postcode' )
+				),
+
+				array(
+					'title'             => _x( 'Country', 'shipments', 'woocommerce-germanized-shipments' ),
+					'type'              => 'select',
+					'class'		        => 'wc-enhanced-select',
+					'options'           => $this->get_available_base_countries(),
+					'id' 		        => 'return_address_country',
+					'value'             => $this->get_setting( 'return_address_country' )
+				),
+
+				array(
+					'title'             => _x( 'Phone', 'shipments', 'woocommerce-germanized-shipments' ),
+					'type'              => 'text',
+					'id' 		        => 'return_address_phone',
+					'value'             => $this->get_setting( 'return_address_phone' )
+				),
+
+				array(
+					'title'             => _x( 'Email', 'shipments', 'woocommerce-germanized-shipments' ),
+					'type'              => 'text',
+					'id' 		        => 'return_address_email',
+					'value'             => $this->get_setting( 'return_address_email' )
+				),
+
+				array( 'type' => 'sectionend', 'id' => 'shipping_provider_label_return_address_options' ),
+			) );
+		}
 
 		return $settings;
 	}
@@ -765,13 +846,12 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	public function get_setting_sections() {
 		$sections = array(
 			''           => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' ),
-			'labels'     => _x( 'Labels', 'shipments', 'woocommerce-germanized-shipments' ),
+			'label'      => _x( 'Labels', 'shipments', 'woocommerce-germanized-shipments' ),
+			'address'    => _x( 'Addresses', 'shipments', 'woocommerce-germanized-shipments' ),
 			'automation' => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ),
 		);
 
-		if ( $this->supports_customer_return_requests() ) {
-			$sections['returns'] = _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' );
-		}
+		$sections = array_replace_recursive( $sections, parent::get_setting_sections() );
 
 		return $sections;
 	}
@@ -795,6 +875,85 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		);
 
 		return $settings;
+	}
+
+	/**
+	 * @param Shipment $shipment
+	 * @param $props
+	 *
+	 * @return \WP_Error|mixed
+	 */
+	protected function validate_label_request( $shipment, $props ) {
+		return $props;
+	}
+
+	/**
+	 * @param Shipment $shipment
+	 *
+	 * @return array
+	 */
+	protected function get_default_label_props( $shipment ) {
+		$default = array(
+			'shipping_provider' => $this->get_name(),
+			'weight'            => wc_gzd_get_shipment_label_weight( $shipment ),
+			'net_weight'        => wc_gzd_get_shipment_label_weight( $shipment, true ),
+			'shipment_id'       => $shipment->get_id(),
+			'services'          => array(),
+		);
+
+		$dimensions = wc_gzd_dhl_get_shipment_dimensions( $shipment );
+		$default    = array_merge( $default, $dimensions );
+
+		return $default;
+	}
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 * @param mixed $props
+	 */
+	public function create_label( $shipment, $props ) {
+		$props['services'] = isset( $props['services'] ) ? (array) $props['services'] : array();
+
+		foreach( $props as $key => $value ) {
+			if ( substr( $key, 0, strlen( 'service_' ) ) === 'service_' ) {
+				$new_key = substr( $key, ( strlen( 'service_' ) ) );
+
+				if ( wc_string_to_bool( $value ) && in_array( $new_key, $this->get_available_label_services( $shipment ) ) ) {
+					$props['services'][] = $new_key;
+					unset( $props[ $key ] );
+				}
+			}
+		}
+
+		$props = wp_parse_args( $props, $this->get_default_label_props( $shipment ) );
+		$props = $this->validate_label_request( $shipment, $props );
+
+		if ( is_wp_error( $props ) ) {
+			return $props;
+		}
+
+		$props['services'] = array_unique( $props['services'] );
+
+		$label = Factory::get_label( 0, $this->get_name(), $shipment->get_type() );
+
+		if ( $label ) {
+			$dimensions = wc_gzd_dhl_get_shipment_dimensions( $shipment );
+			$props      = array_merge( $props, $dimensions );
+
+			$label->set_props( $props );
+			$label->set_shipment( $shipment );
+
+			// @TODO call API method before saving and maybe return errors
+		}
+
+		return new \WP_Error( _x( 'Error while creating the label.', 'shipments', 'woocommerce-germanized-shipments' ) );
+	}
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 */
+	public function get_available_label_services( $shipment ) {
+		return array();
 	}
 
 	/**

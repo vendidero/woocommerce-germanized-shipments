@@ -631,14 +631,19 @@ class Simple extends WC_Data implements ShippingProvider {
 	public function get_setting( $key, $default = null ) {
 		$clean_key = $this->unprefix_setting_key( $key );
 		$getter    = "get_{$clean_key}";
+		$value     = $default;
 
 		if ( is_callable( array( $this, $getter ) ) ) {
-			return $this->$getter();
+			$value = $this->$getter();
 		} elseif ( $this->meta_exists( $clean_key ) ) {
-			return $this->get_meta( $clean_key, true );
-		} else {
-			return $default;
+			$value = $this->get_meta( $clean_key, true );
 		}
+
+		if ( strstr( $key, 'password' ) ) {
+			$value = stripslashes( $value );
+		}
+
+		return $value;
 	}
 
 	protected function unprefix_setting_key( $key ) {
@@ -772,13 +777,91 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $settings;
 	}
 
+	public function get_shipping_method_settings() {
+		$settings = array();
+		$sections = $this->get_setting_sections();
+
+		foreach( array_keys( $sections ) as $section ) {
+			$settings[ $section ] = $this->get_settings( $section );
+		}
+
+		$method_settings         = array();
+		$include_current_section = false;
+
+		foreach( $settings as $section => $section_settings ) {
+			$global_settings_url = add_query_arg( array( 'section' => $section ), $this->get_edit_link() );
+			$default_title       = $sections[ $section ];
+
+			foreach( $section_settings as $setting ) {
+				$include = false;
+				$setting = wp_parse_args( $setting, array(
+					'allow_override' => ( $include_current_section && ! in_array( $setting['type'], array( 'title', 'sectionend' ) ) ) ? true : false,
+					'type'           => '',
+					'id'             => '',
+					'value'          => '',
+					'title_method'   => '',
+					'title'          => ''
+				) );
+
+				if ( true === $setting['allow_override'] ) {
+					$include = true;
+
+					if ( 'title' === $setting['type'] ) {
+						$include_current_section = true;
+					}
+				} elseif ( $include_current_section && ! in_array( $setting['type'], array( 'title', 'sectionend' ) ) && false !== $setting['allow_override'] ) {
+					$include = true;
+				} elseif( in_array( $setting['type'], array( 'title', 'sectionend' ) ) ) {
+					$include_current_section = false;
+				}
+
+				if ( $include ) {
+					$new_setting            = array();
+					$new_setting['id']      = $this->get_name() . '_' . $setting['id'];
+					$new_setting['type']    = str_replace( 'gzd_toggle', 'checkbox', $setting['type'] );
+					$new_setting['default'] = $setting['value'];
+
+					if ( 'checkbox' === $new_setting['type'] ) {
+						$new_setting['label'] = $setting['desc'];
+					} elseif ( isset( $setting['desc'] ) ) {
+						$new_setting['description'] = $setting['desc'];
+					}
+
+					$copy = array( 'options', 'title', 'desc_tip' );
+
+					foreach ( $copy as $cp ) {
+						if ( isset( $setting[ $cp ] ) ) {
+							$new_setting[ $cp ] = $setting[ $cp ];
+						}
+					}
+
+					if( 'title' === $new_setting['type'] ) {
+						$new_setting['description'] = sprintf( _x( 'These settings override your <a href="%1$s">global %2$s options</a>. Do only adjust these settings in case you would like to specifically adjust them for this specific shipping method.', 'shipments', 'woocommerce-germanized-shipments' ), $global_settings_url, $this->get_title() );
+
+						if ( empty( $setting['title'] ) ) {
+							$new_setting['title'] = $default_title;
+						}
+
+						if ( ! empty( $setting['title_method'] ) ) {
+							$new_setting['title'] = $setting['title_method'];
+						}
+					}
+
+					$method_settings[ $new_setting['id'] ] = $new_setting;
+				}
+			}
+		}
+
+		return $method_settings;
+	}
+
 	public function get_setting_sections() {
 		$sections = array(
 			'' => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' )
 		);
 
 		if ( $this->supports_customer_return_requests() ) {
-			$sections['returns'] = _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' );
+			$sections['returns'] = _x( 'Return Requests', 'shipments', 'woocommerce-germanized-shipments' );
 		}
 
 		return $sections;
@@ -802,5 +885,15 @@ class Simple extends WC_Data implements ShippingProvider {
 	 */
 	public function get_label_fields_html( $shipment ) {
 		return apply_filters( "{$this->get_hook_prefix()}label_fields_html", '', $shipment, $this );
+	}
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 * @param mixed $props
+	 */
+	public function create_label( $shipment, $props ) {
+		$result = new \WP_Error( _x( 'This shipping provider does not support creating labels.', 'shipments', 'woocommerce-germanized-shipments' ) );
+
+		return $result;
 	}
 }

@@ -74,6 +74,8 @@ interface ShippingProvider {
 
 	public function get_setting_sections();
 
+	public function get_shipping_method_settings();
+
 	public function save();
 
 	/**
@@ -87,4 +89,6 @@ interface ShippingProvider {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
 	public function get_label_fields_html( $shipment );
+
+	public function create_label( $shipment, $props );
 }

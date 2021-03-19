@@ -1902,67 +1902,69 @@ abstract class Shipment extends WC_Data {
 		return apply_filters( "{$hook_prefix}label_settings_html", $html, $this );
 	}
 
-	public function create_label( $props = array(), $raw_data = array() ) {
-		$provider    = $this->get_shipping_provider();
-		// Cut away _get from prefix
-		$hook_prefix = substr( $this->get_hook_prefix(), 0, -4 );
+	public function create_label( $props = array() ) {
+		$hook_prefix   = $this->get_general_hook_prefix();
+		$provider_name = '';
+		$error         = new WP_Error();
 
-		if ( ! empty( $provider ) ) {
-			$provider = $provider . '_';
+		if ( $provider = $this->get_shipping_provider_instance() ) {
+			$provider_name = $provider->get_name();
+			$result        = $provider->create_label( $this, $props );
+
+			if ( is_wp_error( $result ) ) {
+				return $error;
+			}
+		} else {
+			/**
+			 * Action for shipping providers to create the `ShipmentLabel` corresponding to a certain shipment.
+			 *
+			 * The dynamic portion of this hook, `$hook_prefix` is used to construct a
+			 * unique hook for a shipment type. `$provider` is related to the current shipping provider
+			 * for the shipment (slug).
+			 *
+			 * Example hook name: `woocommerce_gzd_return_shipment_create_dhl_label`
+			 *
+			 * @param array     $props Array containing props extracted from post data (if created manually) and sanitized via `wc_clean`.
+			 * @param WP_Error  $error An WP_Error instance useful for returning errors while creating the label.
+			 * @param Shipment  $shipment The current shipment instance.
+			 * @param array     $raw_data Raw post data unsanitized.
+			 *
+			 * @since 3.0.6
+			 * @package Vendidero/Germanized/Shipments
+			 */
+			do_action( "{$hook_prefix}create_{$provider_name}label", $props, $error, $this );
+
+			if ( wc_gzd_shipment_wp_error_has_errors( $error ) ) {
+				return $error;
+			}
 		}
 
-		$error = new WP_Error();
+	    if ( $label = $this->get_label() ) {
+	        $this->set_tracking_id( $label->get_number() );
 
-		/**
-		 * Action for shipping providers to create the `ShipmentLabel` corresponding to a certain shipment.
-		 *
-		 * The dynamic portion of this hook, `$hook_prefix` is used to construct a
-		 * unique hook for a shipment type. `$provider` is related to the current shipping provider
-		 * for the shipment (slug).
-		 *
-		 * Example hook name: `woocommerce_gzd_return_shipment_create_dhl_label`
-		 *
-		 * @param array     $props Array containing props extracted from post data (if created manually) and sanitized via `wc_clean`.
-		 * @param WP_Error  $error An WP_Error instance useful for returning errors while creating the label.
-		 * @param Shipment  $shipment The current shipment instance.
-		 * @param array     $raw_data Raw post data unsanitized.
-		 *
-		 * @since 3.0.6
-		 * @package Vendidero/Germanized/Shipments
-		 */
-		 do_action( "{$hook_prefix}create_{$provider}label", $props, $error, $this, $raw_data );
+		    /**
+			 * Action for shipping providers to adjust the shipment before updating it after a label has
+		     * been successfully generated.
+			 *
+			 * The dynamic portion of this hook, `$hook_prefix` is used to construct a
+			 * unique hook for a shipment type. `$provider` is related to the current shipping provider
+			 * for the shipment (slug).
+			 *
+			 * Example hook name: `woocommerce_gzd_return_shipment_created_dhl_label`
+			 *
+		     * @param Shipment  $shipment The current shipment instance.
+		     * @param array     $props Array containing props extracted from post data (if created manually) and sanitized via `wc_clean`.
+			 * @param array     $raw_data Raw post data unsanitized.
+			 *
+			 * @since 3.1.2
+			 * @package Vendidero/Germanized/Shipments
+			 */
+	        do_action( "{$hook_prefix}created_{$provider_name}label", $this, $props );
 
-		 if ( wc_gzd_shipment_wp_error_has_errors( $error ) ) {
-		 	return $error;
-		 } else {
+	        $this->save();
+	    }
 
-		 	if ( $label = $this->get_label() ) {
-		 		$this->set_tracking_id( $label->get_number() );
-
-			    /**
-				 * Action for shipping providers to adjust the shipment before updating it after a label has
-			     * been successfully generated.
-				 *
-				 * The dynamic portion of this hook, `$hook_prefix` is used to construct a
-				 * unique hook for a shipment type. `$provider` is related to the current shipping provider
-				 * for the shipment (slug).
-				 *
-				 * Example hook name: `woocommerce_gzd_return_shipment_created_dhl_label`
-				 *
-			     * @param Shipment  $shipment The current shipment instance.
-			     * @param array     $props Array containing props extracted from post data (if created manually) and sanitized via `wc_clean`.
-				 * @param array     $raw_data Raw post data unsanitized.
-				 *
-				 * @since 3.1.2
-				 * @package Vendidero/Germanized/Shipments
-				 */
-		 		do_action( "{$hook_prefix}created_{$provider}label", $this, $props, $raw_data );
-
-		 		$this->save();
-		    }
-
-		 	return true;
-		 }
+	    return true;
 	}
 
 	public function delete_label( $force = false ) {
@@ -1986,7 +1988,6 @@ abstract class Shipment extends WC_Data {
 	 */
 	public function supports_label() {
 		if ( $provider = $this->get_shipping_provider_instance() ) {
-
 			if ( $provider->supports_labels( $this->get_type() ) ) {
 				return true;
 			}
@@ -2050,7 +2051,6 @@ abstract class Shipment extends WC_Data {
 		$label = $this->get_label();
 
 		if ( $label && is_a( $label, '\Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel' ) ) {
-
 			if ( 'return' === $label->get_type() ) {
 				if ( ! is_a( $label, '\Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel' ) ) {
 					return false;

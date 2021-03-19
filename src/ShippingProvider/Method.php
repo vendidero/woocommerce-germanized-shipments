@@ -136,6 +136,11 @@ class Method {
 			),
 		) );
 
+		foreach( wc_gzd_get_shipping_providers() as $provider ) {
+			$additional_settings = $provider->get_shipping_method_settings();
+			$settings = array_merge( $settings, $additional_settings );
+		}
+
 		/**
 		 * Append a stop title to make sure the table is closed within settings.
 		 */

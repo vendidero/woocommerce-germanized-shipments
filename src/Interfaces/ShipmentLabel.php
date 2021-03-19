@@ -86,4 +86,6 @@ interface ShipmentLabel {
 	 * @return boolean
 	 */
 	public function is_trackable();
+
+	public function set_props( $props );
 }

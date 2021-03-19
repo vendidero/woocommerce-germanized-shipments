@@ -69,3 +69,55 @@ function wc_gzd_get_label_by_shipment( $the_shipment, $type = '' ) {
 function wc_gzd_get_shipment_label( $the_label = false, $shipping_provider = '', $type = 'simple' ) {
 	return apply_filters( 'woocommerce_gzd_shipment_label', \Vendidero\Germanized\Shipments\Labels\Factory::get_label( $the_label, $shipping_provider, $type ), $the_label, $shipping_provider, $type );
 }
+
+/**
+ * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+ * @param bool $net_weight
+ * @param string $unit
+ *
+ * @return float
+ */
+function wc_gzd_get_shipment_label_weight( $shipment, $net_weight = false, $unit = 'kg' ) {
+	$shipment_weight           = $shipment->get_total_weight();
+	$shipment_content_weight   = $shipment->get_weight();
+	$shipment_packaging_weight = $shipment->get_packaging_weight();
+
+	if ( ! empty( $shipment_weight ) ) {
+		$shipment_weight = wc_get_weight( $shipment_weight, $unit, $shipment->get_weight_unit() );
+	}
+
+	if ( ! empty( $shipment_content_weight ) ) {
+		$shipment_content_weight = wc_get_weight( $shipment_content_weight, $unit, $shipment->get_weight_unit() );
+	}
+
+	if ( ! empty( $shipment_packaging_weight ) ) {
+		$shipment_packaging_weight = wc_get_weight( $shipment_packaging_weight, $unit, $shipment->get_weight_unit() );
+	}
+
+	/**
+	 * The net weight does not include packaging weight.
+	 */
+	if ( $net_weight ) {
+		$shipment_packaging_weight = 0;
+		$shipment_weight           = $shipment_content_weight;
+	}
+
+	if ( $provider = $shipment->get_shipping_provider_instance() ) {
+		$min_weight     = wc_get_weight( $provider->get_label_minimum_shipment_weight(), $unit, 'kg' );
+		$default_weight = wc_get_weight( $provider->get_label_default_shipment_weight(), $unit, 'kg' );
+
+		if ( empty( $shipment_content_weight ) ) {
+			$shipment_weight = $default_weight;
+
+			if ( ! $net_weight ) {
+				$shipment_weight += $shipment_packaging_weight;
+			}
+		}
+
+		if ( $shipment_weight < $min_weight ) {
+			$shipment_weight = $min_weight;
+		}
+	}
+
+	return apply_filters( 'woocommerce_gzd_shipment_label_weight', $shipment_weight, $shipment, $unit );
+}
