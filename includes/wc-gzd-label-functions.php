@@ -66,6 +66,13 @@ function wc_gzd_get_label_by_shipment( $the_shipment, $type = '' ) {
 	return apply_filters( "woocommerce_gzd_shipment_label_for_shipment", $label, $the_shipment );
 }
 
+/**
+ * @param false $the_label
+ * @param string $shipping_provider
+ * @param string $type
+ *
+ * @return \Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel|boolean
+ */
 function wc_gzd_get_shipment_label( $the_label = false, $shipping_provider = '', $type = 'simple' ) {
 	return apply_filters( 'woocommerce_gzd_shipment_label', \Vendidero\Germanized\Shipments\Labels\Factory::get_label( $the_label, $shipping_provider, $type ), $the_label, $shipping_provider, $type );
 }

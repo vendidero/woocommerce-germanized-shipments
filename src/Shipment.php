@@ -129,6 +129,7 @@ abstract class Shipment extends WC_Data {
 	    'additional_total'      => 0,
         'est_delivery_date'     => null,
 	    'packaging_id'          => 0,
+	    'version'               => ''
     );
 
 	/**
@@ -1315,6 +1316,15 @@ abstract class Shipment extends WC_Data {
 	}
 
 	/**
+	 * Set shipment version.
+	 *
+	 * @param string $version The version.
+	 */
+	public function set_version( $version ) {
+		$this->set_prop( 'version', $version );
+	}
+
+	/**
 	 * Set the date this shipment will be delivered.
 	 *
 	 * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
@@ -1704,6 +1714,16 @@ abstract class Shipment extends WC_Data {
 	}
 
 	/**
+	 * Returns version.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return integer
+	 */
+	public function get_version( $context = 'view' ) {
+		return $this->get_prop( 'version', $context );
+	}
+
+	/**
 	 * Returns the packaging id belonging to the shipment.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
@@ -1912,7 +1932,7 @@ abstract class Shipment extends WC_Data {
 			$result        = $provider->create_label( $this, $props );
 
 			if ( is_wp_error( $result ) ) {
-				return $error;
+				return $result;
 			}
 		} else {
 			/**

@@ -261,7 +261,7 @@ class Package {
     }
 
 	public static function install() {
-    	self::includes();
+		self::init();
 		Install::install();
 	}
 

@@ -70,6 +70,8 @@ interface ShipmentLabel {
 
 	public function get_parent_id();
 
+	public function get_shipping_provider_instance();
+
 	/**
 	 * Saves the label to DB.
 	 */
@@ -88,4 +90,13 @@ interface ShipmentLabel {
 	public function is_trackable();
 
 	public function set_props( $props );
+
+	public function update_meta_data( $key, $value, $meta_id = 0 );
+
+	/**
+	 * Get the label from the API and store it locally
+	 *
+	 * @return \WP_Error|true
+	 */
+	public function fetch();
 }

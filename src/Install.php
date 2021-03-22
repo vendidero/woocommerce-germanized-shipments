@@ -194,6 +194,7 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipments (
   shipment_country varchar(2) NOT NULL DEFAULT '',
   shipment_tracking_id varchar(200) NOT NULL DEFAULT '',
   shipment_type varchar(200) NOT NULL DEFAULT '',
+  shipment_version varchar(200) NOT NULL DEFAULT '',
   shipment_search_index longtext NOT NULL DEFAULT '',
   shipment_shipping_provider varchar(200) NOT NULL DEFAULT '',
   shipment_shipping_method varchar(200) NOT NULL DEFAULT '',

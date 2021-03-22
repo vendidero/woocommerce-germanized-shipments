@@ -35,15 +35,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		'_return_manual_confirmation',
 		'_return_instructions',
 		'_supports_customer_returns',
-		'_supports_guest_returns',
-		'_label_default_shipment_weight',
-		'_label_minimum_shipment_weight',
-		'_label_auto_enable',
-		'_label_auto_shipment_status',
-		'_label_return_auto_enable',
-		'_label_return_auto_shipment_status',
-		'_shipper_address',
-		'_return_address'
+		'_supports_guest_returns'
 	);
 
 	protected $core_props = array(
@@ -288,9 +280,14 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	 * @since 3.0.0
 	 */
 	protected function read_provider_data( &$provider ) {
-		$props = array();
+		$props     = array();
+		$meta_keys = $this->internal_meta_keys;
 
-		foreach( $this->internal_meta_keys as $meta_key ) {
+		foreach ( $provider->get_extra_data_keys() as $key ) {
+			$meta_keys[] = '_' . $key;
+		}
+
+		foreach( $meta_keys as $meta_key ) {
 			$props[ substr( $meta_key, 1 ) ] = get_metadata( 'gzd_shipping_provider', $provider->get_id(), $meta_key, true );
 		}
 
@@ -316,6 +313,13 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 			$meta_key_to_props[ $meta_key ] = $prop_name;
 		}
 
+		// Make sure to take extra data (like product url or text for external products) into account.
+		$extra_data_keys = $provider->get_extra_data_keys();
+
+		foreach ( $extra_data_keys as $key ) {
+			$meta_key_to_props[ '_' . $key ] = $key;
+		}
+
 		$props_to_update = $this->get_props_to_update( $provider, $meta_key_to_props, 'gzd_shipping_provider' );
 
 		foreach ( $props_to_update as $meta_key => $prop ) {
@@ -327,14 +331,8 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 			$value = $provider->{"get_$prop"}( 'edit' );
 			$value = is_string( $value ) ? wp_slash( $value ) : $value;
 
-			switch ( $prop ) {
-				case "return_manual_confirmation":
-				case "supports_customer_returns":
-				case "supports_guest_returns":
-				case "label_auto_enable":
-				case "label_return_auto_enable":
-					$value = wc_bool_to_string( $value );
-					break;
+			if ( is_bool( $value ) ) {
+				$value = wc_bool_to_string( $value );
 			}
 
 			$updated = $this->update_or_delete_meta( $provider, $meta_key, $value );

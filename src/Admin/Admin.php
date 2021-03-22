@@ -481,7 +481,6 @@ class Admin {
 				) );
 
 				if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
-
 				    if ( $shipment->has_label() ) {
 				        $shipment->get_label()->download( $args );
                     }
@@ -489,7 +488,6 @@ class Admin {
 			}
 		} elseif( isset( $_GET['action'] ) && 'wc-gzd-download-export-shipment-label' === $_GET['action'] ) {
 			if ( wp_verify_nonce( $_REQUEST['_wpnonce'], 'download-export-shipment-label' ) ) {
-
 				$args = wp_parse_args( $_GET, array(
 					'force'  => 'no',
 					'print'  => 'no',

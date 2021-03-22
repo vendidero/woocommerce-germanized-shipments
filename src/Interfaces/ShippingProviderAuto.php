@@ -36,4 +36,6 @@ interface ShippingProviderAuto extends ShippingProvider {
 	public function automatically_generate_label();
 
 	public function automatically_generate_return_label();
+
+	public function is_sandbox();
 }

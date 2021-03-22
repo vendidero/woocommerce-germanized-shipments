@@ -113,12 +113,19 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 		}
 	}
 
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Labels\Label $label
+	 *
+	 * @return string
+	 */
 	protected function get_hook_postfix( $label ) {
+		$prefix = $label->get_shipping_provider() . '_';
+
 		if ( 'simple' !== $label->get_type() ) {
-			return $label->get_type() . '_';
+			$prefix = $prefix . $label->get_type() . '_';
 		}
 
-		return '';
+		return $prefix;
 	}
 
 	/**
@@ -340,15 +347,23 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	 * @since 3.0.0
 	 */
 	protected function read_label_data( &$label ) {
-		$props = array();
+		$props     = array();
+		$meta_keys = $this->internal_meta_keys;
 
-		foreach( $this->internal_meta_keys as $meta_key ) {
+		foreach ( $label->get_extra_data_keys() as $key ) {
+			$meta_keys[] = '_' . $key;
+		}
+
+		foreach( $meta_keys as $meta_key ) {
 			$props[ substr( $meta_key, 1 ) ] = get_metadata( $this->meta_type, $label->get_id(), $meta_key, true );
 		}
 
 		$label->set_props( $props );
 	}
 
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Labels\Label $label
+	 */
 	protected function save_label_data( &$label ) {
 		$updated_props     = array();
 		$meta_key_to_props = array();
@@ -363,6 +378,13 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 			$meta_key_to_props[ $meta_key ] = $prop_name;
 		}
 
+		// Make sure to take extra data (like product url or text for external products) into account.
+		$extra_data_keys = $label->get_extra_data_keys();
+
+		foreach ( $extra_data_keys as $key ) {
+			$meta_key_to_props[ '_' . $key ] = $key;
+		}
+
 		$props_to_update = $this->get_props_to_update( $label, $meta_key_to_props, $this->meta_type );
 
 		foreach ( $props_to_update as $meta_key => $prop ) {
@@ -373,6 +395,10 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 
 			$value = $label->{"get_$prop"}( 'edit' );
 			$value = is_string( $value ) ? wp_slash( $value ) : $value;
+
+			if ( is_bool( $value ) ) {
+				$value = wc_bool_to_string( $value );
+			}
 
 			$updated = $this->update_or_delete_meta( $label, $meta_key, $value );
 

@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments\Labels;
 
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
+use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Shipment;
 use WC_Data;
 use WC_Data_Store;
@@ -143,6 +144,16 @@ class Label extends WC_Data implements ShipmentLabel {
 		return $this->get_prop( 'shipping_provider', $context );
 	}
 
+	public function get_shipping_provider_instance() {
+		$provider = $this->get_shipping_provider();
+
+		if ( ! empty( $provider ) ) {
+			return wc_gzd_get_shipping_provider( $provider );
+		}
+
+		return false;
+	}
+
 	public function get_parent_id( $context = 'view' ) {
 		return $this->get_prop( 'parent_id', $context );
 	}
@@ -199,7 +210,7 @@ class Label extends WC_Data implements ShipmentLabel {
 		return ( ! empty( $width ) && ! empty( $length ) && ! empty( $height ) );
 	}
 
-	public function get_path( $context = 'view' ) {
+	public function get_path( $context = 'view', $file_path = '' ) {
 		return $this->get_prop( 'path', $context );
 	}
 
@@ -275,7 +286,7 @@ class Label extends WC_Data implements ShipmentLabel {
 		$this->set_prop( 'height','' !== $height ? wc_format_decimal( $height ) : '' );
 	}
 
-	public function set_path( $path ) {
+	public function set_path( $path, $file_type = '' ) {
 		$this->set_prop( 'path', $path );
 	}
 
@@ -292,13 +303,26 @@ class Label extends WC_Data implements ShipmentLabel {
 		return wc_gzd_get_shipment_labels( array( 'parent_id' => $this->get_id() ) );
 	}
 
+	public function has_children() {
+		$children = $this->get_children();
+
+		return sizeof( $children ) > 0 ? true : false;
+	}
+
 	public function add_service( $service ) {
-		$services = (array) $this->get_services();
+		$services           = (array) $this->get_services();
+		$available_services = array();
 
-		if ( ! in_array( $service, $services ) && in_array( $service, wc_gzd_dhl_get_services() ) ) {
+		if ( $provider = $this->get_shipping_provider_instance() ) {
+			if ( $shipment = $this->get_shipment() ) {
+				$available_services = $provider->get_available_label_services( $shipment );
+			}
+		}
+
+		if ( ! in_array( $service, $services ) && in_array( $service, $available_services ) ) {
 			$services[] = $service;
-
 			$this->set_services( $services );
+
 			return true;
 		}
 
@@ -327,16 +351,37 @@ class Label extends WC_Data implements ShipmentLabel {
 	}
 
 	public function get_file( $file_type = '' ) {
-		if ( ! $path = $this->get_path() ) {
+		if ( ! $path = $this->get_path( 'view', $file_type ) ) {
 			return false;
 		}
 
 		return $this->get_file_by_path( $path );
 	}
 
+	protected function get_new_filename( $file_type = '' ) {
+		$file_parts = array(
+			$this->get_shipping_provider()
+		);
+
+		if ( ! empty( $file_type ) ) {
+			$file_parts[] = $file_type;
+		}
+
+		if ( 'simple' !== $this->get_type() ) {
+			$file_parts[] = $this->get_type();
+		}
+
+		$file_parts[] = $this->get_shipment_id();
+
+		$filename_default = implode( '-', $file_parts );
+		$filename         = apply_filters( "{$this->get_hook_prefix()}filename", $filename_default, $this, $file_type );
+
+		return sanitize_file_name( $filename );
+	}
+
 	public function get_filename( $file_type = '' ) {
-		if ( ! $path = $this->get_path() ) {
-			return false;
+		if ( ! $path = $this->get_path( 'view', $file_type ) ) {
+			return $this->get_new_filename( $file_type );
 		}
 
 		return basename( $path );
@@ -370,7 +415,51 @@ class Label extends WC_Data implements ShipmentLabel {
 	}
 
 	public function download( $args = array() ) {
+		DownloadHandler::download_label( $this->get_id(), $args );
+	}
 
+	/**
+	 * @return \WP_Error|true
+	 */
+	public function fetch() {
+		$result = new \WP_Error( _x( 'This label misses the API implementation', 'shipments', 'woocommerce-germanized-shipments' ) );
+
+		return $result;
+	}
+
+	/**
+	 * @param $stream
+	 * @param string $file_type
+	 *
+	 * @return false|string
+	 */
+	public function upload_label_file( $stream, $file_type = '' ) {
+		try {
+			Package::set_upload_dir_filter();
+			$filename = $this->get_filename( $file_type );
+
+			add_filter( 'wp_unique_filename', function( $new_filename ) use ( $filename ) {
+				return $filename;
+			}, 99 );
+
+			$tmp = wp_upload_bits( $this->get_filename( $file_type ),null, $stream );
+
+			remove_filter( 'wp_unique_filename', function(){}, 99 );
+			Package::unset_upload_dir_filter();
+
+			if ( isset( $tmp['file'] ) ) {
+				$path = $tmp['file'];
+				$path = Package::get_relative_upload_dir( $path );
+
+				$this->set_path( $path, $file_type );
+
+				return $path;
+			} else {
+				throw new Exception( _x( 'Error while uploading label.', 'shipments', 'woocommerce-germanized-shipments' ) );
+			}
+		} catch ( Exception $e ) {
+			return false;
+		}
 	}
 
 	public function is_trackable() {

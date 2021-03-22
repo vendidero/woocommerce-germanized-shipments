@@ -88,6 +88,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return $this->get_prop( 'shipper_address', $context );
 	}
 
+	public function is_sandbox() {
+		return false;
+	}
+
 	/**
 	 * Returns the shipper name.
 	 *
@@ -940,10 +944,24 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			$dimensions = wc_gzd_dhl_get_shipment_dimensions( $shipment );
 			$props      = array_merge( $props, $dimensions );
 
-			$label->set_props( $props );
-			$label->set_shipment( $shipment );
+			foreach( $props as $key => $value ) {
+				$setter = "set_{$key}";
 
-			// @TODO call API method before saving and maybe return errors
+				if ( is_callable( array( $label, $setter ) ) ) {
+					$label->{$setter}( $value );
+				} else {
+					$label->update_meta_data( $key, $value );
+				}
+			}
+
+			$label->set_shipment( $shipment );
+			$result = $label->fetch();
+
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			} else {
+				return $label->save();
+			}
 		}
 
 		return new \WP_Error( _x( 'Error while creating the label.', 'shipments', 'woocommerce-germanized-shipments' ) );
