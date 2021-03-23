@@ -560,12 +560,22 @@ class Simple extends WC_Data implements ShippingProvider {
 	 * @return string
 	 */
 	protected function get_hook_prefix() {
+		return $this->get_general_hook_prefix() . 'get_';
+	}
+
+	/**
+	 * Prefix for action and filter hooks on data.
+	 *
+	 * @since  3.0.0
+	 * @return string
+	 */
+	protected function get_general_hook_prefix() {
 		$name = sanitize_key( $this->get_name( 'edit' ) );
 
 		if ( empty( $name ) ) {
-			return "woocommerce_gzd_shipping_provider_get_";
+			return "woocommerce_gzd_shipping_provider_";
 		} else {
-			return "woocommerce_gzd_shipping_provider_{$name}_get_";
+			return "woocommerce_gzd_shipping_provider_{$name}_";
 		}
 	}
 
@@ -628,6 +638,26 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $settings;
 	}
 
+	/**
+	 * @param Shipment $shipment
+	 * @param $key
+	 */
+	public function get_shipment_setting( $shipment, $key, $default = null ) {
+		$value = $this->get_setting( $key, $default );
+
+		if ( $method = $shipment->get_shipping_method_instance() ) {
+			if ( $method->has_option( $key ) ) {
+				$method_value = $method->get_option( $key );
+
+				if ( ! is_null( $method_value ) && $value !== $method_value ) {
+					$value = $method_value;
+				}
+			}
+		}
+
+		return $value;
+	}
+
 	public function get_setting( $key, $default = null ) {
 		$clean_key = $this->unprefix_setting_key( $key );
 		$getter    = "get_{$clean_key}";
@@ -640,10 +670,20 @@ class Simple extends WC_Data implements ShippingProvider {
 		}
 
 		if ( strstr( $key, 'password' ) ) {
-			$value = stripslashes( $value );
+			$result = \WC_GZD_Secret_Box_Helper::decrypt( $value );
+
+			if ( ! is_wp_error( $result ) ) {
+				$value = $result;
+			}
+
+			$value = $this->retrieve_password( $value );
 		}
 
 		return $value;
+	}
+
+	protected function retrieve_password( $value ) {
+		return stripslashes( $value );
 	}
 
 	protected function unprefix_setting_key( $key ) {

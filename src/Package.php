@@ -390,6 +390,7 @@ class Package {
 
         Ajax::init();
         Automation::init();
+        Labels\Automation::init();
         Emails::init();
         Validation::init();
         Api::init();
@@ -399,6 +400,7 @@ class Package {
         	include_once self::get_path() . '/includes/wc-gzd-shipment-template-hooks.php';
         }
 
+	    include_once self::get_path() . '/includes/class-wc-gzd-secret-box-helper.php';
         include_once self::get_path() . '/includes/wc-gzd-shipment-functions.php';
 	    include_once self::get_path() . '/includes/wc-gzd-label-functions.php';
 	    include_once self::get_path() . '/includes/wc-gzd-packaging-functions.php';

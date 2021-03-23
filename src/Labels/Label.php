@@ -122,7 +122,9 @@ class Label extends WC_Data implements ShipmentLabel {
 	 * @return string
 	 */
 	protected function get_hook_prefix() {
-		return 'woocommerce_gzd_shipment_label_get_';
+		$prefix = 'simple' === $this->get_type() ? '' : $this->get_type() . '_';
+
+		return "woocommerce_gzd_shipment_{$prefix}label_get_";
 	}
 
 	/**
@@ -374,6 +376,7 @@ class Label extends WC_Data implements ShipmentLabel {
 		$file_parts[] = $this->get_shipment_id();
 
 		$filename_default = implode( '-', $file_parts );
+		$filename_default = $filename_default . '.pdf';
 		$filename         = apply_filters( "{$this->get_hook_prefix()}filename", $filename_default, $this, $file_type );
 
 		return sanitize_file_name( $filename );
@@ -464,5 +467,44 @@ class Label extends WC_Data implements ShipmentLabel {
 
 	public function is_trackable() {
 		return true;
+	}
+
+	/**
+	 * Gets a prop for a getter method.
+	 *
+	 * @since  3.0.0
+	 * @param  string $prop Name of prop to get.
+	 * @param  string $address billing or shipping.
+	 * @param  string $context What the value is for. Valid values are view and edit.
+	 * @return mixed
+	 */
+	protected function get_address_prop( $prop, $address = 'sender_address', $context = 'view' ) {
+		$value = null;
+
+		if ( isset( $this->changes[ $address ][ $prop ] ) || isset( $this->data[ $address ][ $prop ] ) ) {
+			$value = isset( $this->changes[ $address ][ $prop ] ) ? $this->changes[ $address ][ $prop ] : $this->data[ $address ][ $prop ];
+
+			if ( 'view' === $context ) {
+				/**
+				 * Filter to adjust a specific address property for a DHL label.
+				 *
+				 * The dynamic portion of the hook name, `$this->get_hook_prefix()` constructs an individual
+				 * hook name which uses `woocommerce_gzd_dhl_label_get_` as a prefix. Additionally
+				 * `$address` contains the current address type e.g. sender_address and `$prop` contains the actual
+				 * property e.g. street.
+				 *
+				 * Example hook name: `woocommerce_gzd_dhl_return_label_get_sender_address_street`
+				 *
+				 * @param string                          $value The address property value.
+				 * @param \Vendidero\Germanized\DHL\Label\Label $label The label object.
+				 *
+				 * @since 3.0.0
+				 * @package Vendidero/Germanized/DHL
+				 */
+				$value = apply_filters( "{$this->get_hook_prefix()}{$address}_{$prop}", $value, $this );
+			}
+		}
+
+		return $value;
 	}
 }

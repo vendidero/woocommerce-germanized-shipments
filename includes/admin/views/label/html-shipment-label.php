@@ -17,8 +17,9 @@ use Vendidero\Germanized\Shipments\Shipment;
         <div class="shipment-label-actions">
 	        <?php if ( $label ) : ?>
                 <div class="shipment-label-actions-wrapper shipment-label-actions-download">
-                    <a class="button button-secondary download-shipment-label" href="<?php echo $shipment->get_label_download_url(); ?>" target="_blank"><?php _ex(  'Download', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
-
+                    <?php if ( $label->get_file() ) : ?>
+                        <a class="button button-secondary download-shipment-label" href="<?php echo $shipment->get_label_download_url(); ?>" target="_blank"><?php _ex(  'Download', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+                    <?php endif; ?>
                     <?php
 	                /**
 	                 * Action that fires after the label download link of a shipment label was outputted.

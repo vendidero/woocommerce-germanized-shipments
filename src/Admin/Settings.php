@@ -372,8 +372,13 @@ class Settings {
 					$value = wp_kses_post( trim( $raw_value ) );
 					break;
 				case 'password':
-					$value = is_null( $raw_value ) ? '' : addslashes( $raw_value );
-					$value = trim( $value );
+					$value     = is_null( $raw_value ) ? '' : addslashes( $raw_value );
+					$value     = trim( $value );
+					$encrypted = \WC_GZD_Secret_Box_Helper::encrypt( $value );
+
+					if ( ! is_wp_error( $encrypted ) ) {
+						$value = $encrypted;
+					}
 					break;
 				case 'multiselect':
 				case 'multi_select_countries':

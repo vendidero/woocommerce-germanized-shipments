@@ -199,9 +199,9 @@ class Method {
 		/**
 		 * Filter that allows checking whether a shipping provider method has a specific option or not.
 		 *
-		 * @param boolean                $has_option Whether or not the option exists.
-		 * @param string                 $key The setting key.
-		 * @param ShippingProviderMethod $method The method instance.
+		 * @param boolean $has_option Whether or not the option exists.
+		 * @param string  $key The setting key.
+		 * @param Method  $method The method instance.
 		 *
 		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
@@ -272,8 +272,8 @@ class Method {
 		 *
 		 * Example hook name: `woocommerce_gzd_shipping_provider_method_flat_rate_provider`
 		 *
-		 * @param string                 $provider_slug The shipping provider name to be used.
-		 * @param ShippingProviderMethod $method The method instance.
+		 * @param string $provider_slug The shipping provider name to be used.
+		 * @param Method $method The method instance.
 		 *
 		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
@@ -316,9 +316,9 @@ class Method {
 		/**
 		 * Filter that allows prefixing the setting key used for a shipping provider method.
 		 *
-		 * @param string                 $new_key The prefixed setting key.
-		 * @param string                 $key The original setting key.
-		 * @param ShippingProviderMethod $method The method instance.
+		 * @param string $new_key The prefixed setting key.
+		 * @param string $key The original setting key.
+		 * @param Method $method The method instance.
 		 *
 		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments

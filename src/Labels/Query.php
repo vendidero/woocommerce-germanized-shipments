@@ -50,7 +50,7 @@ class Query extends WC_Object_Query {
 			'product_id'        => '',
 			'shipping_provider' => '',
 			'parent_id'         => '',
-			'type'              => array_values( wc_gzd_get_shipment_label_types() ),
+			'type'              => wc_gzd_get_shipment_label_types(),
 			'number'            => '',
 			'order'             => 'DESC',
 			'orderby'           => 'date_created',

@@ -24,21 +24,15 @@ function wc_gzd_get_shipment_labels( $args ) {
 }
 
 function wc_gzd_get_label_type_by_shipment( $shipment ) {
-	$types      = wc_gzd_get_shipment_label_types();
-	$type       = is_a( $shipment, '\Vendidero\Germanized\Shipments\Shipment' ) ? $shipment->get_type() : $shipment;
-	$label_type = array_key_exists( $type, $types ) ? $types[ $type ] : 'simple';
+	$type = is_a( $shipment, '\Vendidero\Germanized\Shipments\Shipment' ) ? $shipment->get_type() : $shipment;
 
-	return apply_filters( "woocommerce_gzd_shipment_label_type", $label_type, $shipment );
+	return apply_filters( "woocommerce_gzd_shipment_label_type", $type, $shipment );
 }
 
 function wc_gzd_get_shipment_label_types() {
-	/**
-	 * Key = shipment type
-	 * Value = label type
-	 */
 	return apply_filters( "woocommerce_gzd_shipment_label_types", array(
-		'simple' => 'simple',
-		'return' => 'return'
+		'simple',
+		'return'
 	) );
 }
 
@@ -110,8 +104,8 @@ function wc_gzd_get_shipment_label_weight( $shipment, $net_weight = false, $unit
 	}
 
 	if ( $provider = $shipment->get_shipping_provider_instance() ) {
-		$min_weight     = wc_get_weight( $provider->get_label_minimum_shipment_weight(), $unit, 'kg' );
-		$default_weight = wc_get_weight( $provider->get_label_default_shipment_weight(), $unit, 'kg' );
+		$min_weight     = wc_get_weight( $provider->get_shipment_setting( $shipment, 'label_minimum_shipment_weight' ), $unit, 'kg' );
+		$default_weight = wc_get_weight( $provider->get_shipment_setting( $shipment, 'label_default_shipment_weight' ), $unit, 'kg' );
 
 		if ( empty( $shipment_content_weight ) ) {
 			$shipment_weight = $default_weight;

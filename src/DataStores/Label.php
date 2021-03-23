@@ -323,7 +323,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	public function get_label_data( $label_id ) {
 		global $wpdb;
 
-		$data = $wpdb->get_col(
+		$data = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT label_type, label_shipping_provider FROM {$wpdb->gzd_shipment_labels} WHERE label_id = %d LIMIT 1",
 				$label_id
@@ -331,9 +331,9 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 		);
 
 		if ( ! empty( $data ) ) {
-			return array(
-				'shipping_provider' => $data[0]->label_shipping_provider,
-				'type'              => $data[0]->label_type
+			return (object) array(
+				'shipping_provider' => $data->label_shipping_provider,
+				'type'              => $data->label_type
 			);
 		}
 

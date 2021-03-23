@@ -16,13 +16,14 @@ defined( 'ABSPATH' ) || exit;
 abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	protected $extra_data = array(
-		'label_default_shipment_weight'     => 2,
-		'label_minimum_shipment_weight'     => 0.5,
-		'label_auto_enable'                 => false,
-		'label_auto_shipment_status'        => 'gzd-processing',
-		'label_return_auto_enable'          => false,
-		'label_return_auto_shipment_status' => 'gzd-processing',
-		'shipper_address'                   => array(
+		'label_default_shipment_weight'      => 2,
+		'label_minimum_shipment_weight'      => 0.5,
+		'label_auto_enable'                  => false,
+		'label_auto_shipment_status'         => 'gzd-processing',
+		'label_return_auto_enable'           => false,
+		'label_return_auto_shipment_status'  => 'gzd-processing',
+		'label_auto_shipment_status_shipped' => false,
+		'shipper_address'                    => array(
 			'name'          => '',
 			'company'       => '',
 			'street'        => '',
@@ -54,12 +55,32 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return $this->get_prop( 'label_minimum_shipment_weight', $context );
 	}
 
-	public function automatically_generate_label() {
-		return $this->get_label_auto_enable();
+	public function automatically_generate_label( $type = '' ) {
+		if ( 'return' === $type ) {
+			return $this->automatically_generate_return_label();
+		} else {
+			return $this->get_label_auto_enable();
+		}
+	}
+
+	public function get_label_automation_shipment_status( $type = '' ) {
+		if ( 'return' === $type ) {
+			return $this->get_label_return_auto_shipment_status();
+		} else {
+			return $this->get_label_auto_shipment_status();
+		}
+	}
+
+	public function automatically_set_shipment_status_shipped( $type = '' ) {
+		return $this->get_label_auto_shipment_status_shipped();
 	}
 
 	public function get_label_auto_enable( $context = 'view' ) {
 		return $this->get_prop( 'label_auto_enable', $context );
+	}
+
+	public function get_label_auto_shipment_status_shipped( $context = 'view' ) {
+		return $this->get_prop( 'label_auto_shipment_status_shipped', $context );
 	}
 
 	public function get_label_auto_shipment_status( $context = 'view' ) {
@@ -462,6 +483,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	public function set_label_auto_enable( $enable ) {
 		$this->set_prop( 'label_auto_enable', wc_string_to_bool( $enable ) );
+	}
+
+	public function set_label_auto_shipment_status_shipped( $enable ) {
+		$this->set_prop( 'label_auto_shipment_status_shipped', wc_string_to_bool( $enable ) );
 	}
 
 	public function set_label_auto_shipment_status( $status ) {
@@ -960,6 +985,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			} else {
+				do_action( "{$this->get_general_hook_prefix()}created_label", $label, $this );
+
 				return $label->save();
 			}
 		}

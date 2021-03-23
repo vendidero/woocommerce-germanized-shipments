@@ -8,6 +8,7 @@
 namespace Vendidero\Germanized\Shipments;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
+use Vendidero\Germanized\Shipments\ShippingProvider\Method;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
@@ -103,6 +104,11 @@ abstract class Shipment extends WC_Data {
 	 * @var null|Packaging
 	 */
 	protected $packaging = null;
+
+	/**
+	 * @var Method
+	 */
+	protected $shipping_method_instance = null;
 
     /**
      * Stores shipment data.
@@ -306,6 +312,16 @@ abstract class Shipment extends WC_Data {
 	 */
 	public function get_shipping_method( $context = 'view' ) {
 		return $this->get_prop( 'shipping_method', $context );
+	}
+
+	public function get_shipping_method_instance() {
+		$method_id = $this->get_shipping_method();
+
+		if ( is_null( $this->shipping_method_instance ) && ! empty( $method_id ) ) {
+			$this->shipping_method_instance = wc_gzd_get_shipping_provider_method( $this->get_shipping_method() );
+		}
+
+		return is_null( $this->shipping_method_instance ) ? false : $this->shipping_method_instance;
 	}
 
 	/**
@@ -1312,6 +1328,8 @@ abstract class Shipment extends WC_Data {
 	 * @param string $method The shipping method.
 	 */
 	public function set_shipping_method( $method ) {
+		$this->shipping_method_instance = null;
+
 		$this->set_prop( 'shipping_method', $method );
 	}
 
@@ -1980,6 +1998,8 @@ abstract class Shipment extends WC_Data {
 			 * @package Vendidero/Germanized/Shipments
 			 */
 	        do_action( "{$hook_prefix}created_{$provider_name}label", $this, $props );
+
+		    do_action( "{$hook_prefix}created_label", $this, $props );
 
 	        $this->save();
 	    }
