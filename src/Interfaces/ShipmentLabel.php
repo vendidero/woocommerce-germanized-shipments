@@ -23,14 +23,7 @@ interface ShipmentLabel {
 	 */
 	public function get_id();
 
-	/**
-	 * Downloads the label by either forcing a download or embedding the file within the browser.
-	 *
-	 * @param array $args Array containing additional arguments, e.g. the force parameter.
-	 *
-	 * @return mixed
-	 */
-	public function download( $args = array() );
+	public function get_download_url( $args = array() );
 
 	public function supports_additional_file_type( $file_type );
 

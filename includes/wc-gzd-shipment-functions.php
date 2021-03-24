@@ -1304,7 +1304,7 @@ function wc_gzd_get_account_shipments_actions( $shipment ) {
 
 	if ( 'return' === $shipment->get_type() && $shipment->has_label() && ! $shipment->has_status( 'delivered' ) ) {
 		$actions['download-label'] = array(
-			'url'  => $shipment->get_label_download_url(),
+			'url'  => $shipment->get_label()->get_download_url(),
 			'name' => _x( 'Download label', 'shipments', 'woocommerce-germanized-shipments' ),
 		);
 	}

@@ -70,6 +70,18 @@ class Package {
 	     */
 	    add_action( 'woocommerce_gzd_return_shipment_items_synced', array( __CLASS__, 'sync_packaging' ), 10 );
 	    add_action( 'woocommerce_gzd_shipment_items_synced', array( __CLASS__, 'sync_packaging' ), 10 );
+
+	    //add_action( 'admin_init', array( __CLASS__, 'test' ) );
+    }
+
+    public static function test() {
+    	$shipment = wc_gzd_get_shipment( 425 );
+
+    	if ( $provider = $shipment->get_shipping_provider_instance() ) {
+    		$provider->create_label( $shipment );
+
+    		exit();
+	    }
     }
 
 	/**
@@ -183,7 +195,7 @@ class Package {
 				// Check if setting does neither belong to global setting nor shipping provider prefix
 				if ( 'shipping_provider' !== $setting && ! $shipping_method->setting_belongs_to_provider( $setting ) ) {
 					unset( $p_settings[ $setting ] );
-				} elseif ( $shipping_method && $shipping_method->get_fallback_setting_value( $setting ) === $value ) {
+				} elseif ( $shipping_method->get_fallback_setting_value( $setting ) === $value ) {
 					unset( $p_settings[ $setting ] );
 				} elseif( '' === $value ) {
 					unset( $p_settings[ $setting ] );
@@ -300,6 +312,34 @@ class Package {
 		return md5( serialize( $key ) );
 	}
 
+	public static function log( $message, $type = 'info' ) {
+		$enable_logging = defined( 'WP_DEBUG' ) && WP_DEBUG ? true : false;
+
+		/**
+		 * Filter that allows adjusting whether to enable or disable
+		 * logging for the shipments package
+		 *
+		 * @param boolean $enable_logging True if logging should be enabled. False otherwise.
+		 *
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		if ( ! apply_filters( 'woocommerce_gzd_shipments_enable_logging', $enable_logging ) ) {
+			return false;
+		}
+
+		$logger = wc_get_logger();
+
+		if ( ! $logger ) {
+			return false;
+		}
+
+		if ( ! is_callable( array( $logger, $type ) ) ) {
+			$type = 'info';
+		}
+
+		$logger->{$type}( $message, array( 'source' => 'wc-gzd-shipments' ) );
+	}
+
 	public static function get_upload_dir_suffix() {
 		return self::$upload_dir_suffix;
 	}
@@ -391,6 +431,7 @@ class Package {
         Ajax::init();
         Automation::init();
         Labels\Automation::init();
+        Labels\DownloadHandler::init();
         Emails::init();
         Validation::init();
         Api::init();

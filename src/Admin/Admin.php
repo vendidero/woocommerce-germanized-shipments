@@ -21,8 +21,6 @@ class Admin {
         add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_styles' ) );
         add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_scripts' ) );
 
-	    add_action( 'admin_init', array( __CLASS__, 'download_label' ) );
-
         add_action( 'add_meta_boxes', array( __CLASS__, 'add_meta_boxes' ), 35 );
         add_action( 'woocommerce_process_shop_order_meta', 'Vendidero\Germanized\Shipments\Admin\MetaBox::save', 60, 2 );
 
@@ -469,33 +467,6 @@ class Admin {
 		$html = ob_get_clean();
 
 		echo $html;
-	}
-
-	public static function download_label() {
-		if ( isset( $_GET['action'] ) && 'wc-gzd-download-shipment-label' === $_GET['action'] ) {
-			if ( isset( $_GET['shipment_id'] ) && wp_verify_nonce( $_REQUEST['_wpnonce'], 'download-shipment-label' ) ) {
-
-				$shipment_id = absint( $_GET['shipment_id'] );
-				$args       = wp_parse_args( $_GET, array(
-					'force'  => 'no',
-				) );
-
-				if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
-				    if ( $shipment->has_label() ) {
-				        $shipment->get_label()->download( $args );
-                    }
-                }
-			}
-		} elseif( isset( $_GET['action'] ) && 'wc-gzd-download-export-shipment-label' === $_GET['action'] ) {
-			if ( wp_verify_nonce( $_REQUEST['_wpnonce'], 'download-export-shipment-label' ) ) {
-				$args = wp_parse_args( $_GET, array(
-					'force'  => 'no',
-					'print'  => 'no',
-				) );
-
-				DownloadHandler::download_export( $args );
-			}
-		}
 	}
 
 	public static function add_template_check( $check ) {

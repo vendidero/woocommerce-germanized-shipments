@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments\Labels;
 use Exception;
+use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Shipment;
 use WC_Order_Item;
 
@@ -31,7 +32,7 @@ class Automation {
 	 */
 	public static function maybe_adjust_shipment_status( $shipment ) {
 		if ( $provider = $shipment->get_shipping_provider_instance() ) {
-			if ( $provider->automatically_set_shipment_status_shipped() ) {
+			if ( $provider->automatically_set_shipment_status_shipped( $shipment ) ) {
 				$shipment->set_status( 'shipped' );
 			}
 		}
@@ -69,13 +70,13 @@ class Automation {
 
 		if ( $provider = $shipment->get_shipping_provider_instance() ) {
 			$hook_prefix = 'woocommerce_gzd_' . ( 'return' === $shipment->get_type() ? 'return_' : '' ) . 'shipment_status_';
-			$auto_status = $provider->get_label_automation_shipment_status( $shipment->get_type() );
+			$auto_status = $provider->get_label_automation_shipment_status( $shipment );
 
-			if ( $provider->automatically_generate_label( $shipment->get_type() ) && ! empty( $auto_status ) ) {
+			if ( $provider->automatically_generate_label( $shipment ) && ! empty( $auto_status ) ) {
 				$status = str_replace( 'gzd-', '', $auto_status );
 
 				if ( $is_hook ) {
-					add_action( $hook_prefix . $status, array( __CLASS__, 'maybe_create_label' ), 10, 2 );
+					add_action( $hook_prefix . $status, array( __CLASS__, 'maybe_create_label' ), 5, 2 );
 				} elseif( $shipment->has_status( $status ) ) {
 					self::maybe_create_label( $shipment->get_id(), $shipment );
 				}
@@ -103,7 +104,9 @@ class Automation {
 		if ( ! $shipment->has_label() ) {
 			$result = $shipment->create_label();
 
-			if ( ! is_wp_error( $result ) ) {}
+			if ( is_wp_error( $result ) ) {
+				Package::log( sprintf( 'Error while automatically creating label for %1$s: %2$s', $shipment->get_shipment_number(), wc_print_r( $result->get_error_messages(), true ) ) );
+			}
 		}
 	}
 

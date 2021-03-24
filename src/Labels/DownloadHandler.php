@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\Labels;
+use Vendidero\Germanized\Shipments\Admin\BulkLabel;
 use WC_Download_Handler;
 
 defined( 'ABSPATH' ) || exit;
@@ -10,11 +11,71 @@ defined( 'ABSPATH' ) || exit;
  */
 class DownloadHandler {
 
-	protected static function parse_args( $args = array() ) {
+	public static function init() {
+		if ( isset( $_GET['action'], $_GET['shipment_id'], $_GET['_wpnonce'] ) ) { // WPCS: input var ok, CSRF ok.
+			add_action( 'init', array( __CLASS__, 'download_label' ) );
+		}
+
+		if ( is_admin() ) {
+			add_action( 'admin_init', array( __CLASS__, 'download_bulk_export' ) );
+		}
+	}
+
+	public static function download_bulk_export() {
+		if ( isset( $_GET['action'] ) && 'wc-gzd-download-export-shipment-label' === $_GET['action'] ) {
+			if ( wp_verify_nonce( $_REQUEST['_wpnonce'], 'download-export-shipment-label' ) ) {
+				$args = wp_parse_args( $_GET, array(
+					'force'  => 'no',
+					'print'  => 'no',
+				) );
+
+				$args = self::parse_args( $args );
+
+				if ( current_user_can( 'edit_shop_orders' ) ) {
+					$handler = new BulkLabel();
+
+					if ( $path = $handler->get_file() ) {
+						$filename = $handler->get_filename();
+
+						self::download( $path, $filename, $args['force'] );
+					}
+				}
+			}
+		}
+	}
+
+	public static function download_label() {
+		if ( 'wc-gzd-download-shipment-label' === $_GET['action'] && wp_verify_nonce( $_REQUEST['_wpnonce'], 'download-shipment-label' ) ) {
+			$shipment_id    = absint( $_GET['shipment_id'] );
+			$has_permission = current_user_can( 'edit_shop_orders' );
+
+			$args = self::parse_args( array(
+				'force' => wc_string_to_bool( isset( $_GET['force'] ) ? wc_clean( $_GET['force'] ) : false )
+			) );
+
+			if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
+				if ( 'return' === $shipment->get_type() && current_user_can( 'view_order', $shipment->get_order_id() ) && $shipment->has_label() ) {
+					$has_permission = true;
+				}
+
+				if ( $has_permission ) {
+					if ( $label = $shipment->get_label() ) {
+						$file     = $label->get_file( $args['path'] );
+						$filename = $label->get_filename( $args['path'] );
+
+						if ( file_exists( $file ) ) {
+							self::download( $file, $filename, $args['force'] );
+						}
+					}
+				}
+			}
+		}
+	}
+
+	public static function parse_args( $args = array() ) {
 		$args = wp_parse_args( $args, array(
-			'force'             => false,
-			'path'              => '',
-			'check_permissions' => true,
+			'force' => false,
+			'path'  => '',
 		) );
 
 		$args['force'] = wc_string_to_bool( $args['force'] );
@@ -22,52 +83,16 @@ class DownloadHandler {
 		return $args;
 	}
 
-	public static function download_label( $label_id, $args = array() ) {
-		$args           = self::parse_args( $args );
-		$has_permission = current_user_can( 'edit_shop_orders' );
-
-		if ( ! $args['check_permissions'] ) {
-			$has_permission = true;
-		}
-
-		if ( $has_permission ) {
-			if ( $label = wc_gzd_dhl_get_label( $label_id ) ) {
-				$file     = $label->get_file( $args['path'] );
-				$filename = $label->get_filename( $args['path'] );
-
-				if ( file_exists( $file ) ) {
-					if ( $args['force'] ) {
-						WC_Download_Handler::download_file_force( $file, $filename );
-					} else {
-						self::embed( $file, $filename );
-					}
-				}
-			}
+	public static function download( $path, $filename, $force = false ) {
+		if ( $force ) {
+			self::force( $path, $filename );
+		} else {
+			self::embed( $path, $filename );
 		}
 	}
 
-	public static function download_legacy_label( $order_id, $args = array() ) {
-		$args = self::parse_args( $args );
-
-		if ( current_user_can( 'edit_shop_orders' ) ) {
-			if ( $order = wc_get_order( $order_id ) ) {
-				$meta = (array) $order->get_meta( '_pr_shipment_dhl_label_tracking' );
-
-				if ( ! empty( $meta ) ) {
-					$path = $meta['label_path'];
-
-					if ( file_exists( $path ) ) {
-						$filename = basename( $path );
-
-						if ( $args['force'] ) {
-							WC_Download_Handler::download_file_force( $path, $filename );
-						} else {
-							self::embed( $path, $filename );
-						}
-					}
-				}
-			}
-		}
+	private static function force( $path, $filename ) {
+		WC_Download_Handler::download_file_force( $path, $filename );
 	}
 
 	private static function embed( $file_path, $filename ) {

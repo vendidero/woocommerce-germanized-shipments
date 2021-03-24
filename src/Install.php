@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\Shipments;
 
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -16,6 +18,7 @@ class Install {
 		self::create_tables();
 		self::maybe_create_return_reasons();
 		self::maybe_create_packaging();
+		self::update_providers();
 
 		/**
 		 * Older versions did not support custom versioning
@@ -27,6 +30,15 @@ class Install {
 		update_option( 'woocommerce_gzd_shipments_db_version', Package::get_version() );
 
 		do_action( 'woocommerce_flush_rewrite_rules' );
+	}
+
+	private static function update_providers() {
+		$providers = Helper::instance()->get_shipping_providers();
+
+		foreach( $providers as $provider ) {
+			$provider->update_settings_with_defaults();
+			$provider->save();
+		}
 	}
 
 	private static function maybe_create_return_reasons() {

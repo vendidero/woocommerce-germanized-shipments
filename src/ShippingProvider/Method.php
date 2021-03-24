@@ -86,6 +86,13 @@ class Method {
 			$setting_value = Package::get_setting( $setting_key, null );
 		}
 
+		/**
+		 * Convert booleans to string options
+		 */
+		if ( is_bool( $setting_value ) ) {
+			$setting_value = wc_bool_to_string( $setting_value );
+		}
+
 		return apply_filters( "{$this->get_hook_prefix()}setting_fallback_value", $setting_value, $setting_key, $this );
 	}
 
@@ -158,6 +165,11 @@ class Method {
 	protected function init() {
 		$this->instance_form_fields               = $this->get_admin_settings();
 		$this->get_method()->instance_form_fields = array_merge( $this->get_method()->instance_form_fields, $this->instance_form_fields );
+
+		// Refresh instance settings in case they were already loaded
+		if ( ! empty( $this->get_method()->instance_settings ) ) {
+			$this->get_method()->init_instance_settings();
+		}
 	}
 
 	protected function get_hook_prefix() {

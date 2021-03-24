@@ -78,6 +78,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 
 			$this->save_provider_data( $provider );
 
+			$provider->update_settings_with_defaults();
 			$provider->save_meta_data();
 			$provider->apply_changes();
 

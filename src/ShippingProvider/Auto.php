@@ -55,24 +55,52 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return $this->get_prop( 'label_minimum_shipment_weight', $context );
 	}
 
-	public function automatically_generate_label( $type = '' ) {
-		if ( 'return' === $type ) {
-			return $this->automatically_generate_return_label();
+	/**
+	 * @param false|Shipment $shipment
+	 *
+	 * @return boolean
+	 */
+	public function automatically_generate_label( $shipment = false ) {
+		$setting_key = 'label_auto_enable';
+
+		if ( $shipment ) {
+			if ( 'return' === $shipment->get_type() ) {
+				$setting_key = 'label_return_auto_enable';
+			}
+
+			return wc_string_to_bool( $this->get_shipment_setting( $shipment, $setting_key, false ) );
 		} else {
-			return $this->get_label_auto_enable();
+			return wc_string_to_bool( $this->get_setting( $setting_key, false ) );
 		}
 	}
 
-	public function get_label_automation_shipment_status( $type = '' ) {
-		if ( 'return' === $type ) {
-			return $this->get_label_return_auto_shipment_status();
+	/**
+	 * @param false|Shipment $shipment
+	 *
+	 * @return string
+	 */
+	public function get_label_automation_shipment_status( $shipment = false ) {
+		$setting_key = 'label_auto_shipment_status';
+
+		if ( $shipment ) {
+			if ( 'return' === $shipment->get_type() ) {
+				$setting_key = 'label_return_auto_shipment_status';
+			}
+
+			return $this->get_shipment_setting( $shipment, $setting_key, 'gzd-processing' );
 		} else {
-			return $this->get_label_auto_shipment_status();
+			return $this->get_setting( $setting_key, 'gzd-processing' );
 		}
 	}
 
-	public function automatically_set_shipment_status_shipped( $type = '' ) {
-		return $this->get_label_auto_shipment_status_shipped();
+	public function automatically_set_shipment_status_shipped( $shipment = false ) {
+		$setting_key = 'label_auto_shipment_status_shipped';
+
+		if ( $shipment ) {
+			return wc_string_to_bool( $this->get_shipment_setting( $shipment, $setting_key, false ) );
+		} else {
+			return wc_string_to_bool( $this->get_setting( $setting_key, false ) );
+		}
 	}
 
 	public function get_label_auto_enable( $context = 'view' ) {
@@ -648,7 +676,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'desc' 		        => _x( 'Mark shipment as shipped after label has been created successfully.', 'shipments', 'woocommerce-germanized-shipments' ),
 				'id' 		        => 'label_auto_shipment_status_shipped',
 				'type' 		        => 'gzd_toggle',
-				'value'             => $this->get_setting( 'label_auto_shipment_status_shipped' ),
+				'custom_attributes'	=> array( 'data-show_if_label_auto_enable' => '' ),
+				'value'             => wc_bool_to_string( $this->get_setting( 'label_auto_shipment_status_shipped' ) ),
 			),
 		) );
 
@@ -889,6 +918,17 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
 	public function get_label_fields( $shipment ) {
+		if ( 'return' === $shipment->get_type() ) {
+			return $this->get_return_label_fields( $shipment );
+		} else {
+			return $this->get_simple_label_fields( $shipment );
+		}
+	}
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 */
+	protected function get_simple_label_fields( $shipment ) {
 		$default   = $this->get_default_label_product( $shipment );
 		$available = $this->get_available_label_products( $shipment );
 
@@ -904,6 +944,13 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		);
 
 		return $settings;
+	}
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 */
+	protected function get_return_label_fields( $shipment ) {
+		return $this->get_simple_label_fields( $shipment );
 	}
 
 	/**
@@ -940,28 +987,37 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 * @param mixed $props
 	 */
-	public function create_label( $shipment, $props ) {
-		$props['services'] = isset( $props['services'] ) ? (array) $props['services'] : array();
+	public function create_label( $shipment, $props = array() ) {
+		if ( isset( $props['services'] ) ) {
+			$props['services'] = (array) $props['services'];
+		}
 
 		foreach( $props as $key => $value ) {
 			if ( substr( $key, 0, strlen( 'service_' ) ) === 'service_' ) {
 				$new_key = substr( $key, ( strlen( 'service_' ) ) );
 
 				if ( wc_string_to_bool( $value ) && in_array( $new_key, $this->get_available_label_services( $shipment ) ) ) {
+					if ( ! isset( $props['services'] ) ) {
+						$props['services'] = array();
+					}
+
 					$props['services'][] = $new_key;
 					unset( $props[ $key ] );
 				}
 			}
 		}
 
-		$props = wp_parse_args( $props, $this->get_default_label_props( $shipment ) );
-		$props = $this->validate_label_request( $shipment, $props );
+		$default_args = $this->get_default_label_props( $shipment );
+		$props        = wp_parse_args( $props, $default_args );
+		$props        = $this->validate_label_request( $shipment, $props );
 
 		if ( is_wp_error( $props ) ) {
 			return $props;
 		}
 
-		$props['services'] = array_unique( $props['services'] );
+		if ( isset( $props['services'] ) ) {
+			$props['services'] = array_unique( $props['services'] );
+		}
 
 		$label = Factory::get_label( 0, $this->get_name(), $shipment->get_type() );
 

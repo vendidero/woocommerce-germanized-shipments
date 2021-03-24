@@ -349,11 +349,34 @@ class Simple extends WC_Data implements ShippingProvider {
 		$this->set_prop( 'supports_guest_returns', wc_string_to_bool( $supports ) );
 	}
 
+	public function update_settings_with_defaults() {
+		foreach( $this->get_all_settings() as $section => $settings ) {
+			foreach( $settings as $setting ) {
+				$type    = isset( $setting['type'] ) ? $setting['type'] : 'title';
+				$default = isset( $setting['default'] ) ? $setting['default'] : null;
+
+				if ( in_array( $type, array( 'title', 'sectionend' ) ) || ! isset( $setting['id'] ) || empty( $setting['id'] ) ) {
+					continue;
+				}
+
+				$current_value = $this->get_setting( $setting['id'], null, 'edit' );
+
+				/**
+				 * Update meta data with default value in case it does not yet exist.
+				 */
+				if ( is_null( $current_value ) && ! is_null( $default ) ) {
+					$this->update_setting( $setting['id'], $default );
+				}
+			}
+		}
+	}
+
 	/**
 	 * Activate current ShippingProvider instance.
 	 */
 	public function activate() {
 		$this->set_activated( true );
+		$this->update_settings_with_defaults();
 		$this->save();
 
 		/**
@@ -658,15 +681,15 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $value;
 	}
 
-	public function get_setting( $key, $default = null ) {
+	public function get_setting( $key, $default = null, $context = 'view' ) {
 		$clean_key = $this->unprefix_setting_key( $key );
 		$getter    = "get_{$clean_key}";
 		$value     = $default;
 
 		if ( is_callable( array( $this, $getter ) ) ) {
-			$value = $this->$getter();
+			$value = $this->$getter( $context );
 		} elseif ( $this->meta_exists( $clean_key ) ) {
-			$value = $this->get_meta( $clean_key, true );
+			$value = $this->get_meta( $clean_key, true, $context );
 		}
 
 		if ( strstr( $key, 'password' ) ) {
@@ -817,13 +840,19 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $settings;
 	}
 
-	public function get_shipping_method_settings() {
+	protected function get_all_settings() {
 		$settings = array();
-		$sections = $this->get_setting_sections();
 
-		foreach( array_keys( $sections ) as $section ) {
+		foreach( array_keys( $this->get_setting_sections() ) as $section ) {
 			$settings[ $section ] = $this->get_settings( $section );
 		}
+
+		return $settings;
+	}
+
+	public function get_shipping_method_settings() {
+		$settings = $this->get_all_settings();
+		$sections = $this->get_setting_sections();
 
 		$method_settings         = array();
 		$include_current_section = false;
@@ -931,7 +960,7 @@ class Simple extends WC_Data implements ShippingProvider {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 * @param mixed $props
 	 */
-	public function create_label( $shipment, $props ) {
+	public function create_label( $shipment, $props = array() ) {
 		$result = new \WP_Error( _x( 'This shipping provider does not support creating labels.', 'shipments', 'woocommerce-germanized-shipments' ) );
 
 		return $result;

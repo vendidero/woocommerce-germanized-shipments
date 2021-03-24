@@ -417,8 +417,34 @@ class Label extends WC_Data implements ShipmentLabel {
 		$this->set_prop( 'shipment_id', absint( $shipment->get_id() ) );
 	}
 
-	public function download( $args = array() ) {
-		DownloadHandler::download_label( $this->get_id(), $args );
+	public function get_download_url( $args = array() ) {
+		$base_url     = is_admin() ? admin_url() : trailingslashit( home_url() );
+		$download_url = add_query_arg( array( 'action' => 'wc-gzd-download-shipment-label', 'shipment_id' => $this->get_shipment_id() ), wp_nonce_url( $base_url, 'download-shipment-label' ) );
+
+		foreach( $args as $arg => $val ) {
+			if ( is_bool( $val ) ) {
+				$args[ $arg ] = wc_bool_to_string( $val );
+			}
+		}
+
+		$download_url = add_query_arg( $args, $download_url );
+
+		/**
+		 * Filter for shipping providers to adjust the label download URL.
+		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type. `$provider` is related to the current shipping provider
+		 * for the shipment (slug).
+		 *
+		 * Example hook name: `woocommerce_gzd_return_shipment_get_dhl_label_download_url`
+		 *
+		 * @param string $url The download URL.
+		 * @param Label  $label The current shipment instance.
+		 *
+		 * @since 3.0.6
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( "{$this->get_hook_prefix()}download_url", $download_url, $this );
 	}
 
 	/**

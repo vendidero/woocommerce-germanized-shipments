@@ -92,5 +92,5 @@ interface ShippingProvider {
 	 */
 	public function get_label_fields_html( $shipment );
 
-	public function create_label( $shipment, $props );
+	public function create_label( $shipment, $props = array() );
 }

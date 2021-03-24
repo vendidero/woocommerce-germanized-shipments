@@ -33,11 +33,11 @@ interface ShippingProviderAuto extends ShippingProvider {
 	 */
 	public function get_label_fields( $shipment );
 
-	public function automatically_generate_label( $type = '' );
+	public function automatically_generate_label( $shipment = false );
 
-	public function get_label_automation_shipment_status( $type = '' );
+	public function get_label_automation_shipment_status( $shipment = false );
 
-	public function automatically_set_shipment_status_shipped( $type = '' );
+	public function automatically_set_shipment_status_shipped( $shipment = false );
 
 	public function automatically_generate_return_label();
 

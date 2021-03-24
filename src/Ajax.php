@@ -4,6 +4,8 @@ namespace Vendidero\Germanized\Shipments;
 
 use Vendidero\Germanized\Shipments\Admin\Admin;
 use Vendidero\Germanized\Shipments\Admin\MetaBox;
+use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 
 /**
  * WC_Ajax class.
@@ -289,7 +291,7 @@ class Ajax {
 				    'div#shipment-' . $shipment_id => self::get_shipment_html( $shipment ),
 				    '.order-shipping-status'       => $order_shipment ? self::get_order_status_html( $order_shipment ) : '',
 				    '.order-return-status'         => $order_shipment ? self::get_order_return_status_html( $order_shipment ) : '',
-				    'tr#shipment-' . $shipment_id . ' td.actions .wc-gzd-shipment-action-button-generate-label' => self::label_download_button_html( $shipment ),
+				    'tr#shipment-' . $shipment_id . ' td.actions .wc-gzd-shipment-action-button-generate-label' => self::label_download_button_html( $label ),
 			    ),
 		    );
 	    } else {
@@ -325,12 +327,12 @@ class Ajax {
 	}
 
 	/**
-	 * @param Shipment $shipment
+	 * @param ShipmentLabel $label
 	 *
 	 * @return string
 	 */
-	protected static function label_download_button_html( $shipment ) {
-		return '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-download-label download" href="' . $shipment->get_label_download_url() .'" target="_blank" title="' . _x( 'Download label', 'shipments', 'woocommerce-germanized-shipments' ) . '">' . _x(  'Download label', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+	protected static function label_download_button_html( $label ) {
+		return '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-download-label download" href="' . $label->get_download_url() .'" target="_blank" title="' . _x( 'Download label', 'shipments', 'woocommerce-germanized-shipments' ) . '">' . _x(  'Download label', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
 	}
 
     public static function edit_shipping_provider_status() {
@@ -347,7 +349,7 @@ class Ajax {
 
 	    $provider = sanitize_key( wc_clean( $_POST['provider'] ) );
 	    $enable   = wc_clean( $_POST['enable'] );
-	    $helper   = ShippingProviders::instance();
+	    $helper   = Helper::instance();
 	    $response = array(
 		    'success'  => true,
 		    'provider' => $provider,

@@ -2104,22 +2104,12 @@ abstract class Shipment extends WC_Data {
 	}
 
 	public function get_label_download_url( $args = array() ) {
-		$provider = $this->get_shipping_provider();
+		$download_url = '';
+		$provider     = $this->get_shipping_provider();
 
-		if ( ! empty( $provider ) ) {
-			$provider = $provider . '_';
+		if ( $label = $this->get_label() ) {
+			$download_url = $label->get_download_url( $args );
 		}
-
-		$base_url     = is_admin() ? admin_url() : trailingslashit( home_url() );
-		$download_url = add_query_arg( array( 'action' => 'wc-gzd-download-shipment-label', 'shipment_id' => $this->get_id() ), wp_nonce_url( $base_url, 'download-shipment-label' ) );
-
-		foreach( $args as $arg => $val ) {
-			if ( is_bool( $val ) ) {
-				$args[ $arg ] = wc_bool_to_string( $val );
-			}
-		}
-
-		$download_url = add_query_arg( $args, $download_url );
 
 		/**
 		 * Filter for shipping providers to adjust the label download URL.
