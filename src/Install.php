@@ -20,13 +20,7 @@ class Install {
 		self::maybe_create_packaging();
 		self::update_providers();
 
-		/**
-		 * Older versions did not support custom versioning
-		 */
-		if ( is_null( $current_version ) ) {
-			add_option( 'woocommerce_gzd_shipments_version', Package::get_version() );
-		}
-
+		update_option( 'woocommerce_gzd_shipments_version', Package::get_version() );
 		update_option( 'woocommerce_gzd_shipments_db_version', Package::get_version() );
 
 		do_action( 'woocommerce_flush_rewrite_rules' );

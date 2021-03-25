@@ -122,3 +122,30 @@ function wc_gzd_get_shipment_label_weight( $shipment, $net_weight = false, $unit
 
 	return apply_filters( 'woocommerce_gzd_shipment_label_weight', $shipment_weight, $shipment, $unit );
 }
+
+/**
+ * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+ * @param string $dimension
+ * @param string $unit
+ */
+function wc_gzd_get_shipment_label_dimensions( $shipment, $unit = 'cm' ) {
+	$dimensions = array(
+		'length' => 0,
+		'width'  => 0,
+		'height' => 0,
+	);
+
+	if ( $shipment->has_dimensions() ) {
+		$dimensions = $shipment->get_package_dimensions();
+
+		if ( apply_filters( 'woocommerce_gzd_dhl_use_shipment_inner_dimensions', false, $shipment ) ) {
+			$dimensions = $shipment->get_dimensions();
+		}
+
+		foreach( $dimensions as $key => $data ) {
+			$dimensions[ $key ] = wc_get_dimension( $data, $unit, $shipment->get_dimension_unit() );
+		}
+	}
+
+	return apply_filters( 'woocommerce_gzd_shipment_label_dimensions', $dimensions, $shipment, $unit );
+}

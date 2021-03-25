@@ -637,9 +637,17 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	public function get_label_fields_html( $shipment ) {
 		$settings = $this->get_label_fields( $shipment );
 
-		ob_start();
-		include( Package::get_path() . '/includes/admin/views/label/html-shipment-label-backbone-form.php' );
-		$html = ob_get_clean();
+		if ( is_wp_error( $settings ) ) {
+			$error = $settings;
+
+			ob_start();
+			include( Package::get_path() . '/includes/admin/views/label/html-shipment-label-backbone-error.php' );
+			$html = ob_get_clean();
+		} else {
+			ob_start();
+			include( Package::get_path() . '/includes/admin/views/label/html-shipment-label-backbone-form.php' );
+			$html = ob_get_clean();
+		}
 
 		return apply_filters( "{$this->get_hook_prefix()}label_fields_html", $html, $shipment, $this );
 	}
@@ -975,6 +983,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			'net_weight'        => wc_gzd_get_shipment_label_weight( $shipment, true ),
 			'shipment_id'       => $shipment->get_id(),
 			'services'          => array(),
+			'product_id'        => $this->get_default_label_product( $shipment )
 		);
 
 		$dimensions = wc_gzd_dhl_get_shipment_dimensions( $shipment );
@@ -1022,9 +1031,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		$label = Factory::get_label( 0, $this->get_name(), $shipment->get_type() );
 
 		if ( $label ) {
-			$dimensions = wc_gzd_dhl_get_shipment_dimensions( $shipment );
-			$props      = array_merge( $props, $dimensions );
-
 			foreach( $props as $key => $value ) {
 				$setter = "set_{$key}";
 
@@ -1036,6 +1042,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			}
 
 			$label->set_shipment( $shipment );
+
+			/**
+			 * Fetch the label via API and store as file
+			 */
 			$result = $label->fetch();
 
 			if ( is_wp_error( $result ) ) {

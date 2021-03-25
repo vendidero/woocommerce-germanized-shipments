@@ -38,7 +38,7 @@ interface ShippingProvider {
 
 	public function hide_return_address();
 
-	public function get_edit_link();
+	public function get_edit_link( $section = '' );
 
 	public function is_activated();
 

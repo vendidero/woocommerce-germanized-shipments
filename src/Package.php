@@ -172,7 +172,7 @@ class Package {
 		return $methods;
 	}
 
-	protected static function get_method_settings() {
+	public static function get_method_settings() {
 		if ( is_null( self::$method_settings ) ) {
 			self::$method_settings = Method::get_admin_settings();
 		}

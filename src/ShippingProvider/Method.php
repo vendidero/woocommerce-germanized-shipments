@@ -35,6 +35,7 @@ class Method {
 
 	/**
 	 * @param WC_Shipping_Method|\WC_Shipping_Rate|mixed $method
+	 * @param boolean $is_placeholder
 	 */
 	public function __construct( $method, $is_placeholder = false ) {
 		if ( ! $is_placeholder ) {
@@ -67,7 +68,7 @@ class Method {
 		$this->placeholder_id          = $id;
 		$this->placeholder_instance_id = $instance_id;
 
-		$this->instance_form_fields = $this->get_admin_settings();
+		$this->instance_form_fields = Package::get_method_settings();
 	}
 
 	public function get_fallback_setting_value( $setting_key ) {
@@ -110,6 +111,15 @@ class Method {
 		return $this->is_placeholder === true;
 	}
 
+	/**
+	 * Get all available shipping method settings. This method (re-) loads all
+	 * the settings available across every registered shipping provider.
+	 * Call the cached version instead for performance improvements.
+	 *
+	 * @see Package::get_method_settings()
+	 *
+	 * @return mixed|void
+	 */
 	public static function get_admin_settings() {
 		/**
 		 * Filter to adjust admin settings added to the shipment method instance specifically for shipping providers.
@@ -163,7 +173,7 @@ class Method {
 	}
 
 	protected function init() {
-		$this->instance_form_fields               = $this->get_admin_settings();
+		$this->instance_form_fields               = Package::get_method_settings();
 		$this->get_method()->instance_form_fields = array_merge( $this->get_method()->instance_form_fields, $this->instance_form_fields );
 
 		// Refresh instance settings in case they were already loaded
@@ -267,9 +277,9 @@ class Method {
 			/**
 			 * Filter that allows adjusting the shipping provider chosen for a specific shipping method.
 			 *
-			 * @param string                 $provider_slug The shipping provider.
-			 * @param string                 $method_id The shipping method id.
-			 * @param ShippingProviderMethod $method The method instance.
+			 * @param string $provider_slug The shipping provider.
+			 * @param string $method_id The shipping method id.
+			 * @param Method $method The method instance.
 			 *
 			 * @since 3.0.6
 			 * @package Vendidero/Germanized/Shipments

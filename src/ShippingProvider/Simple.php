@@ -108,10 +108,6 @@ class Simple extends WC_Data implements ShippingProvider {
 		return true;
 	}
 
-	public function get_additional_options_url() {
-		return '';
-	}
-
 	/**
 	 * Whether or not this instance supports a certain label type.
 	 *
@@ -142,8 +138,11 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $this->supports_labels( 'return' ) ? true : false;
 	}
 
-	public function get_edit_link() {
-		return admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=' . esc_attr( $this->get_name() ) );
+	public function get_edit_link( $section = '' ) {
+		$url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=' . esc_attr( $this->get_name() ) );
+		$url = add_query_arg( array( 'section' => $section ), $url );
+
+		return $url;
 	}
 
 	/**
@@ -355,7 +354,7 @@ class Simple extends WC_Data implements ShippingProvider {
 				$type    = isset( $setting['type'] ) ? $setting['type'] : 'title';
 				$default = isset( $setting['default'] ) ? $setting['default'] : null;
 
-				if ( in_array( $type, array( 'title', 'sectionend' ) ) || ! isset( $setting['id'] ) || empty( $setting['id'] ) ) {
+				if ( in_array( $type, array( 'title', 'sectionend', 'html' ) ) || ! isset( $setting['id'] ) || empty( $setting['id'] ) ) {
 					continue;
 				}
 
@@ -669,8 +668,10 @@ class Simple extends WC_Data implements ShippingProvider {
 		$value = $this->get_setting( $key, $default );
 
 		if ( $method = $shipment->get_shipping_method_instance() ) {
-			if ( $method->has_option( $key ) ) {
-				$method_value = $method->get_option( $key );
+			$prefixed_key = $this->get_name() . '_' . $key;
+
+			if ( $method->has_option( $prefixed_key ) ) {
+				$method_value = $method->get_option( $prefixed_key );
 
 				if ( ! is_null( $method_value ) && $value !== $method_value ) {
 					$value = $method_value;
@@ -858,7 +859,7 @@ class Simple extends WC_Data implements ShippingProvider {
 		$include_current_section = false;
 
 		foreach( $settings as $section => $section_settings ) {
-			$global_settings_url = add_query_arg( array( 'section' => $section ), $this->get_edit_link() );
+			$global_settings_url = $this->get_edit_link( $section );
 			$default_title       = $sections[ $section ];
 
 			foreach( $section_settings as $setting ) {
