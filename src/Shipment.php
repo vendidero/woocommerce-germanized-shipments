@@ -2028,7 +2028,7 @@ abstract class Shipment extends WC_Data {
 	 */
 	public function supports_label() {
 		if ( $provider = $this->get_shipping_provider_instance() ) {
-			if ( $provider->supports_labels( $this->get_type() ) ) {
+			if ( $provider->supports_labels( $this->get_type(), $this ) ) {
 				return true;
 			}
 		}

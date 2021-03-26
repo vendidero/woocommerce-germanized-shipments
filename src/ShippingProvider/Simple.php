@@ -112,10 +112,11 @@ class Simple extends WC_Data implements ShippingProvider {
 	 * Whether or not this instance supports a certain label type.
 	 *
 	 * @param string $label_type The label type e.g. simple or return.
+	 * @param false|Shipment Shipment instance
 	 *
 	 * @return bool
 	 */
-	public function supports_labels( $label_type ) {
+	public function supports_labels( $label_type, $shipment = false ) {
 		return false;
 	}
 
@@ -135,7 +136,7 @@ class Simple extends WC_Data implements ShippingProvider {
 	 * @return bool
 	 */
 	public function hide_return_address() {
-		return $this->supports_labels( 'return' ) ? true : false;
+		return false;
 	}
 
 	public function get_edit_link( $section = '' ) {
@@ -158,7 +159,12 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $this->get_return_manual_confirmation() === true;
 	}
 
-	public function supports_customer_returns() {
+	/**
+	 * @param false|\WC_Order $order
+	 *
+	 * @return bool
+	 */
+	public function supports_customer_returns( $order = false ) {
 		return $this->get_supports_customer_returns() === true;
 	}
 
@@ -310,6 +316,133 @@ class Simple extends WC_Data implements ShippingProvider {
 		$instructions = $this->get_return_instructions();
 
 		return empty( $instructions ) ? false : true;
+	}
+
+	public function get_address_prop( $prop, $type = 'shipper' ) {
+		$key   = "woocommerce_gzd_shipments_{$type}_address_{$prop}";
+		$value = get_option( $key, '' );
+
+		if ( 'return' === $type && '' === $value ) {
+			$value = get_option( "woocommerce_gzd_shipments_shipper_address_{$prop}" );
+		}
+
+		return $value;
+	}
+
+	public function get_shipper_email() {
+		return $this->get_address_prop( 'email' );
+	}
+
+	public function get_shipper_phone() {
+		return $this->get_address_prop( 'phone' );
+	}
+
+	public function get_contact_phone() {
+		return get_option( 'woocommerce_gzd_shipments_contact_phone' );
+	}
+
+	public function get_shipper_first_name() {
+		return $this->get_address_prop( 'first_name' );
+	}
+
+	public function get_shipper_last_name() {
+		return $this->get_address_prop( 'last_name' );
+	}
+
+	public function get_shipper_name() {
+		return $this->get_shipper_first_name() . ' ' . $this->get_shipper_last_name();
+	}
+
+	public function get_shipper_company() {
+		return $this->get_address_prop( 'company' );
+	}
+
+	public function get_shipper_address() {
+		return $this->get_address_prop( 'address_1' );
+	}
+
+	public function get_shipper_address_2() {
+		return $this->get_address_prop( 'address_2' );
+	}
+
+	public function get_shipper_street() {
+		$split = wc_gzd_split_shipment_street( $this->get_shipper_address() );
+
+		return $split['street'];
+	}
+
+	public function get_shipper_street_number() {
+		$split = wc_gzd_split_shipment_street( $this->get_shipper_address() );
+
+		return $split['number'];
+	}
+
+	public function get_shipper_postcode() {
+		return $this->get_address_prop( 'postcode' );
+	}
+
+	public function get_shipper_city() {
+		return $this->get_address_prop( 'city' );
+	}
+
+	public function get_shipper_country() {
+		return $this->get_address_prop( 'country' );
+	}
+
+	public function get_return_first_name() {
+		return $this->get_address_prop( 'first_name', 'return' );
+	}
+
+	public function get_return_last_name() {
+		return $this->get_address_prop( 'last_name', 'return' );
+	}
+
+	public function get_return_company() {
+		return $this->get_address_prop( 'company', 'return' );
+	}
+
+	public function get_return_name() {
+		return $this->get_return_first_name() . ' ' . $this->get_return_last_name();
+	}
+
+	public function get_return_address() {
+		return $this->get_address_prop( 'address_1', 'return' );
+	}
+
+	public function get_return_address_2() {
+		return $this->get_address_prop( 'address_2', 'return' );
+	}
+
+	public function get_return_street() {
+		$split = wc_gzd_split_shipment_street( $this->get_return_address() );
+
+		return $split['street'];
+	}
+
+	public function get_return_street_number() {
+		$split = wc_gzd_split_shipment_street( $this->get_return_address() );
+
+		return $split['number'];
+	}
+
+	public function get_return_postcode() {
+		return $this->get_address_prop( 'postcode', 'return' );
+	}
+
+	public function get_return_city() {
+		return $this->get_address_prop( 'city', 'return' );
+	}
+
+	public function get_return_country() {
+		return $this->get_address_prop( 'country', 'return' );
+	}
+
+	public function get_return_email() {
+		return $this->get_address_prop( 'email', 'return' );
+	}
+
+	public function get_return_phone() {
+		return $this->get_address_prop( 'phone', 'return' );
 	}
 
 	/**
@@ -737,7 +870,7 @@ class Simple extends WC_Data implements ShippingProvider {
 		}
 	}
 
-	protected function update_setting( $setting, $value ) {
+	public function update_setting( $setting, $value ) {
 		$setting_name_clean = $this->unprefix_setting_key( $setting );
 		$setter             = 'set_' . $setting_name_clean;
 
@@ -927,7 +1060,7 @@ class Simple extends WC_Data implements ShippingProvider {
 
 	public function get_setting_sections() {
 		$sections = array(
-			'' => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' )
+			'' => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' ),
 		);
 
 		if ( $this->supports_customer_return_requests() ) {
@@ -962,7 +1095,7 @@ class Simple extends WC_Data implements ShippingProvider {
 	 * @param mixed $props
 	 */
 	public function create_label( $shipment, $props = array() ) {
-		$result = new \WP_Error( _x( 'This shipping provider does not support creating labels.', 'shipments', 'woocommerce-germanized-shipments' ) );
+		$result = new \WP_Error( 'shipping-provider', _x( 'This shipping provider does not support creating labels.', 'shipments', 'woocommerce-germanized-shipments' ) );
 
 		return $result;
 	}

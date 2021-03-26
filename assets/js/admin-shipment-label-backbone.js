@@ -141,6 +141,12 @@ window.germanized.admin = window.germanized.admin || {};
                 cSuccess = cSuccess || self.onAjaxSuccess;
                 cError   = cError || self.onAjaxError;
 
+                if ( ! params.hasOwnProperty( 'shipment_id' ) ) {
+                    params['shipment_id'] = $( '#wc-gzd-shipment-label-admin-shipment-id' ).val();
+
+                    console.log(params);
+                }
+
                 $wrapper.block({
                     message: null,
                     overlayCSS: {

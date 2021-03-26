@@ -1112,7 +1112,7 @@ function wc_gzd_order_is_customer_returnable( $order, $check_date = true ) {
 	}
 
 	if ( $provider = wc_gzd_get_order_shipping_provider( $order ) ) {
-		$is_returnable = $provider->supports_customer_returns();
+		$is_returnable = $provider->supports_customer_returns( $order );
 
 		if ( $shipment_order->get_order()->get_customer_id() <= 0 && ! $provider->supports_guest_returns() ) {
 			$is_returnable = false;

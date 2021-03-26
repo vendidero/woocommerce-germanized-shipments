@@ -36,6 +36,8 @@ interface ShippingProvider {
 
 	public function supports_customer_return_requests();
 
+	public function supports_labels( $label_type, $shipment = false );
+
 	public function hide_return_address();
 
 	public function get_edit_link( $section = '' );
@@ -44,7 +46,7 @@ interface ShippingProvider {
 
 	public function needs_manual_confirmation_for_returns();
 
-	public function supports_customer_returns();
+	public function supports_customer_returns( $order = false );
 
 	public function supports_guest_returns();
 
@@ -73,6 +75,8 @@ interface ShippingProvider {
 	public function update_settings( $section = '', $data = null, $save = true );
 
 	public function get_settings( $section = '' );
+
+	public function update_setting( $setting, $value );
 
 	public function get_setting_sections();
 

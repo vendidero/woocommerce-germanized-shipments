@@ -451,7 +451,7 @@ class Label extends WC_Data implements ShipmentLabel {
 	 * @return \WP_Error|true
 	 */
 	public function fetch() {
-		$result = new \WP_Error( _x( 'This label misses the API implementation', 'shipments', 'woocommerce-germanized-shipments' ) );
+		$result = new \WP_Error( 'label-fetch-error', _x( 'This label misses the API implementation', 'shipments', 'woocommerce-germanized-shipments' ) );
 
 		return $result;
 	}
@@ -487,6 +487,64 @@ class Label extends WC_Data implements ShipmentLabel {
 				throw new Exception( _x( 'Error while uploading label.', 'shipments', 'woocommerce-germanized-shipments' ) );
 			}
 		} catch ( Exception $e ) {
+			return false;
+		}
+	}
+
+	/**
+	 * @param $url
+	 * @param string $file_type
+	 *
+	 * @return false|string
+	 */
+	public function download_label_file( $url, $file_type = '' ) {
+		$timeout_seconds = 5;
+
+		try {
+			if ( ! function_exists( 'download_url' ) ) {
+				include_once( ABSPATH . 'wp-admin/includes/file.php' );
+			}
+
+			if ( ! function_exists( 'download_url' ) ) {
+				throw new \Exception( _x( 'Error while downloading the PDF file.', 'shipments', 'woocommerce-germanized-shipments' ) );
+			}
+
+			// Download file to temp dir.
+			$temp_file = download_url( $url, $timeout_seconds );
+
+			if ( is_wp_error( $temp_file ) ) {
+				throw new \Exception( _x( 'Error while downloading the PDF file.', 'shipments', 'woocommerce-germanized-shipments' ) );
+			}
+
+			$file = [
+				'name'     => $this->get_filename( $file_type ),
+				'type'     => 'application/pdf',
+				'tmp_name' => $temp_file,
+				'error'    => 0,
+				'size'     => filesize( $temp_file ),
+			];
+
+			$overrides = [
+				'test_type' => false,
+				'test_form' => false,
+				'test_size' => true,
+			];
+
+			// Move the temporary file into the uploads directory.
+			Package::set_upload_dir_filter();
+			$results = wp_handle_sideload( $file, $overrides );
+			Package::unset_upload_dir_filter();
+
+			if ( empty( $results['error'] ) ) {
+				$path = Package::get_relative_upload_dir( $results['file'] );
+
+				$this->set_path( $path, $file_type );
+
+				return $path;
+			} else {
+				throw new \Exception( _x( 'Error while downloading the PDF file.', 'shipments', 'woocommerce-germanized-shipments' ) );
+			}
+		} catch( \Exception $e ) {
 			return false;
 		}
 	}
