@@ -25,9 +25,9 @@ class Helper {
 	public $shipping_providers = null;
 
 	/**
-	 * Main ShippingProviders Instance.
+	 * Main Helper Instance.
 	 *
-	 * Ensures only one instance of ShippingProviders is loaded or can be loaded.
+	 * Ensures only one instance of the Shipping Provider Helper is loaded or can be loaded.
 	 *
 	 * @return Helper Main instance
 	 *@since 1.0.5

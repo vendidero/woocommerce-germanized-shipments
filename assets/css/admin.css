@@ -1,3 +1,12 @@
+.wc-modal-shipping-method-settings .form-table td .wc-gzd-additional-desc {
+  margin-top: 1em;
+  line-height: 1.5em;
+  background: #efefef;
+  padding: .5em;
+  font-style: normal;
+  font-size: 13px;
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1); }
+
 .germanized-create-label .notice-wrapper .notice {
   margin: 0;
   margin-bottom: 1em; }

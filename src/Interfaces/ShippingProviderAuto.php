@@ -42,4 +42,6 @@ interface ShippingProviderAuto extends ShippingProvider {
 	public function automatically_generate_return_label();
 
 	public function is_sandbox();
+
+	public function get_settings_help_pointers( $section = '' );
 }

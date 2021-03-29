@@ -267,6 +267,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return $settings;
 	}
 
+	public function get_settings_help_pointers( $section = '' ) {
+		return array();
+	}
+
 	protected function get_label_settings() {
 		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'shipping_provider_label_options' ),

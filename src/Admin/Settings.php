@@ -3,8 +3,6 @@
 namespace Vendidero\Germanized\Shipments\Admin;
 use Exception;
 use Vendidero\Germanized\Shipments\Package;
-use Vendidero\Germanized\Shipments\Provider\ShippingProvider;
-use Vendidero\Germanized\Shipments\Provider\ShippingProviders;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use WC_Admin_Settings;
 
@@ -21,11 +19,7 @@ class Settings {
 
 	public static function get_pointers( $section ) {
 		$pointers = array();
-		$next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-emails&tutorial=yes' );
-
-		if ( \Vendidero\Germanized\DHL\Package::has_dependencies() ) {
-			$next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&tutorial=yes' );
-		}
+		$next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&tutorial=yes' );
 
 		if ( '' === $section ) {
 			$pointers = array(
@@ -477,38 +471,12 @@ class Settings {
 		return $breadcrumb;
 	}
 
-	public static function get_section_title_link( $section ) {
-		if ( 'provider' === $section ) {
-			return '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=new' ) . '" class="page-title-action">' . _x( 'Add provider', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
-		}
-
-		return '';
-	}
-
 	public static function get_sections() {
 		return array(
 			''          => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' ),
-			'provider'  => _x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' ),
 			'packaging' => _x( 'Packaging', 'shipments', 'woocommerce-germanized-shipments' ),
 			'address'   => _x( 'Addresses', 'shipments', 'woocommerce-germanized-shipments' ),
 		);
-	}
-
-	/**
-	 * Handles output of the shipping zones page in admin.
-	 */
-	public static function output_providers() {
-		global $hide_save_button;
-
-		$hide_save_button = true;
-		self::provider_screen();
-	}
-
-	protected static function provider_screen() {
-		$helper    = Helper::instance();
-		$providers = $helper->get_shipping_providers();
-
-		include_once Package::get_path() . '/includes/admin/views/html-settings-provider-list.php';
 	}
 
 	public static function get_sanitized_settings( $settings, $data = null ) {

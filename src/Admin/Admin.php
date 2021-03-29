@@ -714,9 +714,14 @@ class Admin {
             wp_enqueue_style( 'woocommerce_gzd_shipments_admin' );
         }
 
-        if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'germanized-shipments' === $_GET['tab'] ) {
+        if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && in_array( $_GET['tab'], array( 'germanized-shipments', 'germanized-shipping_provider' ) ) ) {
 	        wp_enqueue_style( 'woocommerce_gzd_shipments_admin' );
         }
+
+	    // Shipping zone methods
+	    if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] && isset( $_GET['zone_id'] ) ) {
+		    wp_enqueue_style( 'woocommerce_gzd_shipments_admin' );
+	    }
     }
 
     public static function admin_scripts() {
@@ -795,7 +800,7 @@ class Admin {
 	    );
 
 	    // Shipping provider settings
-	    if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'germanized-shipments' === $_GET['tab'] && isset( $_GET['section'] ) && 'provider' === $_GET['section'] ) {
+	    if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'germanized-shipping_provider' === $_GET['tab'] && empty( $_GET['provider'] ) ) {
 		    wp_enqueue_script( 'wc-gzd-admin-shipping-providers' );
 
 		    wp_localize_script(

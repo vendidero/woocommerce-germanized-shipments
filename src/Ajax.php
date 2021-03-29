@@ -386,7 +386,7 @@ class Ajax {
 	    );
 
 	    $provider = sanitize_key( wc_clean( $_POST['provider'] ) );
-	    $helper   = ShippingProviders::instance();
+	    $helper   = Helper::instance();
 	    $response = array(
 		    'success'  => true,
 		    'provider' => $provider,
