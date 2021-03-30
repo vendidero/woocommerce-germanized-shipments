@@ -511,10 +511,13 @@ class Settings {
 				case 'password':
 					$value     = is_null( $raw_value ) ? '' : addslashes( $raw_value );
 					$value     = trim( $value );
-					$encrypted = \WC_GZD_Secret_Box_Helper::encrypt( $value );
 
-					if ( ! is_wp_error( $encrypted ) ) {
-						$value = $encrypted;
+					if ( class_exists( 'WC_GZD_Secret_Box_Helper' ) ) {
+					    $encrypted = \WC_GZD_Secret_Box_Helper::encrypt( $value );
+
+                        if ( ! is_wp_error( $encrypted ) ) {
+                            $value = $encrypted;
+                        }
 					}
 					break;
 				case 'multiselect':

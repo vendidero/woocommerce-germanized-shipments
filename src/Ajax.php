@@ -267,7 +267,7 @@ class Ajax {
 		    		continue;
 			    }
 
-			    $data[ $key ]  = wc_clean( wp_unslash( $value ) );
+			    $data[ $key ] = wc_clean( wp_unslash( $value ) );
 		    }
 
 	    	$result = $shipment->create_label( $data );

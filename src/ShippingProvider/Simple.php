@@ -97,6 +97,10 @@ class Simple extends WC_Data implements ShippingProvider {
 		return '';
 	}
 
+	public function get_signup_link() {
+		return '';
+	}
+
 	/**
 	 * Whether or not this instance is a manual integration.
 	 * Manual integrations are constructed dynamically from DB and do not support
@@ -827,10 +831,12 @@ class Simple extends WC_Data implements ShippingProvider {
 		}
 
 		if ( strstr( $key, 'password' ) ) {
-			$result = \WC_GZD_Secret_Box_Helper::decrypt( $value );
+			if ( class_exists( 'WC_GZD_Secret_Box_Helper' ) ) {
+				$result = \WC_GZD_Secret_Box_Helper::decrypt( $value );
 
-			if ( ! is_wp_error( $result ) ) {
-				$value = $result;
+				if ( ! is_wp_error( $result ) ) {
+					$value = $result;
+				}
 			}
 
 			$value = $this->retrieve_password( $value );
@@ -1094,7 +1100,7 @@ class Simple extends WC_Data implements ShippingProvider {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 * @param mixed $props
 	 */
-	public function create_label( $shipment, $props = array() ) {
+	public function create_label( $shipment, $props = false ) {
 		$result = new \WP_Error( 'shipping-provider', _x( 'This shipping provider does not support creating labels.', 'shipments', 'woocommerce-germanized-shipments' ) );
 
 		return $result;

@@ -1940,10 +1940,19 @@ abstract class Shipment extends WC_Data {
 		return apply_filters( "{$hook_prefix}label_settings_html", $html, $this );
 	}
 
-	public function create_label( $props = array() ) {
+	public function create_label( $props = false ) {
 		$hook_prefix   = $this->get_general_hook_prefix();
 		$provider_name = '';
 		$error         = new WP_Error();
+
+		/**
+		 * Sanitize props
+		 */
+		if ( is_array( $props ) ) {
+			foreach( $props as $key => $value ) {
+				$props[ $key ] = wc_clean( wp_unslash( $value ) );
+			}
+		}
 
 		if ( $provider = $this->get_shipping_provider_instance() ) {
 			$provider_name = $provider->get_name();
@@ -1962,10 +1971,9 @@ abstract class Shipment extends WC_Data {
 			 *
 			 * Example hook name: `woocommerce_gzd_return_shipment_create_dhl_label`
 			 *
-			 * @param array     $props Array containing props extracted from post data (if created manually) and sanitized via `wc_clean`.
-			 * @param WP_Error  $error An WP_Error instance useful for returning errors while creating the label.
-			 * @param Shipment  $shipment The current shipment instance.
-			 * @param array     $raw_data Raw post data unsanitized.
+			 * @param array|false $props Array containing props extracted from post data (if created manually).
+			 * @param WP_Error    $error An WP_Error instance useful for returning errors while creating the label.
+			 * @param Shipment    $shipment The current shipment instance.
 			 *
 			 * @since 3.0.6
 			 * @package Vendidero/Germanized/Shipments

@@ -399,29 +399,55 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 * @param mixed $props
 	 */
-	public function create_label( $shipment, $props = array() ) {
-		if ( isset( $props['services'] ) ) {
-			$props['services'] = (array) $props['services'];
-		}
+	public function create_label( $shipment, $props = false ) {
+		/**
+		 * In case props is false this indicates an automatic (non-manual) request.
+		 */
+		if ( false === $props ) {
+			$props = $this->get_default_label_props( $shipment );
+		} elseif ( is_array( $props ) ) {
+			$fields = $this->get_label_fields( $shipment );
 
-		foreach( $props as $key => $value ) {
-			if ( substr( $key, 0, strlen( 'service_' ) ) === 'service_' ) {
-				$new_key = substr( $key, ( strlen( 'service_' ) ) );
+			/**
+			 * By default checkbox fields won't be transmitted via POST data.
+			 * In case the values does not exist within props, assume not checked.
+			 */
+			foreach( $fields as $field ) {
+				if ( ! isset( $field['value'] ) ) {
+					continue;
+				}
 
-				if ( wc_string_to_bool( $value ) && in_array( $new_key, $this->get_available_label_services( $shipment ) ) ) {
-					if ( ! isset( $props['services'] ) ) {
-						$props['services'] = array();
+				if ( 'checkbox' === $field['type'] && ! isset( $props[ $field['id'] ] ) ) {
+					$props[ $field['id'] ] = 'no';
+				}
+			}
+
+			/**
+			 * Merge with default data. That needs to be done after manually
+			 * parsing checkboxes as missing data would be overridden with defaults.
+			 */
+			$props = wp_parse_args( $props, $this->get_default_label_props( $shipment ) );
+
+			foreach( $props as $key => $value ) {
+				if ( substr( $key, 0, strlen( 'service_' ) ) === 'service_' ) {
+					$new_key = substr( $key, ( strlen( 'service_' ) ) );
+
+					if ( wc_string_to_bool( $value ) && in_array( $new_key, $this->get_available_label_services( $shipment ) ) ) {
+						if ( ! in_array( $new_key, $props['services'] ) ) {
+							$props['services'][] = $new_key;
+						}
+						unset( $props[ $key ] );
+					} else {
+						if ( ( $service_key = array_search( $new_key, $props['services'] ) ) !== false ) {
+							unset( $props['services'][ $service_key ] );
+						}
+						unset( $props[ $key ] );
 					}
-
-					$props['services'][] = $new_key;
-					unset( $props[ $key ] );
 				}
 			}
 		}
 
-		$default_args = $this->get_default_label_props( $shipment );
-		$props        = wp_parse_args( $props, $default_args );
-		$props        = $this->validate_label_request( $shipment, $props );
+		$props = $this->validate_label_request( $shipment, $props );
 
 		if ( is_wp_error( $props ) ) {
 			return $props;

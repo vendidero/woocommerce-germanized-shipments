@@ -70,18 +70,6 @@ class Package {
 	     */
 	    add_action( 'woocommerce_gzd_return_shipment_items_synced', array( __CLASS__, 'sync_packaging' ), 10 );
 	    add_action( 'woocommerce_gzd_shipment_items_synced', array( __CLASS__, 'sync_packaging' ), 10 );
-
-	    //add_action( 'admin_init', array( __CLASS__, 'test' ) );
-    }
-
-    public static function test() {
-    	$shipment = wc_gzd_get_shipment( 425 );
-
-    	if ( $provider = $shipment->get_shipping_provider_instance() ) {
-    		$provider->create_label( $shipment );
-
-    		exit();
-	    }
     }
 
 	/**
@@ -441,7 +429,6 @@ class Package {
         	include_once self::get_path() . '/includes/wc-gzd-shipment-template-hooks.php';
         }
 
-	    include_once self::get_path() . '/includes/class-wc-gzd-secret-box-helper.php';
         include_once self::get_path() . '/includes/wc-gzd-shipment-functions.php';
 	    include_once self::get_path() . '/includes/wc-gzd-label-functions.php';
 	    include_once self::get_path() . '/includes/wc-gzd-packaging-functions.php';

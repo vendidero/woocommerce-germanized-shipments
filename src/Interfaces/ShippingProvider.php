@@ -25,6 +25,8 @@ interface ShippingProvider {
 
 	public function get_help_link();
 
+	public function get_signup_link();
+
 	/**
 	 * Whether or not this instance is a manual integration.
 	 * Manual integrations are constructed dynamically from DB and do not support
@@ -96,5 +98,5 @@ interface ShippingProvider {
 	 */
 	public function get_label_fields_html( $shipment );
 
-	public function create_label( $shipment, $props = array() );
+	public function create_label( $shipment, $props = false );
 }

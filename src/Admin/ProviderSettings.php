@@ -177,8 +177,14 @@ class ProviderSettings {
 		$help_link = self::get_help_link();
 		$provider  = self::get_current_provider();
 
-		if ( $provider && empty( $current_section ) && ! empty( $help_link ) ) {
-			$label = $label . '<a class="page-title-action" href="' . esc_url( self::get_help_link() ) . '" target="_blank">' . __( 'Learn more', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+		if ( $provider && empty( $current_section ) ) {
+			if ( ! empty( $help_link ) ) {
+				$label = $label . '<a class="page-title-action" href="' . esc_url( self::get_help_link() ) . '" target="_blank">' . __( 'Learn more', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+			}
+
+			if ( ! empty( $provider->get_signup_link() ) ) {
+				$label = $label . '<a class="page-title-action" href="' . esc_url( $provider->get_signup_link() ) . '" target="_blank">' . __( 'Not yet a customer?', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+			}
 		} elseif ( ! $provider ) {
 			$label = $label . '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=new' ) . '" class="page-title-action">' . _x( 'Add provider', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
 
