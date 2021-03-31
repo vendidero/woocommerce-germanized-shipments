@@ -149,24 +149,27 @@ class Automation {
 	    }
 
 	    if ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) {
-		    $shipments = $order_shipment->get_simple_shipments();
+	    	if ( ! apply_filters( 'woocommerce_gzd_auto_create_custom_shipments_for_order', false, $order_id ) ) {
+			    $shipments = $order_shipment->get_simple_shipments();
 
-		    foreach( $shipments as $shipment ) {
+			    foreach ( $shipments as $shipment ) {
+				    if ( $shipment->is_editable() ) {
+					    $shipment->sync();
+					    $shipment->sync_items();
+					    $shipment->save();
+				    }
+			    }
 
-		    	if ( $shipment->is_editable() ) {
-			    	$shipment->sync();
-			    	$shipment->sync_items();
-				    $shipment->save();
+			    if ( $order_shipment->needs_shipping() ) {
+				    $shipment = wc_gzd_create_shipment( $order_shipment, array( 'props' => array( 'status' => $shipment_status ) ) );
+
+				    if ( ! is_wp_error( $shipment ) ) {
+					    $order_shipment->add_shipment( $shipment );
+				    }
 			    }
 		    }
 
-		    if ( $order_shipment->needs_shipping() ) {
-			    $shipment = wc_gzd_create_shipment( $order_shipment, array( 'props' => array( 'status' => $shipment_status ) ) );
-
-			    if ( ! is_wp_error( $shipment ) ) {
-				    $order_shipment->add_shipment( $shipment );
-			    }
-		    }
+	    	do_action( 'woocommerce_gzd_after_auto_create_shipments_for_order', $order_id, $shipment_status );
 	    }
     }
 

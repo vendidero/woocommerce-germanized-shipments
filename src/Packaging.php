@@ -241,6 +241,10 @@ class Packaging extends WC_Data {
 		return wc_gzd_format_shipment_dimensions( $this->get_dimensions(), wc_gzd_get_packaging_dimension_unit() );
 	}
 
+	public function get_volume() {
+		return (float) $this->get_length() * (float) $this->get_width() * (float) $this->get_height();
+	}
+
 	/**
 	 * Set the date this packaging was created.
 	 *

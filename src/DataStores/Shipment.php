@@ -369,6 +369,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
     protected function clear_caches( &$shipment ) {
         wp_cache_delete( 'shipment-items-' . $shipment->get_id(), 'shipments' );
         wp_cache_delete( $shipment->get_id(), $this->meta_type . '_meta' );
+	    wp_cache_delete( 'available-packaging-' . $shipment->get_id(), 'shipments' );
     }
 
     /*

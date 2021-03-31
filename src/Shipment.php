@@ -70,6 +70,8 @@ abstract class Shipment extends WC_Data {
 	 */
 	protected $items_to_delete = array();
 
+	protected $items_to_pack = null;
+
 	/**
 	 * Item weights.
 	 *
@@ -344,6 +346,21 @@ abstract class Shipment extends WC_Data {
     	$weight = $this->get_weight() + $this->get_packaging_weight();
 
     	return apply_filters( "{$this->get_hook_prefix()}total_weight", $weight, $this );
+    }
+
+    public function get_items_to_pack() {
+    	if ( is_null( $this->items_to_pack ) ) {
+		    $this->items_to_pack = array();
+
+		    foreach( $this->get_items() as $item ) {
+			    for ( $i = 0; $i < $item->get_quantity(); $i++ ) {
+				    $box_item = new Packing\ShipmentItem( $item );
+				    $this->items_to_pack[] = $box_item;
+			    }
+		    }
+	    }
+
+    	return $this->items_to_pack;
     }
 
 	/**
@@ -1565,6 +1582,8 @@ abstract class Shipment extends WC_Data {
             $this->items[ 'new:' . count( $this->items ) ] = $item;
         }
 
+        $this->items_to_pack = null;
+
         $this->reset_content_data();
         $this->calculate_totals();
     }
@@ -1678,6 +1697,8 @@ abstract class Shipment extends WC_Data {
     public function remove_items() {
         $this->data_store->delete_items( $this );
         $this->items = array();
+
+	    $this->items_to_pack = null;
 
         $this->reset_content_data();
         $this->calculate_totals();

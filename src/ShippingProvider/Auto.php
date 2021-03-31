@@ -220,7 +220,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'title'             => _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'              => 'select',
 				'id'                => 'label_auto_shipment_status',
-				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Choose a shipment status which should trigger generation of a label.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Choose a shipment status which should trigger generation of a label.', 'shipments', 'woocommerce-germanized-shipments' ) . ' ' . ( 'yes' === Package::get_setting( 'auto_enable' ) ? sprintf( _x( 'Your current default shipment status is: <em>%s</em>.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_status_name( Package::get_setting( 'auto_default_status' ) ) ) : '' ) . '</div>',
 				'options'           => $shipment_statuses,
 				'class'             => 'wc-enhanced-select',
 				'custom_attributes'	=> array( 'data-show_if_label_auto_enable' => '' ),
@@ -389,7 +389,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			'product_id'        => $this->get_default_label_product( $shipment )
 		);
 
-		$dimensions = wc_gzd_dhl_get_shipment_dimensions( $shipment );
+		$dimensions = wc_gzd_get_shipment_label_dimensions( $shipment );
 		$default    = array_merge( $default, $dimensions );
 
 		return $default;

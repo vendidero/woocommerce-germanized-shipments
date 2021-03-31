@@ -428,6 +428,25 @@ class Order {
 		return apply_filters( 'woocommerce_gzd_shipment_order_item_quantity_left_for_returning', $quantity_left, $order_item_id, $this );
 	}
 
+	public function get_items_to_pack_left_for_shipping() {
+		$items              = $this->get_available_items_for_shipment();
+		$items_to_be_packed = array();
+
+		foreach( $items as $order_item_id => $item ) {
+
+			if ( ! $order_item = $this->get_order()->get_item( $order_item_id ) ) {
+				continue;
+			}
+
+			for ( $i = 0; $i < $item['max_quantity']; $i++ ) {
+				$box_item = new Packing\OrderItem( $order_item );
+				$items_to_be_packed[] = $box_item;
+			}
+		}
+
+		return $items_to_be_packed;
+	}
+
     /**
      * @param bool|Shipment $shipment
      * @return array
