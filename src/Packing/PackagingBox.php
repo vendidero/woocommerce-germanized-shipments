@@ -26,15 +26,24 @@ class PackagingBox implements Box {
 	 * @param Packaging $packaging
 	 */
 	public function __construct( $packaging ) {
-		$this->packaging  = $packaging;
+		$this->packaging = $packaging;
+
+		$width  = empty( $this->packaging->get_width() ) ? 0 : wc_format_decimal( $this->packaging->get_width() );
+		$length = empty( $this->packaging->get_length() ) ? 0 : wc_format_decimal( $this->packaging->get_length() );
+		$depth  = empty( $this->packaging->get_height() ) ? 0 : wc_format_decimal( $this->packaging->get_height() );
+
 		$this->dimensions = array(
-			'width'  => (int) wc_get_dimension( $packaging->get_width(), 'mm', 'cm' ),
-			'length' => (int) wc_get_dimension( $packaging->get_length(), 'mm', 'cm' ),
-			'depth'  => (int) wc_get_dimension( $packaging->get_height(), 'mm', 'cm' )
+			'width'  => (int) wc_get_dimension( $width, 'mm', wc_gzd_get_packaging_dimension_unit() ),
+			'length' => (int) wc_get_dimension( $length, 'mm', wc_gzd_get_packaging_dimension_unit() ),
+			'depth'  => (int) wc_get_dimension( $depth, 'mm', wc_gzd_get_packaging_dimension_unit() )
 		);
 
-		$this->weight     = (int) wc_get_weight( $packaging->get_weight(), 'g', 'kg' );
-		$this->max_weight = (int) wc_get_weight( $packaging->get_max_content_weight(), 'g', 'kg' );
+		$weight             = empty( $this->packaging->get_weight() ) ? 0 : wc_format_decimal( $this->packaging->get_weight() );
+		$this->weight       = (int) wc_get_weight( $weight, 'g', wc_gzd_get_packaging_weight_unit() );
+
+		// Use a high values as max content weight in case it has not been chosen
+		$max_content_weight = empty( $this->packaging->get_max_content_weight() ) ? 10000 : wc_format_decimal( $this->packaging->get_max_content_weight() );
+		$this->max_weight   = (int) wc_get_weight( $max_content_weight, 'g', wc_gzd_get_packaging_weight_unit() );
 
 		/**
 		 * If no max weight was chosen - use 50kg as fallback
@@ -91,15 +100,23 @@ class PackagingBox implements Box {
 	 *
 	 * @return float
 	 */
-	public function get_inner_dimension_threshold( $type = 'width' ) {
-		return 0.5 / 100;
+	public function get_inner_dimension_buffer( $value, $type = 'width' ) {
+		if ( apply_filters( 'woocommerce_gzd_packaging_inner_dimension_use_percentage_buffer', false, $type ) ) {
+			$percentage_buffer = apply_filters( 'woocommerce_gzd_packaging_inner_dimension_percentage_buffer,', 0.5, $type ) / 100;
+			$value = $value - ( $value * $percentage_buffer );
+		} else {
+			$fixed_buffer = apply_filters( 'woocommerce_gzd_packaging_inner_dimension_fixed_buffer_mm', 5, $type );
+			$value = $value - $fixed_buffer;
+		}
+
+		return max( $value, 0 );
 	}
 
 	/**
 	 * Inner width in mm.
 	 */
 	public function getInnerWidth(): int {
-		$width = max( $this->dimensions['width'] - ( $this->get_inner_dimension_threshold( 'width' ) * $this->dimensions['width'] ), 0 );
+		$width = $this->get_inner_dimension_buffer( $this->dimensions['width'], 'width' );
 
 		return $width;
 	}
@@ -108,7 +125,7 @@ class PackagingBox implements Box {
 	 * Inner length in mm.
 	 */
 	public function getInnerLength(): int {
-		$length = max( $this->dimensions['length'] - ( $this->get_inner_dimension_threshold( 'length' ) * $this->dimensions['length'] ), 0 );
+		$length = $this->get_inner_dimension_buffer( $this->dimensions['length'], 'length' );
 
 		return $length;
 	}
@@ -117,7 +134,7 @@ class PackagingBox implements Box {
 	 * Inner depth in mm.
 	 */
 	public function getInnerDepth(): int {
-		$depth = max( $this->dimensions['depth'] - ( $this->get_inner_dimension_threshold( 'depth' ) * $this->dimensions['depth'] ), 0 );
+		$depth = $this->get_inner_dimension_buffer( $this->dimensions['depth'], 'depth' );
 
 		return $depth;
 	}

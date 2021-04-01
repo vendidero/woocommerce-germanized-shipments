@@ -38,13 +38,18 @@ class OrderItem implements Item {
 		if ( $product = $this->item->get_product() ) {
 			$this->product = $product;
 
+			$width  = empty( $this->product->get_width() ) ? 0 : wc_format_decimal( $this->product->get_width() );
+			$length = empty( $this->product->get_length() ) ? 0 : wc_format_decimal( $this->product->get_length() );
+			$depth  = empty( $this->product->get_height() ) ? 0 : wc_format_decimal( $this->product->get_height() );
+
 			$this->dimensions = array(
-				'width'  => (int) wc_get_dimension( $this->product->get_width(), 'mm' ),
-				'length' => (int) wc_get_dimension( $this->product->get_length(), 'mm' ),
-				'depth'  => (int) wc_get_dimension( $this->product->get_height(), 'mm' )
+				'width'  => (int) wc_get_dimension( $width, 'mm' ),
+				'length' => (int) wc_get_dimension( $length, 'mm' ),
+				'depth'  => (int) wc_get_dimension( $depth, 'mm' )
 			);
 
-			$this->weight = (int) wc_get_weight( $this->product->get_weight(), 'g' );
+			$weight       = empty( $this->product->get_weight() ) ? 0 : wc_format_decimal( $this->product->get_weight() );
+			$this->weight = (int) wc_get_weight( $weight, 'g' );
 		}
 
 		if ( ! $product ) {
@@ -54,6 +59,13 @@ class OrderItem implements Item {
 
 	public function get_id() {
 		return $this->item->get_id();
+	}
+
+	/**
+	 * @return \WC_Order_Item_Product
+	 */
+	public function get_order_item() {
+		return $this->item;
 	}
 
 	/**

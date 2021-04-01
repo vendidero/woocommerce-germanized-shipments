@@ -160,6 +160,15 @@ class Package {
 		return $methods;
 	}
 
+	/**
+	 * Indicates whether the BoxPack library for improved packing calculation is supported
+	 *
+	 * @return bool
+	 */
+	public static function is_packing_supported() {
+    	return version_compare( phpversion(), '7.1', '>=' );
+	}
+
 	public static function get_method_settings() {
 		if ( is_null( self::$method_settings ) ) {
 			self::$method_settings = Method::get_admin_settings();

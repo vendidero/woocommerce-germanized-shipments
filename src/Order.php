@@ -428,7 +428,7 @@ class Order {
 		return apply_filters( 'woocommerce_gzd_shipment_order_item_quantity_left_for_returning', $quantity_left, $order_item_id, $this );
 	}
 
-	public function get_items_to_pack_left_for_shipping() {
+	public function get_items_to_pack_left_for_shipping( $group_by_shipping_class = false ) {
 		$items              = $this->get_available_items_for_shipment();
 		$items_to_be_packed = array();
 
@@ -438,13 +438,28 @@ class Order {
 				continue;
 			}
 
+			$shipping_class = '';
+
+			if ( $group_by_shipping_class ) {
+				if ( $product = $order_item->get_product() ) {
+					$shipping_class = $product->get_shipping_class();
+				}
+			}
+
 			for ( $i = 0; $i < $item['max_quantity']; $i++ ) {
-				$box_item = new Packing\OrderItem( $order_item );
-				$items_to_be_packed[] = $box_item;
+				try {
+					$box_item = new Packing\OrderItem( $order_item );
+
+					if ( ! isset( $items_to_be_packed[ $shipping_class ] ) ) {
+						$items_to_be_packed[ $shipping_class ] = array();
+					}
+
+					$items_to_be_packed[ $shipping_class ][] = $box_item;
+				} catch( \Exception $e ) {}
 			}
 		}
 
-		return $items_to_be_packed;
+		return apply_filters( 'woocommerce_gzd_shipment_order_items_to_pack_left_for_shipping', $items_to_be_packed, $group_by_shipping_class );
 	}
 
     /**

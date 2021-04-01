@@ -874,24 +874,10 @@ class Ajax {
     	$shipment_id = $shipment->get_id();
 
 		$data = array(
-			'weight' => isset( $_POST['shipment_weight'][ $shipment_id ] ) ? wc_clean( wp_unslash( $_POST['shipment_weight'][ $shipment_id ] ) ) : '',
-			'length' => isset( $_POST['shipment_length'][ $shipment_id ] ) ? wc_clean( wp_unslash( $_POST['shipment_length'][ $shipment_id ] ) ) : '',
-			'width'  => isset( $_POST['shipment_width'][ $shipment_id ] ) ? wc_clean( wp_unslash( $_POST['shipment_width'][ $shipment_id ] ) ) : '',
-			'height' => isset( $_POST['shipment_height'][ $shipment_id ] ) ? wc_clean( wp_unslash( $_POST['shipment_height'][ $shipment_id ] ) ) : '',
+			'packaging_id' => isset( $_POST['shipment_packaging_id'][ $shipment_id ] ) ? absint( wc_clean( $_POST['shipment_packaging_id'][ $shipment_id ] ) ) : '',
 		);
 
 		$data = array_filter( $data );
-
-		/**
-		 * In case no data was transmitted - use content data instead.
-		 */
-		$data = wp_parse_args( $data, array(
-			'weight' => $shipment->get_content_weight(),
-			'length' => $shipment->get_content_length(),
-			'width'  => $shipment->get_content_width(),
-			'height' => $shipment->get_content_height()
-		) );
-
 		$shipment->set_props( $data );
 
 		ob_start();
@@ -1371,7 +1357,9 @@ class Ajax {
 	    		$response['fragments'] = array();
 		    }
 
-		    $response['fragments']['#shipment-' . $shipment->get_id() . ' .shipment-packaging-select'] = self::get_packaging_select_html( $current_shipment );
+	    	$response['needs_packaging_refresh'] = true;
+	    	$response['shipment_id'] = $current_shipment->get_id();
+		    $response['fragments']['#shipment-' . $current_shipment->get_id() . ' .shipment-packaging-select'] = self::get_packaging_select_html( $current_shipment );
 	    }
 
         wp_send_json( $response );

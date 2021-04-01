@@ -260,7 +260,7 @@ class Packaging extends WC_Data {
 	 * @param string $weight The weight.
 	 */
 	public function set_weight( $weight ) {
-		$this->set_prop( 'weight', empty( $weight ) ? 0 : wc_format_decimal( $weight, 2 ) );
+		$this->set_prop( 'weight', empty( $weight ) ? 0 : wc_format_decimal( $weight, 2, true ) );
 	}
 
 	public function get_title() {
@@ -289,7 +289,7 @@ class Packaging extends WC_Data {
 	 * @param string $weight The weight.
 	 */
 	public function set_max_content_weight( $weight ) {
-		$this->set_prop( 'max_content_weight', empty( $weight ) ? 0 : wc_format_decimal( $weight, 2 ) );
+		$this->set_prop( 'max_content_weight', empty( $weight ) ? 0 : wc_format_decimal( $weight, 2, true ) );
 	}
 
 	/**
@@ -316,7 +316,7 @@ class Packaging extends WC_Data {
 	 * @param string $width The width.
 	 */
 	public function set_width( $width ) {
-		$this->set_prop( 'width', empty( $width ) ? 0 : wc_format_decimal( $width, 1 ) );
+		$this->set_prop( 'width', empty( $width ) ? 0 : wc_format_decimal( $width, 1, true ) );
 	}
 
 	/**
@@ -325,7 +325,7 @@ class Packaging extends WC_Data {
 	 * @param string $length The length.
 	 */
 	public function set_length( $length ) {
-		$this->set_prop( 'length', empty( $length ) ? 0 : wc_format_decimal( $length, 1 ) );
+		$this->set_prop( 'length', empty( $length ) ? 0 : wc_format_decimal( $length, 1, true ) );
 	}
 
 	/**
@@ -334,6 +334,6 @@ class Packaging extends WC_Data {
 	 * @param string $height The height.
 	 */
 	public function set_height( $height ) {
-		$this->set_prop( 'height', empty( $height ) ? 0 : wc_format_decimal( $height, 1 ) );
+		$this->set_prop( 'height', empty( $height ) ? 0 : wc_format_decimal( $height, 1, true ) );
 	}
 }

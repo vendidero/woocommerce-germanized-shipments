@@ -360,7 +360,7 @@ abstract class Shipment extends WC_Data {
 		    }
 	    }
 
-    	return $this->items_to_pack;
+    	return apply_filters( "{$this->get_hook_prefix()}items_to_pack", $this->items_to_pack, $this );
     }
 
 	/**
@@ -431,6 +431,10 @@ abstract class Shipment extends WC_Data {
 	    }
 
     	return $length;
+    }
+
+    public function has_packaging() {
+    	return ( $this->get_packaging_id() > 0 && $this->get_packaging() ) ? true : false;
     }
 
 	/**
@@ -592,7 +596,9 @@ abstract class Shipment extends WC_Data {
 	 * @return float
 	 */
     public function get_content_length() {
-        return wc_format_decimal( max( $this->get_item_lengths() ) );
+	    $default = max( $this->get_item_lengths() );
+
+	    return wc_format_decimal( $default, false, true );
     }
 
 	/**
@@ -601,7 +607,9 @@ abstract class Shipment extends WC_Data {
 	 * @return float
 	 */
     public function get_content_width() {
-        return wc_format_decimal( max( $this->get_item_widths() ) );
+	    $default = max( $this->get_item_widths() );
+
+	    return wc_format_decimal( $default, false, true );
     }
 
 	/**
@@ -610,7 +618,9 @@ abstract class Shipment extends WC_Data {
 	 * @return float
 	 */
     public function get_content_height() {
-        return wc_format_decimal( array_sum( $this->get_item_heights() ) );
+    	$default_height = array_sum( $this->get_item_heights() );
+
+        return wc_format_decimal( $default_height, false, true );
     }
 
 	/**
