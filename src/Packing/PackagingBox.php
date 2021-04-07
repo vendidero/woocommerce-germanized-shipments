@@ -101,11 +101,11 @@ class PackagingBox implements Box {
 	 * @return float
 	 */
 	public function get_inner_dimension_buffer( $value, $type = 'width' ) {
-		if ( apply_filters( 'woocommerce_gzd_packaging_inner_dimension_use_percentage_buffer', false, $type ) ) {
-			$percentage_buffer = apply_filters( 'woocommerce_gzd_packaging_inner_dimension_percentage_buffer,', 0.5, $type ) / 100;
+		if ( apply_filters( 'woocommerce_gzd_packaging_inner_dimension_use_percentage_buffer', false, $type, $this ) ) {
+			$percentage_buffer = apply_filters( 'woocommerce_gzd_packaging_inner_dimension_percentage_buffer,', 0.5, $type, $this ) / 100;
 			$value = $value - ( $value * $percentage_buffer );
 		} else {
-			$fixed_buffer = apply_filters( 'woocommerce_gzd_packaging_inner_dimension_fixed_buffer_mm', 5, $type );
+			$fixed_buffer = apply_filters( 'woocommerce_gzd_packaging_inner_dimension_fixed_buffer_mm', 5, $type, $this );
 			$value = $value - $fixed_buffer;
 		}
 

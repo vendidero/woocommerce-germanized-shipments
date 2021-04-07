@@ -2047,10 +2047,8 @@ abstract class Shipment extends WC_Data {
 	}
 
 	public function delete_label( $force = false ) {
-		if ( $this->supports_label() && $this->has_label() ) {
-			$label = $this->get_label();
+		if ( $this->supports_label() && ( $label = $this->get_label() ) ) {
 			$label->delete( $force );
-
 			$this->set_tracking_id( '' );
 			$this->save();
 
