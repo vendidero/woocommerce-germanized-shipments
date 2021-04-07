@@ -169,7 +169,7 @@ class Settings {
 
 			array( 'type' => 'sectionend', 'id' => 'shipments_auto_options' ),
 
-			array( 'title' => _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_return_options', 'desc' => sprintf( _x( 'Returns can be added manually by the shop manager or by the customer. Decide what suits you best by turning customer-added returns on or off in your %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider' ) . '">' . _x( 'shipping provider settings', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) ),
+			array( 'title' => _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_return_options', 'desc' => sprintf( _x( 'Returns can be added manually by the shop manager or by the customer. Decide what suits you best by turning customer-added returns on or off in your %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider' ) . '">' . _x( 'shipping provider settings', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) ),
 
 			array(
 				'type' => 'shipment_return_reasons',
@@ -177,7 +177,7 @@ class Settings {
 
 			array(
 				'title'             => _x( 'Days to return', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'In case one of your %s supports returns added by customers you might want to limit the number of days a customer is allowed to add returns to an order. The days are counted starting with the date the order was shipped, completed or created (by checking for existance in this order).', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider' ) . '">' . _x( 'shipping providers', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
+				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'In case one of your %s supports returns added by customers you might want to limit the number of days a customer is allowed to add returns to an order. The days are counted starting with the date the order was shipped, completed or created (by checking for existance in this order).', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider' ) . '">' . _x( 'shipping providers', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
 				'css'               => 'max-width: 60px;',
 				'type'              => 'number',
 				'id' 		        => 'woocommerce_gzd_shipments_customer_return_open_days',

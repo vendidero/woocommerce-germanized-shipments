@@ -138,10 +138,6 @@ function wc_gzd_get_shipment_label_dimensions( $shipment, $unit = 'cm' ) {
 	if ( $shipment->has_dimensions() ) {
 		$dimensions = $shipment->get_package_dimensions();
 
-		if ( apply_filters( 'woocommerce_gzd_dhl_use_shipment_inner_dimensions', false, $shipment ) ) {
-			$dimensions = $shipment->get_dimensions();
-		}
-
 		foreach( $dimensions as $key => $data ) {
 			$dimensions[ $key ] = wc_get_dimension( $data, $unit, $shipment->get_dimension_unit() );
 		}
