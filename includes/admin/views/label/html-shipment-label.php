@@ -1,6 +1,8 @@
 <?php
 /**
  * Shipment label HTML for meta box.
+ *
+ * @var ShipmentLabel $label
  */
 defined( 'ABSPATH' ) || exit;
 
@@ -8,7 +10,6 @@ use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Admin\Admin;
 use Vendidero\Germanized\Shipments\Shipment;
-
 ?>
 
 <div class="wc-gzd-shipment-label column column-spaced col-12 show-if show-if-provider show-if-provider-<?php echo esc_attr( $shipment->get_shipping_provider() ); ?>" data-shipment="<?php echo $shipment->get_id(); ?>">
@@ -18,8 +19,9 @@ use Vendidero\Germanized\Shipments\Shipment;
         <div class="shipment-label-actions">
 	        <?php if ( $label ) : ?>
                 <div class="shipment-label-actions-wrapper shipment-label-actions-download">
-                    <a class="button button-secondary download-shipment-label" href="<?php echo $shipment->get_label_download_url(); ?>" target="_blank"><?php _ex(  'Download', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
-
+                    <?php if ( $label->get_file() ) : ?>
+                        <a class="button button-secondary download-shipment-label" href="<?php echo $label->get_download_url(); ?>" target="_blank"><?php _ex(  'Download', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+                    <?php endif; ?>
                     <?php
 	                /**
 	                 * Action that fires after the label download link of a shipment label was outputted.
@@ -37,6 +39,7 @@ use Vendidero\Germanized\Shipments\Shipment;
 	        <?php else: ?>
                 <div class="shipment-label-actions-wrapper shipment-label-actions-create">
                     <a class="button button-secondary create-shipment-label" href="#" title="<?php _ex(  'Create new label', 'shipments', 'woocommerce-germanized-shipments' ); ?>"><?php _ex( 'Create label', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+
                     <?php include( 'html-shipment-label-backbone.php' ); ?>
                 </div>
 	        <?php endif; ?>

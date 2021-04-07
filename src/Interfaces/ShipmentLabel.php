@@ -23,21 +23,18 @@ interface ShipmentLabel {
 	 */
 	public function get_id();
 
-	/**
-	 * Downloads the label by either forcing a download or embedding the file within the browser.
-	 *
-	 * @param array $args Array containing additional arguments, e.g. the force parameter.
-	 *
-	 * @return mixed
-	 */
-	public function download( $args = array() );
+	public function get_download_url( $args = array() );
+
+	public function supports_additional_file_type( $file_type );
+
+	public function get_additional_file_types();
 
 	/**
 	 * Returns the (local) label file path. False in case the label is not stored locally.
 	 *
 	 * @return bool|string
 	 */
-	public function get_file();
+	public function get_file( $file_type = '' );
 
 	/**
 	 * Returns the label number which is used as a tracking id for the corresponding shipment.
@@ -53,12 +50,20 @@ interface ShipmentLabel {
 	 */
 	public function has_number();
 
+	public function get_product_id();
+
+	public function get_services();
+
 	/**
 	 * Returns the label shipment type, e.g. simple or return.
 	 *
 	 * @return string
 	 */
 	public function get_type();
+
+	public function get_parent_id();
+
+	public function get_shipping_provider_instance();
 
 	/**
 	 * Saves the label to DB.
@@ -76,4 +81,15 @@ interface ShipmentLabel {
 	 * @return boolean
 	 */
 	public function is_trackable();
+
+	public function set_props( $props );
+
+	public function update_meta_data( $key, $value, $meta_id = 0 );
+
+	/**
+	 * Get the label from the API and store it locally
+	 *
+	 * @return \WP_Error|true
+	 */
+	public function fetch();
 }

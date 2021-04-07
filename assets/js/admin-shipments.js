@@ -252,13 +252,18 @@ window.germanized.admin = window.germanized.admin || {};
                                 shipment.setWidth( shipmentData[ shipmentId ].width );
                                 shipment.setHeight( shipmentData[ shipmentId ].height );
                                 shipment.setTotalWeight( shipmentData[ shipmentId ].total_weight );
+
+                                self.initShipment( shipmentId );
                             }
                         });
 
-                        if ( data.hasOwnProperty( 'needs_refresh' ) && data.hasOwnProperty( 'shipment_id' ) ) {
+                        if ( ( data.hasOwnProperty( 'needs_refresh' ) || data.hasOwnProperty( 'needs_packaging_refresh' ) ) && data.hasOwnProperty( 'shipment_id' ) ) {
                             self.initShipment( data.shipment_id );
-                        }
 
+                            if ( data.hasOwnProperty( 'needs_packaging_refresh' ) ) {
+                                self.getShipment( data.shipment_id ).onChangePackaging();
+                            }
+                        }
                     } else {
                         cError.apply( $wrapper, [ data ] );
                         self.unblock();

@@ -782,7 +782,7 @@ class Table extends WP_List_Table {
      */
     public function column_title( $shipment ) {
 
-        $title = sprintf( _x( '%s #%s', 'shipment title', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label( $shipment->get_type() ), $shipment->get_id() );
+        $title = sprintf( _x( '%s #%s', 'shipment title', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label_title( $shipment->get_type() ), $shipment->get_id() );
 
         if ( $order = $shipment->get_order() ) {
             echo '<a href="' . $shipment->get_edit_shipment_url() . '">' . $title . '</a> ';
@@ -858,10 +858,10 @@ class Table extends WP_List_Table {
 
 		if ( $shipment->supports_label() ) {
 
-		    if ( $shipment->has_label() ) {
+		    if ( $label = $shipment->get_label() ) {
 
 			    $actions['download_label'] = array(
-				    'url'    => $shipment->get_label_download_url(),
+				    'url'    => $label->get_download_url(),
 				    'name'   => _x( 'Download label', 'shipments', 'woocommerce-germanized-shipments' ),
 				    'action' => 'download-label download',
 				    'target' => '_blank'

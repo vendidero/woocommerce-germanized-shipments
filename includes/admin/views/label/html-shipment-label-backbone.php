@@ -18,7 +18,9 @@ defined( 'ABSPATH' ) || exit;
 				<article class="germanized-shipments germanized-create-label" data-shipment-type="<?php echo esc_attr( $shipment->get_type() ); ?>">
 					<div class="notice-wrapper"></div>
 
-					<div class="wc-gzd-shipment-create-label"></div>
+                    <form action="" method="post" class="wc-gzd-create-shipment-label-form">
+					    <div class="wc-gzd-shipment-create-label"></div>
+                    </form>
 				</article>
 				<footer>
 					<div class="inner">

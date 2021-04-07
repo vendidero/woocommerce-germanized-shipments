@@ -17,9 +17,6 @@ use Vendidero\Germanized\Shipments\ShipmentItem;
 use Vendidero\Germanized\Shipments\ShipmentReturnItem;
 use Vendidero\Germanized\Shipments\SimpleShipment;
 use Vendidero\Germanized\Shipments\ReturnShipment;
-use Vendidero\Germanized\Shipments\ShippingProviders;
-use Vendidero\Germanized\Shipments\ShippingProviderMethod;
-use Vendidero\Germanized\Shipments\ShippingProviderMethodPlaceholder;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\ShippingProvider;
 
@@ -53,7 +50,7 @@ function wc_gzd_get_shipment_order( $order ) {
     return false;
 }
 
-function wc_gzd_get_shipment_label( $type, $plural = false ) {
+function wc_gzd_get_shipment_label_title( $type, $plural = false ) {
 	$type_data = wc_gzd_get_shipment_type_data( $type );
 
 	return ( ! $plural ? $type_data['labels']['singular'] : $type_data['labels']['plural'] );
@@ -149,7 +146,7 @@ function wc_gzd_get_shipment_order_return_statuses() {
 /**
  * @param $instance_id
  *
- * @return ShippingProviderMethod
+ * @return ShippingProvider\Method
  */
 function wc_gzd_get_shipping_provider_method( $instance_id ) {
 	$original_id = $instance_id;
@@ -206,22 +203,22 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 			 * @since 3.0.6
 			 * @package Vendidero/Germanized/Shipments
 			 */
-			$classname = apply_filters( 'woocommerce_gzd_shipping_provider_method_classname', 'Vendidero\Germanized\Shipments\ShippingProviderMethod', $method );
+			$classname = apply_filters( 'woocommerce_gzd_shipping_provider_method_classname', 'Vendidero\Germanized\Shipments\ShippingProvider\Method', $method );
 
 			return new $classname( $method );
 		}
 	}
 
 	// Load placeholder
-	$placeholder = new ShippingProviderMethodPlaceholder( $original_id );
+	$placeholder = new ShippingProvider\MethodPlaceholder( $original_id );
 
 	/**
 	 * Filter to adjust the fallback shipping method to be loaded if no real
 	 * shipping method was able to be constructed (e.g. a custom plugin is being used which
 	 * replaces the default Woo shipping zones integration).
 	 *
-	 * @param ShippingProviderMethod $placeholder The placeholder impl.
-	 * @param string                 $original_id The shipping method id.
+	 * @param ShippingProvider\MethodPlaceholder $placeholder The placeholder impl.
+	 * @param string                             $original_id The shipping method id.
 	 *
 	 * @since 3.0.6
 	 * @package Vendidero/Germanized/Shipments
@@ -640,11 +637,11 @@ function wc_gzd_split_shipment_street( $streetStr ) {
 }
 
 function wc_gzd_get_shipping_providers() {
-	return ShippingProviders::instance()->get_shipping_providers();
+	return ShippingProvider\Helper::instance()->get_shipping_providers();
 }
 
 function wc_gzd_get_shipping_provider( $name ) {
-	return ShippingProviders::instance()->get_shipping_provider( $name );
+	return ShippingProvider\Helper::instance()->get_shipping_provider( $name );
 }
 
 function wc_gzd_get_default_shipping_provider() {
@@ -1115,7 +1112,7 @@ function wc_gzd_order_is_customer_returnable( $order, $check_date = true ) {
 	}
 
 	if ( $provider = wc_gzd_get_order_shipping_provider( $order ) ) {
-		$is_returnable = $provider->supports_customer_returns();
+		$is_returnable = $provider->supports_customer_returns( $order );
 
 		if ( $shipment_order->get_order()->get_customer_id() <= 0 && ! $provider->supports_guest_returns() ) {
 			$is_returnable = false;
@@ -1186,7 +1183,7 @@ function wc_gzd_order_is_customer_returnable( $order, $check_date = true ) {
 /**
  * @param $order
  *
- * @return bool|ShippingProvider
+ * @return bool|\Vendidero\Germanized\Shipments\Interfaces\ShippingProvider
  */
 function wc_gzd_get_order_shipping_provider( $order ) {
 	if ( is_numeric( $order ) ) {
@@ -1206,7 +1203,7 @@ function wc_gzd_get_order_shipping_provider( $order ) {
 	/**
 	 * Filters the shipping provider detected for a specific order.
 	 *
-	 * @param bool|ShippingProvider $provider The shipping provider instance.
+	 * @param bool|\Vendidero\Germanized\Shipments\Interfaces\ShippingProvider $provider The shipping provider instance.
 	 * @param WC_Order              $order The order instance.
 	 *
 	 * @since 3.1.0
@@ -1307,7 +1304,7 @@ function wc_gzd_get_account_shipments_actions( $shipment ) {
 
 	if ( 'return' === $shipment->get_type() && $shipment->has_label() && ! $shipment->has_status( 'delivered' ) ) {
 		$actions['download-label'] = array(
-			'url'  => $shipment->get_label_download_url(),
+			'url'  => $shipment->get_label()->get_download_url(),
 			'name' => _x( 'Download label', 'shipments', 'woocommerce-germanized-shipments' ),
 		);
 	}

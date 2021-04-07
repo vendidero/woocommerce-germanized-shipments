@@ -3,8 +3,7 @@
 namespace Vendidero\Germanized\Shipments\Admin;
 use Exception;
 use Vendidero\Germanized\Shipments\Package;
-use Vendidero\Germanized\Shipments\ShippingProvider;
-use Vendidero\Germanized\Shipments\ShippingProviders;
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use WC_Admin_Settings;
 
 defined( 'ABSPATH' ) || exit;
@@ -20,11 +19,7 @@ class Settings {
 
 	public static function get_pointers( $section ) {
 		$pointers = array();
-		$next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-emails&tutorial=yes' );
-
-		if ( \Vendidero\Germanized\DHL\Package::has_dependencies() ) {
-			$next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-dhl&tutorial=yes' );
-		}
+		$next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&tutorial=yes' );
 
 		if ( '' === $section ) {
 			$pointers = array(
@@ -191,67 +186,6 @@ class Settings {
 
 			array( 'type' => 'sectionend', 'id' => 'shipments_return_options' ),
 
-			array( 'title' => _x( 'Return Address', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_return_options' ),
-
-			array(
-				'title'             => _x( 'First Name', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_first_name',
-				'default'           => '',
-			),
-
-			array(
-				'title'             => _x( 'Last Name', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_last_name',
-				'default'           => '',
-			),
-
-			array(
-				'title'             => _x( 'Company', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_company',
-				'default'           => get_bloginfo( 'name' ),
-			),
-
-			array(
-				'title'             => _x( 'Address 1', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_address_1',
-				'default'           => get_option( 'woocommerce_store_address' ),
-			),
-
-			array(
-				'title'             => _x( 'Address 2', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_address_2',
-				'default'           => get_option( 'woocommerce_store_address_2' ),
-			),
-
-			array(
-				'title'             => _x( 'City', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_city',
-				'default'           => get_option( 'woocommerce_store_city' ),
-			),
-
-			array(
-				'title'             => _x( 'Country / State', 'shipments', 'woocommerce-germanized-shipments' ),
-				'id'                => 'woocommerce_gzd_shipments_return_address_country',
-				'default'           => get_option( 'woocommerce_default_country' ),
-				'type'              => 'single_select_country',
-				'desc_tip'          => true,
-			),
-
-			array(
-				'title'             => _x( 'Postcode', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_postcode',
-				'default'           => get_option( 'woocommerce_store_postcode' ),
-			),
-
-			array( 'type' => 'sectionend', 'id' => 'shipments_return_options' ),
-
 			array( 'title' => _x( 'Customer Account', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_customer_options' ),
 
 			array(
@@ -263,6 +197,172 @@ class Settings {
 			),
 
 			array( 'type' => 'sectionend', 'id' => 'shipments_customer_options' ),
+		);
+
+		return $settings;
+	}
+
+	protected static function get_address_settings() {
+		$settings = array(
+            array( 'title' => _x( 'Shipper Address', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_shipper_address' ),
+
+			array(
+				'title'             => _x( 'First Name', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_first_name',
+				'default'           => '',
+			),
+
+			array(
+				'title'             => _x( 'Last Name', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_last_name',
+				'default'           => '',
+			),
+
+			array(
+				'title'             => _x( 'Company', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_company',
+				'default'           => get_bloginfo( 'name' ),
+			),
+
+			array(
+				'title'             => _x( 'Address 1', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_address_1',
+				'default'           => get_option( 'woocommerce_store_address' ),
+			),
+
+			array(
+				'title'             => _x( 'Address 2', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_address_2',
+				'default'           => get_option( 'woocommerce_store_address_2' ),
+			),
+
+			array(
+				'title'             => _x( 'City', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_city',
+				'default'           => get_option( 'woocommerce_store_city' ),
+			),
+
+			array(
+				'title'             => _x( 'Country / State', 'shipments', 'woocommerce-germanized-shipments' ),
+				'id'                => 'woocommerce_gzd_shipments_shipper_address_country',
+				'default'           => get_option( 'woocommerce_default_country' ),
+				'type'              => 'single_select_country',
+				'desc_tip'          => true,
+			),
+
+			array(
+				'title'             => _x( 'Postcode', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_postcode',
+				'default'           => get_option( 'woocommerce_store_postcode' ),
+			),
+
+			array(
+				'title'             => _x( 'Phone', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_phone',
+				'default'           => '',
+			),
+
+			array(
+				'title'             => _x( 'Email', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_email',
+				'default'           => get_option( 'woocommerce_email_from_address' ),
+			),
+
+			array( 'type' => 'sectionend', 'id' => 'shipments_shipper_address' ),
+
+			array( 'title' => _x( 'Return Address', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_return_address' ),
+
+			array(
+				'title'             => _x( 'First Name', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_first_name',
+				'default'           => '',
+				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_first_name' )
+			),
+
+			array(
+				'title'             => _x( 'Last Name', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_last_name',
+				'default'           => '',
+				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_last_name' )
+			),
+
+			array(
+				'title'             => _x( 'Company', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_company',
+				'default'           => '',
+				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_company' )
+			),
+
+			array(
+				'title'             => _x( 'Address 1', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_address_1',
+				'default'           => '',
+				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_address_1' )
+			),
+
+			array(
+				'title'             => _x( 'Address 2', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_address_2',
+				'default'           => '',
+				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_address_2' )
+			),
+
+			array(
+				'title'             => _x( 'City', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_city',
+				'default'           => '',
+				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_city' )
+			),
+
+			array(
+				'title'             => _x( 'Country / State', 'shipments', 'woocommerce-germanized-shipments' ),
+				'id'                => 'woocommerce_gzd_shipments_return_address_country',
+				'default'           => '',
+				'type'              => 'single_select_country',
+				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_country' ),
+				'desc_tip'          => true,
+			),
+
+			array(
+				'title'             => _x( 'Postcode', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_postcode',
+				'default'           => '',
+				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_postcode' )
+			),
+
+			array(
+				'title'             => _x( 'Phone', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_phone',
+				'default'           => '',
+				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_phone' )
+			),
+
+			array(
+				'title'             => _x( 'Email', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_email',
+				'default'           => '',
+				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_email' )
+			),
+
+			array( 'type' => 'sectionend', 'id' => 'shipments_return_address' ),
 		);
 
 		return $settings;
@@ -292,59 +392,6 @@ class Settings {
 		return $settings;
 	}
 
-	public static function save_provider( $provider_name = '' ) {
-		$helper = ShippingProviders::instance();
-
-		$helper->load_shipping_providers();
-
-		if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
-			$provider = $helper->get_shipping_provider( $provider_name );
-		} else {
-			$provider = new ShippingProvider();
-		}
-
-		$settings = $provider->get_settings();
-
-		foreach ( $settings as $setting ) {
-
-			if ( ! isset( $setting['id'] ) || empty( $setting['id'] ) ) {
-				continue;
-			}
-
-			add_filter( 'woocommerce_admin_settings_sanitize_option_' . $setting['id'], function( $value, $option, $raw_value ) use( &$provider ) {
-				$option_name = str_replace( 'shipping_provider_', '', $option['id'] );
-				$setter      = 'set_' . $option_name;
-
-				try {
-					if ( is_callable( array( $provider, $setter ) ) ) {
-						$provider->{$setter}( $value );
-					}
-				} catch( Exception $e ) {}
-
-				return null;
-			}, 10, 3 );
-		}
-
-		WC_Admin_Settings::save_fields( $settings );
-
-		if ( $provider->get_id() <= 0 ) {
-			if ( empty( $provider->get_tracking_desc_placeholder( 'edit' ) ) ) {
-				$provider->set_tracking_desc_placeholder( $provider->get_default_tracking_desc_placeholder() );
-			}
-
-			if ( empty( $provider->get_tracking_url_placeholder( 'edit' ) ) ) {
-				$provider->set_tracking_url_placeholder( $provider->get_default_tracking_url_placeholder() );
-			}
-		}
-
-		$provider->save();
-
-		if ( 'new' === $provider_name ) {
-			$url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=' . $provider->get_name() );
-			wp_safe_redirect( $url );
-		}
-	}
-
 	public static function get_settings( $current_section = '' ) {
 		$settings = array();
 
@@ -352,95 +399,184 @@ class Settings {
 			$settings = self::get_general_settings();
 		} elseif ( 'packaging' === $current_section ) {
 			$settings = self::get_packaging_settings();
-		} elseif( 'provider' === $current_section && isset( $_GET['provider'] ) ) {
-
-			$provider_name = wc_clean( wp_unslash( $_GET['provider'] ) );
-			$helper        = ShippingProviders::instance();
-
-			$helper->get_shipping_providers();
-
-			if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
-				$provider = $helper->get_shipping_provider( $provider_name );
-			} else {
-				$provider = new ShippingProvider();
-			}
-
-			if ( $provider ) {
-				$settings = $provider->get_settings();
-			}
+		} elseif ( 'address' === $current_section ) {
+			$settings = self::get_address_settings();
 		}
 
 		return $settings;
 	}
 
 	public static function get_additional_breadcrumb_items( $breadcrumb ) {
-		if ( isset( $_GET['section'] ) && 'provider' === $_GET['section'] && isset( $_GET['provider'] ) ) {
-			$provider_name = wc_clean( wp_unslash( $_GET['provider'] ) );
-			$title         = 'new' === $provider_name ? _x( 'New provider', 'shipments', 'woocommerce-germanized-shipments' ) : '';
-			$helper        = ShippingProviders::instance();
-
-			$helper->get_shipping_providers();
-
-			if ( ! empty( $provider_name ) && 'new' !== $provider_name ) {
-				if ( $provider = $helper->get_shipping_provider( $provider_name ) ) {
-					$title = $provider->get_title();
-
-					if ( ! $provider->is_manual_integration() && $provider->get_additional_options_url() ) {
-						$title = $title . '<a href="' . $provider->get_additional_options_url() . '" class="page-title-action">' . _x( 'Additional settings', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
-					}
-				}
-			}
-
-			if ( ! empty( $title ) ) {
-
-				foreach( $breadcrumb as $key => $breadcrumb_item ) {
-					if ( 'section' === $breadcrumb_item['class'] ) {
-						$breadcrumb[ $key ]['href'] = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider' );
-					}
-				}
-
-				$breadcrumb[] = array(
-					'class' => 'provider',
-					'href'  => '',
-					'title' => $title,
-				);
-			}
-		}
-
 		return $breadcrumb;
-	}
-
-	public static function get_section_title_link( $section ) {
-		if ( 'provider' === $section && ! isset( $_GET['provider'] ) ) {
-			return '<a href="' . admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=provider&provider=new' ) . '" class="page-title-action">' . _x( 'Add provider', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
-		}
-
-		return '';
 	}
 
 	public static function get_sections() {
 		return array(
 			''          => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' ),
 			'packaging' => _x( 'Packaging', 'shipments', 'woocommerce-germanized-shipments' ),
-			'provider'  => _x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' )
+			'address'   => _x( 'Addresses', 'shipments', 'woocommerce-germanized-shipments' ),
 		);
 	}
 
-	/**
-	 * Handles output of the shipping zones page in admin.
-	 */
-	public static function output_providers() {
-		global $hide_save_button;
+	public static function get_sanitized_settings( $settings, $data = null ) {
+		if ( is_null( $data ) ) {
+			$data = $_POST; // WPCS: input var okay, CSRF ok.
+		}
 
-		$hide_save_button = true;
-		self::provider_screen();
+		if ( empty( $data ) ) {
+			return false;
+		}
+
+		$settings_to_save = array();
+
+		// Loop options and get values to save.
+		foreach ( $settings as $option ) {
+
+			if ( ! isset( $option['id'] ) || empty( $option['id'] ) || ! isset( $option['type'] ) || in_array( $option['type'], array( 'title', 'sectionend' ) ) || ( isset( $option['is_option'] ) && false === $option['is_option'] ) ) {
+				continue;
+			}
+
+			$option_key = $option['id'];
+			$raw_value  = isset( $data[ $option_key ] ) ? wp_unslash( $data[ $option_key ] ) : null;
+
+			// Format the value based on option type.
+			switch ( $option['type'] ) {
+				case 'checkbox':
+					$value = '1' === $raw_value || 'yes' === $raw_value ? 'yes' : 'no';
+					break;
+				case 'textarea':
+					$value = wp_kses_post( trim( $raw_value ) );
+					break;
+				case 'password':
+					$value     = is_null( $raw_value ) ? '' : addslashes( $raw_value );
+					$value     = trim( $value );
+
+					if ( class_exists( 'WC_GZD_Secret_Box_Helper' ) ) {
+					    $encrypted = \WC_GZD_Secret_Box_Helper::encrypt( $value );
+
+                        if ( ! is_wp_error( $encrypted ) ) {
+                            $value = $encrypted;
+                        }
+					}
+					break;
+				case 'multiselect':
+				case 'multi_select_countries':
+					$value = array_filter( array_map( 'wc_clean', (array) $raw_value ) );
+					break;
+				case 'image_width':
+					$value = array();
+					if ( isset( $raw_value['width'] ) ) {
+						$value['width']  = wc_clean( $raw_value['width'] );
+						$value['height'] = wc_clean( $raw_value['height'] );
+						$value['crop']   = isset( $raw_value['crop'] ) ? 1 : 0;
+					} else {
+						$value['width']  = $option['default']['width'];
+						$value['height'] = $option['default']['height'];
+						$value['crop']   = $option['default']['crop'];
+					}
+					break;
+				case 'select':
+					$allowed_values = empty( $option['options'] ) ? array() : array_map( 'strval', array_keys( $option['options'] ) );
+					if ( empty( $option['default'] ) && empty( $allowed_values ) ) {
+						$value = null;
+						break;
+					}
+					$default = ( empty( $option['default'] ) ? $allowed_values[0] : $option['default'] );
+					$value   = in_array( $raw_value, $allowed_values, true ) ? $raw_value : $default;
+					break;
+				case 'relative_date_selector':
+					$value = wc_parse_relative_date_option( $raw_value );
+					break;
+				default:
+					$value = wc_clean( $raw_value );
+					break;
+			}
+
+			/**
+			 * Sanitize the value of an option.
+			 *
+			 * @since 2.4.0
+			 */
+			$value = apply_filters( 'woocommerce_admin_settings_sanitize_option', $value, $option, $raw_value );
+
+			$settings_to_save[ $option_key ] = $value;
+		}
+
+		return $settings_to_save;
 	}
 
-	protected static function provider_screen() {
+	public static function render_label_fields( $settings, $shipment, $echo = false ) {
+		ob_start();
+		foreach( $settings as $setting ) {
+			$setting = wp_parse_args( $setting, array( 'id' => '', 'type' => 'text' ) );
 
-		$helper    = ShippingProviders::instance();
-		$providers = $helper->get_shipping_providers();
+			if ( has_action( "woocommerce_gzd_shipment_label_admin_field_{$setting['id']}" ) ) {
+				do_action( "woocommerce_gzd_shipment_label_admin_field_{$setting['id']}", $setting, $shipment );
+			} elseif ( 'select' === $setting['type'] ) {
+				woocommerce_wp_select( $setting );
+			} elseif( 'checkbox' === $setting['type'] ) {
+				woocommerce_wp_checkbox( $setting );
+			} elseif( 'textarea' === $setting['type'] ) {
+				woocommerce_wp_textarea_input( $setting );
+			} elseif( 'text' === $setting['type'] ) {
+				woocommerce_wp_text_input( $setting );
+			} elseif( 'services_start' === $setting['type'] ) {
+			    $hide_default = isset( $setting['hide_default'] ) ? wc_string_to_bool( $setting['hide_default'] ) : false;
+		        $missing_div_closes++;
+			    ?>
+	            <p class="show-services-trigger">
+	                <a href="#" class="show-further-services <?php echo ( ! $hide_default ? 'hide-default' : '' ); ?>">
+	                    <span class="dashicons dashicons-plus"></span> <?php _ex(  'More services', 'shipments', 'woocommerce-germanized-shipments' ); ?>
+	                </a>
+	                <a class="show-fewer-services <?php echo ( $hide_default ? 'hide-default' : '' ); ?>" href="#">
+	                    <span class="dashicons dashicons-minus"></span> <?php _ex(  'Fewer services', 'shipments', 'woocommerce-germanized-shipments' ); ?>
+	                </a>
+	            </p>
+	            <div class="<?php echo ( $hide_default ? 'hide-default' : '' ); ?> show-if-further-services">
+	            <?php
+			} elseif( 'columns' === $setting['type'] ) {
+			    if ( $missing_div_closes > 0 ) {
+			        echo '</div>';
+				    $missing_div_closes--;
+	            }
 
-		include_once Package::get_path() . '/includes/admin/views/html-settings-provider-list.php';
+	            $missing_div_closes++;
+	            ?>
+	            <div class="columns">
+	            <?php
+	        } elseif( 'wrapper' === $setting['type'] ) {
+	            if ( $missing_div_closes > 0 ) {
+		            echo '</div>';
+		            $missing_div_closes--;
+	            }
+
+	            $missing_div_closes++;
+	            ?>
+	                <div class="wc-gzd-shipment-label-wrapper" id="wc-gzd-shipment-label-wrapper-<?php echo esc_attr( $setting['id'] ); ?>">
+	            <?php
+	        } elseif( in_array( $setting['type'], array( 'columns_end', 'services_end', 'wrapper_end' ) ) ) {
+	            $missing_div_closes--;
+	            ?>
+	                </div>
+	            <?php
+	        } else {
+				do_action( "woocommerce_gzd_shipment_label_admin_field_{$setting['type']}", $setting, $shipment );
+			}
+		}
+
+		if ( $missing_div_closes > 0 ) {
+			while( $missing_div_closes > 0 ) {
+				$missing_div_closes--;
+				echo '</div>';
+			}
+		}
+
+		$html = ob_get_clean();
+
+		if ( ! $echo ) {
+			return $html;
+		} else {
+			echo $html;
+		}
 	}
 }

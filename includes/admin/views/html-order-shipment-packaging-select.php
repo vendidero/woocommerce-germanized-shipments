@@ -20,7 +20,12 @@ $default_exists_in_list = false;
             $default_exists_in_list = true;
         }
         ?>
-		<option value="<?php echo esc_attr( $packaging->get_id() ); ?>" <?php selected( $packaging->get_id(), $shipment->get_packaging_id(), true ); ?>><?php echo $packaging->get_title(); ?></option>
+		<option
+                data-width="<?php echo esc_attr( wc_format_localized_decimal( wc_get_dimension( $packaging->get_width(), $shipment->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() ) ) ); ?>"
+                data-length="<?php echo esc_attr( wc_format_localized_decimal( wc_get_dimension( $packaging->get_length(), $shipment->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() ) ) ); ?>"
+                data-height="<?php echo esc_attr( wc_format_localized_decimal( wc_get_dimension( $packaging->get_height(), $shipment->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() ) ) ); ?>"
+                value="<?php echo esc_attr( $packaging->get_id() ); ?>" <?php selected( $packaging->get_id(), $shipment->get_packaging_id(), true ); ?>
+        ><?php echo $packaging->get_title(); ?></option>
 	<?php endforeach; ?>
 
     <?php if ( ! $default_exists_in_list && $default_packaging ) : ?>

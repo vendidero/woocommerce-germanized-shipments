@@ -9,13 +9,19 @@
   "require": {
     "automattic/jetpack-autoloader": "^2.0.0",
     "setasign/fpdi": "^2.3",
-    "setasign/fpdf": "^1.8.2"
+    "setasign/fpdf": "^1.8.2",
+    "dvdoug/boxpacker": "^3.9.0"
   },
   "require-dev": {
-    "phpunit/phpunit": "^7.5.14"
+    "phpunit/phpunit": "7.5.14"
   },
   "config": {
-    "optimize-autoloader": true
+    "optimize-autoloader": true,
+    "platform": {
+      "php": "7.1"
+    },
+    "preferred-install": "dist",
+    "sort-packages": true
   },
   "scripts": {
     "post-install-cmd": [

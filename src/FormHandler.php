@@ -17,10 +17,6 @@ class FormHandler {
 		add_action( 'template_redirect', array( __CLASS__, 'add_return_shipment' ), 20 );
 		add_action( 'template_redirect', array( __CLASS__, 'return_request_success_message' ), 20 );
 		add_action( 'wp_loaded', array( __CLASS__, 'process_return_request' ), 20 );
-
-		if ( isset( $_GET['action'], $_GET['shipment_id'], $_GET['_wpnonce'] ) ) { // WPCS: input var ok, CSRF ok.
-			add_action( 'init', array( __CLASS__, 'download_label' ) );
-		}
 	}
 
 	public static function return_request_success_message() {
@@ -124,28 +120,6 @@ class FormHandler {
 				do_action( 'woocommerce_gzd_return_request_failed' );
 			}
  		}
-	}
-
-	/**
-	 * Check if we need to download a file and check validity.
-	 */
-	public static function download_label() {
-		if ( 'wc-gzd-download-shipment-label' === $_GET['action'] && wp_verify_nonce( $_REQUEST['_wpnonce'], 'download-shipment-label' ) ) {
-			$shipment_id = absint( $_GET['shipment_id'] );
-			$args        = wp_parse_args( $_GET, array(
-				'force'  => 'no',
-			) );
-
-			if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
-				if ( 'return' === $shipment->get_type() && current_user_can( 'view_order', $shipment->get_order_id() ) ) {
-					if ( $shipment->has_label() ) {
-						$args['check_permissions'] = false;
-
-						$shipment->get_label()->download( $args );
-					}
-				}
-			}
-		}
 	}
 
 	/**

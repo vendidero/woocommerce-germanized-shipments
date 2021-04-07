@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Vendidero/Germanized/Shipments/Templates
- * @version 1.0.0
+ * @version 1.1.0
  */
 use Vendidero\Germanized\Shipments\ReturnShipment;
 
@@ -22,7 +22,11 @@ $provider = $shipment->get_shipping_provider_instance();
 ?>
 
 <?php if ( $provider && $provider->has_return_instructions() ) : ?>
-	<p class="return-shipment-instructions"><?php echo wp_kses_post( wpautop( wptexturize( wp_kses_post( $provider->get_return_instructions() ) ) ) ); ?></p>
+	<div class="return-shipment-instructions"><?php echo wp_kses_post( wpautop( wptexturize( wp_kses_post( $provider->get_return_instructions() ) ) ) ); ?></div>
+<?php endif; ?>
+
+<?php if ( ! $shipment->has_status( 'delivered' ) && ( $label = $shipment->get_label() ) ) : ?>
+    <p class="return-label-download-button-wrapper"><a class="woocommerce-button button btn" target="_blank" target="_blank" href="<?php echo esc_url( $label->get_download_url() ); ?>"><?php _ex(  'Download label', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
 <?php endif; ?>
 
 <?php

@@ -152,6 +152,21 @@ class SimpleShipment extends Shipment {
 			 */
 			$country = substr( strtoupper( $order->get_shipping_country() ), 0, 2 );
 
+			$packaging_id = $this->get_packaging_id( 'edit' );
+			$dimensions   = array(
+				'width'  => $this->get_width( 'edit' ),
+				'length' => $this->get_length( 'edit' ),
+				'height' => $this->get_height( 'edit' )
+			);
+
+			if ( ! empty( $packaging_id ) && ( $packaging = $this->get_packaging() ) ) {
+				$dimensions = array(
+					'width'  => $packaging->get_width( 'edit' ),
+					'length' => $packaging->get_length( 'edit' ),
+					'height' => $packaging->get_height( 'edit' )
+				);
+			}
+
 			$args = wp_parse_args( $args, array(
 				'order_id'          => $order->get_id(),
 				'shipping_method'   => wc_gzd_get_shipment_order_shipping_method_id( $order ),
@@ -160,9 +175,9 @@ class SimpleShipment extends Shipment {
 				'address'           => $address_data,
 				'country'           => $country,
 				'weight'            => $this->get_weight( 'edit' ),
-				'length'            => $this->get_length( 'edit' ),
-				'width'             => $this->get_width( 'edit' ),
-				'height'            => $this->get_height( 'edit' ),
+				'length'            => $dimensions['length'],
+				'width'             => $dimensions['width'],
+				'height'            => $dimensions['height'],
 				'additional_total'  => $this->calculate_additional_total( $order ),
 			) );
 

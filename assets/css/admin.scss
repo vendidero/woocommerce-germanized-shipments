@@ -2,6 +2,16 @@
 
 $layout-spacing: 1rem;
 
+.wc-modal-shipping-method-settings .form-table td .wc-gzd-additional-desc {
+  margin-top: 1em;
+  line-height: 1.5em;
+  background: #efefef;
+  padding: .5em;
+  font-style: normal;
+  font-size: 13px;
+  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
+}
+
 .germanized-create-label {
   .notice-wrapper {
     .notice {
@@ -22,8 +32,11 @@ $layout-spacing: 1rem;
       margin-bottom: 5px !important;
       margin-top: 5px !important;
     }
-    display: inline-block;
-    width: 100%;
+    &:not(.column) {
+      display: inline-block;
+      width: 100%;
+    }
+
     margin-bottom: 5px !important;
     margin-top: 5px !important;
   }

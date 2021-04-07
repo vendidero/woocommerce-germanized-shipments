@@ -18,7 +18,7 @@ window.germanized.admin = window.germanized.admin || {};
 
             $( document )
                 .on( 'click', '.wc-gzd-shipping-provider-delete', self.onRemoveProvider )
-                .on( 'change', '.wc-gzd-shipping-providers input.wc-gzd-shipping-provider-activated-checkbox', this.onChangeProviderStatus )
+                .on( 'change', '.wc-gzd-shipping-providers input.wc-gzd-shipping-provider-activated-checkbox', this.onChangeProviderStatus );
         },
 
         onChangeProviderStatus: function() {
@@ -33,6 +33,9 @@ window.germanized.admin = window.germanized.admin || {};
                 enable     : isEnabled,
                 provider   : provider
             };
+
+            // Prevent change setting warning
+            window.onbeforeunload = '';
 
             $toggle.addClass( 'woocommerce-input-toggle--loading' );
 

@@ -46,10 +46,18 @@ defined( 'ABSPATH' ) || exit;
 				</fieldset>
 			</td>
 			<td class="wc-gzd-shipping-provider-actions">
+				<?php if ( '' !== $provider->get_help_link() ) : ?>
+                    <a class="button button-secondary wc-gzd-dash-button help-link"
+                       aria-label="<?php echo esc_attr_x( 'Help', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
+                       title="<?php echo esc_attr_x( 'Help', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
+                       href="<?php echo $provider->get_help_link(); ?>"><?php _ex( 'Help', 'shipments', 'woocommerce-germanized-shipments' ); ?>
+                    </a>
+				<?php endif; ?>
 				<a class="button button-secondary wc-gzd-dash-button"
 				   aria-label="<?php echo esc_attr_x( 'Manage shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
 				   title="<?php echo esc_attr_x( 'Manage shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
-				   href="<?php echo $provider->get_edit_link(); ?>"><?php _ex( 'Manage', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+				   href="<?php echo $provider->get_edit_link(); ?>"><?php _ex( 'Manage', 'shipments', 'woocommerce-germanized-shipments' ); ?>
+                </a>
 			</td>
 		</tr>
 	<?php endforeach; ?>

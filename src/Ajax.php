@@ -4,6 +4,8 @@ namespace Vendidero\Germanized\Shipments;
 
 use Vendidero\Germanized\Shipments\Admin\Admin;
 use Vendidero\Germanized\Shipments\Admin\MetaBox;
+use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 
 /**
  * WC_Ajax class.
@@ -180,9 +182,7 @@ class Ajax {
 	    }
 
 	    if ( $shipment->supports_label() && $shipment->needs_label() ) {
-		    ob_start();
-		    $shipment->print_label_admin_fields();
-		    $html = ob_get_clean();
+		    $html = $shipment->get_label_settings_html();
 	    }
 
 	    $response = array(
@@ -260,19 +260,17 @@ class Ajax {
 	    }
 
 	    if ( $shipment->supports_label() && $shipment->needs_label() ) {
-
-	    	$data     = array();
-		    $raw_data = $_POST;
-	    	$prefix   = "{$shipment->get_shipping_provider()}_label_";
+	    	$data = array();
 
 		    foreach( $_POST as $key => $value ) {
-			    if ( substr( $key, 0, strlen( $prefix ) ) === $prefix ) {
-				    $new_key           = substr( $key, ( strlen( $prefix ) ) );
-				    $data[ $new_key ]  = wc_clean( wp_unslash( $value ) );
+		    	if ( in_array( $key, array( 'action', 'security' ) ) ) {
+		    		continue;
 			    }
+
+			    $data[ $key ] = wc_clean( wp_unslash( $value ) );
 		    }
 
-	    	$result = $shipment->create_label( $data, $raw_data );
+	    	$result = $shipment->create_label( $data );
 	    }
 
 	    if ( is_wp_error( $result ) ) {
@@ -293,7 +291,7 @@ class Ajax {
 				    'div#shipment-' . $shipment_id => self::get_shipment_html( $shipment ),
 				    '.order-shipping-status'       => $order_shipment ? self::get_order_status_html( $order_shipment ) : '',
 				    '.order-return-status'         => $order_shipment ? self::get_order_return_status_html( $order_shipment ) : '',
-				    'tr#shipment-' . $shipment_id . ' td.actions .wc-gzd-shipment-action-button-generate-label' => self::label_download_button_html( $shipment ),
+				    'tr#shipment-' . $shipment_id . ' td.actions .wc-gzd-shipment-action-button-generate-label' => self::label_download_button_html( $label ),
 			    ),
 		    );
 	    } else {
@@ -329,12 +327,12 @@ class Ajax {
 	}
 
 	/**
-	 * @param Shipment $shipment
+	 * @param ShipmentLabel $label
 	 *
 	 * @return string
 	 */
-	protected static function label_download_button_html( $shipment ) {
-		return '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-download-label download" href="' . $shipment->get_label_download_url() .'" target="_blank" title="' . _x( 'Download label', 'shipments', 'woocommerce-germanized-shipments' ) . '">' . _x(  'Download label', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+	protected static function label_download_button_html( $label ) {
+		return '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-download-label download" href="' . $label->get_download_url() .'" target="_blank" title="' . _x( 'Download label', 'shipments', 'woocommerce-germanized-shipments' ) . '">' . _x(  'Download label', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
 	}
 
     public static function edit_shipping_provider_status() {
@@ -351,7 +349,7 @@ class Ajax {
 
 	    $provider = sanitize_key( wc_clean( $_POST['provider'] ) );
 	    $enable   = wc_clean( $_POST['enable'] );
-	    $helper   = ShippingProviders::instance();
+	    $helper   = Helper::instance();
 	    $response = array(
 		    'success'  => true,
 		    'provider' => $provider,
@@ -388,7 +386,7 @@ class Ajax {
 	    );
 
 	    $provider = sanitize_key( wc_clean( $_POST['provider'] ) );
-	    $helper   = ShippingProviders::instance();
+	    $helper   = Helper::instance();
 	    $response = array(
 		    'success'  => true,
 		    'provider' => $provider,
@@ -876,24 +874,10 @@ class Ajax {
     	$shipment_id = $shipment->get_id();
 
 		$data = array(
-			'weight' => isset( $_POST['shipment_weight'][ $shipment_id ] ) ? wc_clean( wp_unslash( $_POST['shipment_weight'][ $shipment_id ] ) ) : '',
-			'length' => isset( $_POST['shipment_length'][ $shipment_id ] ) ? wc_clean( wp_unslash( $_POST['shipment_length'][ $shipment_id ] ) ) : '',
-			'width'  => isset( $_POST['shipment_width'][ $shipment_id ] ) ? wc_clean( wp_unslash( $_POST['shipment_width'][ $shipment_id ] ) ) : '',
-			'height' => isset( $_POST['shipment_height'][ $shipment_id ] ) ? wc_clean( wp_unslash( $_POST['shipment_height'][ $shipment_id ] ) ) : '',
+			'packaging_id' => isset( $_POST['shipment_packaging_id'][ $shipment_id ] ) ? absint( wc_clean( $_POST['shipment_packaging_id'][ $shipment_id ] ) ) : '',
 		);
 
 		$data = array_filter( $data );
-
-		/**
-		 * In case no data was transmitted - use content data instead.
-		 */
-		$data = wp_parse_args( $data, array(
-			'weight' => $shipment->get_content_weight(),
-			'length' => $shipment->get_content_length(),
-			'width'  => $shipment->get_content_width(),
-			'height' => $shipment->get_content_height()
-		) );
-
 		$shipment->set_props( $data );
 
 		ob_start();
@@ -1373,7 +1357,9 @@ class Ajax {
 	    		$response['fragments'] = array();
 		    }
 
-		    $response['fragments']['#shipment-' . $shipment->get_id() . ' .shipment-packaging-select'] = self::get_packaging_select_html( $current_shipment );
+	    	$response['needs_packaging_refresh'] = true;
+	    	$response['shipment_id'] = $current_shipment->get_id();
+		    $response['fragments']['#shipment-' . $current_shipment->get_id() . ' .shipment-packaging-select'] = self::get_packaging_select_html( $current_shipment );
 	    }
 
         wp_send_json( $response );

@@ -53,7 +53,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	/**
 	 * Method to create a new provider in the database.
 	 *
-	 * @param \Vendidero\Germanized\Shipments\ShippingProvider $provider Shipping provider object.
+	 * @param \Vendidero\Germanized\Shipments\ShippingProvider\Simple $provider Shipping provider object.
 	 */
 	public function create( &$provider ) {
 		global $wpdb;
@@ -78,6 +78,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 
 			$this->save_provider_data( $provider );
 
+			$provider->update_settings_with_defaults();
 			$provider->save_meta_data();
 			$provider->apply_changes();
 
@@ -86,8 +87,8 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 			/**
 			 * Action that indicates that a new Shipping Provider has been created in the DB.
 			 *
-			 * @param integer                                          $provider_id The provider id.
-			 * @param \Vendidero\Germanized\Shipments\ShippingProvider $shipping_provider The shipping provider instance.
+			 * @param integer                                                     $provider_id The provider id.
+			 * @param \Vendidero\Germanized\Shipments\ShippingProvider\Simple $shipping_provider The shipping provider instance.
 			 *
 			 * @since 3.0.0
 			 * @package Vendidero/Germanized/Shipments
@@ -100,7 +101,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	 * Generate a unique name to save to the object.
 	 *
 	 * @since 3.6.0
-	 * @param \Vendidero\Germanized\Shipments\ShippingProvider $provider Shipping provider object.
+	 * @param \Vendidero\Germanized\Shipments\ShippingProvider\Simple $provider Shipping provider object.
 	 * @return string
 	 */
 	protected function get_unqiue_name( $provider ) {
@@ -128,7 +129,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	/**
 	 * Method to update a shipping provider in the database.
 	 *
-	 * @param \Vendidero\Germanized\Shipments\ShippingProvider $provider Shipping provider object.
+	 * @param \Vendidero\Germanized\Shipments\ShippingProvider\Simple $provider Shipping provider object.
 	 */
 	public function update( &$provider ) {
 		global $wpdb;
@@ -174,8 +175,8 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		/**
 		 * Action that indicates that a shipping provider has been updated in the DB.
 		 *
-		 * @param integer                                          $shipping_provider_id The shipping provider id.
-		 * @param \Vendidero\Germanized\Shipments\ShippingProvider $shipping_provider The shipping provider instance.
+		 * @param integer                                                     $shipping_provider_id The shipping provider id.
+		 * @param \Vendidero\Germanized\Shipments\ShippingProvider\Simple $shipping_provider The shipping provider instance.
 		 *
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/Shipments
@@ -187,7 +188,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	 * Remove a shipping provider from the database.
 	 *
 	 * @since 3.0.0
-	 * @param \Vendidero\Germanized\Shipments\ShippingProvider $provider Shipping provider object.
+	 * @param \Vendidero\Germanized\Shipments\ShippingProvider\Simple $provider Shipping provider object.
 	 * @param bool                $force_delete Unused param.
 	 */
 	public function delete( &$provider, $force_delete = false ) {
@@ -201,8 +202,8 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		/**
 		 * Action that indicates that a shipping provider has been deleted from the DB.
 		 *
-		 * @param integer                                          $shipping_provider_id The shipping provider id.
-		 * @param \Vendidero\Germanized\Shipments\ShippingProvider $provider The shipping provider object.
+		 * @param integer                                                     $shipping_provider_id The shipping provider id.
+		 * @param \Vendidero\Germanized\Shipments\ShippingProvider\Simple $provider The shipping provider object.
 		 *
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/Shipments
@@ -215,7 +216,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param \Vendidero\Germanized\Shipments\ShippingProvider $provider Shipping provider object.
+	 * @param \Vendidero\Germanized\Shipments\ShippingProvider\Simple $provider Shipping provider object.
 	 *
 	 * @throws Exception Throw exception if invalid shipping provider.
 	 */
@@ -246,7 +247,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 			/**
 			 * Action that indicates that a shipping provider has been loaded from DB.
 			 *
-			 * @param \Vendidero\Germanized\Shipments\ShippingProvider $provider The shipping provider object.
+			 * @param \Vendidero\Germanized\Shipments\ShippingProvider\Simple $provider The shipping provider object.
 			 *
 			 * @since 3.0.0
 			 * @package Vendidero/Germanized/Shipments
@@ -260,7 +261,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	/**
 	 * Clear any caches.
 	 *
-	 * @param \Vendidero\Germanized\Shipments\ShippingProvider $provider Shipping provider object.
+	 * @param \Vendidero\Germanized\Shipments\ShippingProvider\Simple $provider Shipping provider object.
 	 * @since 3.0.0
 	 */
 	protected function clear_caches( &$provider ) {
@@ -276,13 +277,18 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	/**
 	 * Read extra data associated with the shipping provider.
 	 *
-	 * @param \Vendidero\Germanized\Shipments\ShippingProvider $provider Shipping provider object.
+	 * @param \Vendidero\Germanized\Shipments\ShippingProvider\Simple $provider Shipping provider object.
 	 * @since 3.0.0
 	 */
 	protected function read_provider_data( &$provider ) {
-		$props = array();
+		$props     = array();
+		$meta_keys = $this->internal_meta_keys;
 
-		foreach( $this->internal_meta_keys as $meta_key ) {
+		foreach ( $provider->get_extra_data_keys() as $key ) {
+			$meta_keys[] = '_' . $key;
+		}
+
+		foreach( $meta_keys as $meta_key ) {
 			$props[ substr( $meta_key, 1 ) ] = get_metadata( 'gzd_shipping_provider', $provider->get_id(), $meta_key, true );
 		}
 
@@ -292,7 +298,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	/**
 	 * Save shipping provider data.
 	 *
-	 * @param \Vendidero\Germanized\Shipments\ShippingProvider $provider Shipping provider object.
+	 * @param \Vendidero\Germanized\Shipments\ShippingProvider\Simple $provider Shipping provider object.
 	 */
 	protected function save_provider_data( &$provider ) {
 		$updated_props     = array();
@@ -308,6 +314,13 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 			$meta_key_to_props[ $meta_key ] = $prop_name;
 		}
 
+		// Make sure to take extra data (like product url or text for external products) into account.
+		$extra_data_keys = $provider->get_extra_data_keys();
+
+		foreach ( $extra_data_keys as $key ) {
+			$meta_key_to_props[ '_' . $key ] = $key;
+		}
+
 		$props_to_update = $this->get_props_to_update( $provider, $meta_key_to_props, 'gzd_shipping_provider' );
 
 		foreach ( $props_to_update as $meta_key => $prop ) {
@@ -319,12 +332,8 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 			$value = $provider->{"get_$prop"}( 'edit' );
 			$value = is_string( $value ) ? wp_slash( $value ) : $value;
 
-			switch ( $prop ) {
-				case "return_manual_confirmation":
-				case "supports_customer_returns":
-				case "supports_guest_returns":
-					$value = wc_bool_to_string( $value );
-					break;
+			if ( is_bool( $value ) ) {
+				$value = wc_bool_to_string( $value );
 			}
 
 			$updated = $this->update_or_delete_meta( $provider, $meta_key, $value );
@@ -337,8 +346,8 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		/**
 		 * Action that fires after updating a shipping providers' properties.
 		 *
-		 * @param \Vendidero\Germanized\Shipments\ShippingProvider $provider The shipping provider object.
-		 * @param array                                            $changed_props The updated properties.
+		 * @param \Vendidero\Germanized\Shipments\ShippingProvider\Simple $provider The shipping provider object.
+		 * @param array                                                       $changed_props The updated properties.
 		 *
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/Shipments

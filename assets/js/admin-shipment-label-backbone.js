@@ -18,11 +18,43 @@ window.germanized.admin = window.germanized.admin || {};
                 .on( 'click', '.germanized-create-label .show-further-services', self.onExpandServices )
                 .on( 'click', '.germanized-create-label .show-fewer-services', self.onHideServices )
                 .on( 'change', '.germanized-create-label input.show-if-trigger', self.onShowIf )
-                .on( 'click', '.germanized-create-label .notice .notice-dismiss', self.onRemoveNotice );
+                .on( 'click', '.germanized-create-label .notice .notice-dismiss', self.onRemoveNotice )
+                .on( 'change', '.germanized-create-label #product_id', self.onChangeProductId );
 
             $( document.body )
                 .on( 'wc_backbone_modal_loaded', self.backbone.init )
                 .on( 'wc_backbone_modal_response', self.backbone.response );
+        },
+
+        onChangeProductId: function() {
+            var self = germanized.admin.shipment_label_backbone;
+
+            self.showOrHideServices( $( this ).val() );
+        },
+
+        showOrHideServices: function( productId ) {
+            var $services = $( '.show-if-further-services' ).find( 'p.form-field' );
+
+            $services.each( function() {
+                var $service      = $( this ),
+                    $serviceField = $service.find( ':input' ),
+                    supported     = $serviceField.data( 'products-supported' ) ? $serviceField.data( 'products-supported' ).split( ',' ) : [],
+                    isHidden      = false;
+
+                if ( $serviceField.data( 'products-supported' ) ) {
+                    isHidden = true;
+
+                    if ( $.inArray( productId, supported ) !== -1 ) {
+                        isHidden = false;
+                    }
+                }
+
+                if ( isHidden ) {
+                    $service.hide();
+                } else {
+                    $service.show();
+                }
+            } );
         },
 
         onRemoveNotice: function() {
@@ -109,6 +141,12 @@ window.germanized.admin = window.germanized.admin || {};
                 cSuccess = cSuccess || self.onAjaxSuccess;
                 cError   = cError || self.onAjaxError;
 
+                if ( ! params.hasOwnProperty( 'shipment_id' ) ) {
+                    params['shipment_id'] = $( '#wc-gzd-shipment-label-admin-shipment-id' ).val();
+
+                    console.log(params);
+                }
+
                 $wrapper.block({
                     message: null,
                     overlayCSS: {
@@ -158,15 +196,14 @@ window.germanized.admin = window.germanized.admin || {};
 
                 $( document.body ).trigger( 'wc-enhanced-select-init' );
                 $( document.body ).trigger( 'wc-init-datepickers' );
-
                 $( document.body ).trigger( 'wc_gzd_shipment_label_after_init' );
 
                 $modal.find( 'input.show-if-trigger' ).trigger( 'change' );
+                $modal.find( '#product_id' ).trigger( 'change' );
 
                 $modal.parents( '.wc-backbone-modal' ).on( 'click', '#btn-ok', { 'shipmentId': shipmentId }, self.onSubmit );
                 $modal.parents( '.wc-backbone-modal' ).on( 'touchstart', '#btn-ok', { 'shipmentId': shipmentId }, self.onSubmit );
                 $modal.parents( '.wc-backbone-modal' ).on( 'keydown', { 'shipmentId': shipmentId }, self.onKeyDown );
-
             },
 
             getFormData: function( $form ) {
