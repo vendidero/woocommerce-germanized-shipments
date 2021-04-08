@@ -25,10 +25,10 @@
   },
   "scripts": {
     "post-install-cmd": [
-      "composer dump-autoload"
+      "sh ./bin/vendor-clean.sh"
     ],
     "post-update-cmd": [
-      "composer dump-autoload"
+      "sh ./bin/vendor-clean.sh"
     ]
   },
   "autoload": {

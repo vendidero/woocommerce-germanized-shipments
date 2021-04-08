@@ -230,7 +230,7 @@ table.wc-gzd-shipping-providers {
       margin-top: 0;
       font-weight: normal;
       color: #999;
-      font-style: italic; }
+      font-size: 12px; }
       .woocommerce_page_wc-gzd-shipments .wp-list-table td.column-title .shipment-title-meta .shipment-tracking-id, .woocommerce_page_wc-gzd-return-shipments .wp-list-table td.column-title .shipment-title-meta .shipment-tracking-id {
         color: #999;
         display: block; }
@@ -306,6 +306,9 @@ table.wc-gzd-shipping-providers {
       line-height: 20px; }
       .woocommerce_page_wc-gzd-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview th.wc-gzd-shipment-item-column-name, .woocommerce_page_wc-gzd-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview td.wc-gzd-shipment-item-column-name, .woocommerce_page_wc-gzd-return-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview th.wc-gzd-shipment-item-column-name, .woocommerce_page_wc-gzd-return-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview td.wc-gzd-shipment-item-column-name {
         width: 70%; }
+        .woocommerce_page_wc-gzd-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview th.wc-gzd-shipment-item-column-name small, .woocommerce_page_wc-gzd-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview td.wc-gzd-shipment-item-column-name small, .woocommerce_page_wc-gzd-return-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview th.wc-gzd-shipment-item-column-name small, .woocommerce_page_wc-gzd-return-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview td.wc-gzd-shipment-item-column-name small {
+          color: #999;
+          font-size: 12px; }
       .woocommerce_page_wc-gzd-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview th.wc-gzd-shipment-item-column-quantity, .woocommerce_page_wc-gzd-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview td.wc-gzd-shipment-item-column-quantity, .woocommerce_page_wc-gzd-return-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview th.wc-gzd-shipment-item-column-quantity, .woocommerce_page_wc-gzd-return-shipments .wp-list-table #the-list .column-items table.wc-gzd-shipments-preview td.wc-gzd-shipment-item-column-quantity {
         text-align: right;
         padding-right: .5em; }

@@ -345,7 +345,7 @@ table.wc-gzd-shipping-providers {
         margin-top: 0;
         font-weight: normal;
         color: #999;
-        font-style: italic;
+        font-size: 12px;
 
         .shipment-tracking-id {
           color: #999;
@@ -476,6 +476,11 @@ table.wc-gzd-shipping-providers {
 
             &.wc-gzd-shipment-item-column-name {
               width: 70%;
+
+              small {
+                color: #999;
+                font-size: 12px;
+              }
             }
 
             &.wc-gzd-shipment-item-column-quantity {
