@@ -1513,25 +1513,15 @@ abstract class Shipment extends WC_Data {
 			}
 
 			if ( ! $exists ) {
-				$this->update_packaging( $default_packaging );
+				$this->set_packaging_id( $default_packaging->get_id() );
 			}
 		} elseif ( empty( $packaging_id ) && $default_packaging ) {
-			$this->update_packaging( $default_packaging );
+			$this->set_packaging_id( $default_packaging->get_id() );
 		}
 	}
 
-	public function update_packaging( $packaging ) {
-		if ( ! empty( $packaging ) ) {
-			if ( is_numeric( $packaging ) ) {
-				$packaging = wc_gzd_get_packaging( $packaging );
-			}
-
-			if ( ! $packaging ) {
-				return false;
-			}
-
-			$this->set_packaging_id( $packaging->get_id() );
-
+	public function update_packaging() {
+		if ( $packaging = $this->get_packaging() ) {
 			$packaging_dimension = wc_gzd_get_packaging_dimension_unit();
 
 			$props = array(
@@ -1545,7 +1535,6 @@ abstract class Shipment extends WC_Data {
 		} else {
 			// Reset
 			$this->set_props( array(
-				'packaging_id'     => 0,
 				'width'            => '',
 				'length'           => '',
 				'height'           => '',
@@ -2310,10 +2299,9 @@ abstract class Shipment extends WC_Data {
             $this->calculate_totals();
             $is_new = false;
 
-            // Update packaging
-            if ( array_key_exists( 'packaging_id', $this->get_changes() ) ) {
-            	$this->update_packaging( $this->get_packaging_id() );
-            }
+	        if ( array_key_exists( 'packaging_id', $this->get_changes() ) || $this->is_editable() ) {
+		        $this->update_packaging();
+	        }
 
             if ( $this->data_store ) {
                 // Trigger action before saving to the DB. Allows you to adjust object props before save.
