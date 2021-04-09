@@ -153,19 +153,12 @@ class SimpleShipment extends Shipment {
 			$country = substr( strtoupper( $order->get_shipping_country() ), 0, 2 );
 
 			$packaging_id = $this->get_packaging_id( 'edit' );
+
 			$dimensions   = array(
 				'width'  => $this->get_width( 'edit' ),
 				'length' => $this->get_length( 'edit' ),
 				'height' => $this->get_height( 'edit' )
 			);
-
-			if ( ! empty( $packaging_id ) && ( $packaging = $this->get_packaging() ) ) {
-				$dimensions = array(
-					'width'  => $packaging->get_width( 'edit' ),
-					'length' => $packaging->get_length( 'edit' ),
-					'height' => $packaging->get_height( 'edit' )
-				);
-			}
 
 			$args = wp_parse_args( $args, array(
 				'order_id'          => $order->get_id(),
@@ -175,6 +168,7 @@ class SimpleShipment extends Shipment {
 				'address'           => $address_data,
 				'country'           => $country,
 				'weight'            => $this->get_weight( 'edit' ),
+				'packaging_weight'  => $this->get_packaging_weight( 'edit' ),
 				'length'            => $dimensions['length'],
 				'width'             => $dimensions['width'],
 				'height'            => $dimensions['height'],
@@ -292,6 +286,9 @@ class SimpleShipment extends Shipment {
 					$this->remove_item( $item->get_id() );
 				}
 			}
+
+			// Sync packaging
+			$this->sync_packaging();
 
 			/**
 			 * Action that fires after items of a shipment have been synced.

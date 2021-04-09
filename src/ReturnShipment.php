@@ -568,6 +568,9 @@ class ReturnShipment extends Shipment {
 				}
 			}
 
+			// Sync packaging
+			$this->sync_packaging();
+
 			/**
 			 * Action that fires after items of a shipment have been synced.
 			 *

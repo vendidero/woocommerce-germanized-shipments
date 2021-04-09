@@ -758,11 +758,9 @@ class Ajax {
         }
 
         ob_start();
-
         foreach( $shipment->get_items() as $item ) {
             include( Package::get_path() . '/includes/admin/views/html-order-shipment-item.php' );
         }
-
         $html = ob_get_clean();
 
         $response['fragments'] = array(
@@ -852,16 +850,24 @@ class Ajax {
 			'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),
 		);
 
-		$response = array(
-			'success' => true,
-			'message' => '',
-		);
-
 		$shipment_id = absint( $_POST['shipment_id'] );
 
 		if ( ! $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
 			wp_send_json( $response_error );
 		}
+
+		$response = array(
+			'success'                 => true,
+			'message'                 => '',
+			'shipment_id'             => $shipment_id,
+			'needs_packaging_refresh' => true,
+		);
+
+		$data = array(
+			'packaging_id' => isset( $_POST['shipment_packaging_id'][ $shipment_id ] ) ? absint( wc_clean( $_POST['shipment_packaging_id'][ $shipment_id ] ) ) : '',
+		);
+
+		$shipment->set_props( $data );
 
 		$response['fragments'] = array(
 			'#shipment-' . $shipment->get_id() . ' .shipment-packaging-select' => self::get_packaging_select_html( $shipment ),
@@ -871,15 +877,6 @@ class Ajax {
 	}
 
 	protected static function get_packaging_select_html( $shipment ) {
-    	$shipment_id = $shipment->get_id();
-
-		$data = array(
-			'packaging_id' => isset( $_POST['shipment_packaging_id'][ $shipment_id ] ) ? absint( wc_clean( $_POST['shipment_packaging_id'][ $shipment_id ] ) ) : '',
-		);
-
-		$data = array_filter( $data );
-		$shipment->set_props( $data );
-
 		ob_start();
 		include( Package::get_path() . '/includes/admin/views/html-order-shipment-packaging-select.php' );
 		$html = ob_get_clean();
@@ -1316,7 +1313,7 @@ class Ajax {
             $quantity = $quantity_max;
         }
 
-        $shipment->get_item( $item_id )->set_quantity( $quantity );
+        $shipment->update_item_quantity( $item_id, $quantity );
 
         $response['fragments'] = array(
             '#shipment-' . $shipment->get_id() . ' .item-count:first' => self::get_item_count_html( $shipment, $order_shipment ),
@@ -1357,7 +1354,7 @@ class Ajax {
 	    		$response['fragments'] = array();
 		    }
 
-	    	$response['needs_packaging_refresh'] = true;
+		    $response['needs_packaging_refresh'] = true;
 	    	$response['shipment_id'] = $current_shipment->get_id();
 		    $response['fragments']['#shipment-' . $current_shipment->get_id() . ' .shipment-packaging-select'] = self::get_packaging_select_html( $current_shipment );
 	    }

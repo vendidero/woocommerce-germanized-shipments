@@ -63,25 +63,6 @@ class Package {
 	    add_action( 'init', array( __CLASS__, 'register_shortcodes' ) );
 
 	    add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
-
-	    /**
-	     * Sync packaging after items have been synced to make sure
-	     * content weights are available while choosing the matching packaging.
-	     */
-	    add_action( 'woocommerce_gzd_return_shipment_items_synced', array( __CLASS__, 'sync_packaging' ), 10 );
-	    add_action( 'woocommerce_gzd_shipment_items_synced', array( __CLASS__, 'sync_packaging' ), 10 );
-    }
-
-	/**
-	 * @param Shipment $shipment
-	 */
-    public static function sync_packaging( $shipment ) {
-	    $default_packaging = $shipment->get_default_packaging();
-	    $packaging_id      = $shipment->get_packaging_id( 'edit' );
-
-	    if ( empty( $packaging_id ) && $default_packaging ) {
-	    	$shipment->set_packaging_id( $default_packaging->get_id() );
-	    }
     }
 
     public static function add_return_shipment_guest_endpoints( $template, $template_name ) {

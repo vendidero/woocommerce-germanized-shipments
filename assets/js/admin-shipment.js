@@ -52,7 +52,7 @@ window.germanized.admin = window.germanized.admin || {};
             $( '#shipment-' + this.vars.id + ' .wc-gzd-shipment-label' ).off();
 
             $( '#shipment-' + this.vars.id + ' #shipment-shipping-provider-' + this.vars.id ).on( 'change', this.onChangeProvider.bind( this ) );
-            $( '#shipment-' + this.vars.id + ' #shipment-packaging-' + this.vars.id ).on( 'change', this.onChangePackaging.bind( this ) );
+            $( '#shipment-' + this.vars.id + ' #shipment-packaging-' + this.vars.id ).on( 'change', this.refreshDimensions.bind( this ) );
 
             $( '#shipment-' + this.vars.id + ' #shipment-items-' + this.vars.id )
                 .on( 'change', '.item-quantity', this.onChangeQuantity.bind( this ) )
@@ -69,7 +69,7 @@ window.germanized.admin = window.germanized.admin || {};
                 .on( 'click', '.remove-shipment-label', this.onRemoveLabel.bind( this ) );
         };
 
-        this.onChangePackaging = function() {
+        this.refreshDimensions = function() {
             var $shipment = this.getShipment(),
                 $select   = $shipment.find( '#shipment-packaging-' + this.getId() ),
                 $selected = $select.find( 'option:selected' );
@@ -94,6 +94,20 @@ window.germanized.admin = window.germanized.admin || {};
                 $shipment.find( '#shipment-height-' + this.getId() ).addClass( 'disabled' ).prop( 'disabled', true );
                 $shipment.find( '#shipment-height-' + this.getId() ).val( $selected.data( 'height' ) );
             }
+        };
+
+        this.blockPackaging = function() {
+            this.getShipmentContent().find( '.wc-gzd-shipment-packaging-wrapper' ).block({
+                message: null,
+                overlayCSS: {
+                    background: '#fff',
+                    opacity: 0.6
+                }
+            });
+        };
+
+        this.unblockPackaging = function() {
+            this.getShipmentContent().find( '.wc-gzd-shipment-packaging-wrapper' ).unblock();
         };
 
         this.refreshPackaging = function() {

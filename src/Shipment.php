@@ -125,6 +125,7 @@ abstract class Shipment extends WC_Data {
         'width'                 => '',
         'height'                => '',
         'length'                => '',
+        'packaging_weight'      => '',
         'weight_unit'           => '',
         'dimension_unit'        => '',
         'country'               => '',
@@ -345,8 +346,22 @@ abstract class Shipment extends WC_Data {
     public function get_total_weight() {
     	$weight = $this->get_weight() + $this->get_packaging_weight();
 
-    	return apply_filters( "{$this->get_hook_prefix()}total_weight", $weight, $this );
+	    return $weight;
     }
+
+	public function get_packaging_weight( $context = 'view' ) {
+		$weight = $this->get_prop( 'packaging_weight', $context );
+
+		if ( 'view' === $context && '' === $weight ) {
+			if ( $packaging = $this->get_packaging() ) {
+				if ( ! empty( $packaging->get_weight() ) ) {
+					$weight = wc_get_weight( $packaging->get_weight(), $this->get_weight_unit(), wc_gzd_get_packaging_weight_unit() );
+				}
+			}
+		}
+
+		return $weight;
+	}
 
     public function get_items_to_pack() {
     	if ( is_null( $this->items_to_pack ) ) {
@@ -411,23 +426,14 @@ abstract class Shipment extends WC_Data {
         return $length;
     }
 
-    public function get_packaging_weight() {
-    	$packaging_weight = 0;
-
-	    if ( $packaging = $this->get_packaging() ) {
-	    	if ( ! empty( $packaging->get_weight() ) ) {
-			    $packaging_weight = wc_get_weight( $packaging->get_weight(), $this->get_weight_unit(), wc_gzd_get_packaging_weight_unit() );
-		    }
-	    }
-
-	    return $packaging_weight;
-    }
-
     public function get_package_length() {
-    	if ( $packaging = $this->get_packaging() ) {
-    		$length = wc_get_dimension( $packaging->get_length(), $this->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() );
-	    } else {
-		    $length = $this->get_length();
+	    $length = $this->get_length();
+
+    	// Older versions did not sync dimensions with packaging dimensions
+    	if ( '' === $this->get_version() ) {
+		    if ( $packaging = $this->get_packaging() ) {
+			    $length = wc_get_dimension( $packaging->get_length(), $this->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() );
+		    }
 	    }
 
     	return $length;
@@ -454,10 +460,12 @@ abstract class Shipment extends WC_Data {
     }
 
 	public function get_package_width() {
-		if ( $packaging = $this->get_packaging() ) {
-			$width = wc_get_dimension( $packaging->get_width(), $this->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() );
-		} else {
-			$width = $this->get_width();
+		$width = $this->get_width();
+
+		if ( '' === $this->get_version() ) {
+			if ( $packaging = $this->get_packaging() ) {
+				$width = wc_get_dimension( $packaging->get_width(), $this->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() );
+			}
 		}
 
 		return $width;
@@ -480,11 +488,13 @@ abstract class Shipment extends WC_Data {
     }
 
 	public function get_package_height() {
-		if ( $packaging = $this->get_packaging() ) {
-			$height = wc_get_dimension( $packaging->get_height(), $this->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() );
-		} else {
-			$height = $this->get_height();
-		}
+		$height = $this->get_height();
+
+    	if ( '' === $this->get_version() ) {
+    		if ( $packaging = $this->get_packaging() ) {
+			    $height = wc_get_dimension( $packaging->get_height(), $this->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() );
+		    }
+	    }
 
 		return $height;
 	}
@@ -1305,6 +1315,19 @@ abstract class Shipment extends WC_Data {
         $this->set_prop( 'weight', '' === $weight ? '' : wc_format_decimal( $weight ) );
     }
 
+	public function set_packaging_weight( $weight ) {
+		$this->set_prop( 'packaging_weight', '' === $weight ? '' : wc_format_decimal( $weight ) );
+	}
+
+	/**
+	 * Set shipment total weight.
+	 *
+	 * @param string $weight The weight.
+	 */
+	public function set_total_weight( $weight ) {
+		$this->set_prop( 'total_weight', '' === $weight ? '' : wc_format_decimal( $weight ) );
+	}
+
 	/**
 	 * Set shipment width.
 	 *
@@ -1474,6 +1497,65 @@ abstract class Shipment extends WC_Data {
 		$this->packaging = null;
 	}
 
+	public function sync_packaging() {
+		$available_packaging = $this->get_available_packaging();
+		$default_packaging   = $this->get_default_packaging();
+		$packaging_id        = $this->get_packaging_id( 'edit' );
+
+		if ( ! empty( $packaging_id ) ) {
+			$exists = false;
+
+			foreach( $available_packaging as $packaging ) {
+				if ( $packaging_id == $packaging->get_id() ) {
+					$exists = true;
+					break;
+				}
+			}
+
+			if ( ! $exists ) {
+				$this->update_packaging( $default_packaging );
+			}
+		} elseif ( empty( $packaging_id ) && $default_packaging ) {
+			$this->update_packaging( $default_packaging );
+		}
+	}
+
+	public function update_packaging( $packaging ) {
+		if ( ! empty( $packaging ) ) {
+			if ( is_numeric( $packaging ) ) {
+				$packaging = wc_gzd_get_packaging( $packaging );
+			}
+
+			if ( ! $packaging ) {
+				return false;
+			}
+
+			$this->set_packaging_id( $packaging->get_id() );
+
+			$packaging_dimension = wc_gzd_get_packaging_dimension_unit();
+
+			$props = array(
+				'width'            => wc_get_dimension( $packaging->get_width( 'edit' ), $this->get_dimension_unit(), $packaging_dimension ),
+				'length'           => wc_get_dimension( $packaging->get_length( 'edit' ), $this->get_dimension_unit(), $packaging_dimension ),
+				'height'           => wc_get_dimension( $packaging->get_height( 'edit' ), $this->get_dimension_unit(), $packaging_dimension ),
+				'packaging_weight' => wc_get_weight( $packaging->get_weight( 'edit' ), $this->get_weight_unit(), wc_gzd_get_packaging_weight_unit() )
+			);
+
+			$this->set_props( $props );
+		} else {
+			// Reset
+			$this->set_props( array(
+				'packaging_id'     => 0,
+				'width'            => '',
+				'length'           => '',
+				'height'           => '',
+				'packaging_weight' => ''
+			) );
+		}
+
+		return true;
+	}
+
     /**
      * Return an array of items within this shipment.
      *
@@ -1566,6 +1648,21 @@ abstract class Shipment extends WC_Data {
 
         $this->reset_content_data();
         $this->calculate_totals();
+        $this->sync_packaging();
+    }
+
+    public function update_item_quantity( $item_id, $quantity = 1 ) {
+	    if ( $item = $this->get_item( $item_id ) ) {
+	        $item->set_quantity( $quantity );
+
+	        if ( array_key_exists( 'quantity', $item->get_changes() ) ) {
+	        	$this->sync_packaging();
+	        }
+
+	        return true;
+	    }
+
+	    return false;
     }
 
     /**
@@ -1596,6 +1693,7 @@ abstract class Shipment extends WC_Data {
 
         $this->reset_content_data();
         $this->calculate_totals();
+	    $this->sync_packaging();
     }
 
 	/**
@@ -1712,6 +1810,7 @@ abstract class Shipment extends WC_Data {
 
         $this->reset_content_data();
         $this->calculate_totals();
+	    $this->sync_packaging();
     }
 
     /**
@@ -2210,6 +2309,11 @@ abstract class Shipment extends WC_Data {
         try {
             $this->calculate_totals();
             $is_new = false;
+
+            // Update packaging
+            if ( array_key_exists( 'packaging_id', $this->get_changes() ) ) {
+            	$this->update_packaging( $this->get_packaging_id() );
+            }
 
             if ( $this->data_store ) {
                 // Trigger action before saving to the DB. Allows you to adjust object props before save.

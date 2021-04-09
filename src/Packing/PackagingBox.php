@@ -41,8 +41,7 @@ class PackagingBox implements Box {
 		$weight             = empty( $this->packaging->get_weight() ) ? 0 : wc_format_decimal( $this->packaging->get_weight() );
 		$this->weight       = (int) wc_get_weight( $weight, 'g', wc_gzd_get_packaging_weight_unit() );
 
-		// Use a high values as max content weight in case it has not been chosen
-		$max_content_weight = empty( $this->packaging->get_max_content_weight() ) ? 10000 : wc_format_decimal( $this->packaging->get_max_content_weight() );
+		$max_content_weight = empty( $this->packaging->get_max_content_weight() ) ? 0 : wc_format_decimal( $this->packaging->get_max_content_weight() );
 		$this->max_weight   = (int) wc_get_weight( $max_content_weight, 'g', wc_gzd_get_packaging_weight_unit() );
 
 		/**

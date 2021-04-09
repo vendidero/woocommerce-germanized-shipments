@@ -221,6 +221,13 @@ window.germanized.admin = window.germanized.admin || {};
                 success: function( data ) {
                     if ( data.success ) {
 
+                        active               = self.getShipment( self.getActiveShipmentId() );
+                        current_packaging_id = false;
+
+                        if ( active ) {
+                            current_packaging_id = active.getShipment().find( '.shipment-packaging-select' ).val();
+                        }
+
                         if ( refreshFragments ) {
                             if ( data.fragments ) {
                                 $.each( data.fragments, function ( key, value ) {
@@ -261,7 +268,16 @@ window.germanized.admin = window.germanized.admin || {};
                             self.initShipment( data.shipment_id );
 
                             if ( data.hasOwnProperty( 'needs_packaging_refresh' ) ) {
-                                self.getShipment( data.shipment_id ).onChangePackaging();
+                                active = self.getShipment( self.getActiveShipmentId() );
+
+                                if ( active ) {
+                                    // Refresh dimensions in case the packaging has changed
+                                    new_packaging_id = active.getShipment().find( '.shipment-packaging-select' ).val();
+
+                                    if ( new_packaging_id !== current_packaging_id ) {
+                                        self.getShipment( data.shipment_id ).refreshDimensions();
+                                    }
+                                }
                             }
                         }
                     } else {

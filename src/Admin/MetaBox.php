@@ -52,12 +52,6 @@ class MetaBox {
 
 	        if ( isset( $_POST['shipment_packaging_id'][ $id ] ) ) {
 		        $props['packaging_id'] = wc_clean( wp_unslash( $_POST['shipment_packaging_id'][ $id ] ) );
-
-		        if ( ! empty( $props['packaging_id'] ) && ( $packaging = wc_gzd_get_packaging( $props['packaging_id'] ) ) ) {
-			        $props['width']  = $packaging->get_width();
-			        $props['height'] = $packaging->get_height();
-			        $props['length'] = $packaging->get_length();
-		        }
 	        }
 
 	        if ( isset( $_POST['shipment_shipping_provider'][ $id ] ) ) {
