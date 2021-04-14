@@ -2183,6 +2183,12 @@ abstract class Shipment extends WC_Data {
 			$needs_label = false;
 		}
 
+		if ( $shipping_provider = $this->get_shipping_provider_instance() ) {
+			if ( ! $shipping_provider->is_activated() ) {
+				$needs_label = false;
+			}
+		}
+
 		// If shipment is already delivered
 		if ( $check_status && $this->has_status( array( 'delivered', 'shipped' ) ) ) {
 			$needs_label = false;

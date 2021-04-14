@@ -30,6 +30,10 @@ class Install {
 		$providers = Helper::instance()->get_shipping_providers();
 
 		foreach( $providers as $provider ) {
+			if ( ! $provider->is_activated() ) {
+				continue;
+			}
+
 			$provider->update_settings_with_defaults();
 			$provider->save();
 		}

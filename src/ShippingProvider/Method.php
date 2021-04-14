@@ -154,6 +154,10 @@ class Method {
 		) );
 
 		foreach( wc_gzd_get_shipping_providers() as $provider ) {
+			if ( ! $provider->is_activated() ) {
+				continue;
+			}
+
 			$additional_settings = $provider->get_shipping_method_settings();
 			$settings = array_merge( $settings, $additional_settings );
 		}
