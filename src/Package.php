@@ -365,6 +365,17 @@ class Package {
 		remove_filter( 'upload_dir', array( __CLASS__, "filter_upload_dir" ), 150 );
 	}
 
+	public static function get_file_by_path( $file ) {
+		// If the file is relative, prepend upload dir.
+		if ( $file && 0 !== strpos( $file, '/' ) && ( ( $uploads = self::get_upload_dir() ) && false === $uploads['error'] ) ) {
+			$file = $uploads['basedir'] . "/$file";
+
+			return $file;
+		} else {
+			return $file;
+		}
+	}
+
 	public static function filter_upload_dir( $args ) {
 		$upload_base = trailingslashit( $args['basedir'] );
 		$upload_url  = trailingslashit( $args['baseurl'] );
