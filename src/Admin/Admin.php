@@ -51,9 +51,27 @@ class Admin {
 	    // Menu count
 	    add_action( 'admin_head', array( __CLASS__, 'menu_return_count' ) );
 
+	    // Check upload folder
+	    add_action( 'admin_notices', array( __CLASS__, 'check_upload_dir' ) );
+
 	    // Register endpoints within settings
         add_filter( 'woocommerce_get_settings_advanced', array( __CLASS__, 'register_endpoint_settings' ), 20, 2 );
     }
+
+	public static function check_upload_dir() {
+		$dir     = Package::get_upload_dir();
+		$path    = $dir['basedir'];
+		$dirname = basename( $path );
+
+		if ( @is_dir( $dir['basedir'] ) ) {
+			return;
+		}
+		?>
+        <div class="error">
+            <p><?php printf( _x( 'Shipments upload directory missing. Please manually create the folder %s and make sure that it is writeable.', 'shipments', 'woocommerce-germanized-shipments' ), '<i>wp-content/uploads/' . $dirname . '</i>' ); ?></p>
+        </div>
+		<?php
+	}
 
 	private static function get_setting_key_by_id( $settings, $id, $type = '' ) {
 		if ( ! empty( $settings ) ) {
