@@ -418,6 +418,11 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				}
 
 				if ( 'checkbox' === $field['type'] && ! isset( $props[ $field['id'] ] ) ) {
+					// Exclude array fields from default checkbox handling
+					if ( isset( $field['name'] ) && strstr( $field['name'], '[]' ) ) {
+						continue;
+					}
+
 					$props[ $field['id'] ] = 'no';
 				}
 			}
