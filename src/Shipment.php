@@ -1512,7 +1512,7 @@ abstract class Shipment extends WC_Data {
 				}
 			}
 
-			if ( ! $exists ) {
+			if ( ! $exists && $default_packaging ) {
 				$this->set_packaging_id( $default_packaging->get_id() );
 			}
 		} elseif ( empty( $packaging_id ) && $default_packaging ) {
