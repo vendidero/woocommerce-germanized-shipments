@@ -1533,13 +1533,14 @@ abstract class Shipment extends WC_Data {
 
 			$this->set_props( $props );
 		} else {
+			$props = array( 'packaging_weight' => '' );
+
+			if ( array_key_exists( 'packaging_id', $this->get_changes() ) ) {
+				$props = array_merge( $props, array( 'length' => '', 'width' => '', 'height' => '' ) );
+			}
+
 			// Reset
-			$this->set_props( array(
-				'width'            => '',
-				'length'           => '',
-				'height'           => '',
-				'packaging_weight' => ''
-			) );
+			$this->set_props( $props );
 		}
 
 		return true;

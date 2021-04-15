@@ -980,18 +980,23 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $settings;
 	}
 
-	protected function get_all_settings() {
+	protected function get_all_settings( $sections = array() ) {
 		$settings = array();
+		$sections = empty( $sections ) ? array_keys( $this->get_setting_sections() ) : $sections;
 
-		foreach( array_keys( $this->get_setting_sections() ) as $section ) {
+		foreach( $sections as $section ) {
 			$settings[ $section ] = $this->get_settings( $section );
 		}
 
 		return $settings;
 	}
 
+	protected function get_shipping_method_setting_sections() {
+		return array_keys( $this->get_setting_sections() );
+	}
+
 	public function get_shipping_method_settings() {
-		$settings = $this->get_all_settings();
+		$settings = $this->get_all_settings( $this->get_shipping_method_setting_sections() );
 		$sections = $this->get_setting_sections();
 
 		$method_settings         = array();
