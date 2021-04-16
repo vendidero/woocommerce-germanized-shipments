@@ -200,7 +200,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return apply_filters( "{$this->get_hook_prefix()}label_fields_html", $html, $shipment, $this );
 	}
 
-	protected function get_automation_settings() {
+	protected function get_automation_settings( $for_shipping_method = false ) {
 		$settings = array(
 			array( 'title' => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ), 'allow_override' => true, 'type' => 'title', 'id' => 'shipping_provider_label_auto_options' ),
 		);
@@ -271,7 +271,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return array();
 	}
 
-	protected function get_label_settings() {
+	protected function get_label_settings( $for_shipping_method = false ) {
 		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'shipping_provider_label_options' ),
 

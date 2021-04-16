@@ -177,8 +177,11 @@ class Method {
 	}
 
 	protected function init() {
-		$this->instance_form_fields               = Package::get_method_settings();
-		$this->get_method()->instance_form_fields = array_merge( $this->get_method()->instance_form_fields, $this->instance_form_fields );
+		$this->instance_form_fields = Package::get_method_settings();
+
+		if ( ! array_key_exists( 'shipping_provider', $this->get_method()->instance_form_fields ) ) {
+			$this->get_method()->instance_form_fields = array_merge( $this->get_method()->instance_form_fields, $this->instance_form_fields );
+		}
 
 		// Refresh instance settings in case they were already loaded
 		if ( ! empty( $this->get_method()->instance_settings ) ) {

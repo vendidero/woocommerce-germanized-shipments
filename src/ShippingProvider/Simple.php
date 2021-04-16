@@ -738,7 +738,7 @@ class Simple extends WC_Data implements ShippingProvider {
 		}
 	}
 
-	protected function get_general_settings() {
+	protected function get_general_settings( $for_shipping_method = false ) {
 		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'shipping_provider_options' ),
 		);
@@ -889,15 +889,15 @@ class Simple extends WC_Data implements ShippingProvider {
 		} catch( Exception $e ) {}
 	}
 
-	public function get_settings( $section = '' ) {
+	public function get_settings( $section = '', $for_shipping_method = false ) {
 		$settings = array();
 
 		if ( '' === $section || 'general' === $section ) {
-			$settings = $this->get_general_settings();
+			$settings = $this->get_general_settings( $for_shipping_method );
 		} elseif( 'returns' === $section ) {
-			$settings = $this->get_return_settings();
+			$settings = $this->get_return_settings( $for_shipping_method );
 		} elseif( is_callable( array( $this, "get_{$section}_settings" ) ) ) {
-			$settings = $this->{"get_{$section}_settings"}();
+			$settings = $this->{"get_{$section}_settings"}( $for_shipping_method );
 		}
 
 		/**
@@ -914,10 +914,10 @@ class Simple extends WC_Data implements ShippingProvider {
 		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( $this->get_hook_prefix() . 'settings', $settings, $section, $this );
+		return apply_filters( $this->get_hook_prefix() . 'settings', $settings, $section, $this, $for_shipping_method );
 	}
 
-	protected function get_return_settings() {
+	protected function get_return_settings( $for_shipping_method = false ) {
 		$settings = array(
 			array( 'title' => '', 'type' => 'title', 'id' => 'shipping_provider_return_options' ),
 		);
@@ -980,23 +980,19 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $settings;
 	}
 
-	protected function get_all_settings( $sections = array() ) {
+	protected function get_all_settings( $for_shipping_method = false ) {
 		$settings = array();
-		$sections = empty( $sections ) ? array_keys( $this->get_setting_sections() ) : $sections;
+		$sections = array_keys( $this->get_setting_sections() );
 
 		foreach( $sections as $section ) {
-			$settings[ $section ] = $this->get_settings( $section );
+			$settings[ $section ] = $this->get_settings( $section, $for_shipping_method );
 		}
 
 		return $settings;
 	}
 
-	protected function get_shipping_method_setting_sections() {
-		return array_keys( $this->get_setting_sections() );
-	}
-
 	public function get_shipping_method_settings() {
-		$settings = $this->get_all_settings( $this->get_shipping_method_setting_sections() );
+		$settings = $this->get_all_settings( true );
 		$sections = $this->get_setting_sections();
 
 		$method_settings         = array();

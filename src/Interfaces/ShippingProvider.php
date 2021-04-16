@@ -76,7 +76,7 @@ interface ShippingProvider {
 
 	public function update_settings( $section = '', $data = null, $save = true );
 
-	public function get_settings( $section = '' );
+	public function get_settings( $section = '', $for_shipping_method = false );
 
 	public function update_setting( $setting, $value );
 
