@@ -353,6 +353,8 @@ abstract class Shipment extends WC_Data {
 		$weight = $this->get_prop( 'packaging_weight', $context );
 
 		if ( 'view' === $context && '' === $weight ) {
+			$weight = wc_format_decimal( 0 );
+
 			if ( $packaging = $this->get_packaging() ) {
 				if ( ! empty( $packaging->get_weight() ) ) {
 					$weight = wc_get_weight( $packaging->get_weight(), $this->get_weight_unit(), wc_gzd_get_packaging_weight_unit() );

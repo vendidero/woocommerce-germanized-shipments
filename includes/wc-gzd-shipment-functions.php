@@ -153,7 +153,9 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 
 	if ( is_a( $original_id, 'WC_Shipping_Rate' ) ) {
 		$instance_id = $original_id->get_instance_id();
-	} elseif( ! is_numeric( $instance_id ) ) {
+	} elseif ( is_a( $original_id, 'WC_Shipping_Method' ) ) {
+		$instance_id = $original_id->get_instance_id();
+	} elseif( ! is_numeric( $instance_id ) && is_string( $instance_id ) ) {
 		if ( strpos( $instance_id, ':' ) !== false ) {
 			$expl        = explode( ':', $instance_id );
 			$instance_id = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? (int) $expl[1] : 0 );
