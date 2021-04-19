@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments;
 use Exception;
+use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
 use WC_Order;
 use WC_Order_Item;
 
