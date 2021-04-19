@@ -366,18 +366,22 @@ abstract class Shipment extends WC_Data {
 	}
 
     public function get_items_to_pack() {
-    	if ( is_null( $this->items_to_pack ) ) {
-		    $this->items_to_pack = array();
+	    if ( ! Package::is_packing_supported() ) {
+			return $this->get_items();
+	    } else {
+		    if ( is_null( $this->items_to_pack ) ) {
+			    $this->items_to_pack = array();
 
-		    foreach( $this->get_items() as $item ) {
-			    for ( $i = 0; $i < $item->get_quantity(); $i++ ) {
-				    $box_item = new Packing\ShipmentItem( $item );
-				    $this->items_to_pack[] = $box_item;
+			    foreach( $this->get_items() as $item ) {
+				    for ( $i = 0; $i < $item->get_quantity(); $i++ ) {
+					    $box_item = new Packing\ShipmentItem( $item );
+					    $this->items_to_pack[] = $box_item;
+				    }
 			    }
 		    }
-	    }
 
-    	return apply_filters( "{$this->get_hook_prefix()}items_to_pack", $this->items_to_pack, $this );
+		    return apply_filters( "{$this->get_hook_prefix()}items_to_pack", $this->items_to_pack, $this );
+	    }
     }
 
 	/**
