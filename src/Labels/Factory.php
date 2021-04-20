@@ -44,6 +44,13 @@ class Factory {
 			return false;
 		}
 
+		/**
+		 * Simple shipping provider do not support labels
+		 */
+		if ( ! is_a( $shipping_provider, '\Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto' ) ) {
+			return false;
+		}
+
 		$classname = $shipping_provider->get_label_classname( $label_type );
 
 		/**

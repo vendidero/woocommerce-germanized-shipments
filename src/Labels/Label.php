@@ -477,13 +477,14 @@ class Label extends WC_Data implements ShipmentLabel {
 			Package::set_upload_dir_filter();
 			$filename = $this->get_filename( $file_type );
 
-			add_filter( 'wp_unique_filename', function( $new_filename ) use ( $filename ) {
-				return $filename;
-			}, 99 );
+			$GLOBALS['gzd_shipments_unique_filename'] = $filename;
+			add_filter( 'wp_unique_filename', '_wc_gzd_shipments_keep_force_filename', 10, 1 );
 
 			$tmp = wp_upload_bits( $this->get_filename( $file_type ),null, $stream );
 
-			remove_filter( 'wp_unique_filename', function(){}, 99 );
+			unset( $GLOBALS['gzd_shipments_unique_filename'] );
+			remove_filter( 'wp_unique_filename', '_wc_gzd_shipments_keep_force_filename', 10 );
+
 			Package::unset_upload_dir_filter();
 
 			if ( isset( $tmp['file'] ) ) {
