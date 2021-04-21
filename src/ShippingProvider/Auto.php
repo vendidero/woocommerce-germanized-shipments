@@ -16,8 +16,8 @@ defined( 'ABSPATH' ) || exit;
 abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	protected $extra_data = array(
-		'label_default_shipment_weight'      => 2,
-		'label_minimum_shipment_weight'      => 0.5,
+		'label_default_shipment_weight'      => '',
+		'label_minimum_shipment_weight'      => '',
 		'label_auto_enable'                  => false,
 		'label_auto_shipment_status'         => 'gzd-processing',
 		'label_return_auto_enable'           => false,
@@ -25,12 +25,36 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		'label_auto_shipment_status_shipped' => false,
 	);
 
+	public function __construct( $data = 0 ) {
+		parent::__construct( $data );
+	}
+
 	public function get_label_default_shipment_weight( $context = 'view' ) {
-		return $this->get_prop( 'label_default_shipment_weight', $context );
+		$weight = $this->get_prop( 'label_default_shipment_weight', $context );
+
+		if ( 'view' === $context && '' === $weight ) {
+			$weight = $this->get_default_label_default_shipment_weight();
+		}
+
+		return $weight;
+	}
+
+	protected function get_default_label_default_shipment_weight() {
+		return 0;
 	}
 
 	public function get_label_minimum_shipment_weight( $context = 'view' ) {
-		return $this->get_prop( 'label_minimum_shipment_weight', $context );
+		$weight = $this->get_prop( 'label_minimum_shipment_weight', $context );
+
+		if ( 'view' === $context && '' === $weight ) {
+			$weight = $this->get_default_label_minimum_shipment_weight();
+		}
+
+		return $weight;
+	}
+
+	protected function get_default_label_minimum_shipment_weight() {
+		return 0.5;
 	}
 
 	/**
@@ -110,11 +134,11 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	}
 
 	public function set_label_default_shipment_weight( $weight ) {
-		$this->set_prop( 'label_default_shipment_weight', ( '' === $weight ? 0 : wc_format_decimal( $weight ) ) );
+		$this->set_prop( 'label_default_shipment_weight', ( '' === $weight ? '' : wc_format_decimal( $weight ) ) );
 	}
 
 	public function set_label_minimum_shipment_weight( $weight ) {
-		$this->set_prop( 'label_minimum_shipment_weight', ( '' === $weight ? 0 : wc_format_decimal( $weight ) ) );
+		$this->set_prop( 'label_minimum_shipment_weight', ( '' === $weight ? '' : wc_format_decimal( $weight ) ) );
 	}
 
 	public function set_label_auto_enable( $enable ) {
@@ -283,6 +307,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'id' 		        => 'label_default_shipment_weight',
 				'css'               => 'max-width: 60px;',
 				'class'             => 'wc_input_decimal',
+				'default'           => $this->get_default_label_default_shipment_weight(),
 				'value'             => $this->get_setting( 'label_default_shipment_weight' )
 			),
 
@@ -294,6 +319,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'id' 		        => 'label_minimum_shipment_weight',
 				'css'               => 'max-width: 60px;',
 				'class'             => 'wc_input_decimal',
+				'default'           => $this->get_default_label_minimum_shipment_weight(),
 				'value'             => $this->get_setting( 'label_minimum_shipment_weight' )
 			),
 
