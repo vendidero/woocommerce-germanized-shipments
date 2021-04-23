@@ -271,7 +271,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 					'parent_id'         => $data->label_parent_id,
 					'shipping_provider' => $data->label_shipping_provider,
 					'product_id'        => $data->label_product_id,
-					'date_created'      => 0 < $data->label_date_created_gmt ? wc_string_to_timestamp( $data->label_date_created_gmt ) : null,
+					'date_created'      => '0000-00-00 00:00:00' !== $data->label_date_created_gmt ? wc_string_to_timestamp( $data->label_date_created_gmt ) : null,
 				)
 			);
 
@@ -287,7 +287,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 			 * The dynamic portion of this hook, `$hook_postfix` refers to the
 			 * label type e.g. return in case it is not a simple label.
 			 *
-			 * @param \Vendidero\Germanized\DHL\Label $label The label object.
+			 * @param \Vendidero\Germanized\Shipments\Labels\Label $label The label object.
 			 *
 			 * @since 3.0.0
 			 * @package Vendidero/Germanized/DHL
