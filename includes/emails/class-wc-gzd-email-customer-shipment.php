@@ -42,6 +42,10 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
 
         public $helper = null;
 
+        public $total_shipments = 1;
+
+        public $cur_position = 1;
+
         /**
          * Constructor.
          */
@@ -57,11 +61,13 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
             $this->helper         = function_exists( 'wc_gzd_get_email_helper' ) ? wc_gzd_get_email_helper( $this ) : false;
 
             $this->placeholders   = array(
-                '{site_title}'      => $this->get_blogname(),
-                '{shipment_number}' => '',
-                '{order_number}'    => '',
-                '{order_date}'      => '',
-                '{date_sent}'       => '',
+                '{site_title}'           => $this->get_blogname(),
+                '{shipment_number}'      => '',
+                '{order_number}'         => '',
+                '{order_date}'           => '',
+                '{date_sent}'            => '',
+	            '{current_shipment_num}' => '',
+	            '{total_shipments}'      => '',
             );
 
             // Triggers for this email.
@@ -83,9 +89,9 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
          */
         public function get_default_subject( $partial = false ) {
             if ( $partial ) {
-                return _x( 'Your {site_title} order #{order_number} has been partially shipped', 'shipments', 'woocommerce-germanized-shipments' );
+                return _x( 'Your {site_title} order #{order_number} has been partially shipped ({current_shipment_num}/{total_shipments})', 'shipments', 'woocommerce-germanized-shipments' );
             } else {
-                return _x( 'Your {site_title} order #{order_number} has been shipped', 'shipments', 'woocommerce-germanized-shipments' );
+                return _x( 'Your {site_title} order #{order_number} has been shipped ({current_shipment_num}/{total_shipments})', 'shipments', 'woocommerce-germanized-shipments' );
             }
         }
 
@@ -176,6 +182,32 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
 		    parent::restore_locale();
 	    }
 
+	    public function get_shipped_position_number( $shipment_id ) {
+		    $shipped_count = 1;
+
+		    if ( ! $this->object || ( ! $order = wc_gzd_get_shipment_order( $this->object ) ) ) {
+		    	return $shipped_count;
+		    }
+
+		    if ( is_a( $shipment_id, '\Vendidero\Germanized\Shipments\Shipment' ) ) {
+			    $shipment_id = $shipment_id->get_id();
+		    }
+
+		    if ( ! is_numeric( $shipment_id ) ) {
+			    return $shipped_count;
+		    }
+
+		    foreach( $order->get_simple_shipments() as $key => $shipment ) {
+			    if ( $shipment->is_shipped() ) {
+				    if ( $shipment->get_id() != $shipment_id ) {
+					    $shipped_count++;
+				    }
+			    }
+		    }
+
+		    return $shipped_count;
+	    }
+
         /**
          * Trigger.
          *
@@ -195,16 +227,21 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
                 $this->placeholders['{shipment_number}'] = $this->shipment->get_shipment_number();
 
                 if ( $order_shipment = wc_gzd_get_shipment_order( $this->shipment->get_order() ) ) {
+                    $this->object          = $this->shipment->get_order();
+                    $this->total_shipments = sizeof( $order_shipment->get_simple_shipments() );
+	                $this->cur_position    = $this->get_shipped_position_number( $shipment_id );
 
-                    $this->object = $this->shipment->get_order();
-
-                    if ( $order_shipment->needs_shipping() || sizeof( $order_shipment->get_simple_shipments() ) > 1 ) {
-                        $this->partial_shipment = true;
+                    if ( $order_shipment->needs_shipping() || $this->total_shipments > 1 ) {
+                        if ( $this->cur_position < $this->total_shipments ) {
+                        	$this->partial_shipment = true;
+                        }
                     }
 
-                    $this->recipient                      = $order_shipment->get_order()->get_billing_email();
-                    $this->placeholders['{order_date}']   = wc_format_datetime( $order_shipment->get_order()->get_date_created() );
-                    $this->placeholders['{order_number}'] = $order_shipment->get_order()->get_order_number();
+                    $this->recipient                              = $order_shipment->get_order()->get_billing_email();
+                    $this->placeholders['{order_date}']           = wc_format_datetime( $order_shipment->get_order()->get_date_created() );
+                    $this->placeholders['{order_number}']         = $order_shipment->get_order()->get_order_number();
+	                $this->placeholders['{total_shipments}']      = $this->total_shipments;
+	                $this->placeholders['{current_shipment_num}'] = $this->cur_position;
 
                     if ( $this->shipment->get_date_sent() ) {
                         $this->placeholders['{date_sent}'] = wc_format_datetime( $this->shipment->get_date_sent() );
@@ -260,6 +297,8 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
                     'shipment'           => $this->shipment,
                     'order'              => $this->object,
                     'partial_shipment'   => $this->partial_shipment,
+                    'cur_position'       => $this->cur_position,
+                    'total_shipments'    => $this->total_shipments,
                     'email_heading'      => $this->get_heading(),
                     'additional_content' => $this->get_additional_content(),
                     'sent_to_admin'      => false,
@@ -280,6 +319,8 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
                     'shipment'            => $this->shipment,
                     'order'              => $this->object,
                     'partial_shipment'   => $this->partial_shipment,
+                    'cur_position'       => $this->cur_position,
+                    'total_shipments'    => $this->total_shipments,
                     'email_heading'      => $this->get_heading(),
                     'additional_content' => $this->get_additional_content(),
                     'sent_to_admin'      => false,
@@ -317,8 +358,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
                     'title'       => _x( 'Full shipment subject', 'shipments', 'woocommerce-germanized-shipments' ),
                     'type'        => 'text',
                     'desc_tip'    => true,
-                    /* translators: %s: list of placeholders */
-                    'description' => sprintf( _x( 'Available placeholders: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>{site_title}, {order_date}, {order_number}, {shipment_number}, {date_sent}</code>' ),
+                    'description' => $placeholder_text,
                     'placeholder' => $this->get_default_subject(),
                     'default'     => '',
                 ),
@@ -326,8 +366,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
                     'title'       => _x( 'Partial shipment subject', 'shipments', 'woocommerce-germanized-shipments' ),
                     'type'        => 'text',
                     'desc_tip'    => true,
-                    /* translators: %s: list of placeholders */
-                    'description' => sprintf( _x( 'Available placeholders: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>{site_title}, {order_date}, {order_number}, {shipment_number}, {date_sent}</code>' ),
+                    'description' => $placeholder_text,
                     'placeholder' => $this->get_default_subject( true ),
                     'default'     => '',
                 ),
@@ -335,8 +374,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
                     'title'       => _x( 'Full shipment email heading', 'shipments', 'woocommerce-germanized-shipments' ),
                     'type'        => 'text',
                     'desc_tip'    => true,
-                    /* translators: %s: list of placeholders */
-                    'description' => sprintf( _x( 'Available placeholders: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>{site_title}, {order_date}, {order_number}, {shipment_number}, {date_sent}</code>' ),
+                    'description' => $placeholder_text,
                     'placeholder' => $this->get_default_heading(),
                     'default'     => '',
                 ),
@@ -344,8 +382,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
                     'title'       => _x( 'Partial shipment email heading', 'shipments', 'woocommerce-germanized-shipments' ),
                     'type'        => 'text',
                     'desc_tip'    => true,
-                    /* translators: %s: list of placeholders */
-                    'description' => sprintf( _x( 'Available placeholders: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>{site_title}, {order_date}, {order_number}, {shipment_number}, {date_sent}</code>' ),
+                    'description' => $placeholder_text,
                     'placeholder' => $this->get_default_heading( true ),
                     'default'     => '',
                 ),

@@ -1245,6 +1245,12 @@ abstract class Shipment extends WC_Data {
         return $result;
     }
 
+    public function is_shipped() {
+    	$is_shipped = $this->has_status( wc_gzd_get_shipment_sent_statuses() );
+
+    	return apply_filters( $this->get_hook_prefix() . "is_shipped", $is_shipped, $this );
+    }
+
     /**
      * Maybe set date sent.
      *
@@ -1254,10 +1260,7 @@ abstract class Shipment extends WC_Data {
     public function maybe_set_date_sent() {
         // This logic only runs if the date_sent prop has not been set yet.
         if ( ! $this->get_date_sent( 'edit' ) ) {
-            $sent_stati = wc_gzd_get_shipment_sent_statuses();
-
-            if ( $this->has_status( $sent_stati ) ) {
-
+            if ( $this->is_shipped() ) {
                 // If payment complete status is reached, set paid now.
                 $this->set_date_sent( current_time( 'timestamp', true ) );
             }
@@ -2197,7 +2200,7 @@ abstract class Shipment extends WC_Data {
 		}
 
 		// If shipment is already delivered
-		if ( $check_status && $this->has_status( array( 'delivered', 'shipped' ) ) ) {
+		if ( $check_status && $this->is_shipped() ) {
 			$needs_label = false;
 		}
 

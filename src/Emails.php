@@ -14,6 +14,26 @@ class Emails {
 
 	    // Change email template path if is germanized email template
 	    add_filter( 'woocommerce_template_directory', array( __CLASS__, 'set_woocommerce_template_dir' ), 10, 2 );
+
+	    // Attach shipments to order notifications
+	    add_action( 'woocommerce_email_order_details', array( __CLASS__, 'attach_shipments_data' ), 30, 4 );
+    }
+
+    public static function attach_shipments_data( $order, $sent_to_admin, $plain_text, $email = false ) {
+    	if ( $email && ( apply_filters( 'woocommerce_gzd_shipments_embed_shipment_details_in_notification', ( 'customer_completed_order' === $email->id ), $email ) ) ) {
+    		if ( $shipments_order = wc_gzd_get_shipment_order( $order ) ) {
+				$template = $plain_text ? 'plain/email-order-shipments.php' : 'email-order-shipments.php';
+
+				wc_get_template(
+					'emails/' . $template, array(
+						'shipments'     => $shipments_order->get_simple_shipments( true ),
+						'sent_to_admin' => $sent_to_admin,
+						'plain_text'    => $plain_text,
+						'email'         => $email,
+					)
+				);
+		    }
+	    }
     }
 
 	public static function set_woocommerce_template_dir( $dir, $template ) {
@@ -172,10 +192,10 @@ class Emails {
     /**
      * Show the order details table
      *
-     * @param WC_Order $order         Order instance.
-     * @param bool     $sent_to_admin If should sent to admin.
-     * @param bool     $plain_text    If is plain text email.
-     * @param string   $email         Email address.
+     * @param \WC_Order $order         Order instance.
+     * @param bool      $sent_to_admin If should sent to admin.
+     * @param bool      $plain_text    If is plain text email.
+     * @param string    $email         Email address.
      */
     public static function email_details( $shipment, $sent_to_admin = false, $plain_text = false, $email = '' ) {
         if ( $plain_text ) {

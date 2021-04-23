@@ -79,7 +79,7 @@ class Order {
         if ( ! empty( $shipments ) ) {
             foreach( $shipments as $shipment ) {
 
-                if ( $shipment->has_status( wc_gzd_get_shipment_sent_statuses() ) ) {
+                if ( $shipment->is_shipped() ) {
                     $status = 'partially-shipped';
                     break;
                 }
@@ -98,7 +98,7 @@ class Order {
 
     	foreach( $shipments as $shipment ) {
 
-    		if ( $shipment->has_status( wc_gzd_get_shipment_sent_statuses() ) ) {
+    		if ( $shipment->is_shipped() ) {
 			    return true;
 		    }
 	    }
@@ -133,7 +133,7 @@ class Order {
 	    $shipments                 = $this->get_simple_shipments();
 
 	    foreach( $shipments as $shipment ) {
-		    if ( $shipment->has_status( wc_gzd_get_shipment_sent_statuses() ) ) {
+		    if ( $shipment->is_shipped() ) {
 			    $default_provider = $shipment->get_shipping_provider();
 		    }
 	    }
@@ -249,11 +249,15 @@ class Order {
 	/**
 	 * @return SimpleShipment[]
 	 */
-    public function get_simple_shipments() {
+    public function get_simple_shipments( $shipped_only = false ) {
     	$simple = array();
 
 		foreach( $this->get_shipments() as $shipment ) {
 			if ( 'simple' === $shipment->get_type() ) {
+				if ( $shipped_only && ! $shipment->is_shipped() ) {
+					continue;
+				}
+
 				$simple[] = $shipment;
 			}
 		}
@@ -334,7 +338,7 @@ class Order {
 
             foreach( $this->get_simple_shipments() as $shipment ) {
 
-                if ( $args['sent_only'] && ! $shipment->has_status( wc_gzd_get_shipment_sent_statuses() ) ) {
+                if ( $args['sent_only'] && ! $shipment->is_shipped() ) {
                     continue;
                 }
 
@@ -371,7 +375,7 @@ class Order {
 
     	foreach( $shipments as $shipment ) {
 
-    		if ( ! $shipment->has_status( wc_gzd_get_shipment_sent_statuses() ) ) {
+    		if ( ! $shipment->is_shipped() ) {
     			continue;
 		    }
 
@@ -679,7 +683,7 @@ class Order {
 
 		foreach( $this->get_simple_shipments() as $shipment ) {
 
-			if ( ! $shipment->has_status( wc_gzd_get_shipment_sent_statuses() ) ) {
+			if ( ! $shipment->is_shipped() ) {
 				continue;
 			}
 
