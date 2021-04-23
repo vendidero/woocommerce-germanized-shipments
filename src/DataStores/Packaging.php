@@ -217,7 +217,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 					'width'              => $data->packaging_width,
 					'height'             => $data->packaging_height,
 					'order'              => $data->packaging_order,
-					'date_created'       => 0 < $data->packaging_date_created_gmt ? wc_string_to_timestamp( $data->packaging_date_created_gmt ) : null,
+					'date_created'       => '0000-00-00 00:00:00' !== $data->packaging_date_created_gmt ? wc_string_to_timestamp( $data->packaging_date_created_gmt ) : null,
 				)
 			);
 

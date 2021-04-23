@@ -329,9 +329,9 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
                     'shipping_provider' => $data->shipment_shipping_provider,
                     'shipping_method'   => $data->shipment_shipping_method,
                     'packaging_id'      => $data->shipment_packaging_id,
-                    'date_created'      => 0 < $data->shipment_date_created_gmt ? wc_string_to_timestamp( $data->shipment_date_created_gmt ) : null,
-                    'date_sent'         => 0 < $data->shipment_date_sent_gmt ? wc_string_to_timestamp( $data->shipment_date_sent_gmt ) : null,
-                    'est_delivery_date' => 0 < $data->shipment_est_delivery_date_gmt ? wc_string_to_timestamp( $data->shipment_est_delivery_date_gmt ) : null,
+                    'date_created'      => '0000-00-00 00:00:00' !== $data->shipment_date_created_gmt ? wc_string_to_timestamp( $data->shipment_date_created_gmt ) : null,
+                    'date_sent'         => '0000-00-00 00:00:00' !== $data->shipment_date_sent_gmt ? wc_string_to_timestamp( $data->shipment_date_sent_gmt ) : null,
+                    'est_delivery_date' => '0000-00-00 00:00:00' !== $data->shipment_est_delivery_date_gmt ? wc_string_to_timestamp( $data->shipment_est_delivery_date_gmt ) : null,
                     'status'            => $data->shipment_status,
 	                'version'           => $data->shipment_version,
                 )
