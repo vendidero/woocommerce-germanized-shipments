@@ -134,7 +134,7 @@ class SimpleShipment extends Shipment {
 			$default_provider_instance = wc_gzd_get_order_shipping_provider( $order );
 			$default_provider          = $default_provider_instance ? $default_provider_instance->get_name() : '';
 			$provider                  = $this->get_shipping_provider( 'edit' );
-			$address_data              = array_merge( $order->get_address( 'shipping' ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) );
+			$address_data              = array_merge( ( $order->has_shipping_address() ? $order->get_address( 'shipping' ) : $order->get_address( 'billing' ) ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) );
 
 			/**
 			 * Fix to make sure that we are not syncing formatted customer titles (e.g. Herr)
@@ -150,8 +150,7 @@ class SimpleShipment extends Shipment {
 			 * Force the country to have a max length of 2.
 			 * https://github.com/woocommerce/woocommerce/issues/27521
 			 */
-			$country = substr( strtoupper( $order->get_shipping_country() ), 0, 2 );
-
+			$country      = substr( strtoupper( ( $order->has_shipping_address() ? $order->get_shipping_country() : $order->get_billing_country() ) ), 0, 2 );
 			$packaging_id = $this->get_packaging_id( 'edit' );
 
 			$dimensions   = array(

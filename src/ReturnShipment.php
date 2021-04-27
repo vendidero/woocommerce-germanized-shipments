@@ -436,6 +436,7 @@ class ReturnShipment extends Shipment {
 			 */
 			$default_provider          = $order_shipment->get_default_return_shipping_provider();
 			$provider                  = $this->get_shipping_provider( 'edit' );
+			$sender_address_data       = array_merge( ( $order->has_shipping_address() ? $order->get_address( 'shipping' ) : $order->get_address( 'billing' ) ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) );
 
 			$args = wp_parse_args( $args, array(
 				'order_id'          => $order->get_id(),
@@ -443,7 +444,7 @@ class ReturnShipment extends Shipment {
 				'shipping_method'   => wc_gzd_get_shipment_order_shipping_method_id( $order ),
 				'shipping_provider' => ( ! empty( $provider ) ) ? $provider : $default_provider,
 				'address'           => $return_address,
-				'sender_address'    => array_merge( $order->get_address( 'shipping' ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) ),
+				'sender_address'    => $sender_address_data,
 				'weight'            => $this->get_weight( 'edit' ),
 				'length'            => $this->get_length( 'edit' ),
 				'width'             => $this->get_width( 'edit' ),
