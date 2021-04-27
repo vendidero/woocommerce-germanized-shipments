@@ -26,7 +26,7 @@ $count = 0;
 		<td style="text-align:<?php echo esc_attr( $text_align ); ?>; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; border:0; padding:0;" valign="top">
             <?php foreach( $shipments as $key => $shipment ) : $count++; ?>
                 <?php if ( sizeof( $shipments ) > 1 ) : ?>
-                    <h2><?php printf( __( 'Shipment %d of %d', 'shipments', 'woocommerce-germanized-shipments' ), $count, sizeof( $shipments ) ); ?></h2>
+                    <h2><?php printf( _x( 'Shipment %d of %d', 'shipments', 'woocommerce-germanized-shipments' ), $count, sizeof( $shipments ) ); ?></h2>
                 <?php endif; ?>
 
 	            <?php if ( $shipment->get_est_delivery_date() ) : ?>
