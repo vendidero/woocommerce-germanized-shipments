@@ -56,7 +56,8 @@ class Package {
 	    }
 
 	    add_action( 'woocommerce_load_shipping_methods', array( __CLASS__, 'load_shipping_methods' ), 5, 1 );
-	    add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'set_method_filters' ), 200, 1 );
+	    // Use a very high priority here to make sure we are hooking even after plugins such as flexible shipping
+	    add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'set_method_filters' ), 9999999, 1 );
 
 	    // Guest returns
 	    add_filter( 'wc_get_template', array( __CLASS__, 'add_return_shipment_guest_endpoints' ), 10, 2 );
@@ -128,7 +129,6 @@ class Package {
 	}
 
 	public static function set_method_filters( $methods ) {
-
 		foreach ( $methods as $method => $class ) {
 			add_filter( 'woocommerce_shipping_instance_form_fields_' . $method, array( __CLASS__, 'add_method_settings' ), 10, 1 );
 			/**

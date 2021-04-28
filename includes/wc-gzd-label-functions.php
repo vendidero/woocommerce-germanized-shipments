@@ -120,6 +120,8 @@ function wc_gzd_get_shipment_label_weight( $shipment, $net_weight = false, $unit
 		}
 	}
 
+	$shipment_weight = wc_format_decimal( $shipment_weight, 2 );
+
 	return apply_filters( 'woocommerce_gzd_shipment_label_weight', $shipment_weight, $shipment, $unit );
 }
 
