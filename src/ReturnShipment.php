@@ -317,6 +317,12 @@ class ReturnShipment extends Shipment {
 		return $split['addition'];
 	}
 
+	public function get_sender_address_street_addition_2( $type = 'address_1' ) {
+		$split = wc_gzd_split_shipment_street( $this->{"get_sender_$type"}() );
+
+		return $split['addition_2'];
+	}
+
 	/**
 	 * Returns the sender address company.
 	 *

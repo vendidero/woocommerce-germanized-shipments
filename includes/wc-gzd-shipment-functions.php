@@ -181,14 +181,17 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 		 * Cache methods within frontend
 		 */
 		if ( WC()->session && did_action( 'woocommerce_shipping_init' ) ) {
-			$cache_key = 'woocommerce_gzd_method_' . $instance_id;
+			$cache_key  = 'woocommerce_gzd_method_' . $instance_id;
+			$tmp_method = WC()->session->get( $cache_key );
 
-			if ( ! $method = WC()->session->get( $cache_key ) ) {
+			if ( ! $tmp_method || ! is_object( $tmp_method ) || is_a( $tmp_method, '__PHP_Incomplete_Class' ) ) {
 				$method = WC_Shipping_Zones::get_shipping_method( $instance_id );
 
 				if ( $method ) {
 					WC()->session->set( $cache_key, $method );
 				}
+			} else {
+				$method = $tmp_method;
 			}
 		} else {
 			$method = WC_Shipping_Zones::get_shipping_method( $instance_id );
@@ -199,7 +202,7 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 			 * Filter to adjust the classname used to construct the shipping provider method
 			 * which contains additional provider related settings useful for shipments.
 			 *
-			 * @param string              $classname The classname.
+			 * @param string             $classname The classname.
 			 * @param WC_Shipping_Method $method The shipping method instance.
 			 *
 			 * @since 3.0.6
@@ -629,10 +632,16 @@ function wc_gzd_split_shipment_street( $streetStr ) {
 	try {
 		$split = AddressSplitter::splitAddress( $streetStr );
 
-		$return['street']   = $split['streetName'];
-		$return['number']   = $split['houseNumber'];
+		$return['street'] = $split['streetName'];
+		$return['number'] = $split['houseNumber'];
+		/**
+		 * e.g. 5. OG
+		 */
 		$return['addition'] = isset( $split['additionToAddress2'] ) ? $split['additionToAddress2'] : '';
-		
+		/**
+		 * E.g. details to the location prefixed to the street name
+		 */
+		$return['addition_2'] = isset( $split['additionToAddress1'] ) ? $split['additionToAddress1'] : '';
 	} catch( Exception $e ) {}
 
 	return $return;
