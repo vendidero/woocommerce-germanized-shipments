@@ -355,7 +355,7 @@ class Table extends WP_List_Table {
         }
 
         // Query the user IDs for this page
-        $this->query = new ShipmentQuery( $args );
+        $this->query = new ShipmentQuery( apply_filters( "{$this->get_hook_prefix()}query_args", $args, $this ) );
         $this->items = $this->query->get_shipments();
 
         $this->set_pagination_args(
