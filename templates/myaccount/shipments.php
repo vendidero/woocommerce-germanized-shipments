@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/Shipments/Templates/Emails/Plain
- * @version 1.1.0
+ * @version 1.1.1
  */
 use Vendidero\Germanized\Shipments\Shipment;
 
@@ -74,7 +74,7 @@ do_action( 'woocommerce_gzd_before_account_shipments', $shipments, $order ); ?>
                     <?php elseif ( 'shipment-status' === $column_id ) : ?>
                         <?php echo esc_html( wc_gzd_get_shipment_status_name( $shipment->get_status() ) ); ?>
 
-                    <?php elseif ( 'shipment-tracking' === $column_id && $shipment->get_tracking_url() && ! $shipment->has_status( 'delivered' ) ) : ?>
+                    <?php elseif ( 'shipment-tracking' === $column_id && $shipment->has_tracking() && ! $shipment->has_status( 'delivered' ) ) : ?>
                         <a href="<?php echo esc_url( $shipment->get_tracking_url() ); ?>" target="_blank">
                             <?php echo esc_html( _x( 'track now', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>
                         </a>
