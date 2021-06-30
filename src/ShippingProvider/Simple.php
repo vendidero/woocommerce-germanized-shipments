@@ -354,7 +354,11 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	public function get_shipper_name() {
-		return $this->get_shipper_first_name() . ' ' . $this->get_shipper_last_name();
+		return $this->get_shipper_formatted_full_name();
+	}
+
+	public function get_shipper_formatted_full_name() {
+		return sprintf( _x( '%1$s %2$s', 'full name', 'woocommerce-germanized-shipments' ), $this->get_shipper_first_name(), $this->get_shipper_last_name() );
 	}
 
 	public function get_shipper_company() {
@@ -390,7 +394,15 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	public function get_shipper_country() {
-		return $this->get_address_prop( 'country' );
+		$country_data = wc_format_country_state_string( $this->get_address_prop( 'country' ) );
+
+		return $country_data['country'];
+	}
+
+	public function get_shipper_state() {
+		$country_data = wc_format_country_state_string( $this->get_address_prop( 'country' ) );
+
+		return $country_data['state'];
 	}
 
 	public function get_return_first_name() {
@@ -406,7 +418,11 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	public function get_return_name() {
-		return $this->get_return_first_name() . ' ' . $this->get_return_last_name();
+		return $this->get_return_formatted_full_name();
+	}
+
+	public function get_return_formatted_full_name() {
+		return sprintf( _x( '%1$s %2$s', 'full name', 'woocommerce-germanized-shipments' ), $this->get_return_first_name(), $this->get_return_last_name() );
 	}
 
 	public function get_return_address() {
@@ -438,7 +454,15 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	public function get_return_country() {
-		return $this->get_address_prop( 'country', 'return' );
+		$country_data = wc_format_country_state_string( $this->get_address_prop( 'country', 'return' ) );
+
+		return $country_data['country'];
+	}
+
+	public function get_return_state() {
+		$country_data = wc_format_country_state_string( $this->get_address_prop( 'country', 'return' ) );
+
+		return $country_data['state'];
 	}
 
 	public function get_return_email() {

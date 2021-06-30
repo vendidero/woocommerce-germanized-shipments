@@ -258,6 +258,23 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		}
 	}
 
+	public function is_activated( $name ) {
+		global $wpdb;
+
+		$data = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT shipping_provider_activated FROM {$wpdb->gzd_shipping_provider} WHERE shipping_provider_name = %s LIMIT 1",
+				$name
+			)
+		);
+
+		if ( $data ) {
+			return wc_string_to_bool( $data->shipping_provider_activated );
+		}
+
+		return false;
+	}
+
 	/**
 	 * Clear any caches.
 	 *

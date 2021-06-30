@@ -68,5 +68,5 @@ if ( is_readable( $autoloader ) ) {
     return;
 }
 
-register_activation_hook( __FILE__, array( 'Vendidero\Germanized\Shipments\Package', 'install' ) );
-add_action( 'plugins_loaded', array( 'Vendidero\Germanized\Shipments\Package', 'init' ) );
+register_activation_hook( __FILE__, array( '\Vendidero\Germanized\Shipments\Package', 'install' ) );
+add_action( 'plugins_loaded', array( '\Vendidero\Germanized\Shipments\Package', 'init' ) );

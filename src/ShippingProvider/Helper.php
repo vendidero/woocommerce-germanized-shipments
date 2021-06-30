@@ -133,6 +133,10 @@ class Helper {
 		return apply_filters( 'woocommerce_gzd_shipping_provider_class_names', $class_names );
 	}
 
+	public function is_shipping_provider_activated( $name ) {
+		return WC_Data_Store::load( 'shipping-provider' )->is_activated( $name );
+	}
+
 	/**
 	 * Loads all shipping providers which are hooked in.
 	 *
