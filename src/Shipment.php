@@ -238,7 +238,7 @@ abstract class Shipment extends WC_Data {
 	}
 
 	public function is_shipping_domestic() {
-		return $this->get_country() === wc_get_base_location()['country'];
+		return Package::is_shipping_domestic( $this->get_country(), $this->get_postcode() );
 	}
 
 	/**
@@ -248,22 +248,11 @@ abstract class Shipment extends WC_Data {
 	 * @return bool
 	 */
 	public function is_shipping_inner_eu() {
-		if ( $this->is_shipping_domestic() ) {
-			return false;
-		}
-
-		$countries    = WC()->countries->get_european_union_countries();
-		$base_country = wc_get_base_location()['country'];
-
-		if ( in_array( 'GB', $countries ) ) {
-			$countries = array_diff( $countries, array( 'GB' ) );
-		}
-
-		if ( in_array( $this->get_country(), $countries ) && in_array( $base_country, $countries ) ) {
+		if ( Package::is_shipping_inner_eu_country( $this->get_country(), $this->get_postcode() ) ) {
 			return true;
-		} else {
-			return false;
 		}
+
+		return false;
 	}
 
 	public function is_shipping_international() {

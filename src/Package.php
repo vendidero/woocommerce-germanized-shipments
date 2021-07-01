@@ -231,6 +231,134 @@ class Package {
 	    }
 	}
 
+	public static function get_base_country() {
+		$default_country  = wc_get_base_location()['country'];
+		$shipment_country = wc_format_country_state_string( self::get_setting( 'shipper_address_country' ) )['country'];
+
+		if ( empty( $shipment_country ) ) {
+			$shipment_country = $default_country;
+		}
+
+		return apply_filters( 'woocommerce_gzd_shipment_base_country', $shipment_country );
+	}
+
+	public static function get_base_postcode() {
+		$default_postcode  = WC()->countries->get_base_postcode();
+		$shipment_postcode = self::get_setting( 'shipper_address_postcode' );
+
+		if ( empty( $shipment_postcode ) ) {
+			$shipment_postcode = $default_postcode;
+		}
+
+		return apply_filters( 'woocommerce_gzd_shipment_base_postcode', $shipment_postcode );
+	}
+
+	public static function base_country_belongs_to_eu_customs_area() {
+		return self::country_belongs_to_eu_customs_area( self::get_base_country(), self::get_base_postcode() );
+	}
+
+	public static function country_belongs_to_eu_customs_area( $country, $postcode = '' ) {
+		$country            = wc_strtoupper( $country );
+		$eu_countries       = WC()->countries->get_european_union_countries();
+		$belongs            = false;
+		$postcode           = wc_normalize_postcode( $postcode );
+		$postcode_wildcards = wc_get_wildcard_postcodes( $postcode, $country );
+
+		if ( in_array( $country, $eu_countries ) ) {
+			$belongs = true;
+		}
+
+		if ( $belongs ) {
+			$exemptions = array(
+				'DE' => array(
+					'27498', // Helgoland
+					'78266' // Büsingen am Hochrhein
+				),
+				'ES' => array(
+					'35*', // Canary Islands
+					'38*', // Canary Islands
+					'51*', // Ceuta
+					'52*' // Melilla
+				),
+				'GR' => array(
+					'63086', // Mount Athos
+					'63087' // Mount Athos
+				),
+				'IT' => array(
+					'22060', // Livigno, Campione d’Italia
+					'23030', // Lake Lugano
+				),
+				'FI' => array(
+					'AX*', // Åland Islands
+				),
+				'CY' => array(
+					'99*', // Northern Cyprus
+				),
+			);
+
+			if ( array_key_exists( $country, $exemptions ) ) {
+				foreach( $exemptions[ $country ] as $exempt_postcode ) {
+					if ( in_array( $exempt_postcode, $postcode_wildcards, true ) ) {
+						$belongs = false;
+						break;
+					}
+				}
+			}
+		}
+
+		return apply_filters( 'woocommerce_gzd_country_belongs_to_eu_customs_area', $belongs, $country, $postcode );
+	}
+
+	public static function is_shipping_international( $country, $postcode = '' ) {
+		/**
+		 * In case the base country belongs to EU customs area, a third country needs to lie outside of the EU customs area
+		 */
+		if ( self::base_country_belongs_to_eu_customs_area() ) {
+			if ( ! self::country_belongs_to_eu_customs_area( $country, $postcode ) ) {
+				return true;
+			}
+
+			return false;
+		} else {
+			if ( ! self::is_shipping_domestic( $country, $postcode ) ) {
+				return true;
+			}
+
+			return false;
+		}
+	}
+
+	public static function is_shipping_domestic( $country, $postcode = '' ) {
+		$is_domestic = $country === self::get_base_country();
+
+		/**
+		 * If the base country belongs to EU customs are but the postcode (e.g. Helgoland in DE) not, do not consider doemstic shipping
+		 */
+		if ( $is_domestic && self::base_country_belongs_to_eu_customs_area() ) {
+			if ( ! self::country_belongs_to_eu_customs_area( $country, $postcode ) ) {
+				$is_domestic = false;
+			}
+		}
+
+		return $is_domestic;
+	}
+
+	/**
+	 * Whether shipping is inner EU (from one EU country to another) shipment or not.
+	 *
+	 * @param $country
+	 * @param string $postcode
+	 *
+	 * @return mixed|void
+	 */
+	public static function is_shipping_inner_eu_country( $country, $postcode = '' ) {
+		if ( self::is_shipping_domestic( $country, $postcode ) || ! self::country_belongs_to_eu_customs_area( self::get_base_country(), self::get_base_postcode() ) ) {
+			return false;
+		}
+
+		return self::country_belongs_to_eu_customs_area( $country, $postcode );
+	}
+
 	public static function get_endpoints() {
     	return array(
     		'view-shipment',
