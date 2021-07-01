@@ -56,7 +56,61 @@ class Admin {
 
 	    // Register endpoints within settings
         add_filter( 'woocommerce_get_settings_advanced', array( __CLASS__, 'register_endpoint_settings' ), 20, 2 );
+
+	    // Product Options
+	    add_action( 'woocommerce_product_options_shipping', array( __CLASS__, 'product_options' ), 9 );
+	    add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_product' ), 10, 1 );
     }
+
+	public static function product_options() {
+		global $post, $thepostid;
+
+		$thepostid         = $post->ID;
+		$_product          = wc_get_product( $thepostid );
+		$shipments_product = wc_gzd_shipments_get_product( $_product );
+
+		$countries = WC()->countries->get_countries();
+		$countries = array_merge( array( '0' => _x( 'Select a country', 'shipments', 'woocommerce-germanized-shipments' ) ), $countries );
+
+		woocommerce_wp_text_input( array(
+            'id'          => '_hs_code',
+            'label'       => _x( 'HS-Code (Customs)', 'shipments', 'woocommerce-germanized-shipments' ),
+            'desc_tip'    => true,
+            'description' => _x( 'The HS Code is a number assigned to every possible commodity that can be imported or exported from any country.', 'shipments', 'woocommerce-germanized-shipments' ),
+            'value'       => $shipments_product->get_hs_code( 'edit' )
+        ) );
+
+		woocommerce_wp_select( array(
+            'options'     => $countries,
+            'id'          => '_manufacture_country',
+            'label'       => _x( 'Country of manufacture (Customs)', 'dhl', 'woocommerce-germanized-shipments' ),
+            'desc_tip'    => true,
+            'description' => _x( 'The country of manufacture is needed for customs of international shipping.', 'shipments', 'woocommerce-germanized-shipments' ),
+            'value'       => $shipments_product->get_manufacture_country( 'edit' )
+        ) );
+
+		do_action( 'woocommerce_gzd_shipments_product_options', $shipments_product );
+	}
+
+	/**
+	 * @param \WC_Product $product
+	 */
+	public static function save_product( $product ) {
+		$hs_code = isset( $_POST['_hs_code'] ) ? wc_clean( $_POST['_hs_code'] ) : '';
+		$country = isset( $_POST['_manufacture_country'] ) ? wc_clean( $_POST['_manufacture_country'] ) : '';
+
+		$shipments_product = wc_gzd_shipments_get_product( $product );
+		$shipments_product->set_hs_code( $hs_code );
+		$shipments_product->set_manufacture_country( $country );
+
+		/**
+		 * Remove legacy data upon saving
+		 */
+		$product->delete_meta_data( '_dhl_hs_code' );
+		$product->delete_meta_data( '_dhl_manufacture_country' );
+
+		do_action( 'woocommerce_gzd_shipments_save_product_options', $shipments_product );
+	}
 
 	public static function check_upload_dir() {
 		$dir     = Package::get_upload_dir();

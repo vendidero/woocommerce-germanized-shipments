@@ -26,19 +26,21 @@ class ShipmentItem extends WC_Data {
      * @var array
      */
     protected $data = array(
-        'shipment_id'   => 0,
-        'order_item_id' => 0,
-        'parent_id'     => 0,
-        'quantity'      => 1,
-        'product_id'    => 0,
-        'weight'        => '',
-        'width'         => '',
-        'length'        => '',
-        'height'        => '',
-        'sku'           => '',
-        'name'          => '',
-        'total'         => 0,
-	    'subtotal'      => 0,
+	    'shipment_id'         => 0,
+	    'order_item_id'       => 0,
+	    'parent_id'           => 0,
+	    'quantity'            => 1,
+	    'product_id'          => 0,
+	    'weight'              => '',
+	    'width'               => '',
+	    'length'              => '',
+	    'height'              => '',
+	    'sku'                 => '',
+	    'name'                => '',
+	    'total'               => 0,
+	    'subtotal'            => 0,
+	    'hs_code'             => '',
+	    'manufacture_country' => '',
     );
 
     /**
@@ -254,6 +256,28 @@ class ShipmentItem extends WC_Data {
         return $this->get_prop( 'name', $context );
     }
 
+	public function get_hs_code( $context = 'view' ) {
+		$legacy = $this->get_meta( '_dhl_hs_code', $context );
+		$prop   = $this->get_prop( 'hs_code', $context );
+
+		if ( '' === $prop && ! empty( $legacy ) ) {
+			$prop = $legacy;
+		}
+
+		return $prop;
+	}
+
+	public function get_manufacture_country( $context = 'view' ) {
+		$legacy = $this->get_meta( '_dhl_manufacture_country', $context );
+		$prop   = $this->get_prop( 'manufacture_country', $context );
+
+		if ( '' === $prop && ! empty( $legacy ) ) {
+			$prop = $legacy;
+		}
+
+		return $prop;
+	}
+
     /**
      * Get parent order object.
      *
@@ -317,22 +341,25 @@ class ShipmentItem extends WC_Data {
 		    }
 
 		    $product      = $this->get_product();
+    		$s_product    = wc_gzd_shipments_get_product( $product );
 		    $tax_total    = is_callable( array( $item, 'get_total_tax' ) ) ? $item->get_total_tax() : 0;;
 		    $total        = is_callable( array( $item, 'get_total' ) ) ? $item->get_total() : 0;
 		    $subtotal     = is_callable( array( $item, 'get_subtotal' ) ) ? $item->get_subtotal() : 0;
 		    $tax_subtotal = is_callable( array( $item, 'get_subtotal_tax' ) ) ? $item->get_subtotal_tax() : 0;
 
 		    $args = wp_parse_args( $args, array(
-			    'order_item_id' => $item->get_id(),
-			    'quantity'      => 1,
-			    'name'          => $item->get_name(),
-			    'sku'           => $product ? $product->get_sku() : '',
-			    'total'         => $total + $tax_total,
-			    'subtotal'      => $subtotal + $tax_subtotal,
-			    'weight'        => $product ? wc_get_weight( $product->get_weight(), $shipment->get_weight_unit() ) : '',
-			    'length'        => $product ? wc_get_dimension( $product->get_length(), $shipment->get_dimension_unit() ) : '',
-			    'width'         => $product ? wc_get_dimension( $product->get_width(), $shipment->get_dimension_unit() ) : '',
-			    'height'        => $product ? wc_get_dimension( $product->get_height(), $shipment->get_dimension_unit() ) : '',
+			    'order_item_id'       => $item->get_id(),
+			    'quantity'            => 1,
+			    'name'                => $item->get_name(),
+			    'sku'                 => $product ? $product->get_sku() : '',
+			    'total'               => $total + $tax_total,
+			    'subtotal'            => $subtotal + $tax_subtotal,
+			    'weight'              => $product ? wc_get_weight( $product->get_weight(), $shipment->get_weight_unit() ) : '',
+			    'length'              => $product ? wc_get_dimension( $product->get_length(), $shipment->get_dimension_unit() ) : '',
+			    'width'               => $product ? wc_get_dimension( $product->get_width(), $shipment->get_dimension_unit() ) : '',
+			    'height'              => $product ? wc_get_dimension( $product->get_height(), $shipment->get_dimension_unit() ) : '',
+			    'hs_code'             => $s_product ? $s_product->get_hs_code() : '',
+			    'manufacture_country' => $s_product ? $s_product->get_manufacture_country() : '',
 		    ) );
 	    }
 
@@ -507,6 +534,14 @@ class ShipmentItem extends WC_Data {
     public function set_name( $name ) {
         $this->set_prop( 'name', $name );
     }
+
+	public function set_hs_code( $code ) {
+		$this->set_prop( 'hs_code', $code );
+	}
+
+	public function set_manufacture_country( $country ) {
+		$this->set_prop( 'manufacture_country', wc_strtoupper( $country ) );
+	}
 
     /*
     |--------------------------------------------------------------------------

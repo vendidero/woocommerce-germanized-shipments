@@ -1332,3 +1332,13 @@ function wc_gzd_get_account_shipments_actions( $shipment ) {
 	 */
 	return apply_filters( 'woocommerce_gzd_account_shipments_actions', $actions, $shipment );
 }
+
+function wc_gzd_shipments_get_product( $the_product ) {
+	if ( ! is_a( $the_product, '\Vendidero\Germanized\Shipments\Product' ) ) {
+		$product = new \Vendidero\Germanized\Shipments\Product( $the_product );
+	} else {
+		$product = $the_product;
+	}
+
+	return $product;
+}

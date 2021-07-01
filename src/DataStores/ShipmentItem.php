@@ -30,7 +30,9 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
         '_total',
 	    '_subtotal',
         '_sku',
-	    '_return_reason_code'
+	    '_return_reason_code',
+	    '_hs_code',
+	    '_manufacture_country'
     );
 
     protected $core_props = array(
