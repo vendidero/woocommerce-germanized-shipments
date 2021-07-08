@@ -83,7 +83,7 @@ class Admin {
 		woocommerce_wp_select( array(
             'options'     => $countries,
             'id'          => '_manufacture_country',
-            'label'       => _x( 'Country of manufacture (Customs)', 'dhl', 'woocommerce-germanized-shipments' ),
+            'label'       => _x( 'Country of manufacture (Customs)', 'shipments', 'woocommerce-germanized-shipments' ),
             'desc_tip'    => true,
             'description' => _x( 'The country of manufacture is needed for customs of international shipping.', 'shipments', 'woocommerce-germanized-shipments' ),
             'value'       => $shipments_product->get_manufacture_country( 'edit' )
