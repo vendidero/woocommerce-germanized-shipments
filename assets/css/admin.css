@@ -469,7 +469,7 @@ table.wc-gzd-shipping-providers {
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item-action {
     text-align: right; }
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item-quantity input {
-    width: 50px;
+    width: 60px;
     text-align: center; }
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-items .shipment-item-list-wrapper .shipment-item-name p.form-row {
     margin-bottom: 0;
