@@ -23,8 +23,18 @@ class Product {
 
 	/**
 	 * @param WC_Product $product
+	 *
+	 * @throws \Exception
 	 */
 	public function __construct( $product ) {
+		if ( is_numeric( $product ) ) {
+			$product = wc_get_product( $product );
+		}
+
+		if ( ! is_a( $product, 'WC_Product' ) ) {
+			throw new \Exception( _x( 'Invalid product.', 'shipments', 'woocommerce-germanized-shipments' ) );
+		}
+
 		$this->product = $product;
 	}
 

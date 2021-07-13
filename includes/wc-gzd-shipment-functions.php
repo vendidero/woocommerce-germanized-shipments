@@ -1334,11 +1334,13 @@ function wc_gzd_get_account_shipments_actions( $shipment ) {
 }
 
 function wc_gzd_shipments_get_product( $the_product ) {
-	if ( ! is_a( $the_product, '\Vendidero\Germanized\Shipments\Product' ) ) {
-		$product = new \Vendidero\Germanized\Shipments\Product( $the_product );
-	} else {
-		$product = $the_product;
-	}
+	try {
+		if ( is_a( $the_product, '\Vendidero\Germanized\Shipments\Product' ) ) {
+			return $the_product;
+		}
 
-	return $product;
+		return new \Vendidero\Germanized\Shipments\Product( $the_product );
+	} catch( \Exception $e ) {
+		return false;
+	}
 }

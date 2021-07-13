@@ -602,4 +602,181 @@ class Label extends WC_Data implements ShipmentLabel {
 
 		return $value;
 	}
+
+	protected function round_customs_item_weight( $value, $precision = 0 ) {
+		return \Automattic\WooCommerce\Utilities\NumberUtil::round( $value, $precision, 2 );
+	}
+
+	protected function get_per_item_weights( $total_weight, $item_weights, $shipment_items ) {
+		$item_total_weight = array_sum( $item_weights );
+		$item_count        = sizeof( $item_weights );
+
+		/**
+		 * Discrepancies detected between item weights an total shipment weight.
+		 * Try to distribute the mismatch between items.
+		 */
+		if ( $item_total_weight != $total_weight ) {
+			$diff     = $total_weight - $item_total_weight;
+			$diff_abs = abs( $diff );
+
+			if ( $diff_abs > 0 ) {
+				$per_item_diff         = $diff / $item_count;
+				// Round down to int
+				$per_item_diff_rounded = $this->round_customs_item_weight( $per_item_diff );
+				$diff_applied          = 0;
+
+				if ( abs( $per_item_diff_rounded ) > 0 ) {
+					foreach( $item_weights as $key => $weight ) {
+						$shipment_item      = $shipment_items[ $key ];
+						$item_min_weight    = 1 * $shipment_item->get_quantity();
+
+						$item_weight_before = $item_weights[ $key ];
+						$new_item_weight    = $item_weights[ $key ] += $per_item_diff_rounded;
+						$item_diff_applied  = $per_item_diff_rounded;
+
+						/**
+						 * In case the diff is negative make sure we are not
+						 * subtracting more than available as min weight per item.
+						 */
+						if ( $new_item_weight <= $item_min_weight ) {
+							$new_item_weight   = $item_min_weight;
+							$item_diff_applied = $item_min_weight - $item_weight_before;
+						}
+
+						$item_weights[ $key ] = $new_item_weight;
+						$diff_applied += $item_diff_applied;
+					}
+				}
+
+				// Check rounding diff and apply the diff to one item
+				$diff_left = $diff - $diff_applied;
+
+				if ( abs( $diff_left ) > 0 ) {
+					foreach( $item_weights as $key => $weight ) {
+						$shipment_item   = $shipment_items[ $key ];
+						$item_min_weight = 1 * $shipment_item->get_quantity();
+
+						if ( $diff_left > 0 ) {
+							/**
+							 * Add the diff left to the first item and stop.
+							 */
+							$item_weights[ $key ] += $diff_left;
+							break;
+						} else {
+							/**
+							 * Remove the diff left from the first item with a weight greater than 0.01 to prevent 0 weights.
+							 */
+							if ( $weight > $item_min_weight ) {
+								$item_weights[ $key ] += $diff_left;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return $item_weights;
+	}
+
+	public function get_customs_data( $max_desc_length = 255 ) {
+		if ( ! $shipment = $this->get_shipment() ) {
+			return false;
+		}
+
+		$customs_items      = array();
+		$item_description   = '';
+		$total_weight       = $this->round_customs_item_weight( wc_add_number_precision( $this->get_net_weight() ) );
+		$total_gross_weight = $this->round_customs_item_weight( wc_add_number_precision( $this->get_weight() ) );
+		$item_weights       = array();
+		$shipment_items     = $shipment->get_items();
+		$order              = $shipment->get_order();
+
+		foreach ( $shipment_items as $key => $item ) {
+			$per_item_weight     = wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg', $shipment->get_weight_unit() ) ), 2 );
+			$per_item_weight     = wc_add_number_precision( $per_item_weight );
+			$per_item_weight     = $per_item_weight * $item->get_quantity();
+			$per_item_min_weight = 1 * $item->get_quantity();
+
+			/**
+			 * Set min weight to 0.01 to prevent missing weight error messages
+			 * for really small product weights.
+			 */
+			if ( $per_item_weight < $per_item_min_weight ) {
+				$per_item_weight = $per_item_min_weight;
+			}
+
+			$item_weights[ $key ] = $per_item_weight;
+		}
+
+		$item_weights       = $this->get_per_item_weights( $total_weight, $item_weights, $shipment_items );
+		$item_gross_weights = $this->get_per_item_weights( $total_gross_weight, $item_weights, $shipment_items );
+		$total_weight       = 0;
+		$total_gross_weight = 0;
+		$total_value        = 0;
+
+		foreach ( $shipment->get_items() as $key => $item ) {
+			$item_description .= ! empty( $item_description ) ? ', ' : '';
+			$item_description .= $item->get_name();
+
+			// Use total before discounts for customs
+			$product_total = floatval( ( $item->get_subtotal() / $item->get_quantity() ) );
+			$dhl_product   = false;
+			$product       = $item->get_product();
+
+			if ( $product ) {
+				$shipment_product = wc_gzd_shipments_get_product( $product );
+			}
+
+			if ( $product_total < 0.01 ) {
+				// Use the order item subtotal amount as fallback
+				if ( ( $order_item = $item->get_order_item() ) && $order ) {
+					$order_item_subtotal = $order->get_line_subtotal( $order_item, true );
+					$product_total       = floatval( ( $order_item_subtotal / $item->get_quantity() ) );
+				}
+			}
+
+			$category = $shipment_product ? $shipment_product->get_main_category() : $item->get_name();
+
+			if ( empty( $category ) ) {
+				$category = $item->get_name();
+			}
+
+			$product_value = $product_total < 0.01 ? wc_format_decimal( apply_filters( "{$this->get_general_hook_prefix()}customs_item_min_price", 0.01, $item, $this, $shipment ), 2 ) : wc_format_decimal( $product_total, 2 );
+
+			$customs_items[ $key ] = apply_filters( "{$this->get_general_hook_prefix()}customs_item", array(
+				'description'               => apply_filters( "{$this->get_general_hook_prefix()}item_description", wc_clean( substr( $item->get_name(), 0, $max_desc_length ) ), $item, $this, $shipment ),
+				'category'                  => apply_filters( "{$this->get_general_hook_prefix()}item_category", $category, $item, $this, $shipment ),
+				'origin_code'               => ( $shipment_product && $shipment_product->get_manufacture_country() ) ? $shipment_product->get_manufacture_country() : Package::get_base_country(),
+				'tariff_number'             => $shipment_product ? $shipment_product->get_hs_code() : '',
+				'quantity'                  => intval( $item->get_quantity() ),
+				'weight_in_kg'              => wc_remove_number_precision( $item_weights[ $key ] ),
+				'single_weight_in_kg'       => $this->round_customs_item_weight( wc_remove_number_precision( $item_weights[ $key ] / $item->get_quantity() ), 2 ),
+				'weight_in_kg_raw'          => $item_weights[ $key ],
+				'gross_weight_in_kg'        => wc_remove_number_precision( $item_gross_weights[ $key ] ),
+				'single_gross_weight_in_kg' => $this->round_customs_item_weight( wc_remove_number_precision( $item_gross_weights[ $key ] / $item->get_quantity() ), 2 ),
+				'gross_weight_in_kg_raw'    => $item_gross_weights[ $key ],
+				'single_value'              => $product_value,
+				'value'                     => wc_format_decimal( $product_value * $item->get_quantity(), 2 ),
+			), $item, $shipment, $this );
+
+			$total_weight       += (float) $customs_items[ $key ]['weight_in_kg'];
+			$total_gross_weight += (float) $customs_items[ $key ]['gross_weight_in_kg'];
+			$total_value        += (float) $customs_items[ $key ]['value'];
+		}
+
+		$item_description = substr( $item_description, 0, $max_desc_length );
+
+		return apply_filters( "{$this->get_general_hook_prefix()}customs_data", array(
+			'shipment_id'                   => $shipment->get_id(),
+			'additional_fee'                => wc_format_decimal( $shipment->get_additional_total(), 2 ),
+			'export_type_description'       => $item_description,
+			'place_of_commital'             => $shipment->get_country(),
+			'items'                         => $customs_items,
+			'item_total_weight_in_kg'       => $total_weight,
+			'item_total_gross_weight_in_kg' => $total_gross_weight,
+			'item_total_value'              => $total_value,
+			'currency'                      => $order ? $order->get_currency() : get_woocommerce_currency()
+		), $this, $shipment );
+	}
 }
