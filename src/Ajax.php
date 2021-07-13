@@ -861,12 +861,12 @@ class Ajax {
 		<p class="form-field form-field-wide wc-order-status">
 			<label for="order_status">
 				<?php
-				_e( 'Status:', 'woocommerce' );
+				_ex( 'Status:', 'shipments', 'woocommerce-germanized-shipments' );
 				if ( $order->needs_payment() ) {
 					printf(
 						'<a href="%s">%s</a>',
 						esc_url( $order->get_checkout_payment_url() ),
-						__( 'Customer payment page &rarr;', 'woocommerce' )
+						_x( 'Customer payment page &rarr;', 'shipments', 'woocommerce-germanized-shipments' )
 					);
 				}
 				?>
