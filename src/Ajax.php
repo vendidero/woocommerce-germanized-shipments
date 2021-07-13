@@ -291,9 +291,14 @@ class Ajax {
 				    'div#shipment-' . $shipment_id => self::get_shipment_html( $shipment ),
 				    '.order-shipping-status'       => $order_shipment ? self::get_order_status_html( $order_shipment ) : '',
 				    '.order-return-status'         => $order_shipment ? self::get_order_return_status_html( $order_shipment ) : '',
+				    '.order_data_column p.wc-order-status' => $order_shipment ? self::get_global_order_status_html( $order_shipment->get_order() ) : '',
 				    'tr#shipment-' . $shipment_id . ' td.actions .wc-gzd-shipment-action-button-generate-label' => self::label_download_button_html( $label ),
 			    ),
 		    );
+
+		    if ( empty( $response['fragments']['.order_data_column p.wc-order-status'] ) ) {
+		    	unset( $response['fragments']['.order_data_column p.wc-order-status'] );
+		    }
 	    } else {
 	    	$response = $response_error;
 	    }
@@ -832,6 +837,55 @@ class Ajax {
         return $status_html;
     }
 
+	/**
+	 * @param \WC_Order $order
+	 *
+	 * @return string
+	 */
+    private static function get_global_order_status_html( $order ) {
+    	$old_status = $order->get_status();
+
+	    /**
+	     * Load a clean instance to make sure order status updates are reflected.
+	     */
+    	$order = wc_get_order( $order->get_id() );
+
+	    /**
+	     * In case the current request has not changed the status do not return html
+	     */
+    	if ( ! $order || $old_status === $order->get_status() ) {
+    		return '';
+	    }
+    	ob_start();
+    	?>
+		<p class="form-field form-field-wide wc-order-status">
+			<label for="order_status">
+				<?php
+				_e( 'Status:', 'woocommerce' );
+				if ( $order->needs_payment() ) {
+					printf(
+						'<a href="%s">%s</a>',
+						esc_url( $order->get_checkout_payment_url() ),
+						__( 'Customer payment page &rarr;', 'woocommerce' )
+					);
+				}
+				?>
+			</label>
+			<select id="order_status" name="order_status" class="wc-enhanced-select">
+				<?php
+				$statuses = wc_get_order_statuses();
+				foreach ( $statuses as $status => $status_name ) {
+					echo '<option value="' . esc_attr( $status ) . '" ' . selected( $status, 'wc-' . $order->get_status( 'edit' ), false ) . '>' . esc_html( $status_name ) . '</option>';
+				}
+				?>
+			</select>
+		</p>
+		<?php
+	    $html = ob_get_clean();
+
+	    return $html;
+    }
+
 	private static function get_order_return_status_html( $order_shipment ) {
 		$status_html = '<span class="order-return-status status-' . esc_attr( $order_shipment->get_return_status() ) . '">' . wc_gzd_get_shipment_order_return_status_name( $order_shipment->get_return_status() ) . '</span>';
 
@@ -946,7 +1000,12 @@ class Ajax {
             '#order-shipments-list'  => $html,
             '.order-shipping-status' => self::get_order_status_html( $order_shipment ),
             '.order-return-status'   => self::get_order_return_status_html( $order_shipment ),
+            '.order_data_column p.wc-order-status' => self::get_global_order_status_html( $order_shipment->get_order() ),
         );
+
+        if ( empty( $fragments['.order_data_column p.wc-order-status'] ) ) {
+        	unset( $fragments['.order_data_column p.wc-order-status'] );
+        }
 
         return $fragments;
     }
