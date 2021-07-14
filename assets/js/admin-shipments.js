@@ -354,29 +354,28 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         onRemoveShipmentSuccess: function( data ) {
-            var self      = germanized.admin.shipments,
-                $shipment = self.$wrapper.find( '#shipment-' + data['shipment_id'] );
+            var self        = germanized.admin.shipments,
+                shipmentIds = Array.isArray( data['shipment_id'] ) ? data['shipment_id'] : [data['shipment_id']];
 
-            if ( $shipment.length > 0 ) {
+            $.each( shipmentIds, function( i, shipmentId ) {
+                var $shipment = self.$wrapper.find( '#shipment-' + shipmentId );
 
-                if ( $shipment.hasClass( 'active' ) ) {
-                    $shipment.find( '.shipment-content-wrapper' ).slideUp( 300, function() {
-                        $shipment.removeClass( 'active' );
+                if ( $shipment.length > 0 ) {
+                    if ( $shipment.hasClass( 'active' ) ) {
+                        $shipment.find( '.shipment-content-wrapper' ).slideUp( 300, function() {
+                            $shipment.removeClass( 'active' );
+                            $shipment.remove();
+
+                            self.initShipments();
+                        });
+                    } else {
                         $shipment.remove();
-
-                        self.initShipments();
-                        self.unblock();
-                    });
-                } else {
-                    $shipment.remove();
-
-                    self.initShipments();
-                    self.unblock();
+                    }
                 }
-            } else {
-                self.initShipments();
-                self.unblock();
-            }
+            });
+
+            self.initShipments();
+            self.unblock();
         },
 
         onRemoveShipmentError: function( data ) {

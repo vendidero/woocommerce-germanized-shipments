@@ -147,7 +147,6 @@ class Order {
         ) );
 
         foreach( $this->get_simple_shipments() as $shipment ) {
-
             if ( $shipment->is_editable() ) {
 
 	            // Make sure we are working based on the current instance.
@@ -290,7 +289,6 @@ class Order {
         $shipments = $this->get_shipments();
 
         foreach( $this->shipments as $key => $shipment ) {
-
             if ( $shipment->get_id() === (int) $shipment_id ) {
                 $this->shipments_to_delete[] = $shipment;
 
@@ -336,7 +334,7 @@ class Order {
         if ( $order_item ) {
             $quantity_left = $this->get_shippable_item_quantity( $order_item );
 
-            foreach( $this->get_simple_shipments() as $shipment ) {
+            foreach( $this->get_shipments() as $shipment ) {
 
                 if ( $args['sent_only'] && ! $shipment->is_shipped() ) {
                     continue;
@@ -347,7 +345,13 @@ class Order {
                 }
 
                 if ( $item = $shipment->get_item_by_order_item_id( $order_item->get_id() ) ) {
-                    $quantity_left -= $item->get_quantity();
+	                if ( 'return' === $shipment->get_type() ) {
+	                	if ( $shipment->is_shipped() ) {
+			                $quantity_left += $item->get_quantity();
+		                }
+	                } else {
+		                $quantity_left -= $item->get_quantity();
+	                }
                 }
             }
         }

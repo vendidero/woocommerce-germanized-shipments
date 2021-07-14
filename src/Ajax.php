@@ -523,6 +523,12 @@ class Ajax {
 	    exit;
     }
 
+    private static function get_shipment_ids( $shipments ) {
+	    return array_values( array_map( function( $s ) {
+		    return $s->get_id();
+	    }, $shipments ) );
+    }
+
     public static function remove_shipment() {
         check_ajax_referer( 'edit-shipments', 'security' );
 
@@ -550,10 +556,21 @@ class Ajax {
             wp_send_json( $response_error );
         }
 
+        $shipment_ids = self::get_shipment_ids( $order_shipment->get_shipments() );
+
         if ( $shipment->delete( true ) ) {
             $order_shipment->remove_shipment( $shipment_id );
 
-            $response['shipment_id'] = $shipment_id;
+            if ( 'return' === $shipment->get_type() ) {
+                $order_shipment->validate_shipments();
+            }
+
+            /*
+             * Check which shipments have been deleted (e.g. multiple in case a return has been removed)
+             */
+            $shipments_removed       = array_values( array_diff( $shipment_ids, self::get_shipment_ids( $order_shipment->get_shipments() ) ) );
+            $response['shipment_id'] = $shipments_removed;
+
             $response['fragments']   = array(
                 '.order-shipping-status' => self::get_order_status_html( $order_shipment ),
                 '.order-return-status'   => self::get_order_return_status_html( $order_shipment ),
