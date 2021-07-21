@@ -313,16 +313,16 @@ table.wc-gzd-shipping-providers {
         text-align: right;
         padding-right: .5em; }
 
-#woocommerce-gzd-order-shipments .inside {
-  margin: 0;
-  padding: 0;
-  display: block !important; }
-
-#woocommerce-gzd-order-shipments .hndle, #woocommerce-gzd-order-shipments .handlediv, #woocommerce-gzd-order-shipments .postbox-header {
-  display: none; }
-
-#woocommerce-gzd-order-shipments .hide-default {
-  display: none; }
+#woocommerce-gzd-order-shipments {
+  border-bottom: 1px solid #c3c4c7 !important; }
+  #woocommerce-gzd-order-shipments .inside {
+    margin: 0;
+    padding: 0;
+    display: block !important; }
+  #woocommerce-gzd-order-shipments .hndle, #woocommerce-gzd-order-shipments .handlediv, #woocommerce-gzd-order-shipments .postbox-header {
+    display: none; }
+  #woocommerce-gzd-order-shipments .hide-default {
+    display: none; }
 
 .germanized-shipments * {
   box-sizing: border-box; }

@@ -349,7 +349,7 @@ class Settings {
 			array(
 				'title'             => _x( 'Phone', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_phone',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_phone',
 				'default'           => '',
 				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_phone' )
 			),
