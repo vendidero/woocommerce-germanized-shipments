@@ -506,6 +506,7 @@ class Settings {
 	}
 
 	public static function render_label_fields( $settings, $shipment, $echo = false ) {
+	    $missing_div_closes = 0;
 		ob_start();
 		foreach( $settings as $setting ) {
 			$setting = wp_parse_args( $setting, array( 'id' => '', 'type' => 'text' ) );

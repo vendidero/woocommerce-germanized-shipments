@@ -592,6 +592,16 @@ class Label extends WC_Data implements ShipmentLabel {
 		return true;
 	}
 
+	public function supports_third_party_email_notification() {
+		$supports_email_notification = false;
+
+		if ( ( $shipment = $this->get_shipment() ) && ( $order = $shipment->get_order() ) ) {
+			$supports_email_notification = wc_gzd_order_supports_parcel_delivery_reminder( $order );
+		}
+
+		return apply_filters( "{$this->get_general_hook_prefix()}supports_third_party_email_notification", $supports_email_notification, $this );
+	}
+
 	/**
 	 * Gets a prop for a getter method.
 	 *

@@ -82,6 +82,8 @@ interface ShipmentLabel {
 	 */
 	public function is_trackable();
 
+	public function supports_third_party_email_notification();
+
 	public function set_props( $props );
 
 	public function update_meta_data( $key, $value, $meta_id = 0 );
