@@ -369,6 +369,10 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $this->get_address_prop( 'address_1' );
 	}
 
+	public function get_shipper_address_1() {
+		return $this->get_shipper_address();
+	}
+
 	public function get_shipper_address_2() {
 		return $this->get_address_prop( 'address_2' );
 	}

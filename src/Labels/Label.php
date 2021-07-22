@@ -188,6 +188,13 @@ class Label extends WC_Data implements ShipmentLabel {
 		return empty( $number ) ? false : true;
 	}
 
+	/**
+	 * Returns the weight in kg
+	 *
+	 * @param string $context
+	 *
+	 * @return string
+	 */
 	public function get_weight( $context = 'view' ) {
 		return $this->get_prop( 'weight', $context );
 	}
@@ -202,14 +209,35 @@ class Label extends WC_Data implements ShipmentLabel {
 		return $weight;
 	}
 
+	/**
+	 * Returns the length in cm
+	 *
+	 * @param string $context
+	 *
+	 * @return string
+	 */
 	public function get_length( $context = 'view' ) {
 		return $this->get_prop( 'length', $context );
 	}
 
+	/**
+	 * Returns the width in cm
+	 *
+	 * @param string $context
+	 *
+	 * @return string
+	 */
 	public function get_width( $context = 'view' ) {
 		return $this->get_prop( 'width', $context );
 	}
 
+	/**
+	 * Returns the height in cm
+	 *
+	 * @param string $context
+	 *
+	 * @return string
+	 */
 	public function get_height( $context = 'view' ) {
 		return $this->get_prop( 'height', $context );
 	}
