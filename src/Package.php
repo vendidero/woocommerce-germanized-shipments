@@ -104,7 +104,6 @@ class Package {
     }
 
     public static function return_request_form( $args = array() ) {
-
     	$defaults = array(
 		    'message'  => '',
 		    'hidden'   => false,
@@ -309,18 +308,19 @@ class Package {
 		return apply_filters( 'woocommerce_gzd_country_belongs_to_eu_customs_area', $belongs, $country, $postcode );
 	}
 
-	public static function is_shipping_international( $country, $postcode = '' ) {
+	public static function is_shipping_international( $country, $args = array() ) {
+		$args = self::parse_location_data( $args );
 		/**
-		 * In case the base country belongs to EU customs area, a third country needs to lie outside of the EU customs area
+		 * In case the sender country belongs to EU customs area, a third country needs to lie outside of the EU customs area
 		 */
-		if ( self::base_country_belongs_to_eu_customs_area() ) {
-			if ( ! self::country_belongs_to_eu_customs_area( $country, $postcode ) ) {
+		if ( self::country_belongs_to_eu_customs_area( $args['sender_country'], $args['sender_postcode'] ) ) {
+			if ( ! self::country_belongs_to_eu_customs_area( $country, $args['postcode'] ) ) {
 				return true;
 			}
 
 			return false;
 		} else {
-			if ( ! self::is_shipping_domestic( $country, $postcode ) ) {
+			if ( ! self::is_shipping_domestic( $country, $args ) ) {
 				return true;
 			}
 
@@ -328,14 +328,15 @@ class Package {
 		}
 	}
 
-	public static function is_shipping_domestic( $country, $postcode = '' ) {
-		$is_domestic = $country === self::get_base_country();
+	public static function is_shipping_domestic( $country, $args = array() ) {
+		$args        = self::parse_location_data( $args );
+		$is_domestic = $country === $args['sender_country'];
 
 		/**
-		 * If the base country belongs to EU customs are but the postcode (e.g. Helgoland in DE) not, do not consider doemstic shipping
+		 * If the sender country belongs to EU customs area but the postcode (e.g. Helgoland in DE) not, do not consider domestic shipping
 		 */
-		if ( $is_domestic && self::base_country_belongs_to_eu_customs_area() ) {
-			if ( ! self::country_belongs_to_eu_customs_area( $country, $postcode ) ) {
+		if ( $is_domestic && self::country_belongs_to_eu_customs_area( $args['sender_country'], $args['sender_postcode'] ) ) {
+			if ( ! self::country_belongs_to_eu_customs_area( $country, $args['postcode'] ) ) {
 				$is_domestic = false;
 			}
 		}
@@ -343,20 +344,32 @@ class Package {
 		return $is_domestic;
 	}
 
+	private static function parse_location_data( $args = array() ) {
+		$args = wp_parse_args( $args, array(
+			'postcode'        => '',
+			'sender_country'  => self::get_base_country(),
+			'sender_postcode' => self::get_base_postcode(),
+		) );
+
+		return $args;
+	}
+
 	/**
 	 * Whether shipping is inner EU (from one EU country to another) shipment or not.
 	 *
 	 * @param $country
-	 * @param string $postcode
+	 * @param array $args
 	 *
 	 * @return mixed|void
 	 */
-	public static function is_shipping_inner_eu_country( $country, $postcode = '' ) {
-		if ( self::is_shipping_domestic( $country, $postcode ) || ! self::country_belongs_to_eu_customs_area( self::get_base_country(), self::get_base_postcode() ) ) {
+	public static function is_shipping_inner_eu_country( $country, $args = array() ) {
+		$args = self::parse_location_data( $args );
+
+		if ( self::is_shipping_domestic( $country, $args ) || ! self::country_belongs_to_eu_customs_area( $args['sender_country'], $args['sender_postcode'] ) ) {
 			return false;
 		}
 
-		return self::country_belongs_to_eu_customs_area( $country, $postcode );
+		return self::country_belongs_to_eu_customs_area( $country, $args['postcode'] );
 	}
 
 	public static function get_endpoints() {

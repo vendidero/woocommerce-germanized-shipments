@@ -243,9 +243,7 @@ class ReturnShipment extends Shipment {
 	 * @return bool
 	 */
 	public function sync( $args = array() ) {
-
 		try {
-
 			if ( ! $order_shipment = $this->get_order_shipment() ) {
 				throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
 			}

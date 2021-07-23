@@ -772,23 +772,38 @@ function wc_gzd_shipments_upload_data( $filename, $bits, $relative = true ) {
  * @return array
  */
 function wc_gzd_get_shipment_return_address( $shipment_order ) {
-	$country_state = wc_format_country_state_string( Package::get_setting( 'return_address_country' ) );
+	$address_fields = array(
+		'first_name' => '',
+		'last_name'  => '',
+		'company'    => '',
+		'address_1'  => '',
+		'address_2'  => '',
+		'postcode'   => '',
+		'city'       => '',
+		'country'    => '',
+		'state'      => '',
+		'phone'      => '',
+		'email'      => '',
+	);
 
-	$address = array(
-		'first_name' => Package::get_setting( 'return_address_first_name' ),
-		'last_name'  => Package::get_setting( 'return_address_last_name' ),
-		'company'    => Package::get_setting( 'return_address_company' ),
-		'address_1'  => Package::get_setting( 'return_address_address_1' ),
-		'address_2'  => Package::get_setting( 'return_address_address_2' ),
-		'city'       => Package::get_setting( 'return_address_city' ),
-		'country'    => $country_state['country'],
-		'state'      => $country_state['state'],
-		'postcode'   => Package::get_setting( 'return_address_postcode' ),
- 	);
+	foreach( $address_fields as $prop => $default_value ) {
+		$key   = "woocommerce_gzd_shipments_return_address_{$prop}";
+		$value = get_option( $key, '' );
 
-	$address['email'] = get_option( 'admin_email' );
+		if ( '' === $value ) {
+			$value = get_option( "woocommerce_gzd_shipments_shipper_address_{$prop}" );
+		}
 
-	return $address;
+		if ( 'country' === $prop ) {
+			$value                     = wc_format_country_state_string( $value );
+			$address_fields['country'] = $value['country'];
+			$address_fields['state']   = $value['state'];
+		} elseif ( 'state' !== $prop ) {
+			$address_fields[ $prop ] = $value;
+		}
+	}
+
+	return $address_fields;
 }
 
 /**
