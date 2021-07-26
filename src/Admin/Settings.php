@@ -509,11 +509,20 @@ class Settings {
 	    $missing_div_closes = 0;
 		ob_start();
 		foreach( $settings as $setting ) {
-			$setting = wp_parse_args( $setting, array( 'id' => '', 'type' => 'text' ) );
+			$setting = wp_parse_args( $setting, array( 'id' => '', 'type' => 'text', 'custom_attributes' => array() ) );
 
 			if ( has_action( "woocommerce_gzd_shipment_label_admin_field_{$setting['id']}" ) ) {
 				do_action( "woocommerce_gzd_shipment_label_admin_field_{$setting['id']}", $setting, $shipment );
 			} elseif ( 'select' === $setting['type'] ) {
+				woocommerce_wp_select( $setting );
+			} elseif ( 'multiselect' === $setting['type'] ) {
+			    $setting['class']             = 'select short wc-enhanced-select';
+			    $setting['custom_attributes'] = array_merge( $setting['custom_attributes'], array( 'multiple' => 'multiple' ) );
+
+			    if ( ! strstr( $setting['id'], '[]' ) ) {
+			        $setting['name'] = $setting['id'] . '[]';
+			    }
+
 				woocommerce_wp_select( $setting );
 			} elseif( 'checkbox' === $setting['type'] ) {
 				woocommerce_wp_checkbox( $setting );

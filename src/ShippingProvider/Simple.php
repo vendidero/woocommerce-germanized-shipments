@@ -663,7 +663,6 @@ class Simple extends WC_Data implements ShippingProvider {
 	 * @return string
 	 */
 	public function get_tracking_desc( $shipment ) {
-
 		$tracking_desc = '';
 		$tracking_id   = $shipment->get_tracking_id();
 

@@ -450,6 +450,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 					}
 
 					$props[ $field['id'] ] = 'no';
+				} elseif( 'multiselect' === $field['type'] ) {
+					if ( isset( $props[ $field['id'] ] ) ) {
+						$props[ $field['id'] ] = (array) $props[ $field['id'] ];
+					}
 				}
 			}
 
