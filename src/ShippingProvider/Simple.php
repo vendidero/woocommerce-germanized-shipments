@@ -809,7 +809,7 @@ class Simple extends WC_Data implements ShippingProvider {
 				'title' 	        => _x( 'Tracking description', 'shipments', 'woocommerce-germanized-shipments' ),
 				'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Adjust the placeholder used to construct the tracking description for this shipping provider (e.g. used within notification emails). You may use on of the following placeholders to insert the tracking id or other dynamic data: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>' . implode( ', ', array_keys( $this->get_tracking_placeholders() ) ) . '</code>' ) . '</div>',
 				'id' 		        => 'shipping_provider_tracking_desc_placeholder',
-				'placeholder'       => '',
+				'placeholder'       => $this->get_default_tracking_desc_placeholder(),
 				'value'             => $this->get_tracking_desc_placeholder( 'edit' ),
 				'default'	        => $this->get_default_tracking_desc_placeholder(),
 				'type' 		        => 'textarea',
