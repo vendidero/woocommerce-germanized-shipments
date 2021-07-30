@@ -18,7 +18,15 @@ class Validation {
         add_action( 'woocommerce_before_delete_order_item', array( __CLASS__, 'delete_order_item' ), 10, 1 );
 
         add_action( 'woocommerce_update_order', array( __CLASS__, 'update_order' ), 10, 1 );
-        add_action( 'woocommerce_new_order', array( __CLASS__, 'new_order' ), 10, 1 );
+
+	    add_action( 'woocommerce_new_order', function( $order_id ) {
+		    add_action( 'woocommerce_after_order_object_save', function( $order ) use ( $order_id ) {
+		    	if ( $order_id === $order->get_id() ) {
+		    		self::new_order( $order );
+			    }
+		    }, 300, 1 );
+	    }, 10, 1 );
+
         add_action( 'woocommerce_delete_order', array( __CLASS__, 'delete_order' ), 10, 1 );
 
         foreach( array( 'cancelled', 'failed', 'refunded' ) as $cancelled_status ) {
@@ -146,8 +154,8 @@ class Validation {
         }
     }
 
-    public static function new_order( $order_id ) {
-        if ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) {
+    public static function new_order( $order ) {
+        if ( $order_shipment = wc_gzd_get_shipment_order( $order ) ) {
             $order_shipment->validate_shipments();
         }
     }

@@ -15,17 +15,29 @@ class Automation {
 
     public static function init() {
         if ( 'yes' === Package::get_setting( 'auto_enable' ) ) {
-        	$statuses = (array) Package::get_setting( 'auto_statuses' );
-
-        	if ( ! empty( $statuses ) ) {
-        		foreach( $statuses as $status ) {
-					$status = str_replace( 'wc-', '', $status );
-
-			        add_action( 'woocommerce_order_status_' . $status, array( __CLASS__, 'maybe_create_shipments' ), 10, 1 );
-		        }
-	        } else {
-		        add_action( 'woocommerce_new_order', array( __CLASS__, 'maybe_create_shipments' ), 10, 1 );
+            foreach( self::get_auto_statuses() as $status ) {
+		        add_action( 'woocommerce_order_status_' . $status, array( __CLASS__, 'maybe_create_shipments' ), 10, 1 );
 	        }
+
+	        /**
+	         * Always listen to new order events and check whether to create new shipments
+	         * E.g. Default order status exists in auto statuses or auto statuses are empty
+	         *
+	         * The issue with the woocommerce_new_order hook is that this hook is getting executed before order items
+	         * has been stored. This will lead to items not being available.
+	         *
+	         * Workaround: Hook into the woocommerce_after_order_object_save instead after an order has been created as a workaround.
+	         */
+            add_action( 'woocommerce_new_order', function( $order_id ) {
+	            add_action( 'woocommerce_after_order_object_save', function( $order ) use ( $order_id ) {
+		            if ( $order_id === $order->get_id() ) {
+			            self::maybe_create_shipments( $order );
+		            }
+	            }, 150 );
+            }, 10, 1 );
+
+	        add_action( 'woocommerce_new_order', array( __CLASS__, 'maybe_create_shipments' ), 10, 2 );
+	        add_filter( 'wcs_renewal_order_created', array( __CLASS__, 'maybe_create_subscription_shipments' ), 10 );
         }
 
         if ( 'yes' === Package::get_setting( 'auto_order_shipped_completed_enable' ) ) {
@@ -72,7 +84,6 @@ class Automation {
     }
 
     public static function mark_shipments_shipped( $order_id ) {
-
     	if ( $order = wc_get_order( $order_id ) ) {
 		    if ( $shipment_order = wc_gzd_get_shipment_order( $order ) ) {
 			    foreach( $shipment_order->get_simple_shipments() as $shipment ) {
@@ -128,7 +139,15 @@ class Automation {
 		}
     }
 
-    public static function create_shipments( $order_id, $enable_auto_filter = true ) {
+    public static function create_shipments( $order, $enable_auto_filter = true ) {
+    	if ( is_numeric( $order ) ) {
+    		$order = wc_get_order( $order );
+	    }
+
+    	if ( ! $order ) {
+    		return;
+	    }
+
 	    $shipment_status = Package::get_setting( 'auto_default_status' );
 
 	    if ( empty( $shipment_status ) ) {
@@ -138,18 +157,19 @@ class Automation {
 	    /**
 	     * Filter to disable automatically creating shipments for a specific order.
 	     *
-	     * @param string  $enable Whether to create or not create shipments.
-	     * @param integer $order_id The order id.
+	     * @param string   $enable Whether to create or not create shipments.
+	     * @param integer  $order_id The order id.
+	     * @param WC_Order $order The order instance.
 	     *
 	     * @since 3.1.0
 	     * @package Vendidero/Germanized/Shipments
 	     */
-	    if ( $enable_auto_filter && ! apply_filters( 'woocommerce_gzd_auto_create_shipments_for_order', true, $order_id ) ) {
+	    if ( $enable_auto_filter && ! apply_filters( 'woocommerce_gzd_auto_create_shipments_for_order', true, $order->get_id(), $order ) ) {
 	    	return;
 	    }
 
-	    if ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) {
-	    	if ( ! apply_filters( 'woocommerce_gzd_auto_create_custom_shipments_for_order', false, $order_id ) ) {
+	    if ( $order_shipment = wc_gzd_get_shipment_order( $order ) ) {
+	    	if ( ! apply_filters( 'woocommerce_gzd_auto_create_custom_shipments_for_order', false, $order->get_id(), $order ) ) {
 			    $shipments = $order_shipment->get_simple_shipments();
 
 			    foreach ( $shipments as $shipment ) {
@@ -169,17 +189,50 @@ class Automation {
 			    }
 		    }
 
-	    	do_action( 'woocommerce_gzd_after_auto_create_shipments_for_order', $order_id, $shipment_status );
+	    	do_action( 'woocommerce_gzd_after_auto_create_shipments_for_order', $order->get_id(), $shipment_status, $order );
 	    }
+    }
+
+    protected static function get_auto_statuses() {
+	    $statuses       = (array) Package::get_setting( 'auto_statuses' );
+	    $clean_statuses = array();
+
+	    if ( ! empty( $statuses ) ) {
+		    foreach ( $statuses as $status ) {
+			    $status = trim( str_replace( 'wc-', '', $status ) );
+
+			    if ( ! in_array( $status, $clean_statuses ) ) {
+			    	$clean_statuses[] = $status;
+			    }
+		    }
+	    }
+
+	    return $clean_statuses;
     }
 
     public static function maybe_create_shipments( $order_id ) {
+	    $statuses   = self::get_auto_statuses();
+	    $has_status = empty( $statuses ) ? true : false;
 
-    	// Make sure that MetaBox is saved before we process automation
-    	if ( self::is_admin_edit_order_request() ) {
-			add_action( 'woocommerce_process_shop_order_meta', array( __CLASS__, 'create_shipments' ), 70 );
-	    } else {
-    		self::create_shipments( $order_id );
+	    if ( ! $has_status ) {
+		    if ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) {
+			    $has_status = $order_shipment->get_order()->has_status( $statuses );
+		    }
+	    }
+
+	    if ( $has_status ) {
+		    // Make sure that MetaBox is saved before we process automation
+		    if ( self::is_admin_edit_order_request() ) {
+			    add_action( 'woocommerce_process_shop_order_meta', array( __CLASS__, 'create_shipments' ), 70 );
+		    } else {
+			    self::create_shipments( $order_id );
+		    }
 	    }
     }
+
+	public static function maybe_create_subscription_shipments( $renewal_order ) {
+    	self::create_shipments( $renewal_order->get_id() );
+
+    	return $renewal_order;
+	}
 }

@@ -35,7 +35,7 @@ function wc_gzd_get_formatted_state( $country = '', $state = '' ) {
 
 function wc_gzd_get_shipment_order( $order ) {
     if ( is_numeric( $order ) ) {
-        $order = wc_get_order( $order);
+        $order = wc_get_order( $order );
     }
 
     if ( is_a( $order, 'WC_Order' ) ) {
