@@ -104,10 +104,12 @@ class Admin {
 		$shipments_product->set_manufacture_country( $country );
 
 		/**
-		 * Remove legacy data upon saving
+		 * Remove legacy data upon saving in case it is not transmitted (e.g. DHL standalone plugin).
 		 */
-		$product->delete_meta_data( '_dhl_hs_code' );
-		$product->delete_meta_data( '_dhl_manufacture_country' );
+		if ( apply_filters( 'woocommerce_gzd_shipments_remove_legacy_customs_meta', isset( $_POST['_dhl_hs_code'] ) ? false : true, $product ) ) {
+			$product->delete_meta_data( '_dhl_hs_code' );
+			$product->delete_meta_data( '_dhl_manufacture_country' );
+        }
 
 		do_action( 'woocommerce_gzd_shipments_save_product_options', $shipments_product );
 	}
