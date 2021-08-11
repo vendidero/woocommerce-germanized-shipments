@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\Shipments;
 
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
+use Vendidero\Germanized\Shipments\ShippingProvider\Simple;
 use WC_GZD_Compatibility_WPML;
 
 defined( 'ABSPATH' ) || exit;
@@ -24,9 +26,27 @@ class WPMLHelper {
 		 */
 		add_action( 'woocommerce_gzd_new_shipping_provider', array( __CLASS__, 'register_shipping_provider_strings' ), 10, 2 );
 		add_action( 'woocommerce_gzd_shipping_provider_updated', array( __CLASS__, 'register_shipping_provider_strings' ), 10, 2 );
+
+		/**
+		 * The shipping provider filter name depends on the instance name - register filters while loading providers.
+		 */
+		if ( did_action( 'woocommerce_gzd_load_shipping_providers' ) ) {
+			self::register_provider_filters();
+		} else {
+			add_action( 'woocommerce_gzd_load_shipping_providers', array( __CLASS__, 'register_provider_filters' ) );
+		}
+	}
+
+	public static function register_provider_filters() {
 		add_filter( 'woocommerce_gzd_shipping_provider_get_tracking_desc_placeholder', array( __CLASS__, 'filter_shipping_provider_placeholder' ), 10, 2 );
 		add_filter( 'woocommerce_gzd_shipping_provider_get_tracking_url_placeholder', array( __CLASS__, 'filter_shipping_provider_url' ), 10, 2 );
 		add_filter( 'woocommerce_gzd_shipping_provider_get_return_instructions', array( __CLASS__, 'filter_shipping_provider_return_instructions' ), 10, 2 );
+
+		foreach( Helper::instance()->get_shipping_providers() as $provider ) {
+			add_filter( "woocommerce_gzd_shipping_provider_{$provider->get_name()}_get_tracking_desc_placeholder", array( __CLASS__, 'filter_shipping_provider_placeholder' ), 10, 2 );
+			add_filter( "woocommerce_gzd_shipping_provider_{$provider->get_name()}_get_tracking_url_placeholder", array( __CLASS__, 'filter_shipping_provider_url' ), 10, 2 );
+			add_filter( "woocommerce_gzd_shipping_provider_{$provider->get_name()}_get_return_instructions", array( __CLASS__, 'filter_shipping_provider_return_instructions' ), 10, 2 );
+		}
 	}
 
 	public static function filter_shipping_provider_return_instructions( $instructions, $provider ) {
@@ -52,7 +72,7 @@ class WPMLHelper {
 
 	/**
 	 * @param integer $provider_id
-	 * @param ShippingProvider $provider
+	 * @param Simple $provider
 	 */
 	public static function register_shipping_provider_strings( $provider_id, $provider ) {
 
@@ -80,7 +100,7 @@ class WPMLHelper {
 
 	/**
 	 * @param $string_name
-	 * @param ShippingProvider $provider
+	 * @param Simple $provider
 	 */
 	protected static function get_shipping_provider_string_id( $string_name, $provider ) {
 		return "woocommerce_gzd_shipping_provider_{$provider->get_name()}_{$string_name}";
@@ -88,7 +108,7 @@ class WPMLHelper {
 
 	/**
 	 * @param $string_name
-	 * @param ShippingProvider $provider
+	 * @param Simple $provider
 	 */
 	protected static function get_shipping_provider_string_package( $string_name, $provider ) {
 		$strings = self::get_shipping_provider_strings();

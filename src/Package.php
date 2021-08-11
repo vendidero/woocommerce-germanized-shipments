@@ -629,6 +629,8 @@ class Package {
         $stores['shipment-item']     = 'Vendidero\Germanized\Shipments\DataStores\ShipmentItem';
 	    $stores['shipping-provider'] = 'Vendidero\Germanized\Shipments\DataStores\ShippingProvider';
 
+	    do_action( 'woocommerce_gzd_shipments_registered_data_stores' );
+
         return $stores;
     }
 
