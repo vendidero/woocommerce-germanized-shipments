@@ -27,6 +27,8 @@ interface ShippingProvider {
 
 	public function get_signup_link();
 
+	public function is_pro();
+
 	/**
 	 * Whether or not this instance is a manual integration.
 	 * Manual integrations are constructed dynamically from DB and do not support

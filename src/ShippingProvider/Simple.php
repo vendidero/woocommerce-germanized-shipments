@@ -101,6 +101,10 @@ class Simple extends WC_Data implements ShippingProvider {
 		return '';
 	}
 
+	public function is_pro() {
+		return false;
+	}
+
 	/**
 	 * Whether or not this instance is a manual integration.
 	 * Manual integrations are constructed dynamically from DB and do not support
