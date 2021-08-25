@@ -530,6 +530,8 @@ class Settings {
 				woocommerce_wp_textarea_input( $setting );
 			} elseif( 'text' === $setting['type'] ) {
 				woocommerce_wp_text_input( $setting );
+			} elseif( 'number' === $setting['type'] ) {
+				woocommerce_wp_text_input( $setting );
 			} elseif( 'services_start' === $setting['type'] ) {
 			    $hide_default = isset( $setting['hide_default'] ) ? wc_string_to_bool( $setting['hide_default'] ) : false;
 		        $missing_div_closes++;
