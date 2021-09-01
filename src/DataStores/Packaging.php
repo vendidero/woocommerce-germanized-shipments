@@ -593,6 +593,24 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 
 		if ( ! empty( $results ) ) {
 			$packaging = $results[0];
+
+			/**
+			 * In case more than one packaging is available - choose the default packaging in case it is available.
+			 */
+			if ( sizeof( $results ) > 1 ) {
+				$default_packaging_id = Package::get_setting( 'default_packaging' );
+
+				if ( ! empty( $default_packaging_id ) ) {
+					$default_packaging_id = absint( $default_packaging_id );
+
+					foreach( $results as $result ) {
+						if ( $result->get_id() === $default_packaging_id ) {
+							$packaging = $result;
+							break;
+						}
+					}
+				}
+			}
 		}
 
 		return apply_filters( 'woocommerce_gzd_find_best_matching_packaging_for_shipment', $packaging, $shipment );
