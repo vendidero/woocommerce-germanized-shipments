@@ -151,7 +151,7 @@ class ProviderSettings {
 			$breadcrumb[] = array(
 				'class' => 'section',
 				'href'  => ! empty( $current_section ) ? $provider->get_edit_link() : '',
-				'title' => $provider->get_id() <= 0 ? self::get_breadcrumb_label( _x( 'New', 'shipments-shipping-provider', 'woocommerce-germanized-shipments' ), $current_section ) : self::get_breadcrumb_label( $provider->get_title(), $current_section ),
+				'title' => ( $provider->get_id() <= 0 && '' === $provider->get_title() ) ? self::get_breadcrumb_label( _x( 'New', 'shipments-shipping-provider', 'woocommerce-germanized-shipments' ), $current_section ) : self::get_breadcrumb_label( $provider->get_title(), $current_section ),
 			);
 		}
 
