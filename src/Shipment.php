@@ -1839,10 +1839,18 @@ abstract class Shipment extends WC_Data {
 
 			$this->set_props( $props );
 		} else {
-			$props = array( 'packaging_weight' => '' );
+			$props   = array( 'packaging_weight' => '' );
+			$changes = $this->get_changes();
 
+			/**
+			 * Maybe reset dimensions in case they've not been explicitly set
+			 */
 			if ( array_key_exists( 'packaging_id', $this->get_changes() ) ) {
-				$props = array_merge( $props, array( 'length' => '', 'width' => '', 'height' => '' ) );
+				foreach( array( 'length', 'width', 'height' ) as $dim_prop ) {
+					if ( ! array_key_exists( $dim_prop, $changes ) ) {
+						$props = array_merge( $props, array( $dim_prop => '' ) );
+					}
+				}
 			}
 
 			// Reset
