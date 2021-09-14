@@ -805,7 +805,7 @@ class Label extends WC_Data implements ShipmentLabel {
 
 		$item_description = substr( $item_description, 0, $max_desc_length );
 
-		return apply_filters( "{$this->get_general_hook_prefix()}customs_data", array(
+		$customs_data = apply_filters( "{$this->get_general_hook_prefix()}customs_data", array(
 			'shipment_id'                   => $shipment->get_id(),
 			'additional_fee'                => wc_format_decimal( $shipment->get_additional_total(), 2 ),
 			'export_type_description'       => $item_description,
@@ -816,5 +816,7 @@ class Label extends WC_Data implements ShipmentLabel {
 			'item_total_value'              => $total_value,
 			'currency'                      => $order ? $order->get_currency() : get_woocommerce_currency()
 		), $this, $shipment );
+
+		return $customs_data;
 	}
 }

@@ -340,12 +340,21 @@ class ShipmentItem extends WC_Data {
 			    $this->set_product_id( $item->get_product_id() );
 		    }
 
+		    $args = wp_parse_args( $args, array(
+			    'quantity' => 1,
+		    ) );
+
 		    $product      = $this->get_product();
     		$s_product    = wc_gzd_shipments_get_product( $product );
-		    $tax_total    = is_callable( array( $item, 'get_total_tax' ) ) ? $item->get_total_tax() : 0;;
-		    $total        = is_callable( array( $item, 'get_total' ) ) ? $item->get_total() : 0;
-		    $subtotal     = is_callable( array( $item, 'get_subtotal' ) ) ? $item->get_subtotal() : 0;
-		    $tax_subtotal = is_callable( array( $item, 'get_subtotal_tax' ) ) ? $item->get_subtotal_tax() : 0;
+
+		    /**
+		     * Calculate the order item total per unit to make sure it is independent from
+		     * shipment item quantity.
+		     */
+		    $tax_total    = is_callable( array( $item, 'get_total_tax' ) ) ? ( (float) $item->get_total_tax() / $item->get_quantity() ) * $args['quantity'] : 0;
+		    $total        = is_callable( array( $item, 'get_total' ) ) ? ( (float) $item->get_total() / $item->get_quantity() ) * $args['quantity'] : 0;
+		    $subtotal     = is_callable( array( $item, 'get_subtotal' ) ) ? (float) $item->get_subtotal() / $item->get_quantity() * $args['quantity'] : 0;
+		    $tax_subtotal = is_callable( array( $item, 'get_subtotal_tax' ) ) ? (float) $item->get_subtotal_tax() / $item->get_quantity() * $args['quantity'] : 0;
 
 		    $args = wp_parse_args( $args, array(
 			    'order_item_id'       => $item->get_id(),
