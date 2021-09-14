@@ -162,6 +162,35 @@ class Order {
         }
     }
 
+	/**
+	 * @param Shipment $shipment
+	 */
+    public function calculate_shipment_additional_total( $shipment ) {
+	    $fees_total = 0;
+
+	    foreach ( $this->get_order()->get_fees() as $item ) {
+		    $fees_total += ( (float) $item->get_total() + (float) $item->get_total_tax() );
+	    }
+
+	    $additional_total = $fees_total + $this->get_order()->get_shipping_total() + $this->get_order()->get_shipping_tax();
+
+    	foreach( $this->get_simple_shipments() as $simple_shipment ) {
+    		if ( $shipment->get_id() === $simple_shipment->get_id() ) {
+    			continue;
+		    }
+
+    		$additional_total -= (float) $simple_shipment->get_additional_total();
+	    }
+
+    	$additional_total = wc_format_decimal( $additional_total, '' );
+
+    	if ( $additional_total < 0 ) {
+    		$additional_total = 0;
+	    }
+
+    	return $additional_total;
+    }
+
     public function validate_shipment_item_quantities( $shipment_id = false ) {
         $shipment    = $shipment_id ? $this->get_shipment( $shipment_id ) : false;
         $shipments   = ( $shipment_id && $shipment ) ? array( $shipment ) : $this->get_simple_shipments();

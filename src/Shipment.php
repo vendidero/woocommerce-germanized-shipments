@@ -1845,7 +1845,7 @@ abstract class Shipment extends WC_Data {
 			/**
 			 * Maybe reset dimensions in case they've not been explicitly set
 			 */
-			if ( array_key_exists( 'packaging_id', $this->get_changes() ) ) {
+			if ( array_key_exists( 'packaging_id', $changes ) ) {
 				foreach( array( 'length', 'width', 'height' ) as $dim_prop ) {
 					if ( ! array_key_exists( $dim_prop, $changes ) ) {
 						$props = array_merge( $props, array( $dim_prop => '' ) );
