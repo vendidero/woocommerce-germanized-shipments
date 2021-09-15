@@ -752,13 +752,20 @@ class Label extends WC_Data implements ShipmentLabel {
 		$total_weight       = 0;
 		$total_gross_weight = 0;
 		$total_value        = 0;
+		$use_subtotal       = false;
+
+		if ( $order && apply_filters( 'woocommerce_gzd_shipments_order_has_voucher', false, $order ) ) {
+			$use_subtotal = true;
+		}
+
+		$use_subtotal = apply_filters( 'woocommerce_gzd_shipments_customs_use_subtotal', $use_subtotal, $this );
 
 		foreach ( $shipment->get_items() as $key => $item ) {
 			$item_description .= ! empty( $item_description ) ? ', ' : '';
 			$item_description .= $item->get_name();
 
 			// Use total before discounts for customs
-			$product_total = floatval( ( $item->get_subtotal() / $item->get_quantity() ) );
+			$product_total = floatval( (float) ( $use_subtotal ? $item->get_subtotal() : $item->get_total() ) / $item->get_quantity() );
 			$dhl_product   = false;
 			$product       = $item->get_product();
 
@@ -767,10 +774,10 @@ class Label extends WC_Data implements ShipmentLabel {
 			}
 
 			if ( $product_total < 0.01 ) {
-				// Use the order item subtotal amount as fallback
+				// Use the order item data as fallback
 				if ( ( $order_item = $item->get_order_item() ) && $order ) {
-					$order_item_subtotal = $order->get_line_subtotal( $order_item, true );
-					$product_total       = floatval( ( $order_item_subtotal / $item->get_quantity() ) );
+					$order_item_total = $use_subtotal ? $order->get_line_subtotal( $order_item, true, false ) : $order->get_line_total( $order_item, true, false );
+					$product_total    = floatval( (float) $order_item_total / $item->get_quantity() );
 				}
 			}
 
