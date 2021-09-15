@@ -33,16 +33,16 @@ class PackagingBox implements Box {
 		$depth  = empty( $this->packaging->get_height() ) ? 0 : wc_format_decimal( $this->packaging->get_height() );
 
 		$this->dimensions = array(
-			'width'  => (int) wc_get_dimension( $width, 'mm', wc_gzd_get_packaging_dimension_unit() ),
-			'length' => (int) wc_get_dimension( $length, 'mm', wc_gzd_get_packaging_dimension_unit() ),
-			'depth'  => (int) wc_get_dimension( $depth, 'mm', wc_gzd_get_packaging_dimension_unit() )
+			'width'  => (int) floor( wc_get_dimension( $width, 'mm', wc_gzd_get_packaging_dimension_unit() ) ),
+			'length' => (int) floor( wc_get_dimension( $length, 'mm', wc_gzd_get_packaging_dimension_unit() ) ),
+			'depth'  => (int) floor( wc_get_dimension( $depth, 'mm', wc_gzd_get_packaging_dimension_unit() ) )
 		);
 
 		$weight             = empty( $this->packaging->get_weight() ) ? 0 : wc_format_decimal( $this->packaging->get_weight() );
-		$this->weight       = (int) wc_get_weight( $weight, 'g', wc_gzd_get_packaging_weight_unit() );
+		$this->weight       = (int) floor( wc_get_weight( $weight, 'g', wc_gzd_get_packaging_weight_unit() ) );
 
 		$max_content_weight = empty( $this->packaging->get_max_content_weight() ) ? 0 : wc_format_decimal( $this->packaging->get_max_content_weight() );
-		$this->max_weight   = (int) wc_get_weight( $max_content_weight, 'g', wc_gzd_get_packaging_weight_unit() );
+		$this->max_weight   = (int) floor( wc_get_weight( $max_content_weight, 'g', wc_gzd_get_packaging_weight_unit() ) );
 
 		/**
 		 * If no max weight was chosen - use 50kg as fallback

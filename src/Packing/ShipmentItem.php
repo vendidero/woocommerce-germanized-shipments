@@ -42,13 +42,13 @@ class ShipmentItem implements Item {
 		$depth  = empty( $this->item->get_height() ) ? 0 : wc_format_decimal( $this->item->get_height() );
 
 		$this->dimensions = array(
-			'width'  => (int) wc_get_dimension( $width, 'mm', $dimension_unit ),
-			'length' => (int) wc_get_dimension( $length, 'mm', $dimension_unit ),
-			'depth'  => (int) wc_get_dimension( $depth, 'mm', $dimension_unit )
+			'width'  => (int) ceil( wc_get_dimension( $width, 'mm', $dimension_unit ) ),
+			'length' => (int) ceil( wc_get_dimension( $length, 'mm', $dimension_unit ) ),
+			'depth'  => (int) ceil( wc_get_dimension( $depth, 'mm', $dimension_unit ) )
 		);
 
 		$weight       = empty( $this->item->get_weight() ) ? 0 : wc_format_decimal( $this->item->get_weight() );
-		$this->weight = (int) wc_get_weight( $weight, 'g', $weight_unit );
+		$this->weight = (int) ceil( wc_get_weight( $weight, 'g', $weight_unit ) );
 	}
 
 	/**
