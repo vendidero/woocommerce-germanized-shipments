@@ -146,7 +146,7 @@ class Package {
 	 * @return bool
 	 */
 	public static function is_packing_supported() {
-    	return version_compare( phpversion(), '7.1', '>=' );
+    	return version_compare( phpversion(), '7.1', '>=' ) && apply_filters( 'woocommerce_gzd_enable_rucksack_packaging', true );
 	}
 
 	public static function get_method_settings() {
