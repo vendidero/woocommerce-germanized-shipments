@@ -63,10 +63,9 @@ class Admin {
     }
 
 	public static function product_options() {
-		global $post, $thepostid;
+		global $post, $thepostid, $product_object;
 
-		$thepostid         = $post->ID;
-		$_product          = wc_get_product( $thepostid );
+		$_product          = wc_get_product( $product_object );
 		$shipments_product = wc_gzd_shipments_get_product( $_product );
 
 		$countries = WC()->countries->get_countries();
