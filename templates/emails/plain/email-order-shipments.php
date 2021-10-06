@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/Shipments/Templates/Emails/Plain
- * @version 1.0.0
+ * @version 1.0.1
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -39,7 +39,7 @@ foreach( $shipments as $key => $shipment ) {
 		}
 
 		if ( $shipment->has_tracking_instruction() ) {
-			echo esc_html( $shipment->get_tracking_instruction() ) . "\n";
+			echo esc_html( $shipment->get_tracking_instruction( true ) ) . "\n";
 		}
 	} else {
 		echo esc_html( _x( 'Sorry, this shipment does currently not support tracking.', 'shipments', 'woocommerce-germanized-shipments' ) ) . "\n";

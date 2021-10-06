@@ -666,12 +666,17 @@ class Simple extends WC_Data implements ShippingProvider {
 	 *
 	 * @return string
 	 */
-	public function get_tracking_desc( $shipment ) {
+	public function get_tracking_desc( $shipment, $plain = false ) {
 		$tracking_desc = '';
 		$tracking_id   = $shipment->get_tracking_id();
 
 		if ( '' !== $this->get_tracking_desc_placeholder() && ! empty( $tracking_id ) ) {
 			$placeholders  = $this->get_tracking_placeholders( $shipment );
+
+			if ( ! $plain && apply_filters( "{$this->get_general_hook_prefix()}tracking_id_with_link", true, $shipment ) && $shipment->has_tracking() ) {
+				$placeholders['{tracking_id}'] = '<a href="' . esc_url( $shipment->get_tracking_url() ) . '" target="_blank">' . $shipment->get_tracking_id() . '</a>';
+			}
+
 			$tracking_desc = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $this->get_tracking_desc_placeholder() );
 		}
 

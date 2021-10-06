@@ -280,7 +280,8 @@ class Ajax {
 		    );
 	    } elseif ( $label = $shipment->get_label() ) {
 
-	    	$order_shipment = wc_gzd_get_shipment_order( $shipment->get_order() );
+	    	$order_shipment    = wc_gzd_get_shipment_order( $shipment->get_order() );
+	    	$order_status_html = $order_shipment ? self::get_global_order_status_html( $order_shipment->get_order() ) : array();
 
 		    $response = array(
 			    'success'       => true,
@@ -291,7 +292,8 @@ class Ajax {
 				    'div#shipment-' . $shipment_id => self::get_shipment_html( $shipment ),
 				    '.order-shipping-status'       => $order_shipment ? self::get_order_status_html( $order_shipment ) : '',
 				    '.order-return-status'         => $order_shipment ? self::get_order_return_status_html( $order_shipment ) : '',
-				    '.order_data_column p.wc-order-status' => $order_shipment ? self::get_global_order_status_html( $order_shipment->get_order() ) : '',
+				    '.order_data_column p.wc-order-status' => ! empty( $order_status_html ) ? $order_status_html['status'] : '',
+				    'input[name=post_status]'              => ! empty( $order_status_html ) ? $order_status_html['input'] : '',
 				    'tr#shipment-' . $shipment_id . ' td.actions .wc-gzd-shipment-action-button-generate-label' => self::label_download_button_html( $label ),
 			    ),
 		    );
@@ -857,10 +859,14 @@ class Ajax {
 	/**
 	 * @param \WC_Order $order
 	 *
-	 * @return string
+	 * @return string[]
 	 */
     private static function get_global_order_status_html( $order ) {
     	$old_status = $order->get_status();
+    	$result     = array(
+            'status' => '',
+            'input'  => '',
+        );
 
 	    /**
 	     * Load a clean instance to make sure order status updates are reflected.
@@ -871,7 +877,7 @@ class Ajax {
 	     * In case the current request has not changed the status do not return html
 	     */
     	if ( ! $order || $old_status === $order->get_status() ) {
-    		return '';
+    		return $result;
 	    }
     	ob_start();
     	?>
@@ -900,7 +906,10 @@ class Ajax {
 		<?php
 	    $html = ob_get_clean();
 
-	    return $html;
+	    $result['status'] = $html;
+	    $result['input']  = '<input name="post_status" type="hidden" value="' . esc_attr( 'wc-' . $order->get_status( 'edit' ) ) . '" />';
+
+	    return $result;
     }
 
 	private static function get_order_return_status_html( $order_shipment ) {
@@ -1013,15 +1022,19 @@ class Ajax {
 	    include( Package::get_path() . '/includes/admin/views/html-order-shipment-list.php' );
 	    $html = ob_get_clean();
 
+	    $order_status_html = self::get_global_order_status_html( $order_shipment->get_order() );
+
         $fragments = array(
-            '#order-shipments-list'  => $html,
-            '.order-shipping-status' => self::get_order_status_html( $order_shipment ),
-            '.order-return-status'   => self::get_order_return_status_html( $order_shipment ),
-            '.order_data_column p.wc-order-status' => self::get_global_order_status_html( $order_shipment->get_order() ),
+            '#order-shipments-list'                => $html,
+            '.order-shipping-status'               => self::get_order_status_html( $order_shipment ),
+            '.order-return-status'                 => self::get_order_return_status_html( $order_shipment ),
+            '.order_data_column p.wc-order-status' => $order_status_html['status'],
+            'input[name="post_status"]'            => $order_status_html['input'],
         );
 
         if ( empty( $fragments['.order_data_column p.wc-order-status'] ) ) {
         	unset( $fragments['.order_data_column p.wc-order-status'] );
+	        unset( $fragments['input[name="post_status"]'] );
         }
 
         return $fragments;

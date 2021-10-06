@@ -41,6 +41,7 @@ class ShipmentItem extends WC_Data {
 	    'subtotal'            => 0,
 	    'hs_code'             => '',
 	    'manufacture_country' => '',
+	    'attributes'          => array(),
     );
 
     /**
@@ -278,6 +279,21 @@ class ShipmentItem extends WC_Data {
 		return $prop;
 	}
 
+	/**
+	 * Get attributes.
+	 *
+	 * @return string[]
+	 */
+	public function get_attributes( $context = 'view' ) {
+		return $this->get_prop( 'attributes', $context );
+	}
+
+	public function has_attributes() {
+		$attributes = $this->get_attributes();
+
+		return ! empty( $attributes );
+	}
+
     /**
      * Get parent order object.
      *
@@ -355,6 +371,17 @@ class ShipmentItem extends WC_Data {
 		    $total        = is_callable( array( $item, 'get_total' ) ) ? ( (float) $item->get_total() / $item->get_quantity() ) * $args['quantity'] : 0;
 		    $subtotal     = is_callable( array( $item, 'get_subtotal' ) ) ? (float) $item->get_subtotal() / $item->get_quantity() * $args['quantity'] : 0;
 		    $tax_subtotal = is_callable( array( $item, 'get_subtotal_tax' ) ) ? (float) $item->get_subtotal_tax() / $item->get_quantity() * $args['quantity'] : 0;
+			$meta         = $item->get_formatted_meta_data( apply_filters( "{$this->get_hook_prefix()}hide_meta_prefix", '_', $this ), apply_filters( "{$this->get_hook_prefix()}include_all_meta", false, $this ) );
+			$attributes   = array();
+
+			foreach( $meta as $meta_id => $entry ) {
+				$attributes[] = array(
+					'key'                => $entry->key,
+					'value'              => str_replace( array( '<p>', '</p>' ), '', $entry->display_value ),
+					'label'              => $entry->display_key,
+					'order_item_meta_id' => $meta_id,
+				);
+			}
 
 		    $args = wp_parse_args( $args, array(
 			    'order_item_id'       => $item->get_id(),
@@ -369,6 +396,7 @@ class ShipmentItem extends WC_Data {
 			    'height'              => $product ? wc_get_dimension( $product->get_height(), $shipment->get_dimension_unit() ) : '',
 			    'hs_code'             => $s_product ? $s_product->get_hs_code() : '',
 			    'manufacture_country' => $s_product ? $s_product->get_manufacture_country() : '',
+			    'attributes'          => $attributes
 		    ) );
 	    }
 
@@ -550,6 +578,15 @@ class ShipmentItem extends WC_Data {
 
 	public function set_manufacture_country( $country ) {
 		$this->set_prop( 'manufacture_country', wc_strtoupper( $country ) );
+	}
+
+	/**
+	 * Set attributes
+	 *
+	 * @param $attributes
+	 */
+	public function set_attributes( $attributes ) {
+		$this->set_prop( 'attributes', (array) $attributes );
 	}
 
     /*

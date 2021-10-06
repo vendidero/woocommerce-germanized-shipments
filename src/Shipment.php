@@ -783,12 +783,11 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @return string
 	 */
-	public function get_tracking_instruction() {
+	public function get_tracking_instruction( $plain = false ) {
 		$instruction = '';
 
 		if ( $provider = $this->get_shipping_provider_instance() ) {
-			// $instruction = sprintf( _x( 'Your shipment is being processed by %s. If you want to track the shipment, please use the following tracking number: %s. Depending on the chosen shipping method it is possible that the tracking data does not reflect the current status when receiving this email.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_provider_title( $this->get_shipping_provider() ), $this->get_tracking_id() );
-			$instruction = $provider->get_tracking_desc( $this );
+			$instruction = $provider->get_tracking_desc( $this, $plain );
 		}
 
 		/**
@@ -814,7 +813,7 @@ abstract class Shipment extends WC_Data {
 	 * @return boolean
 	 */
 	public function has_tracking_instruction() {
-    	$instruction = $this->get_tracking_instruction();
+    	$instruction = $this->get_tracking_instruction( true );
 
     	return ( ! empty( $instruction ) ) ? true : false;
 	}
