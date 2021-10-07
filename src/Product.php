@@ -49,7 +49,9 @@ class Product {
 
 	protected function get_forced_parent_product() {
 		if ( $this->product->is_type( 'variation' ) ) {
-			return wc_get_product( $this->product->get_parent_id() );
+			if ( $parent = wc_get_product( $this->product->get_parent_id() ) ) {
+				return $parent;
+			}
 		}
 
 		return $this->product;
