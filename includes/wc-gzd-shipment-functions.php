@@ -625,8 +625,10 @@ function wc_gzd_get_shipment_editable_statuses() {
 
 function wc_gzd_split_shipment_street( $streetStr ) {
 	$return = array(
-		'street' => $streetStr,
-		'number' => '',
+		'street'     => $streetStr,
+		'number'     => '',
+		'addition'   => '',
+		'addition_2' => '',
 	);
 
 	try {
