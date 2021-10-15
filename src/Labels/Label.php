@@ -816,12 +816,16 @@ class Label extends WC_Data implements ShipmentLabel {
 			'shipment_id'                   => $shipment->get_id(),
 			'additional_fee'                => wc_format_decimal( $shipment->get_additional_total(), 2 ),
 			'export_type_description'       => $item_description,
-			'place_of_commital'             => $shipment->get_country(),
+			'place_of_commital'             => $shipment->get_sender_city(),
+			// e.g. EORI number
+			'sender_customs_ref_number'     => $shipment->get_sender_customs_reference_number(),
+			'receiver_customs_ref_number'   => $shipment->get_customs_reference_number(),
 			'items'                         => $customs_items,
 			'item_total_weight_in_kg'       => $total_weight,
 			'item_total_gross_weight_in_kg' => $total_gross_weight,
 			'item_total_value'              => $total_value,
-			'currency'                      => $order ? $order->get_currency() : get_woocommerce_currency()
+			'currency'                      => $order ? $order->get_currency() : get_woocommerce_currency(),
+			'invoice_number'                => '',
 		), $this, $shipment );
 
 		return $customs_data;

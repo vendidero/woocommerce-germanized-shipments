@@ -775,17 +775,18 @@ function wc_gzd_shipments_upload_data( $filename, $bits, $relative = true ) {
  */
 function wc_gzd_get_shipment_return_address( $shipment_order ) {
 	$address_fields = array(
-		'first_name' => '',
-		'last_name'  => '',
-		'company'    => '',
-		'address_1'  => '',
-		'address_2'  => '',
-		'postcode'   => '',
-		'city'       => '',
-		'country'    => '',
-		'state'      => '',
-		'phone'      => '',
-		'email'      => '',
+		'first_name'               => '',
+		'last_name'                => '',
+		'company'                  => '',
+		'address_1'                => '',
+		'address_2'                => '',
+		'postcode'                 => '',
+		'city'                     => '',
+		'country'                  => '',
+		'state'                    => '',
+		'phone'                    => '',
+		'email'                    => '',
+		'customs_reference_number' => '',
 	);
 
 	foreach( $address_fields as $prop => $default_value ) {

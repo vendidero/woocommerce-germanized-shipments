@@ -291,7 +291,8 @@ class Package {
 					'AX*', // Åland Islands
 				),
 				'CY' => array(
-					'99*', // Northern Cyprus
+					'9*', // Northern Cyprus
+					'5*' // Northern Cyprus
 				),
 			);
 

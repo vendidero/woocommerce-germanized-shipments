@@ -401,6 +401,10 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $this->get_address_prop( 'city' );
 	}
 
+	public function get_shipper_customs_reference_number() {
+		return $this->get_address_prop( 'customs_reference_number' );
+	}
+
 	public function get_shipper_country() {
 		$country_data = wc_format_country_state_string( $this->get_address_prop( 'country' ) );
 

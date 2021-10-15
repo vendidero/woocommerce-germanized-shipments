@@ -277,6 +277,14 @@ class Settings {
 				'default'           => get_option( 'woocommerce_email_from_address' ),
 			),
 
+			array(
+				'title'             => _x( 'Customs reference number', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_customs_reference_number',
+				'default'           => '',
+				'desc_tip'          => _x( 'Your customs reference number, e.g. EORI number', 'shipments', 'woocommerce-germanized-shipments' )
+			),
+
 			array( 'type' => 'sectionend', 'id' => 'shipments_shipper_address' ),
 
 			array( 'title' => _x( 'Return Address', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_return_address' ),
@@ -360,6 +368,15 @@ class Settings {
 				'id' 		        => 'woocommerce_gzd_shipments_return_address_email',
 				'default'           => '',
 				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_email' )
+			),
+
+			array(
+				'title'             => _x( 'Customs reference number', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'text',
+				'id' 		        => 'woocommerce_gzd_shipments_return_address_customs_reference_number',
+				'default'           => '',
+				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_customs_reference_number' ),
+				'desc_tip'          => _x( 'Your customs reference number, e.g. EORI number', 'shipments', 'woocommerce-germanized-shipments' )
 			),
 
 			array( 'type' => 'sectionend', 'id' => 'shipments_return_address' ),
