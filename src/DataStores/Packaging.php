@@ -492,9 +492,12 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 	public function find_available_packaging_for_shipment( $shipment ) {
 		$packaging_available = array();
 		$items_to_pack       = $shipment->get_items_to_pack();
+		$results             = false;
 
 		// Get from cache if available.
-		$results = wp_cache_get( 'available-packaging-' . $shipment->get_id(), 'shipments' );
+		if ( $shipment->get_id() > 0 ) {
+			$results = wp_cache_get( 'available-packaging-' . $shipment->get_id(), 'shipments' );
+		}
 
 		if ( false === $results && sizeof( $items_to_pack ) > 0 ) {
 			$available_packaging_ids = array();
