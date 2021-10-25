@@ -61,6 +61,11 @@ class Simple extends WC_Data implements ShippingProvider {
 		'tracking_desc_placeholder'  => '',
 	);
 
+	protected $address_data = array(
+		'shipper' => null,
+		'return'  => null,
+	);
+
 	/**
 	 * Get the provider if ID is passed. In case it is an integration, data will be provided through the impl.
 	 * This class should NOT be instantiated, but the `wc_gzd_get_shipping_provider` function should be used.
@@ -326,15 +331,22 @@ class Simple extends WC_Data implements ShippingProvider {
 		return empty( $instructions ) ? false : true;
 	}
 
-	public function get_address_prop( $prop, $type = 'shipper' ) {
-		$key   = "woocommerce_gzd_shipments_{$type}_address_{$prop}";
-		$value = get_option( $key, '' );
-
-		if ( 'return' === $type && '' === $value ) {
-			$value = get_option( "woocommerce_gzd_shipments_shipper_address_{$prop}" );
+	protected function get_address_props( $address_type = 'shipper' ) {
+		if ( is_null( $this->address_data[ $address_type ] ) ) {
+			$this->address_data[ $address_type ] = wc_gzd_get_shipment_setting_address_fields( $address_type );
 		}
 
-		return $value;
+		return $this->address_data[ $address_type ];
+	}
+
+	public function get_shipper_address_data() {
+		return $this->get_address_props( 'shipper' );
+	}
+
+	public function get_address_prop( $prop, $type = 'shipper' ) {
+		$address_fields = $this->get_address_props( $type );
+
+		return array_key_exists( $prop, $address_fields ) ? $address_fields[ $prop ] : '';
 	}
 
 	public function get_shipper_email() {
@@ -362,7 +374,7 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	public function get_shipper_formatted_full_name() {
-		return sprintf( _x( '%1$s %2$s', 'full name', 'woocommerce-germanized-shipments' ), $this->get_shipper_first_name(), $this->get_shipper_last_name() );
+		return $this->get_address_prop( 'full_name' );
 	}
 
 	public function get_shipper_company() {
@@ -382,15 +394,11 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	public function get_shipper_street() {
-		$split = wc_gzd_split_shipment_street( $this->get_shipper_address() );
-
-		return $split['street'];
+		return $this->get_address_prop( 'street' );
 	}
 
 	public function get_shipper_street_number() {
-		$split = wc_gzd_split_shipment_street( $this->get_shipper_address() );
-
-		return $split['number'];
+		return $this->get_address_prop( 'street_number' );
 	}
 
 	public function get_shipper_postcode() {
@@ -417,6 +425,10 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $country_data['state'];
 	}
 
+	public function get_return_address_data() {
+		return $this->get_address_props( 'return' );
+	}
+
 	public function get_return_first_name() {
 		return $this->get_address_prop( 'first_name', 'return' );
 	}
@@ -434,7 +446,7 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	public function get_return_formatted_full_name() {
-		return sprintf( _x( '%1$s %2$s', 'full name', 'woocommerce-germanized-shipments' ), $this->get_return_first_name(), $this->get_return_last_name() );
+		return $this->get_address_prop( 'full_name', 'return' );
 	}
 
 	public function get_return_address() {
@@ -446,15 +458,11 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	public function get_return_street() {
-		$split = wc_gzd_split_shipment_street( $this->get_return_address() );
-
-		return $split['street'];
+		return $this->get_address_prop( 'street', 'return' );
 	}
 
 	public function get_return_street_number() {
-		$split = wc_gzd_split_shipment_street( $this->get_return_address() );
-
-		return $split['number'];
+		return $this->get_address_prop( 'street_number', 'return' );
 	}
 
 	public function get_return_postcode() {

@@ -202,185 +202,108 @@ class Settings {
 		return $settings;
 	}
 
+	public static function get_address_label_by_prop( $prop, $type = 'shipper' ) {
+	    $label  = '';
+	    $fields = wc_gzd_get_shipment_setting_default_address_fields( $type );
+
+	    if ( array_key_exists( $prop, $fields ) ) {
+	        $label = $fields[ $prop ];
+	    }
+
+	    return $label;
+	}
+
+	protected static function get_address_field_type_by_prop( $prop ) {
+	    $type = 'text';
+
+	    if ( 'country' === $prop ) {
+	        $type = 'single_select_country';
+	    }
+
+	    return $type;
+	}
+
+	protected static function get_address_desc_by_prop( $prop ) {
+	    $desc = false;
+
+	    if ( 'customs_reference_number' === $prop ) {
+	        $desc = _x( 'Your customs reference number, e.g. EORI number', 'shipments', 'woocommerce-germanized-shipments' );
+	    }
+
+	    return $desc;
+	}
+
+	protected static function get_address_fields_to_skip() {
+	    return array( 'state', 'street', 'street_number', 'full_name' );
+	}
+
 	protected static function get_address_settings() {
+	    $shipper_fields = wc_gzd_get_shipment_setting_address_fields( 'shipper' );
+	    $return_fields  = wc_gzd_get_shipment_setting_address_fields( 'return' );
+
 		$settings = array(
             array( 'title' => _x( 'Shipper Address', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_shipper_address' ),
+        );
 
-			array(
-				'title'             => _x( 'First Name', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_first_name',
-				'default'           => '',
-			),
+		// Use WooCommerce address data as fallback/default data on install
+		$default_shipper_address_data = array(
+			'company'   => get_option( 'name' ),
+			'address_1' => get_option( 'woocommerce_store_address' ),
+			'address_2' => get_option( 'woocommerce_store_address_2' ),
+			'city'      => get_option( 'woocommerce_store_city' ),
+			'postcode'  => get_option( 'woocommerce_store_postcode' ),
+			'email'     => get_option( 'woocommerce_email_from_address' ),
+			'country'   => get_option( 'woocommerce_default_country' ),
+		);
 
-			array(
-				'title'             => _x( 'Last Name', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_last_name',
-				'default'           => '',
-			),
+		foreach( $shipper_fields as $field => $value ) {
+		    if ( in_array( $field, self::get_address_fields_to_skip() ) ) {
+		        continue;
+		    }
 
-			array(
-				'title'             => _x( 'Company', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_company',
-				'default'           => get_bloginfo( 'name' ),
-			),
+		    $default_value = '';
 
-			array(
-				'title'             => _x( 'Address 1', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_address_1',
-				'default'           => get_option( 'woocommerce_store_address' ),
-			),
+		    if ( array_key_exists( $field, $default_shipper_address_data ) ) {
+		        $default_value = $default_shipper_address_data[ $field ];
+		    }
 
-			array(
-				'title'             => _x( 'Address 2', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_address_2',
-				'default'           => get_option( 'woocommerce_store_address_2' ),
-			),
+		    $settings = array_merge( $settings, array(
+                array(
+                    'title'             => self::get_address_label_by_prop( $field ),
+                    'type'              => self::get_address_field_type_by_prop( $field ),
+                    'id' 		        => "woocommerce_gzd_shipments_shipper_address_{$field}",
+                    'default'           => $default_value,
+                    'desc_tip'          => self::get_address_desc_by_prop( $field ),
+                ),
+		    ) );
+		}
 
-			array(
-				'title'             => _x( 'City', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_city',
-				'default'           => get_option( 'woocommerce_store_city' ),
-			),
-
-			array(
-				'title'             => _x( 'Country / State', 'shipments', 'woocommerce-germanized-shipments' ),
-				'id'                => 'woocommerce_gzd_shipments_shipper_address_country',
-				'default'           => get_option( 'woocommerce_default_country' ),
-				'type'              => 'single_select_country',
-				'desc_tip'          => true,
-			),
-
-			array(
-				'title'             => _x( 'Postcode', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_postcode',
-				'default'           => get_option( 'woocommerce_store_postcode' ),
-			),
-
-			array(
-				'title'             => _x( 'Phone', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_phone',
-				'default'           => '',
-			),
-
-			array(
-				'title'             => _x( 'Email', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_email',
-				'default'           => get_option( 'woocommerce_email_from_address' ),
-			),
-
-			array(
-				'title'             => _x( 'Customs reference number', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_shipper_address_customs_reference_number',
-				'default'           => '',
-				'desc_tip'          => _x( 'Your customs reference number, e.g. EORI number', 'shipments', 'woocommerce-germanized-shipments' )
-			),
-
-			array( 'type' => 'sectionend', 'id' => 'shipments_shipper_address' ),
+        $settings = array_merge( $settings, array(
+            array( 'type' => 'sectionend', 'id' => 'shipments_shipper_address' ),
 
 			array( 'title' => _x( 'Return Address', 'shipments', 'woocommerce-germanized-shipments' ), 'type' => 'title', 'id' => 'shipments_return_address' ),
+        ) );
 
-			array(
-				'title'             => _x( 'First Name', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_first_name',
-				'default'           => '',
-				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_first_name' )
-			),
+		foreach( $return_fields as $field => $value ) {
+		    if ( in_array( $field, self::get_address_fields_to_skip() ) ) {
+		        continue;
+		    }
 
-			array(
-				'title'             => _x( 'Last Name', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_last_name',
-				'default'           => '',
-				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_last_name' )
-			),
+		    $settings = array_merge( $settings, array(
+                array(
+                    'title'             => self::get_address_label_by_prop( $field ),
+                    'type'              => self::get_address_field_type_by_prop( $field ),
+                    'id' 		        => "woocommerce_gzd_shipments_return_address_{$field}",
+                    'default'           => '',
+                    'placeholder'       => $value,
+                    'desc_tip'          => self::get_address_desc_by_prop( $field ),
+                ),
+		    ) );
+		}
 
-			array(
-				'title'             => _x( 'Company', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_company',
-				'default'           => '',
-				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_company' )
-			),
-
-			array(
-				'title'             => _x( 'Address 1', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_address_1',
-				'default'           => '',
-				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_address_1' )
-			),
-
-			array(
-				'title'             => _x( 'Address 2', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_address_2',
-				'default'           => '',
-				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_address_2' )
-			),
-
-			array(
-				'title'             => _x( 'City', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_city',
-				'default'           => '',
-				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_city' )
-			),
-
-			array(
-				'title'             => _x( 'Country / State', 'shipments', 'woocommerce-germanized-shipments' ),
-				'id'                => 'woocommerce_gzd_shipments_return_address_country',
-				'default'           => '',
-				'type'              => 'single_select_country',
-				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_country' ),
-				'desc_tip'          => true,
-			),
-
-			array(
-				'title'             => _x( 'Postcode', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_postcode',
-				'default'           => '',
-				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_postcode' )
-			),
-
-			array(
-				'title'             => _x( 'Phone', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_phone',
-				'default'           => '',
-				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_phone' )
-			),
-
-			array(
-				'title'             => _x( 'Email', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_email',
-				'default'           => '',
-				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_email' )
-			),
-
-			array(
-				'title'             => _x( 'Customs reference number', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'id' 		        => 'woocommerce_gzd_shipments_return_address_customs_reference_number',
-				'default'           => '',
-				'placeholder'       => get_option( 'woocommerce_gzd_shipments_shipper_address_customs_reference_number' ),
-				'desc_tip'          => _x( 'Your customs reference number, e.g. EORI number', 'shipments', 'woocommerce-germanized-shipments' )
-			),
-
-			array( 'type' => 'sectionend', 'id' => 'shipments_return_address' ),
-		);
+        $settings = array_merge( $settings, array(
+            array( 'type' => 'sectionend', 'id' => 'shipments_return_address' ),
+        ) );
 
 		return $settings;
 	}

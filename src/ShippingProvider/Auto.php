@@ -256,7 +256,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'desc' 		        => _x( 'Mark shipment as shipped after label has been created successfully.', 'shipments', 'woocommerce-germanized-shipments' ),
 				'id' 		        => 'label_auto_shipment_status_shipped',
 				'type' 		        => 'gzd_toggle',
-				'custom_attributes'	=> array( 'data-show_if_label_auto_enable' => '' ),
 				'value'             => wc_bool_to_string( $this->get_setting( 'label_auto_shipment_status_shipped' ) ),
 			),
 		) );
