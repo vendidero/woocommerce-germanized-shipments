@@ -134,6 +134,10 @@ install_deps() {
 		BRANCH=$WOO_VERSION
 	fi
 
+	# make sure paths are reset/cleared
+    rm -rf "$WP_CORE_DIR/wp-content/plugins/woocommerce"
+    rm -rf $TMPDIR/$FILE
+
 	download https://downloads.wordpress.org/plugin/$FILE "$TMPDIR/$FILE"
 	unzip -q $TMPDIR/$FILE -d "$WP_CORE_DIR/wp-content/plugins"
 
