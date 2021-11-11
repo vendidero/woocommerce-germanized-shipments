@@ -3,7 +3,7 @@ FROM wordpress:latest
 CMD echo "Installing dependencies..."
 
 RUN apt-get update && \
-	apt-get -y install subversion unzip wget git-all
+	apt-get -y install subversion unzip wget git
 
 CMD echo "Installing tests..."
 
