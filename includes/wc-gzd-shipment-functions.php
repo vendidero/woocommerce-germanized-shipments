@@ -231,13 +231,24 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 	return apply_filters( 'woocommerce_gzd_shipping_provider_method_fallback', $placeholder, $original_id );
 }
 
-function wc_gzd_get_current_shipping_provider_method() {
+/**
+ * Returns the current shipping method rate id.
+ *
+ * @return false|string
+ */
+function wc_gzd_get_current_shipping_method_id() {
 	$chosen_shipping_methods = WC()->session ? WC()->session->get( 'chosen_shipping_methods' ) : array();
 
 	if ( ! empty( $chosen_shipping_methods ) ) {
-		$method = wc_gzd_get_shipping_provider_method( $chosen_shipping_methods[0] );
+		return reset( $chosen_shipping_methods );
+	}
 
-		return $method;
+	return false;
+}
+
+function wc_gzd_get_current_shipping_provider_method() {
+	if ( $current = wc_gzd_get_current_shipping_method_id() ) {
+		return wc_gzd_get_shipping_provider_method( $current );
 	}
 
 	return false;
