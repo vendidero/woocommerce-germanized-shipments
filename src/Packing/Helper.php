@@ -8,6 +8,11 @@ class Helper {
 
 	protected static $packaging = null;
 
+	/**
+	 * @param false $id
+	 *
+	 * @return PackagingBox[]|boolean|PackagingBox
+	 */
 	public static function get_available_packaging( $id = false ) {
 		if ( is_null( self::$packaging ) ) {
 			self::$packaging = array();

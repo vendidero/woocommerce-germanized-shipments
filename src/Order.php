@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments;
 use Exception;
+use Vendidero\Germanized\Shipments\Packing\OrderItem;
 use WC_DateTime;
 use DateTimeZone;
 use WC_Order;
@@ -465,12 +466,16 @@ class Order {
 		return apply_filters( 'woocommerce_gzd_shipment_order_item_quantity_left_for_returning', $quantity_left, $order_item_id, $this );
 	}
 
+	/**
+	 * @param false $group_by_shipping_class
+	 *
+	 * @return OrderItem[]
+	 */
 	public function get_items_to_pack_left_for_shipping( $group_by_shipping_class = false ) {
 		$items              = $this->get_available_items_for_shipment();
 		$items_to_be_packed = array();
 
 		foreach( $items as $order_item_id => $item ) {
-
 			if ( ! $order_item = $this->get_order()->get_item( $order_item_id ) ) {
 				continue;
 			}

@@ -89,14 +89,21 @@ abstract class Shipment extends WC_Data {
 	/**
 	 * Item widths.
 	 *
-	 * @var null|integer[]
+	 * @var null|float[]
 	 */
 	protected $widths = null;
 
 	/**
+	 * Item volumes.
+	 *
+	 * @var null|float[]
+	 */
+	protected $volumes = null;
+
+	/**
 	 * Item heights.
 	 *
-	 * @var null|integer[]
+	 * @var null|float[]
 	 */
 	protected $heights = null;
 
@@ -589,6 +596,25 @@ abstract class Shipment extends WC_Data {
         return $this->lengths;
     }
 
+	public function get_item_volumes() {
+		if ( is_null( $this->volumes ) ) {
+			$this->volumes = array();
+
+			foreach( $this->get_items() as $item ) {
+				$dimensions = $item->get_dimensions();
+				$volume     = ( '' !== $dimensions['length'] ? (float) $dimensions['length'] : 0 ) * ( '' !== $dimensions['width'] ? (float) $dimensions['width'] : 0 ) * ( '' !== $dimensions['height'] ? (float) $dimensions['height'] : 0 );
+
+				$this->volumes[ $item->get_id() ] = $volume * (float) $item->get_quantity();
+			}
+
+			if ( empty( $this->volumes ) ) {
+				$this->volumes = array( 0 );
+			}
+		}
+
+		return $this->volumes;
+	}
+
 	/**
 	 * Returns the calculated widths for included items.
 	 *
@@ -661,6 +687,17 @@ abstract class Shipment extends WC_Data {
 
 	    return wc_format_decimal( $default, false, true );
     }
+
+	/**
+	 * Returns the calculated volume for included items.
+	 *
+	 * @return float
+	 */
+	public function get_content_volume() {
+		$default = array_sum( $this->get_item_volumes() );
+
+		return wc_format_decimal( $default, false, true );
+	}
 
 	/**
 	 * Returns the calculated height for included items.
@@ -2027,6 +2064,7 @@ abstract class Shipment extends WC_Data {
         $this->lengths = null;
         $this->widths  = null;
         $this->heights = null;
+	    $this->volumes = null;
     }
 
     /**

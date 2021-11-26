@@ -486,6 +486,40 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 
 	/**
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 * @param \Vendidero\Germanized\Shipments\Packaging|PackagingBox $packaging
+	 *
+	 * @return bool
+	 */
+	public function shipment_fits_into_packaging_naive( $shipment, $packaging ) {
+		if ( is_a( $packaging, '\Vendidero\Germanized\Shipments\Packing\PackagingBox' ) ) {
+			$packaging = $packaging->getReference();
+		}
+
+		if ( ! $packaging ) {
+			return false;
+		}
+
+		$weight           = (float) wc_format_decimal( empty( $shipment->get_content_weight() ) ? 0 : wc_get_weight( $shipment->get_content_weight(), wc_gzd_get_packaging_weight_unit(), $shipment->get_weight_unit() ), 1 );
+		$volume           = (float) wc_format_decimal( empty( $shipment->get_content_volume() ) ? 0 : wc_get_dimension( $shipment->get_content_volume(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );
+		$fits             = true;
+		$packaging_volume = (float) $packaging->get_length() * (float) $packaging->get_width() * (float) $packaging->get_height();
+
+		/**
+		 * The packaging does not fit in case:
+		 * - total weight is greater than it's maximum capability
+		 * - the total volume is greater than the packaging volume
+		 */
+		if ( ! empty( $packaging->get_max_content_weight() ) && $weight > $packaging->get_max_content_weight() ) {
+			$fits = false;
+		} elseif ( $volume > $packaging_volume ) {
+			$fits = false;
+		}
+
+		return $fits;
+	}
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 *
 	 * @return \Vendidero\Germanized\Shipments\Packaging[]
 	 */
@@ -507,8 +541,15 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 				$items          = \DVDoug\BoxPacker\ItemList::fromArray( $items_to_pack );
 
 				foreach( $packaging_list as $packaging ) {
-					$box           = new PackagingBox( $packaging );
-					$org_size      = sizeof( $items_to_pack );
+					/**
+					 * Make sure to only check naively fitting packaging to improve performance
+					 */
+					if ( ! $this->shipment_fits_into_packaging_naive( $shipment, $packaging ) ) {
+						continue;
+					}
+
+					$box      = new PackagingBox( $packaging );
+					$org_size = sizeof( $items_to_pack );
 
 					$packer = new VolumePacker( $box, $items );
 					$packed = $packer->pack();
