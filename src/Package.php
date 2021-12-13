@@ -689,4 +689,14 @@ class Package {
 
 		return $store_address['number'];
 	}
+
+	public static function is_valid_datetime( $maybe_datetime, $format = 'Y-m-d' ) {
+		if ( ! is_a( $maybe_datetime, 'DateTime' && ! is_numeric( $maybe_datetime ) ) ) {
+			if ( ! \DateTime::createFromFormat( $format, $maybe_datetime ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 }

@@ -258,6 +258,11 @@ class ReturnShipment extends Shipment {
 			$provider                  = $this->get_shipping_provider( 'edit' );
 			$sender_address_data       = array_merge( ( $order->has_shipping_address() ? $order->get_address( 'shipping' ) : $order->get_address( 'billing' ) ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) );
 
+			// Prefer shipping phone in case exists
+			if ( is_callable( array( $order, 'get_shipping_phone' ) ) && $order->get_shipping_phone() ) {
+				$sender_address_data['phone'] = $order->get_shipping_phone();
+			}
+
 			$args = wp_parse_args( $args, array(
 				'order_id'          => $order->get_id(),
 				'country'           => $return_address['country'],

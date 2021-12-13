@@ -136,6 +136,11 @@ class SimpleShipment extends Shipment {
 			$provider                  = $this->get_shipping_provider( 'edit' );
 			$address_data              = array_merge( ( $order->has_shipping_address() ? $order->get_address( 'shipping' ) : $order->get_address( 'billing' ) ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) );
 
+			// Prefer shipping phone in case exists
+			if ( is_callable( array( $order, 'get_shipping_phone' ) ) && $order->get_shipping_phone() ) {
+				$address_data['phone'] = $order->get_shipping_phone();
+ 			}
+
 			/**
 			 * Fix to make sure that we are not syncing formatted customer titles (e.g. Herr)
 			 * which prevents shipment addresses from being translated.

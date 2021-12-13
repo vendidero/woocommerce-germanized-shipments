@@ -470,6 +470,11 @@ class Settings {
 				woocommerce_wp_textarea_input( $setting );
 			} elseif( 'text' === $setting['type'] ) {
 				woocommerce_wp_text_input( $setting );
+			} elseif( 'date' === $setting['type'] ) {
+                $setting['class'] = 'datepicker';
+                $setting['type']  = 'date';
+
+				woocommerce_wp_text_input( $setting );
 			} elseif( 'number' === $setting['type'] ) {
 				woocommerce_wp_text_input( $setting );
 			} elseif( 'services_start' === $setting['type'] ) {
