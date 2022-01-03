@@ -198,7 +198,7 @@ class Validation {
 		 * prevent singular order item hooks from executing to prevent multiple shipment validation requests
 		 * which will execute on order save hook as well.
 		 */
-		if ( ! $is_admin_order_save_request && is_ajax() && isset( $_REQUEST['action'] ) && isset( $_REQUEST['order_id'] ) && strpos( $_REQUEST['action'], 'woocommerce_' ) !== false ) {
+		if ( ! $is_admin_order_save_request && wp_doing_ajax() && isset( $_REQUEST['action'] ) && isset( $_REQUEST['order_id'] ) && strpos( $_REQUEST['action'], 'woocommerce_' ) !== false ) {
 			$is_admin_order_save_request = true;
 		}
 
