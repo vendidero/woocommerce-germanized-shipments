@@ -122,4 +122,17 @@ class Functions extends WC_Unit_Test_Case {
 		$this->assertEquals( '+4912356', $return_address['phone'] );
 		$this->assertEquals( '123456789', $return_address['customs_reference_number'] );
 	}
+
+	function test_wc_gzd_test_get_volume_dimension() {
+		$this->assertEquals( 1, wc_gzd_get_volume_dimension( 1000, 'cm', 'mm' ) );
+		$this->assertEquals( 1000, wc_gzd_get_volume_dimension( 1, 'mm', 'cm' ) );
+		$this->assertEquals( 0.000001, wc_gzd_get_volume_dimension( 1000, 'm', 'mm' ) );
+		$this->assertEquals( 1000, wc_gzd_get_volume_dimension( 0.000001, 'mm', 'm' ) );
+
+		$this->assertEquals( 1500, wc_gzd_get_volume_dimension( 1.5, 'mm', 'cm' ) );
+
+		$this->assertEquals( 1000, wc_gzd_get_volume_dimension( 1000, 'cm', 'cm' ) );
+		$this->assertEquals( 1000, wc_gzd_get_volume_dimension( 1000, 'mm', 'mm' ) );
+		$this->assertEquals( 1000, wc_gzd_get_volume_dimension( 1000, 'm', 'm' ) );
+	}
 }

@@ -1412,3 +1412,35 @@ function wc_gzd_shipments_get_product( $the_product ) {
 		return false;
 	}
 }
+
+function wc_gzd_get_volume_dimension( $dimension, $to_unit, $from_unit = '' ) {
+	$to_unit = strtolower( $to_unit );
+
+	if ( empty( $from_unit ) ) {
+		$from_unit = strtolower( get_option( 'woocommerce_dimension_unit' ) );
+	}
+
+	// Unify all units to cm first.
+	if ( $from_unit !== $to_unit ) {
+		switch ( $from_unit ) {
+			case 'm':
+				$dimension *= 1000000;
+				break;
+			case 'mm':
+				$dimension *= 0.001;
+				break;
+		}
+
+		// Output desired unit.
+		switch ( $to_unit ) {
+			case 'm':
+				$dimension *= 0.000001;
+				break;
+			case 'mm':
+				$dimension *= 1000;
+				break;
+		}
+	}
+
+	return ( $dimension < 0 ) ? 0 : $dimension;
+}

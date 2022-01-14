@@ -1015,7 +1015,7 @@ class Table extends WP_List_Table {
      * @param Shipment $shipment The current shipment object.
      */
     public function column_weight( $shipment ) {
-        echo wc_gzd_format_shipment_weight( $shipment->get_weight(), $shipment->get_weight_unit() );
+        echo wc_gzd_format_shipment_weight( $shipment->get_total_weight(), $shipment->get_weight_unit() );
     }
 
 	/**
