@@ -91,7 +91,7 @@ class Order {
             $status = 'shipped';
         }
 
-        return $status;
+        return apply_filters( "woocommerce_gzd_shipment_order_shipping_status", $status, $this );
     }
 
     public function has_shipped_shipments() {
