@@ -7,7 +7,7 @@ use Vendidero\Germanized\Shipments\Tests\Helpers\PackagingHelper;
  * Class WC_Tests_Install.
  * @package WooCommerce\Tests\Util
  */
-class Shipment extends WC_Unit_Test_Case {
+class Shipment extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTestCase {
 
 	function test_shipment_weight() {
 		$shipment = new \Vendidero\Germanized\Shipments\SimpleShipment();

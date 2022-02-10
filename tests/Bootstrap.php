@@ -180,12 +180,11 @@ class Bootstrap {
 		// Start up the WP testing environment.
 		require_once $this->wp_tests_dir . '/includes/bootstrap.php';
 
-		// WooCommerce Core Testing Framework.
-		require_once $this->wc_tests_dir . '/framework/class-wc-unit-test-factory.php';
-		require_once $this->wc_tests_dir . '/framework/vendor/class-wp-test-spy-rest-server.php';
-		require_once $this->wc_tests_dir . '/includes/wp-http-testcase.php';
-		require_once $this->wc_tests_dir . '/framework/class-wc-unit-test-case.php';
-		require_once $this->wc_tests_dir . '/framework/class-wc-rest-unit-test-case.php';
+		require_once $this->tests_dir . '/Framework/UnitTestCase.php';
+		require_once $this->tests_dir . '/Framework/UnitTestFactory.php';
+		require_once $this->tests_dir . '/Framework/UnitRestTestCase.php';
+		require_once $this->tests_dir . '/Framework/vendor/class-wp-test-spy-rest-server.php';
+
 		require_once $this->wc_tests_dir . '/framework/helpers/class-wc-helper-order.php';
 		require_once $this->wc_tests_dir . '/framework/helpers/class-wc-helper-product.php';
 		require_once $this->wc_tests_dir . '/framework/helpers/class-wc-helper-shipping.php';

@@ -7,7 +7,7 @@ use Vendidero\Germanized\Shipments\Tests\Helpers\PackagingHelper;
  * Class WC_Tests_Install.
  * @package WooCommerce\Tests\Util
  */
-class Functions extends WC_Unit_Test_Case {
+class Functions extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTestCase {
 
 	function test_wc_gzd_get_shipment() {
 		$shipment = ShipmentHelper::create_simple_shipment();
