@@ -48,26 +48,45 @@ class FormHandler {
 		return $success_message;
 	}
 
+	/**
+	 * Parses a string and finds the longest, contiguous number which is assumed to be the order id.
+	 *
+	 * @param $order_id_str
+	 *
+	 * @return string
+	 */
+	public static function get_order_id_from_string( $order_id_str ) {
+		$order_id_parsed = trim( preg_replace( '/[^0-9]/', '_', $order_id_str ) );
+		$order_id_comp   = explode( '_', $order_id_parsed );
+
+		usort( $order_id_comp, function ( $a, $b ) {
+			return strlen( $a ) < strlen( $b );
+		});
+
+		// Prefer longer, contiguous order numbers
+		$order_id = reset($order_id_comp );
+
+		return apply_filters( "woocommerce_gzd_return_request_order_id_from_string", $order_id, $order_id_str );
+	}
+
 	public static function process_return_request() {
 		$nonce_value = isset( $_REQUEST['woocommerce-gzd-return-request-nonce'] ) ? $_REQUEST['woocommerce-gzd-return-request-nonce'] : ''; // @codingStandardsIgnoreLine.
 
 		if ( isset( $_POST['return_request'], $_POST['email'], $_POST['order_id'] ) && wp_verify_nonce( $nonce_value, 'woocommerce-gzd-return-request' ) ) {
-
 			try {
-
 				$email            = sanitize_email( $_POST['email'] );
 				$order_id         = wc_clean( $_POST['order_id'] );
+				$order_id_parsed  = self::get_order_id_from_string( $order_id );
 				$db_order_id      = false;
 				$orders           = wc_get_orders( apply_filters( 'woocommerce_gzd_return_request_order_query_args', array(
 					'billing_email' => $email,
-					'post__in'      => array( $order_id ),
+					'post__in'      => array( $order_id_parsed ),
 					'limit'         => 1,
 					'return'        => 'ids'
 				) ) );
 
 				// Now lets try to find the order by a custom order number
 				if ( empty( $orders ) ) {
-
 					$orders = new WP_Query( apply_filters( 'woocommerce_gzd_return_request_order_query_args', array(
 						'post_type'   => 'shop_order',
 						'post_status' => 'any',

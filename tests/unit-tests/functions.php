@@ -135,4 +135,10 @@ class Functions extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTest
 		$this->assertEquals( 1000, wc_gzd_get_volume_dimension( 1000, 'mm', 'mm' ) );
 		$this->assertEquals( 1000, wc_gzd_get_volume_dimension( 1000, 'm', 'm' ) );
 	}
+
+	function test_wc_gzd_get_order_id_from_string() {
+		$this->assertEquals( '12345', \Vendidero\Germanized\Shipments\FormHandler::get_order_id_from_string( 'BE-12345' ) );
+		$this->assertEquals( '123', \Vendidero\Germanized\Shipments\FormHandler::get_order_id_from_string( 'BE-123-32-S' ) );
+		$this->assertEquals( '45671', \Vendidero\Germanized\Shipments\FormHandler::get_order_id_from_string( '45671-2/3/2021-S' ) );
+	}
 }
