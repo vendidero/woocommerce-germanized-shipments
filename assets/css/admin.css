@@ -7,6 +7,19 @@
   font-size: 13px;
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1); }
 
+.wc-gzd-admin-settings-shipping_provider .wc-gzd-shipment-api-connection-status {
+  padding: .2em .5em;
+  border-radius: 3px;
+  display: inline-flex;
+  white-space: nowrap;
+  border: 1px solid #CCC; }
+  .wc-gzd-admin-settings-shipping_provider .wc-gzd-shipment-api-connection-status.connection-status-error {
+    border-color: #761919;
+    color: #761919; }
+  .wc-gzd-admin-settings-shipping_provider .wc-gzd-shipment-api-connection-status.connection-status-success {
+    border-color: #5b841b;
+    color: #5b841b; }
+
 .germanized-create-label .notice-wrapper .notice {
   margin: 0;
   margin-bottom: 1em; }
@@ -185,18 +198,21 @@ table.wc-gzd-shipping-providers {
     box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.4);
     background: #a46497;
     background: linear-gradient(to bottom, #a46497, #66405f), #a46497;
+    -webkit-transition: width 1s ease;
     transition: width 1s ease; }
   .woocommerce_page_wc-gzd-shipments #posts-filter .bulk-action-wrapper progress::-moz-progress-bar, .woocommerce_page_wc-gzd-return-shipments #posts-filter .bulk-action-wrapper progress::-moz-progress-bar {
     border-radius: 3px;
     box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.4);
     background: #a46497;
     background: linear-gradient(to bottom, #a46497, #66405f), #a46497;
+    -moz-transition: width 1s ease;
     transition: width 1s ease; }
   .woocommerce_page_wc-gzd-shipments #posts-filter .bulk-action-wrapper progress::-ms-fill, .woocommerce_page_wc-gzd-return-shipments #posts-filter .bulk-action-wrapper progress::-ms-fill {
     border-radius: 3px;
     box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.4);
     background: #a46497;
     background: linear-gradient(to bottom, #a46497, #66405f), #a46497;
+    -ms-transition: width 1s ease;
     transition: width 1s ease; }
 
 .woocommerce_page_wc-gzd-shipments #posts-filter.bulk-action-processing .bulk-action-wrapper, .woocommerce_page_wc-gzd-return-shipments #posts-filter.bulk-action-processing .bulk-action-wrapper {
