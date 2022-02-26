@@ -116,7 +116,7 @@ class Automation {
 
 	public static function maybe_create_label( $shipment_id, $shipment = false ) {
 		// Make sure that MetaBox is saved before we process automation
-		if ( self::is_admin_edit_order_request() ) {
+		if ( self::is_admin_edit_order_request() && ! did_action( 'woocommerce_process_shop_order_meta' ) ) {
 			add_action( 'woocommerce_process_shop_order_meta', array( __CLASS__, 'create_label' ), 70 );
 		} else {
 			self::create_label( $shipment_id, $shipment );
