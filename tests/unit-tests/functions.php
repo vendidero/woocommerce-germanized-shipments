@@ -141,4 +141,13 @@ class Functions extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTest
 		$this->assertEquals( '123', \Vendidero\Germanized\Shipments\FormHandler::get_order_id_from_string( 'BE-123-32-S' ) );
 		$this->assertEquals( '45671', \Vendidero\Germanized\Shipments\FormHandler::get_order_id_from_string( '45671-2/3/2021-S' ) );
 	}
+
+	function test_wc_gzd_split_shipment_street() {
+		$this->assertEquals( array(
+			'street'     => 'Mia van IJperenplein',
+			'number'     => '153',
+			'addition'   => '',
+			'addition_2' => '',
+		), wc_gzd_split_shipment_street( 'Mia van IJperenplein 153' ) );
+	}
 }
