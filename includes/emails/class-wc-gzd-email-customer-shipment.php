@@ -232,7 +232,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
 	                $this->cur_position    = $this->get_shipped_position_number( $shipment_id );
 
                     if ( $order_shipment->needs_shipping() || $this->total_shipments > 1 ) {
-                        if ( $this->cur_position < $this->total_shipments ) {
+                        if ( $order_shipment->needs_shipping() || ( $this->cur_position < $this->total_shipments ) ) {
                         	$this->partial_shipment = true;
                         }
                     }
