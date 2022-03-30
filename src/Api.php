@@ -37,11 +37,11 @@ class Api {
             $order_shipment = wc_gzd_get_shipment_order( $order );
             $shipments      = $order_shipment->get_shipments();
 
-            if ( ! empty( $shipments ) ) {
-                foreach( $shipments as $shipment ) {
-                    $response_order_data['shipments'][] = ShipmentsController::prepare_shipment($shipment, 'view', $request['dp']);
-                }
-            }
+	        if ( ! empty( $shipments ) ) {
+		        foreach ( $shipments as $shipment ) {
+			        $response_order_data['shipments'][] = ShipmentsController::prepare_shipment( $shipment, 'view', $request['dp'] );
+		        }
+	        }
         }
 
         $response->set_data( $response_order_data );
@@ -50,21 +50,21 @@ class Api {
     }
 
     public static function order_shipments_schema( $schema ) {
-        $schema['shipments'] = array(
-            'description' => _x( 'List of shipments.', 'shipments', 'woocommerce-germanized-shipments' ),
-            'type'        => 'array',
-            'context'     => array( 'view', 'edit' ),
-            'readonly'    => true,
-            'items'       => ShipmentsController::get_single_item_schema(),
-        );
+	    $schema['shipments'] = array(
+		    'description' => _x( 'List of shipments.', 'shipments', 'woocommerce-germanized-shipments' ),
+		    'type'        => 'array',
+		    'context'     => array( 'view', 'edit' ),
+		    'readonly'    => true,
+		    'items'       => ShipmentsController::get_single_item_schema(),
+	    );
 
         return $schema;
     }
 
-    public static function register_controllers( $controller ) {
-        $controller['wc/v3']['shipments'] = ShipmentsController::class;
+	public static function register_controllers( $controller ) {
+		$controller['wc/v3']['shipments'] = ShipmentsController::class;
 
-        return $controller;
-    }
+		return $controller;
+	}
 
 }
