@@ -215,30 +215,62 @@ class ShipmentsController extends WC_REST_Controller {
 
 		$json_params = $request->get_json_params();
 
-		$args = [];
-		if ( array_key_exists( 'weight',
-				$json_params ) && $shipment->get_weight( 'view' ) !== $json_params['weight'] ) {
-			$args['weight'] = $json_params['weight'];
+		$props = [];
+
+		$weight            = isset( $json_params['weight'] ) ? wc_clean( wp_unslash( $json_params['weight'] ) ) : null;
+		$length            = isset( $json_params['dimensions']['length'] ) ? wc_clean( wp_unslash( $json_params['dimensions']['length'] ) ) : null;
+		$width             = isset( $json_params['dimensions']['width'] ) ? wc_clean( wp_unslash( $json_params['dimensions']['width'] ) ) : null;
+		$height            = isset( $json_params['dimensions']['height'] ) ? wc_clean( wp_unslash( $json_params['dimensions']['height'] ) ) : null;
+		$tracking_id       = isset( $json_params['tracking_id'] ) ? wc_clean( wp_unslash( $json_params['tracking_id'] ) ) : null;
+		$shipping_provider = isset( $json_params['shipping_provider'] ) ? wc_clean( wp_unslash( $json_params['shipping_provider'] ) ) : null;
+		$est_delivery_date = isset( $json_params['est_delivery_date'] ) ? wc_clean( wp_unslash( $json_params['est_delivery_date'] ) ) : null;
+		$status            = isset( $json_params['status'] ) ? wc_clean( wp_unslash( $json_params['status'] ) ) : null;
+
+		if ( $weight !== null && $shipment->get_weight( 'view' ) !== $weight ) {
+			$props['weight'] = $weight;
 		}
 
-		$new_status = isset( $json_params['status'] ) ? str_replace( 'gzd-',
-			'',
-			wc_clean( wp_unslash( $json_params['status'] ) ) ) : 'draft';
-		if ( $new_status !== $shipment->get_status( 'view' ) ) {
-			$args['status'] = $new_status;
+		if ( $length !== null && $shipment->get_length( 'view' ) !== $length ) {
+			$props['length']  = $length;
 		}
 
-		// Sync the shipment - make sure gets refresh on status switch (e.g. from shipped to processing)
+		if ( $width !== null && $shipment->get_width( 'view' ) !== $width ) {
+			$props['width']  = $width;
+		}
+
+		if ( $height !== null && $shipment->get_height( 'view' ) !== $height ) {
+			$props['height']  = $height;
+		}
+
+		if ( $tracking_id !== null && $shipment->get_tracking_id( 'view' ) !== $tracking_id ) {
+			$props['tracking_id']  = $tracking_id;
+		}
+
+		if ( $shipping_provider !== null && $shipment->get_shipping_provider( 'view' ) !== $shipping_provider ) {
+			$providers = wc_gzd_get_shipping_providers();
+			if ( empty ( $shipping_provider ) || array_key_exists( $shipping_provider, $providers ) ) {
+				$props['shipping_provider'] = $shipping_provider;
+			}
+		}
+
+		if ( $est_delivery_date !== null && wc_rest_prepare_date_response( $shipment->get_est_delivery_date( 'view' ) ) !== $est_delivery_date ) {
+			$props['est_delivery_date'] = $est_delivery_date;
+		}
+
+		if ( $status !== null && $shipment->get_status( 'view' ) !== $status ) {
+			$props['status']  = $status;
+		}
+
 		if (
-			! empty( $args ) && (
+			! empty( $props ) && (
 				$shipment->is_editable() ||
-				in_array( $new_status, wc_gzd_get_shipment_editable_statuses() ) ||
-				array_keys( $args ) === [ 'status' ]
+				( $status !== null && in_array( $status, wc_gzd_get_shipment_editable_statuses() ) ) ||
+				array_keys( $props ) === [ 'status' ]
 			)
 		) {
-			$shipment->sync( $args );
+			$shipment->sync( $props );
 			$shipment->save();
-		} elseif ( ! empty( $args ) ) {
+		} elseif ( ! empty( $props ) ) {
 			return rest_ensure_response( new WP_Error( 422, 'Shipment not editable' ) );
 		}
 
@@ -281,8 +313,7 @@ class ShipmentsController extends WC_REST_Controller {
 			'date_created_gmt'      => wc_rest_prepare_date_response( $shipment->get_date_created( $context ) ),
 			'date_sent'             => wc_rest_prepare_date_response( $shipment->get_date_sent( $context ), false ),
 			'date_sent_gmt'         => wc_rest_prepare_date_response( $shipment->get_date_sent( $context ) ),
-			'est_delivery_date'     => wc_rest_prepare_date_response( $shipment->get_est_delivery_date( $context ),
-				false ),
+			'est_delivery_date'     => wc_rest_prepare_date_response( $shipment->get_est_delivery_date( $context ), false ),
 			'est_delivery_date_gmt' => wc_rest_prepare_date_response( $shipment->get_est_delivery_date( $context ) ),
 			'total'                 => wc_format_decimal( $shipment->get_total(), $dp ),
 			'weight'                => $shipment->get_weight( $context ),
