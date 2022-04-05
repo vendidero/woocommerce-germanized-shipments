@@ -162,9 +162,16 @@ class Bootstrap {
 			include $this->get_woo_dir() . '/uninstall.php';
 
 			WC_Install::install();
-			// Initialize the WC API extensions.
-			\Automattic\WooCommerce\Admin\Install::create_tables();
-			\Automattic\WooCommerce\Admin\Install::create_events();
+
+			if ( class_exists( '\Automattic\WooCommerce\Admin\Install' ) ) {
+				// Initialize the WC API extensions.
+				\Automattic\WooCommerce\Admin\Install::create_tables();
+				\Automattic\WooCommerce\Admin\Install::create_events();
+			} elseif ( class_exists( '\Automattic\WooCommerce\Internal\Admin\Install' ) ) {
+				// Initialize the WC API extensions.
+				\Automattic\WooCommerce\Internal\Admin\Install::create_tables();
+				\Automattic\WooCommerce\Internal\Admin\Install::create_events();
+			}
 
 			Package::install();
 
