@@ -55,6 +55,13 @@ class Method {
 			if ( strpos( $id, ':' ) === false ) {
 				$id = $id . ':' . $instance_id;
 			}
+		} elseif ( is_a( $id, 'WC_Shipping_Method' ) ) {
+			$instance_id = $id->get_instance_id();
+			$id          = $id->id;
+
+			if ( strpos( $id, ':' ) === false ) {
+				$id = $id . ':' . $instance_id;
+			}
 		}
 
 		if ( ! is_numeric( $id ) ) {
