@@ -25,7 +25,7 @@ class ShipmentsController extends WC_REST_Controller {
 	 *
 	 * @var string
 	 */
-	protected $rest_base = 'orders/(?P<order_id>[\d]+)/shipments';
+	protected $rest_base = 'shipments';
 
 	/**
 	 * Registers rest routes for this controller.
@@ -62,6 +62,18 @@ class ShipmentsController extends WC_REST_Controller {
 					'permission_callback' => array( $this, 'update_item_permissions_check' ),
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
 				),
+				array(
+					'methods'             => WP_REST_Server::DELETABLE,
+					'callback'            => array( $this, 'delete_item' ),
+					'permission_callback' => array( $this, 'delete_item_permissions_check' ),
+					'args'                => array(
+						'force' => array(
+							'default'     => false,
+							'type'        => 'boolean',
+							'description' => __( 'Whether to bypass trash and force deletion.', 'woocommerce' ),
+						),
+					),
+				),
 				'schema' => array( $this, 'get_public_item_schema' ),
 			),
 		);
@@ -86,14 +98,12 @@ class ShipmentsController extends WC_REST_Controller {
 	 * @since 4.7.0
 	 */
 	public function get_item_permissions_check( $request ) {
-		$order = wc_get_order( (int) $request['order_id'] );
+		if ( isset( $request['order_id'] ) ) {
+			$order = wc_get_order( (int) $request['order_id'] );
 
-		if ( $order && 0 !== $order->get_id() && ! wc_rest_check_post_permissions( 'shop_order',
-				'read',
-				$order->get_id() ) ) {
-			return new WP_Error( 'woocommerce_rest_cannot_view',
-				__( 'Sorry, you cannot view this resource.', 'woocommerce' ),
-				array( 'status' => rest_authorization_required_code() ) );
+			if ( ! $order || $order->get_id() === 0 || ! wc_rest_check_post_permissions( 'shop_order', 'read', $order->get_id() ) ) {
+				return new WP_Error( 'woocommerce_rest_cannot_view', __( 'Sorry, you are not allowed to view this resource.', 'woocommerce' ), array( 'status' => rest_authorization_required_code() ) );
+			}
 		}
 
 		return true;
@@ -102,18 +112,22 @@ class ShipmentsController extends WC_REST_Controller {
 	/**
 	 * Retrieves a shipment by an order id and shipment id
 	 *
-	 * @param int $order_id
 	 * @param int $shipment_id
+	 * @param int|null $order_id
 	 *
-	 * @return Shipment|null
+	 * @return Shipment|null|bool
 	 */
-	private function get_shipment( int $order_id, int $shipment_id ): ?Shipment {
-		$order = wc_get_order( $order_id );
-
+	private function get_shipment( $shipment_id, $order_id = null ) {
 		$shipment = null;
-		if ( $order ) {
-			$order_shipment = wc_gzd_get_shipment_order( $order );
-			$shipment       = $order_shipment->get_shipment( $shipment_id );
+
+		if ( $order_id !== null ) {
+			$order = wc_get_order( $order_id );
+			if ( $order ) {
+				$order_shipment = wc_gzd_get_shipment_order( $order );
+				$shipment       = $order_shipment->get_shipment( $shipment_id );
+			}
+		} else {
+			$shipment = wc_gzd_get_shipment( $shipment_id );
 		}
 
 		return $shipment;
@@ -128,9 +142,14 @@ class ShipmentsController extends WC_REST_Controller {
 	 * @since 4.7.0
 	 */
 	public function get_item( $request ) {
-		$shipment      = $this->get_shipment( (int) $request['order_id'], (int) $request['id'] );
-		$shipment_data = $shipment === null
-			? new WP_Error( 404, 'Not found' )
+		$order_id = null;
+		if ( isset( $request['order_id'] ) ) {
+			$order_id = (int) $request['order_id'];
+		}
+
+		$shipment      = $this->get_shipment( (int) $request['id'], $order_id );
+		$shipment_data = ( ! $shipment )
+			? new WP_Error( "woocommerce_rest_shipment_invalid_id", __( 'Invalid ID.', 'woocommerce' ), array( 'status' => 404 ) )
 			: self::prepare_shipment( $shipment );
 
 		return rest_ensure_response( $shipment_data );
@@ -163,19 +182,14 @@ class ShipmentsController extends WC_REST_Controller {
 	 * @since 4.7.0
 	 */
 	public function get_items( $request ) {
-		$order = wc_get_order( (int) $request['order_id'] );
+        $result = array();
 
-		$result = array();
-		if ( $order ) {
-			$order_shipment = wc_gzd_get_shipment_order( $order );
-			$shipments      = $order_shipment->get_shipments();
-
-			if ( ! empty( $shipments ) ) {
-				foreach ( $shipments as $shipment ) {
-					$result[] = $this->prepare_shipment( $shipment );
-				}
-			}
-		}
+		$shipments = wc_gzd_get_shipments( $request->get_query_params() );
+        if ( ! empty( $shipments ) ) {
+            foreach ( $shipments as $shipment ) {
+                $result[] = $this->prepare_shipment( $shipment );
+            }
+        }
 
 		return rest_ensure_response( $result );
 	}
@@ -189,14 +203,14 @@ class ShipmentsController extends WC_REST_Controller {
 	 * @since 4.7.0
 	 */
 	public function update_item_permissions_check( $request ) {
-		$order = wc_get_order( (int) $request['order_id'] );
+		if ( isset( $request['order_id'] ) ) {
+			$order = wc_get_order( (int) $request['order_id'] );
 
-		if ( $order && 0 !== $order->get_id() && ! wc_rest_check_post_permissions( 'shop_order',
-				'edit',
-				$order->get_id() ) ) {
-			return new WP_Error( 'woocommerce_rest_cannot_edit',
-				__( 'Sorry, you are not allowed to edit this resource.', 'woocommerce' ),
-				array( 'status' => rest_authorization_required_code() ) );
+			if ( ! $order || $order->get_id() === 0 || ! wc_rest_check_post_permissions( 'shop_order', 'edit', $order->get_id() ) ) {
+				return new WP_Error( 'woocommerce_rest_cannot_edit', __( 'Sorry, you are not allowed to edit this resource.', 'woocommerce' ), array( 'status' => rest_authorization_required_code() ) );
+			}
+		} elseif ( ! current_user_can( 'edit_shop_orders' ) ) {
+			return new WP_Error( 'woocommerce_rest_cannot_edit', __( 'Sorry, you are not allowed to edit this resource.', 'woocommerce' ), array( 'status' => rest_authorization_required_code() ) );
 		}
 
 		return true;
@@ -211,7 +225,15 @@ class ShipmentsController extends WC_REST_Controller {
 	 * @since 4.7.0
 	 */
 	public function update_item( $request ) {
-		$shipment = $this->get_shipment( (int) $request['order_id'], (int) $request['id'] );
+		$order_id = null;
+		if ( isset( $request['order_id'] ) ) {
+			$order_id = (int) $request['order_id'];
+		}
+
+		$shipment = $this->get_shipment( (int) $request['id'] , $order_id );
+		if ( ! $shipment ) {
+			return new WP_Error( "woocommerce_rest_shipment_invalid_id", __( 'Invalid ID.', 'woocommerce' ), array( 'status' => 404 ) );
+		}
 
 		$json_params = $request->get_json_params();
 
@@ -278,6 +300,55 @@ class ShipmentsController extends WC_REST_Controller {
 	}
 
 	/**
+	 * Checks if a given request has access to delete a specific item.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
+	 * @since 4.7.0
+	 */
+	public function delete_item_permissions_check( $request ) {
+		if ( isset( $request['order_id'] ) ) {
+			$order = wc_get_order( (int) $request['order_id'] );
+
+			if ( ! $order || $order->get_id() === 0 || ! wc_rest_check_post_permissions( 'shop_order', 'edit', $order->get_id() ) ) {
+				return new WP_Error( 'woocommerce_rest_cannot_delete', __( 'Sorry, you are not allowed to delete this resource.', 'woocommerce' ), array( 'status' => rest_authorization_required_code() ) );
+			}
+		} elseif ( ! current_user_can( 'edit_shop_orders' ) ) {
+			return new WP_Error( 'woocommerce_rest_cannot_delete', __( 'Sorry, you are not allowed to delete this resource.', 'woocommerce' ), array( 'status' => rest_authorization_required_code() ) );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Deletes one item from the collection.
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 *
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 * @since 4.7.0
+	 */
+	public function delete_item( $request ) {
+		$force  = (bool) $request['force'];
+		$order_id = null;
+		if ( isset( $request['order_id'] ) ) {
+			$order_id = (int) $request['order_id'];
+		}
+
+		$shipment = $this->get_shipment( (int) $request['id'], $order_id );
+		if ( ! $shipment ) {
+			return new WP_Error( "woocommerce_rest_shipment_invalid_id", __( 'Invalid ID.', 'woocommerce' ), array( 'status' => 404 ) );
+		}
+
+		if ( ! $shipment->delete( $force ) ) {
+			return new WP_Error( 'woocommerce_rest_cannot_delete', __( 'The shipment cannot be deleted.', 'woocommerce' ), array( 'status' => 500 ) );
+		}
+
+		return rest_ensure_response( self::prepare_shipment( $shipment ) );
+	}
+
+	/**
 	 * Retrieves the item's schema, conforming to JSON Schema.
 	 *
 	 * @return array Item schema data.
@@ -294,7 +365,7 @@ class ShipmentsController extends WC_REST_Controller {
 	 *
 	 * @return array
 	 */
-	public static function prepare_shipment( Shipment $shipment, string $context = 'view', $dp = false ): array {
+	public static function prepare_shipment( $shipment, $context = 'view', $dp = false ) {
 		$item_data = array();
 
 		foreach ( $shipment->get_items() as $item ) {
@@ -336,7 +407,7 @@ class ShipmentsController extends WC_REST_Controller {
 	 *
 	 * @return array
 	 */
-	public static function get_single_item_schema(): array {
+	public static function get_single_item_schema() {
 		$weight_unit    = get_option( 'woocommerce_weight_unit' );
 		$dimension_unit = get_option( 'woocommerce_dimension_unit' );
 
