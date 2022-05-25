@@ -556,11 +556,11 @@ class ShipmentItem extends WC_Data {
         $this->set_prop( 'height', '' === $height ? '' : wc_format_decimal( $height ) );
     }
 
-    public function get_dimensions() {
+    public function get_dimensions( $context = 'view' ) {
         return array(
-            'length' => $this->get_length(),
-            'width'  => $this->get_width(),
-            'height' => $this->get_height(),
+            'length' => $this->get_length( $context ),
+            'width'  => $this->get_width( $context ),
+            'height' => $this->get_height( $context ),
         );
     }
 

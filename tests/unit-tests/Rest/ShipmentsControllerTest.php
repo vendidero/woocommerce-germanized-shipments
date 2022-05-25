@@ -46,8 +46,7 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 
 		$shipment_initial = ShipmentHelper::create_simple_shipment();
 
-		$response          = $this->server->dispatch( new WP_REST_Request( 'GET',
-			'/wc/v3/shipments/' . $shipment_initial->get_id() ) );
+		$response = $this->server->dispatch( new WP_REST_Request( 'GET', '/wc/v3/shipments/' . $shipment_initial->get_id() ) );
 		$shipment_response = $response->get_data();
 
 		$this->assertEquals( 200, $response->get_status() );
@@ -72,8 +71,7 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 
 		$this->assertEquals( 200, $response->get_status() );
 
-		$response          = $this->server->dispatch( new WP_REST_Request( 'GET',
-			'/wc/v3/shipments/' . $shipment_initial->get_id() ) );
+		$response          = $this->server->dispatch( new WP_REST_Request( 'GET', '/wc/v3/shipments/' . $shipment_initial->get_id() ) );
 		$shipment_response = $response->get_data();
 
 		$this->assertEquals( 200, $response->get_status() );
@@ -97,8 +95,7 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertEquals( 0, $delete_response['id'] );
 
-		$response          = $this->server->dispatch( new WP_REST_Request( 'GET',
-			'/wc/v3/shipments/' . $shipment_initial->get_id() ) );
+		$response          = $this->server->dispatch( new WP_REST_Request( 'GET', '/wc/v3/shipments/' . $shipment_initial->get_id() ) );
 		$shipment_response = $response->get_data();
 
 		$this->assertEquals( 404, $response->get_status() );

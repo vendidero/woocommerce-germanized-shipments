@@ -666,6 +666,14 @@ abstract class Shipment extends WC_Data {
         return wc_format_decimal( array_sum( $this->get_item_weights() ) );
     }
 
+	public function get_content_dimensions() {
+		return array(
+			'length' => $this->get_content_length(),
+			'width'  => $this->get_content_width(),
+			'height' => $this->get_content_height(),
+		);
+	}
+
 	/**
 	 * Returns the calculated length for included items.
 	 *
@@ -1482,11 +1490,11 @@ abstract class Shipment extends WC_Data {
      *
      * @return string|array
      */
-    public function get_dimensions() {
+    public function get_dimensions( $context = 'view' ) {
         return array(
-            'length' => $this->get_length(),
-            'width'  => $this->get_width(),
-            'height' => $this->get_height(),
+            'length' => $this->get_length( $context ),
+            'width'  => $this->get_width( $context ),
+            'height' => $this->get_height( $context ),
         );
     }
 

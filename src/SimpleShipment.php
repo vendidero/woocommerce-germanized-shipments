@@ -74,7 +74,7 @@ class SimpleShipment extends Shipment {
 	 * @param Order $order_shipment The order shipment.
 	 */
 	public function set_order_shipment( &$order_shipment ) {
-		$this->order_shipment             = $order_shipment;
+		$this->order_shipment = $order_shipment;
 	}
 
 	/**
