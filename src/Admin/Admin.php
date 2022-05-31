@@ -663,11 +663,11 @@ class Admin {
 
 		    $sendback = remove_query_arg( array( 'action', 'action2', '_status', 'bulk_edit', 'shipment' ), $sendback );
 
-		    wp_redirect( $sendback );
+		    wp_redirect( esc_url_raw( $sendback ) );
 		    exit();
 
 	    } elseif ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
-		    wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
+		    wp_redirect( esc_url_raw( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) ) );
 		    exit;
 	    }
 

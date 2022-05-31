@@ -20,7 +20,7 @@ use Vendidero\Germanized\Shipments\Shipment;
 	        <?php if ( $label ) : ?>
                 <div class="shipment-label-actions-wrapper shipment-label-actions-download">
                     <?php if ( $label->get_file() ) : ?>
-                        <a class="button button-secondary download-shipment-label" href="<?php echo $label->get_download_url(); ?>" target="_blank"><?php _ex(  'Download', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+                        <a class="button button-secondary download-shipment-label" href="<?php echo esc_url( $label->get_download_url() ); ?>" target="_blank"><?php _ex(  'Download', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
                     <?php endif; ?>
                     <?php
 	                /**

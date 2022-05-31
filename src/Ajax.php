@@ -339,7 +339,7 @@ class Ajax {
 	 * @return string
 	 */
 	protected static function label_download_button_html( $label ) {
-		return '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-download-label download" href="' . $label->get_download_url() .'" target="_blank" title="' . _x( 'Download label', 'shipments', 'woocommerce-germanized-shipments' ) . '">' . _x(  'Download label', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+		return '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-download-label download" href="' . esc_url( $label->get_download_url() ) .'" target="_blank" title="' . _x( 'Download label', 'shipments', 'woocommerce-germanized-shipments' ) . '">' . _x(  'Download label', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
 	}
 
     public static function edit_shipping_provider_status() {

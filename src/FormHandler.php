@@ -292,7 +292,7 @@ class FormHandler {
 			 */
 			$redirect = apply_filters( 'woocommerce_gzd_customer_new_return_shipment_request_redirect', $return_url, $return_shipment, $needs_manual_confirmation );
 
-			wp_safe_redirect( $redirect );
+			wp_safe_redirect( esc_url_raw( $redirect ) );
 			exit;
 		}
 	}

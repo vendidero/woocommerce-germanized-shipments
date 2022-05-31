@@ -482,7 +482,7 @@ class Label extends WC_Data implements ShipmentLabel {
 		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( "{$this->get_hook_prefix()}download_url", $download_url, $this );
+		return esc_url_raw( apply_filters( "{$this->get_hook_prefix()}download_url", $download_url, $this ) );
 	}
 
 	/**

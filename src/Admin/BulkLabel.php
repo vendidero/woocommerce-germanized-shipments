@@ -80,7 +80,7 @@ class BulkLabel extends BulkActionHandler {
 				'force'    => 'no'
 			), wp_nonce_url( admin_url(), 'download-export-shipment-label' ) );
 
-			$download_button = '<a class="button button-primary bulk-download-button" style="margin-left: 1em;" href="' . $download_url . '" target="_blank">' . _x( 'Download labels', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+			$download_button = '<a class="button button-primary bulk-download-button" style="margin-left: 1em;" href="' . esc_url( $download_url ) . '" target="_blank">' . _x( 'Download labels', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
 		}
 
 		return $download_button;
@@ -140,7 +140,7 @@ class BulkLabel extends BulkActionHandler {
 							$result = $shipment->create_label();
 
 							if ( is_wp_error( $result ) ) {
-								$this->add_notice( sprintf( _x( 'Error while creating label for %s: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . $shipment->get_edit_shipment_url() .'" target="_blank">' . sprintf( _x(  'shipment #%d', 'shipments', 'woocommerce-germanized-shipments' ), $shipment_id ) . '</a>', $result->get_error_message() ), 'error' );
+								$this->add_notice( sprintf( _x( 'Error while creating label for %s: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . esc_url( $shipment->get_edit_shipment_url() ) .'" target="_blank">' . sprintf( _x(  'shipment #%d', 'shipments', 'woocommerce-germanized-shipments' ), $shipment_id ) . '</a>', $result->get_error_message() ), 'error' );
 							} else {
 								$label = $shipment->get_label();
 							}

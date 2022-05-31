@@ -42,7 +42,7 @@ if ( ! apply_filters( 'woocommerce_gzd_shipment_item_visible', true, $item ) ) {
  * @param ShipmentItem $item The shipment item instance.
  * @param Shipment     $shipment The shipment instance.
  *
- * @since 3.0.0
+ * @since 3.0.1
  * @package Vendidero/Germanized/Shipments
  */
 $item_class = apply_filters( 'woocommerce_gzd_shipment_item_class', 'woocommerce-table__line-item shipment_item', $item, $shipment );
@@ -67,7 +67,7 @@ $item_class = apply_filters( 'woocommerce_gzd_shipment_item_class', 'woocommerce
 		$product_permalink = apply_filters( 'woocommerce_gzd_shipment_item_permalink', $is_visible ? $product->get_permalink() : '', $item, $shipment );
 
 		/** This filter is documented in templates/emails/email-shipment-items.php */
-		echo apply_filters( 'woocommerce_gzd_shipment_item_name', ( $product_permalink ? sprintf( '<a href="%s">%s</a>', $product_permalink, $item->get_name() ) : $item->get_name() ) . ( ! empty( $item_sku ) ? ' <small>(' . esc_html( $item_sku ) . ')</small>' : '' ), $item, $is_visible ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo apply_filters( 'woocommerce_gzd_shipment_item_name', ( $product_permalink ? sprintf( '<a href="%s">%s</a>', esc_url( $product_permalink ), $item->get_name() ) : $item->get_name() ) . ( ! empty( $item_sku ) ? ' <small>(' . esc_html( $item_sku ) . ')</small>' : '' ), $item, $is_visible ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		?>
 	</td>
 

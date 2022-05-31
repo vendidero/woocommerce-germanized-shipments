@@ -787,7 +787,7 @@ class Table extends WP_List_Table {
         $title = sprintf( _x( '%s #%s', 'shipment title', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label_title( $shipment->get_type() ), $shipment->get_id() );
 
         if ( $order = $shipment->get_order() ) {
-            echo '<a href="' . $shipment->get_edit_shipment_url() . '">' . $title . '</a> ';
+            echo '<a href="' . esc_url( $shipment->get_edit_shipment_url() ) . '">' . $title . '</a> ';
         } else {
             echo $title . ' ';
         }
@@ -949,7 +949,7 @@ class Table extends WP_List_Table {
                 <tr class="wc-gzd-shipment-item-preview wc-gzd-shipment-item-preview-<?php echo esc_attr( $item->get_id() ); ?>">
                     <td class="wc-gzd-shipment-item-column-name">
                         <?php if ( $product = $item->get_product() ) : ?>
-                            <a href="<?php echo get_edit_post_link( $product->get_parent_id() > 0 ? $product->get_parent_id() : $product->get_id() ); ?>"><?php echo wp_kses_post( $item->get_name() ); ?></a>
+                            <a href="<?php echo esc_url( get_edit_post_link( $product->get_parent_id() > 0 ? $product->get_parent_id() : $product->get_id() ) ); ?>"><?php echo wp_kses_post( $item->get_name() ); ?></a>
                         <?php else: ?>
                             <?php echo wp_kses_post( $item->get_name() ); ?>
                         <?php endif; ?>
@@ -1095,7 +1095,7 @@ class Table extends WP_List_Table {
      */
     public function column_order( $shipment ) {
         if ( ( $order = $shipment->get_order() ) && is_callable( array( $order, 'get_edit_order_url' ) ) ) {
-            echo '<a href="' . $order->get_edit_order_url() . '">' . $order->get_order_number() . '</a>';
+            echo '<a href="' . esc_url( $order->get_edit_order_url() ) . '">' . $order->get_order_number() . '</a>';
         } else {
             echo $shipment->get_order_id();
         }
