@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Vendidero/Germanized/Shipments/Templates
- * @version 3.1.0
+ * @version 3.1.1
  */
 use Vendidero\Germanized\Shipments\Shipment;
 
@@ -20,14 +20,14 @@ defined( 'ABSPATH' ) || exit;
 ?>
 <section class="woocommerce-shipment-tracking-details">
 
-	<h2 class="woocommerce-shipments-tracking__title"><?php echo esc_html_x(  'Tracking', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
+	<h2 class="woocommerce-shipments-tracking__title"><?php echo esc_html_x( 'Tracking', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
 	<?php if ( $shipment->get_tracking_url() ) : ?>
-		<p class="tracking-button-wrapper"><a class="woocommerce-button button btn" target="_blank" href="<?php echo esc_url( $shipment->get_tracking_url() ); ?>"><?php _ex(  'Track your shipment', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
+		<p class="tracking-button-wrapper"><a class="woocommerce-button button btn" target="_blank" href="<?php echo esc_url( $shipment->get_tracking_url() ); ?>"><?php echo esc_html_x( 'Track your shipment', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
 	<?php endif; ?>
 
 	<?php if ( $shipment->has_tracking_instruction() ) : ?>
-		<p class="tracking-instruction"><?php echo $shipment->get_tracking_instruction(); ?></p>
+		<p class="tracking-instruction"><?php echo wp_kses_post( $shipment->get_tracking_instruction() ); ?></p>
 	<?php endif; ?>
 
 </section>

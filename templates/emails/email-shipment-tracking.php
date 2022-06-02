@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/Shipments/Templates/Emails
- * @version 1.0.0
+ * @version 1.0.1
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -27,15 +27,15 @@ $text_align = is_rtl() ? 'right' : 'left';
 			<h2><?php echo esc_html_x( 'Tracking:', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
 			<?php if ( $shipment->get_est_delivery_date() ) : ?>
-				<p class="est-delivery-date"><?php _ex(  'Estimated date:', 'shipments', 'woocommerce-germanized-shipments' ); ?> <span class="date"><?php echo wc_format_datetime( $shipment->get_est_delivery_date(), wc_date_format() ); ?></span></p>
+				<p class="est-delivery-date"><?php echo esc_html_x( 'Estimated date:', 'shipments', 'woocommerce-germanized-shipments' ); ?> <span class="date"><?php echo esc_html( wc_format_datetime( $shipment->get_est_delivery_date(), wc_date_format() ) ); ?></span></p>
 			<?php endif; ?>
 
 			<?php if ( $shipment->get_tracking_url() ) : ?>
-				<p class="tracking-button-wrapper"><a class="button email-button btn" href="<?php echo esc_url( $shipment->get_tracking_url() ); ?>"><?php _ex(  'Track your shipment', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
+				<p class="tracking-button-wrapper"><a class="button email-button btn" href="<?php echo esc_url( $shipment->get_tracking_url() ); ?>"><?php echo esc_html_x( 'Track your shipment', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
 			<?php endif; ?>
 
 			<?php if ( $shipment->has_tracking_instruction() ) : ?>
-				<p class="tracking-instruction"><?php echo $shipment->get_tracking_instruction(); ?></p>
+				<p class="tracking-instruction"><?php echo wp_kses_post( $shipment->get_tracking_instruction() ); ?></p>
 			<?php endif; ?>
 		</td>
 	</tr>

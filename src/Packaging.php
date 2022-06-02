@@ -123,7 +123,7 @@ class Packaging extends WC_Data {
 	 * @return string
 	 */
 	protected function get_general_hook_prefix() {
-		return "woocommerce_gzd_packaging_";
+		return 'woocommerce_gzd_packaging_';
 	}
 
 	/**

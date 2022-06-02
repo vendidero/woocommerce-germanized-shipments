@@ -69,7 +69,7 @@ class ShipmentFactory {
 		try {
 			return new $classname( $shipment_id );
 		} catch ( Exception $e ) {
-			wc_caught_exception( $e, __FUNCTION__, func_get_args() );
+			wc_caught_exception( $e, __FUNCTION__, array( $shipment_id, $shipment_type ) );
 			return false;
 		}
 	}

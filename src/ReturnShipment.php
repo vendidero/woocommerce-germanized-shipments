@@ -184,7 +184,7 @@ class ReturnShipment extends Shipment {
 	 * @return string[]
 	 */
 	public function get_available_shipping_methods() {
-		$methods = array();
+		$methods                                 = array();
 		$methods[ $this->get_shipping_method() ] = '';
 
 		return $methods;
@@ -254,27 +254,36 @@ class ReturnShipment extends Shipment {
 			/**
 			 * Make sure that manually adjusted providers are not overridden by syncing.
 			 */
-			$default_provider          = $order_shipment->get_default_return_shipping_provider();
-			$provider                  = $this->get_shipping_provider( 'edit' );
-			$sender_address_data       = array_merge( ( $order->has_shipping_address() ? $order->get_address( 'shipping' ) : $order->get_address( 'billing' ) ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) );
+			$default_provider    = $order_shipment->get_default_return_shipping_provider();
+			$provider            = $this->get_shipping_provider( 'edit' );
+			$sender_address_data = array_merge(
+				( $order->has_shipping_address() ? $order->get_address( 'shipping' ) : $order->get_address( 'billing' ) ),
+				array(
+					'email' => $order->get_billing_email(),
+					'phone' => $order->get_billing_phone(),
+				)
+			);
 
 			// Prefer shipping phone in case exists
 			if ( is_callable( array( $order, 'get_shipping_phone' ) ) && $order->get_shipping_phone() ) {
 				$sender_address_data['phone'] = $order->get_shipping_phone();
 			}
 
-			$args = wp_parse_args( $args, array(
-				'order_id'          => $order->get_id(),
-				'country'           => $return_address['country'],
-				'shipping_method'   => wc_gzd_get_shipment_order_shipping_method_id( $order ),
-				'shipping_provider' => ( ! empty( $provider ) ) ? $provider : $default_provider,
-				'address'           => $return_address,
-				'sender_address'    => $sender_address_data,
-				'weight'            => $this->get_weight( 'edit' ),
-				'length'            => $this->get_length( 'edit' ),
-				'width'             => $this->get_width( 'edit' ),
-				'height'            => $this->get_height( 'edit' ),
-			) );
+			$args = wp_parse_args(
+				$args,
+				array(
+					'order_id'          => $order->get_id(),
+					'country'           => $return_address['country'],
+					'shipping_method'   => wc_gzd_get_shipment_order_shipping_method_id( $order ),
+					'shipping_provider' => ( ! empty( $provider ) ) ? $provider : $default_provider,
+					'address'           => $return_address,
+					'sender_address'    => $sender_address_data,
+					'weight'            => $this->get_weight( 'edit' ),
+					'length'            => $this->get_length( 'edit' ),
+					'width'             => $this->get_width( 'edit' ),
+					'height'            => $this->get_height( 'edit' ),
+				)
+			);
 
 			/**
 			 * Filter to allow adjusting the return shipment props synced from the corresponding order.
@@ -327,18 +336,23 @@ class ReturnShipment extends Shipment {
 
 			$order = $order_shipment->get_order();
 
-			$args = wp_parse_args( $args, array(
-				'items' => array(),
-			) );
+			$args = wp_parse_args(
+				$args,
+				array(
+					'items' => array(),
+				)
+			);
 
-			$available_items = $order_shipment->get_available_items_for_return( array(
-				'shipment_id'              => $this->get_id(),
-				'exclude_current_shipment' => true,
-			) );
+			$available_items = $order_shipment->get_available_items_for_return(
+				array(
+					'shipment_id'              => $this->get_id(),
+					'exclude_current_shipment' => true,
+				)
+			);
 
-			foreach( $available_items as $order_item_id => $item_data ) {
+			foreach ( $available_items as $order_item_id => $item_data ) {
 
-				if ( $item = $order_shipment->get_simple_shipment_item( $order_item_id )  ) {
+				if ( $item = $order_shipment->get_simple_shipment_item( $order_item_id ) ) {
 					$quantity           = $item_data['max_quantity'];
 					$return_reason_code = '';
 
@@ -346,10 +360,13 @@ class ReturnShipment extends Shipment {
 						if ( isset( $args['items'][ $order_item_id ] ) ) {
 
 							if ( is_array( $args['items'][ $order_item_id ] ) ) {
-								$default_item_data = wp_parse_args( $args['items'][ $order_item_id ], array(
-									'quantity'           => 1,
-									'return_reason_code' => '',
-								) );
+								$default_item_data = wp_parse_args(
+									$args['items'][ $order_item_id ],
+									array(
+										'quantity' => 1,
+										'return_reason_code' => '',
+									)
+								);
 							} else {
 								$default_item_data = array(
 									'quantity'           => absint( $args['items'][ $order_item_id ] ),
@@ -386,7 +403,7 @@ class ReturnShipment extends Shipment {
 				}
 			}
 
-			foreach( $this->get_items() as $item ) {
+			foreach ( $this->get_items() as $item ) {
 
 				// Remove non-existent items
 				if ( ! $shipment_item = $order_shipment->get_simple_shipment_item( $item->get_order_item_id() ) ) {

@@ -11,35 +11,43 @@
  * the readme will list any important changes.
  *
  * @package Vendidero/Germanized/Shipments/Templates
- * @version 1.0.0
+ * @version 1.0.1
  */
 defined( 'ABSPATH' ) || exit;
 ?>
 
 <?php if ( ! empty( $shipments ) ) : ?>
-	<h2 class="woocommerce-shipments-list__title"><?php _ex( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
+	<h2 class="woocommerce-shipments-list__title"><?php echo esc_html_x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
-	<?php wc_get_template( 'myaccount/shipments.php', array(
-		'type'      => 'simple',
-		'shipments' => $shipments,
-		'order'     => $order,
-	) ); ?>
+	<?php
+	wc_get_template(
+		'myaccount/shipments.php',
+		array(
+			'type'      => 'simple',
+			'shipments' => $shipments,
+			'order'     => $order,
+		)
+	);
+	?>
 <?php endif; ?>
 
 <?php if ( wc_gzd_order_is_customer_returnable( $order ) ) : ?>
-    <p class="shipments-add-return"><a class="add-return-shipment woocommerce-button button" href="<?php echo esc_url( wc_gzd_get_order_customer_add_return_url( $order ) ); ?>"><?php _ex( 'Add return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
-<?php elseif ( wc_gzd_order_is_customer_returnable( $order, false ) ): ?>
-    <p class="shipments-return-not-available"><?php _ex( 'Adding return requests to this order is no longer available. You may contact us for further information.', 'shipments', 'woocommerce-germanized-shipments' ); ?></p>
+	<p class="shipments-add-return"><a class="add-return-shipment woocommerce-button button" href="<?php echo esc_url( wc_gzd_get_order_customer_add_return_url( $order ) ); ?>"><?php echo esc_html_x( 'Add return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
+<?php elseif ( wc_gzd_order_is_customer_returnable( $order, false ) ) : ?>
+	<p class="shipments-return-not-available"><?php echo esc_html_x( 'Adding return requests to this order is no longer available. You may contact us for further information.', 'shipments', 'woocommerce-germanized-shipments' ); ?></p>
 <?php endif; ?>
 
 <?php if ( ! empty( $returns ) ) : ?>
-	<h2 class="woocommerce-shipments-list__title woocommerce-return-shipments-list__title"><?php _ex( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
+	<h2 class="woocommerce-shipments-list__title woocommerce-return-shipments-list__title"><?php echo esc_html_x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
-	<?php wc_get_template( 'myaccount/shipments.php', array(
-		'type'      => 'return',
-		'shipments' => $returns,
-		'order'     => $order,
-	) ); ?>
+	<?php
+	wc_get_template(
+		'myaccount/shipments.php',
+		array(
+			'type'      => 'return',
+			'shipments' => $returns,
+			'order'     => $order,
+		)
+	);
+	?>
 <?php endif; ?>
-
-

@@ -46,10 +46,10 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Guest_Return_Shipment_Request', fals
 			$this->template_base  = Package::get_path() . '/templates/';
 			$this->helper         = function_exists( 'wc_gzd_get_email_helper' ) ? wc_gzd_get_email_helper( $this ) : false;
 
-			$this->placeholders   = array(
-				'{site_title}'             => $this->get_blogname(),
-				'{order_number}'           => '',
-				'{order_date}'             => '',
+			$this->placeholders = array(
+				'{site_title}'   => $this->get_blogname(),
+				'{order_number}' => '',
+				'{order_date}'   => '',
 			);
 
 			// Call parent constructor.
@@ -165,7 +165,8 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Guest_Return_Shipment_Request', fals
 		 */
 		public function get_content_html() {
 			return wc_get_template_html(
-				$this->template_html, array(
+				$this->template_html,
+				array(
 					'order'                  => $this->object,
 					'add_return_request_url' => $this->request_url,
 					'email_heading'          => $this->get_heading(),
@@ -184,7 +185,8 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Guest_Return_Shipment_Request', fals
 		 */
 		public function get_content_plain() {
 			return wc_get_template_html(
-				$this->template_plain, array(
+				$this->template_plain,
+				array(
 					'order'                  => $this->object,
 					'add_return_request_url' => $this->request_url,
 					'email_heading'          => $this->get_heading(),

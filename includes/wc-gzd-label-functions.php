@@ -26,14 +26,17 @@ function wc_gzd_get_shipment_labels( $args ) {
 function wc_gzd_get_label_type_by_shipment( $shipment ) {
 	$type = is_a( $shipment, '\Vendidero\Germanized\Shipments\Shipment' ) ? $shipment->get_type() : $shipment;
 
-	return apply_filters( "woocommerce_gzd_shipment_label_type", $type, $shipment );
+	return apply_filters( 'woocommerce_gzd_shipment_label_type', $type, $shipment );
 }
 
 function wc_gzd_get_shipment_label_types() {
-	return apply_filters( "woocommerce_gzd_shipment_label_types", array(
-		'simple',
-		'return'
-	) );
+	return apply_filters(
+		'woocommerce_gzd_shipment_label_types',
+		array(
+			'simple',
+			'return',
+		)
+	);
 }
 
 function wc_gzd_get_label_by_shipment( $the_shipment, $type = '' ) {
@@ -57,7 +60,7 @@ function wc_gzd_get_label_by_shipment( $the_shipment, $type = '' ) {
 		}
 	}
 
-	return apply_filters( "woocommerce_gzd_shipment_label_for_shipment", $label, $the_shipment );
+	return apply_filters( 'woocommerce_gzd_shipment_label_for_shipment', $label, $the_shipment );
 }
 
 /**
@@ -140,7 +143,7 @@ function wc_gzd_get_shipment_label_dimensions( $shipment, $unit = 'cm' ) {
 	if ( $shipment->has_dimensions() ) {
 		$dimensions = $shipment->get_package_dimensions();
 
-		foreach( $dimensions as $key => $data ) {
+		foreach ( $dimensions as $key => $data ) {
 			$dimensions[ $key ] = wc_get_dimension( $data, $unit, $shipment->get_dimension_unit() );
 		}
 	}

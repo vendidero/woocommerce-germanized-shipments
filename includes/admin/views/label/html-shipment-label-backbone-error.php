@@ -13,9 +13,9 @@ defined( 'ABSPATH' ) || exit;
 		}
 	</style>
 	<div class="notice-wrapper">
-		<?php foreach( $error->get_error_messages() as $message ) : ?>
+		<?php foreach ( $error->get_error_messages() as $message ) : ?>
 			<div class="notice is-dismissible notice-warning">
-				<?php echo wpautop( wp_kses_post( $message ) ); ?>
+				<?php echo wp_kses_post( wpautop( $message ) ); ?>
 			</div>
 		<?php endforeach; ?>
 	</div>

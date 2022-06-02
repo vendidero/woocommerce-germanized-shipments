@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\Admin;
+
 use Exception;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\PDFMerger;
@@ -10,9 +11,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Shipment Order
  *
- * @class 		WC_GZD_Shipment_Order
- * @version		1.0.0
- * @author 		Vendidero
+ * @class       WC_GZD_Shipment_Order
+ * @version     1.0.0
+ * @author      Vendidero
  */
 class BulkLabel extends BulkActionHandler {
 
@@ -34,8 +35,8 @@ class BulkLabel extends BulkActionHandler {
 		$file = get_user_meta( get_current_user_id(), $this->get_file_option_name(), true );
 
 		if ( $file ) {
-			$uploads  = Package::get_upload_dir();
-			$path     = trailingslashit( $uploads['basedir'] ) . $file;
+			$uploads = Package::get_upload_dir();
+			$path    = trailingslashit( $uploads['basedir'] ) . $file;
 
 			return $path;
 		}
@@ -75,12 +76,15 @@ class BulkLabel extends BulkActionHandler {
 
 		if ( ( $path = $this->get_file() ) && file_exists( $path ) ) {
 
-			$download_url = add_query_arg( array(
-				'action'   => 'wc-gzd-download-export-shipment-label',
-				'force'    => 'no'
-			), wp_nonce_url( admin_url(), 'download-export-shipment-label' ) );
+			$download_url = add_query_arg(
+				array(
+					'action' => 'wc-gzd-download-export-shipment-label',
+					'force'  => 'no',
+				),
+				wp_nonce_url( admin_url(), 'download-export-shipment-label' )
+			);
 
-			$download_button = '<a class="button button-primary bulk-download-button" style="margin-left: 1em;" href="' . esc_url( $download_url ) . '" target="_blank">' . _x( 'Download labels', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+			$download_button = '<a class="button button-primary bulk-download-button" style="margin-left: 1em;" href="' . esc_url( $download_url ) . '" target="_blank">' . esc_html_x( 'Download labels', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
 		}
 
 		return $download_button;
@@ -100,7 +104,7 @@ class BulkLabel extends BulkActionHandler {
 		$download_button = $this->get_download_button();
 
 		if ( ! empty( $download_button ) ) {
-			echo '<div class="notice"><p>' . sprintf( _x( 'Labels partially generated. %s', 'shipments', 'woocommerce-germanized-shipments' ), $download_button ) . '</p></div>';
+			echo '<div class="notice"><p>' . sprintf( esc_html_x( 'Labels partially generated. %s', 'shipments', 'woocommerce-germanized-shipments' ), $download_button ) . '</p></div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}
 	}
 
@@ -131,7 +135,7 @@ class BulkLabel extends BulkActionHandler {
 		$current = $this->get_current_ids();
 
 		if ( ! empty( $current ) ) {
-			foreach( $current as $shipment_id ) {
+			foreach ( $current as $shipment_id ) {
 				$label = false;
 
 				if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
@@ -140,7 +144,7 @@ class BulkLabel extends BulkActionHandler {
 							$result = $shipment->create_label();
 
 							if ( is_wp_error( $result ) ) {
-								$this->add_notice( sprintf( _x( 'Error while creating label for %s: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . esc_url( $shipment->get_edit_shipment_url() ) .'" target="_blank">' . sprintf( _x(  'shipment #%d', 'shipments', 'woocommerce-germanized-shipments' ), $shipment_id ) . '</a>', $result->get_error_message() ), 'error' );
+								$this->add_notice( sprintf( _x( 'Error while creating label for %1$s: %2$s', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . esc_url( $shipment->get_edit_shipment_url() ) . '" target="_blank">' . sprintf( _x( 'shipment #%d', 'shipments', 'woocommerce-germanized-shipments' ), $shipment_id ) . '</a>', $result->get_error_message() ), 'error' );
 							} else {
 								$label = $shipment->get_label();
 							}
@@ -162,7 +166,7 @@ class BulkLabel extends BulkActionHandler {
 				$pdf   = new PDFMerger();
 
 				if ( ! empty( $files ) ) {
-					foreach( $files as $file ) {
+					foreach ( $files as $file ) {
 						if ( ! file_exists( $file ) ) {
 							continue;
 						}
@@ -186,7 +190,8 @@ class BulkLabel extends BulkActionHandler {
 						$this->update_file( $path );
 					}
 				}
-			} catch( Exception $e ) {}
+			} catch ( Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+			}
 		}
 
 		$this->update_notices();

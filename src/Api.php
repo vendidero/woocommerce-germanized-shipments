@@ -14,8 +14,6 @@ defined( 'ABSPATH' ) || exit;
 class Api {
 
 	public static function init() {
-		// add_filter( 'woocommerce_rest_api_get_rest_namespaces', array( __CLASS__, 'register_controllers' ) );
-
 		add_filter( 'woocommerce_rest_shop_order_schema', array( __CLASS__, 'order_shipments_schema' ), 10 );
 		add_filter( 'woocommerce_rest_prepare_shop_order_object', array( __CLASS__, 'prepare_order_shipments' ), 10, 3 );
 	}
@@ -49,11 +47,11 @@ class Api {
 
 			if ( ! empty( $shipments ) ) {
 
-				foreach( $shipments as $shipment ) {
+				foreach ( $shipments as $shipment ) {
 
 					$item_data = array();
 
-					foreach( $shipment->get_items() as $item ) {
+					foreach ( $shipment->get_items() as $item ) {
 						$item_data[] = array(
 							'id'            => $item->get_id(),
 							'name'          => $item->get_name( $context ),
@@ -108,68 +106,68 @@ class Api {
 			'items'       => array(
 				'type'       => 'object',
 				'properties' => array(
-					'id'     => array(
+					'id'                    => array(
 						'description' => _x( 'Shipment ID.', 'shipments', 'woocommerce-germanized-shipments' ),
 						'type'        => 'integer',
 						'context'     => array( 'view', 'edit' ),
 						'readonly'    => true,
 					),
-					'status' => array(
+					'status'                => array(
 						'description' => _x( 'Shipment status.', 'shipments', 'woocommerce-germanized-shipments' ),
 						'type'        => 'string',
 						'context'     => array( 'view', 'edit' ),
 						'enum'        => self::get_shipment_statuses(),
 						'readonly'    => true,
 					),
-					'tracking_id' => array(
+					'tracking_id'           => array(
 						'description' => _x( 'Shipment tracking id.', 'shipments', 'woocommerce-germanized-shipments' ),
 						'type'        => 'string',
 						'context'     => array( 'view', 'edit' ),
 						'readonly'    => true,
 					),
-					'tracking_url' => array(
+					'tracking_url'          => array(
 						'description' => _x( 'Shipment tracking url.', 'shipments', 'woocommerce-germanized-shipments' ),
 						'type'        => 'string',
 						'context'     => array( 'view', 'edit' ),
 						'readonly'    => true,
 					),
-					'shipping_provider' => array(
+					'shipping_provider'     => array(
 						'description' => _x( 'Shipment shipping provider.', 'shipments', 'woocommerce-germanized-shipments' ),
 						'type'        => 'string',
 						'context'     => array( 'view', 'edit' ),
 						'readonly'    => true,
 					),
-					'date_created'         => array(
+					'date_created'          => array(
 						'description' => _x( "The date the shipment was created, in the site's timezone.", 'shipments', 'woocommerce-germanized-shipments' ),
 						'type'        => 'date-time',
 						'context'     => array( 'view', 'edit' ),
 						'readonly'    => true,
 					),
-					'date_created_gmt'     => array(
+					'date_created_gmt'      => array(
 						'description' => _x( 'The date the shipment was created, as GMT.', 'shipments', 'woocommerce-germanized-shipments' ),
 						'type'        => 'date-time',
 						'context'     => array( 'view', 'edit' ),
 						'readonly'    => true,
 					),
-					'date_sent'         => array(
+					'date_sent'             => array(
 						'description' => _x( "The date the shipment was sent, in the site's timezone.", 'shipments', 'woocommerce-germanized-shipments' ),
 						'type'        => 'date-time',
 						'context'     => array( 'view', 'edit' ),
 						'readonly'    => true,
 					),
-					'date_sent_gmt'     => array(
+					'date_sent_gmt'         => array(
 						'description' => _x( 'The date the shipment was sent, as GMT.', 'shipments', 'woocommerce-germanized-shipments' ),
 						'type'        => 'date-time',
 						'context'     => array( 'view', 'edit' ),
 						'readonly'    => true,
 					),
-					'est_delivery_date' => array(
+					'est_delivery_date'     => array(
 						'description' => _x( "The estimated delivery date of the shipment, in the site's timezone.", 'shipments', 'woocommerce-germanized-shipments' ),
 						'type'        => 'date-time',
 						'context'     => array( 'view', 'edit' ),
 						'readonly'    => true,
 					),
-					'est_delivery_date_gmt'     => array(
+					'est_delivery_date_gmt' => array(
 						'description' => _x( 'The estimated delivery date of the shipment, as GMT.', 'shipments', 'woocommerce-germanized-shipments' ),
 						'type'        => 'date-time',
 						'context'     => array( 'view', 'edit' ),
@@ -211,7 +209,7 @@ class Api {
 							),
 						),
 					),
-					'address'         => array(
+					'address'               => array(
 						'description' => _x( 'Shipping address.', 'shipments', 'woocommerce-germanized-shipments' ),
 						'type'        => 'object',
 						'context'     => array( 'view', 'edit' ),
@@ -273,7 +271,7 @@ class Api {
 							),
 						),
 					),
-					'items'           => array(
+					'items'                 => array(
 						'description' => _x( 'Shipment items.', 'shipments', 'woocommerce-germanized-shipments' ),
 						'type'        => 'array',
 						'context'     => array( 'view', 'edit' ),
@@ -281,31 +279,31 @@ class Api {
 						'items'       => array(
 							'type'       => 'object',
 							'properties' => array(
-								'id'           => array(
+								'id'            => array(
 									'description' => _x( 'Item ID.', 'shipments', 'woocommerce-germanized-shipments' ),
 									'type'        => 'integer',
 									'context'     => array( 'view', 'edit' ),
 									'readonly'    => true,
 								),
-								'name'         => array(
+								'name'          => array(
 									'description' => _x( 'Item name.', 'shipments', 'woocommerce-germanized-shipments' ),
 									'type'        => 'mixed',
 									'context'     => array( 'view', 'edit' ),
 									'readonly'    => true,
 								),
-								'order_item_id'   => array(
+								'order_item_id' => array(
 									'description' => _x( 'Order Item ID.', 'shipments', 'woocommerce-germanized-shipments' ),
 									'type'        => 'integer',
 									'context'     => array( 'view', 'edit' ),
 									'readonly'    => true,
 								),
-								'product_id'   => array(
+								'product_id'    => array(
 									'description' => _x( 'Product ID.', 'shipments', 'woocommerce-germanized-shipments' ),
 									'type'        => 'mixed',
 									'context'     => array( 'view', 'edit' ),
 									'readonly'    => true,
 								),
-								'quantity'     => array(
+								'quantity'      => array(
 									'description' => _x( 'Quantity.', 'shipments', 'woocommerce-germanized-shipments' ),
 									'type'        => 'integer',
 									'context'     => array( 'view', 'edit' ),

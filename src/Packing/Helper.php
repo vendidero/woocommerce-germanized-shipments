@@ -17,7 +17,7 @@ class Helper {
 		if ( is_null( self::$packaging ) ) {
 			self::$packaging = array();
 
-			foreach( wc_gzd_get_packaging_list() as $packaging ) {
+			foreach ( wc_gzd_get_packaging_list() as $packaging ) {
 				self::$packaging[ $packaging->get_id() ] = new PackagingBox( $packaging );
 			}
 		}

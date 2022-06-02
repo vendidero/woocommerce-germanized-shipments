@@ -38,15 +38,15 @@ if ( ! class_exists( 'WC_GZD_Email_New_Return_Shipment_Request', false ) ) :
 		 * Constructor.
 		 */
 		public function __construct() {
-			$this->id             = 'new_return_shipment_request';
-			$this->title          = _x( 'New order return request', 'shipments', 'woocommerce-germanized-shipments' );
-			$this->description    = _x( 'New order return request emails are sent to chosen recipient(s) when a new return is requested.', 'shipments', 'woocommerce-germanized-shipments' );
+			$this->id          = 'new_return_shipment_request';
+			$this->title       = _x( 'New order return request', 'shipments', 'woocommerce-germanized-shipments' );
+			$this->description = _x( 'New order return request emails are sent to chosen recipient(s) when a new return is requested.', 'shipments', 'woocommerce-germanized-shipments' );
 
 			$this->template_html  = 'emails/admin-new-return-shipment-request.php';
 			$this->template_plain = 'emails/plain/admin-new-return-shipment-request.php';
 			$this->template_base  = Package::get_path() . '/templates/';
 
-			$this->placeholders   = array(
+			$this->placeholders = array(
 				'{site_title}'      => $this->get_blogname(),
 				'{shipment_number}' => '',
 				'{order_number}'    => '',
@@ -136,7 +136,8 @@ if ( ! class_exists( 'WC_GZD_Email_New_Return_Shipment_Request', false ) ) :
 		 */
 		public function get_content_html() {
 			return wc_get_template_html(
-				$this->template_html, array(
+				$this->template_html,
+				array(
 					'shipment'           => $this->shipment,
 					'order'              => $this->object,
 					'email_heading'      => $this->get_heading(),
@@ -155,7 +156,8 @@ if ( ! class_exists( 'WC_GZD_Email_New_Return_Shipment_Request', false ) ) :
 		 */
 		public function get_content_plain() {
 			return wc_get_template_html(
-				$this->template_plain, array(
+				$this->template_plain,
+				array(
 					'shipment'           => $this->shipment,
 					'order'              => $this->object,
 					'email_heading'      => $this->get_heading(),
@@ -197,17 +199,20 @@ if ( ! class_exists( 'WC_GZD_Email_New_Return_Shipment_Request', false ) ) :
 		public function init_form_fields() {
 			parent::init_form_fields();
 
-			$this->form_fields = array_merge( $this->form_fields, array(
-				'recipient'          => array(
-					'title'       => _x( 'Recipient(s)', 'shipments', 'woocommerce-germanized-shipments' ),
-					'type'        => 'text',
-					/* translators: %s: WP admin email */
-					'description' => sprintf( _x( 'Enter recipients (comma separated) for this email. Defaults to %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<code>' . esc_attr( get_option( 'admin_email' ) ) . '</code>' ),
-					'placeholder' => '',
-					'default'     => '',
-					'desc_tip'    => true,
-				),
-			) );
+			$this->form_fields = array_merge(
+				$this->form_fields,
+				array(
+					'recipient' => array(
+						'title'       => _x( 'Recipient(s)', 'shipments', 'woocommerce-germanized-shipments' ),
+						'type'        => 'text',
+						/* translators: %s: WP admin email */
+						'description' => sprintf( _x( 'Enter recipients (comma separated) for this email. Defaults to %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<code>' . esc_attr( get_option( 'admin_email' ) ) . '</code>' ),
+						'placeholder' => '',
+						'default'     => '',
+						'desc_tip'    => true,
+					),
+				)
+			);
 		}
 	}
 

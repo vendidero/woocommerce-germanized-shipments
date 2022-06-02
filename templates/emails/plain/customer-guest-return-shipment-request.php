@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/Shipments/Templates/Emails
- * @version 1.0.0
+ * @version 1.0.1
  */
 defined( 'ABSPATH' ) || exit;
 
@@ -21,9 +21,9 @@ echo esc_html( wp_strip_all_tags( $email_heading ) );
 echo "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n\n";
 
 /* translators: %s: Customer first name */
-echo sprintf( esc_html__( 'Hi %s,', 'woocommerce' ), esc_html( $order->get_billing_first_name() ) ) . "\n\n";
+echo sprintf( esc_html__( 'Hi %s,', 'woocommerce' ), esc_html( $order->get_billing_first_name() ) ) . "\n\n"; // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch
 
-echo sprintf( esc_html_x( 'You\'ve requested a return to your order %s. Please follow the link to add your return request.', 'shipments', 'woocommerce-germanized-shipments' ), $order->get_order_number() ) . "\n\n";
+echo sprintf( esc_html_x( 'You\'ve requested a return to your order %s. Please follow the link to add your return request.', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( $order->get_order_number() ) ) . "\n\n";
 
 echo esc_url( $add_return_request_url ) . "\n\n";
 

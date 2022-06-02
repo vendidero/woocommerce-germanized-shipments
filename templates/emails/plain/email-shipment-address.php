@@ -12,9 +12,9 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/Shipments/Templates/Emails/Plain
- * @version 1.0.0
+ * @version 1.0.1
  */
 defined( 'ABSPATH' ) || exit;
 
 echo "\n" . esc_html_x( 'Shipment goes to:', 'shipments', 'woocommerce-germanized-shipments' ) . "\n\n";
-echo preg_replace( '#<br\s*/?>#i', "\n", $shipment->get_formatted_address() ) . "\n"; // WPCS: XSS ok.
+echo preg_replace( '#<br\s*/?>#i', "\n", $shipment->get_formatted_address() ) . "\n"; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

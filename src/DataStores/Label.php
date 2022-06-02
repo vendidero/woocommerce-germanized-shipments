@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\DataStores;
+
 use WC_Data_Store_WP;
 use WC_Object_Data_Store_Interface;
 use Exception;
@@ -47,7 +48,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 		'_width',
 		'_length',
 		'_height',
-		'_created_via'
+		'_created_via',
 	);
 
 	/*
@@ -64,18 +65,18 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	public function create( &$label ) {
 		global $wpdb;
 
-		$label->set_date_created( current_time( 'timestamp', true ) );
+		$label->set_date_created( time() );
 
 		$data = array(
-			'label_number'              => $label->get_number(),
-			'label_shipment_id'         => $label->get_shipment_id(),
-			'label_path'                => $label->get_path(),
-			'label_product_id'          => $label->get_product_id(),
-			'label_type'                => $label->get_type(),
-			'label_shipping_provider'   => $label->get_shipping_provider(),
-			'label_parent_id'           => $label->get_parent_id(),
-			'label_date_created'        => gmdate( 'Y-m-d H:i:s', $label->get_date_created( 'edit' )->getOffsetTimestamp() ),
-			'label_date_created_gmt'    => gmdate( 'Y-m-d H:i:s', $label->get_date_created( 'edit' )->getTimestamp() ),
+			'label_number'            => $label->get_number(),
+			'label_shipment_id'       => $label->get_shipment_id(),
+			'label_path'              => $label->get_path(),
+			'label_product_id'        => $label->get_product_id(),
+			'label_type'              => $label->get_type(),
+			'label_shipping_provider' => $label->get_shipping_provider(),
+			'label_parent_id'         => $label->get_parent_id(),
+			'label_date_created'      => gmdate( 'Y-m-d H:i:s', $label->get_date_created( 'edit' )->getOffsetTimestamp() ),
+			'label_date_created_gmt'  => gmdate( 'Y-m-d H:i:s', $label->get_date_created( 'edit' )->getTimestamp() ),
 		);
 
 		$wpdb->insert(
@@ -147,8 +148,8 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 				continue;
 			}
 
-			switch( $prop ) {
-				case "date_created":
+			switch ( $prop ) {
+				case 'date_created':
 					$label_data[ 'label' . $prop ]           = gmdate( 'Y-m-d H:i:s', $label->{'get_' . $prop}( 'edit' )->getOffsetTimestamp() );
 					$label_data[ 'label_' . $prop . '_gmt' ] = gmdate( 'Y-m-d H:i:s', $label->{'get_' . $prop}( 'edit' )->getTimestamp() );
 					break;
@@ -209,7 +210,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 		/*
 		 * Delete additional files e.g. export documents
 		 */
-		foreach( $label->get_additional_file_types() as $file_type ) {
+		foreach ( $label->get_additional_file_types() as $file_type ) {
 			if ( $file = $label->get_file( $file_type ) ) {
 				wp_delete_file( $file );
 			}
@@ -222,7 +223,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 
 		$children = $label->get_children();
 
-		foreach( $children as $child ) {
+		foreach ( $children as $child ) {
 			$child->delete( $force_delete );
 		}
 
@@ -333,7 +334,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 		if ( ! empty( $data ) ) {
 			return (object) array(
 				'shipping_provider' => $data->label_shipping_provider,
-				'type'              => $data->label_type
+				'type'              => $data->label_type,
 			);
 		}
 
@@ -354,7 +355,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 			$meta_keys[] = '_' . $key;
 		}
 
-		foreach( $meta_keys as $meta_key ) {
+		foreach ( $meta_keys as $meta_key ) {
 			$props[ substr( $meta_key, 1 ) ] = get_metadata( $this->meta_type, $label->get_id(), $meta_key, true );
 		}
 
@@ -368,10 +369,10 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 		$updated_props     = array();
 		$meta_key_to_props = array();
 
-		foreach( $this->internal_meta_keys as $meta_key ) {
+		foreach ( $this->internal_meta_keys as $meta_key ) {
 			$prop_name = substr( $meta_key, 1 );
 
-			if ( in_array( $prop_name, $this->core_props ) ) {
+			if ( in_array( $prop_name, $this->core_props, true ) ) {
 				continue;
 			}
 
@@ -468,7 +469,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 		}
 
 		if ( ! isset( $wp_query_args['meta_query'] ) ) {
-			$wp_query_args['meta_query'] = array();
+			$wp_query_args['meta_query'] = array(); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 		}
 
 		// Allow Woo to treat these props as date query compatible
@@ -496,7 +497,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 		 * Include table name because otherwise WP_Date_Query won't accept our custom column.
 		 */
 		if ( isset( $wp_query_args['date_query'] ) ) {
-			foreach( $wp_query_args['date_query'] as $key => $date_query ) {
+			foreach ( $wp_query_args['date_query'] as $key => $date_query ) {
 				if ( isset( $date_query['column'] ) && in_array( $date_query['column'], $date_queries, true ) ) {
 					$wp_query_args['date_query'][ $key ]['column'] = $wpdb->gzd_shipment_labels . '.label_' . array_search( $date_query['column'], $date_queries, true );
 				}

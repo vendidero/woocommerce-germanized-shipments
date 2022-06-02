@@ -12,10 +12,10 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/Shipments/Templates/Emails
- * @version 1.0.0
+ * @version 1.0.1
  */
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 /*
@@ -24,19 +24,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
 
 <?php /* translators: %s: Customer first name */ ?>
-    <p><?php printf( __( 'Hi %s,', 'woocommerce' ), $order->get_billing_first_name() ); ?></p><?php // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped ?>
+	<p><?php printf( esc_html__( 'Hi %s,', 'woocommerce' ), esc_html( $order->get_billing_first_name() ) ); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch ?></p>
 
-    <p>
-        <?php
-        if ( $partial_shipment ) {
-            /* translators: %s: Site title */
-            printf( _x( 'Your order on %1$s has been partially shipped via %2$s. Find details below for your reference:', 'shipments', 'woocommerce-germanized-shipments' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), wc_gzd_get_shipment_shipping_provider_title( $shipment ) ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
-        } else {
-            /* translators: %s: Site title */
-            printf( _x( 'Your order on %1$s has been shipped via %2$s. Find details below for your reference:', 'shipments', 'woocommerce-germanized-shipments' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), wc_gzd_get_shipment_shipping_provider_title( $shipment ) ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
-        }
-        ?>
-    </p>
+	<p>
+		<?php
+		if ( $partial_shipment ) {
+			/* translators: %s: Site title */
+			printf( esc_html_x( 'Your order on %1$s has been partially shipped via %2$s. Find details below for your reference:', 'shipments', 'woocommerce-germanized-shipments' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), esc_html( wc_gzd_get_shipment_shipping_provider_title( $shipment ) ) ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
+		} else {
+			/* translators: %s: Site title */
+			printf( esc_html_x( 'Your order on %1$s has been shipped via %2$s. Find details below for your reference:', 'shipments', 'woocommerce-germanized-shipments' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), esc_html( wc_gzd_get_shipment_shipping_provider_title( $shipment ) ) ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
+		}
+		?>
+	</p>
 <?php
 
 /*

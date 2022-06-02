@@ -28,11 +28,11 @@ class PDFMerger {
 	 * @param string $filename Filename of the source file
 	 * @param mixed $pages Range of files (if not set, all pages where imported)
 	 */
-	public function add( $filename, $pages = [], $width = 210 ) {
+	public function add( $filename, $pages = array(), $width = 210 ) {
 		if ( file_exists( $filename ) ) {
-			$pageCount = $this->_pdf->setSourceFile( $filename );
+			$page_count = $this->_pdf->setSourceFile( $filename );
 
-			for ( $i = 1; $i <= $pageCount; $i ++ ) {
+			for ( $i = 1; $i <= $page_count; $i ++ ) {
 				if ( $this->_isPageInRange( $i, $pages ) ) {
 					$this->_addPage( $i, $width );
 				}
@@ -76,22 +76,22 @@ class PDFMerger {
 	/**
 	 * Add single page
 	 *
-	 * @param $pageNumber
+	 * @param $page_number
 	 *
 	 * @throws PdfReaderException
 	 */
-	private function _addPage( $pageNumber, $width = 210 ) {
-		$pageId = $this->_pdf->importPage( $pageNumber );
-		$size   = $this->_pdf->getTemplateSize( $pageId );
+	private function _addPage( $page_number, $width = 210 ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore,WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		$page_id = $this->_pdf->importPage( $page_number );
+		$size    = $this->_pdf->getTemplateSize( $page_id );
 
 		$orientation = isset( $size['orientation'] ) ? $size['orientation'] : '';
 
 		$this->_pdf->addPage( $orientation, $size );
 
 		if ( ! isset( $size['width'] ) || empty( $size['width'] ) ) {
-			$this->_pdf->useImportedPage( $pageId, 0, 0, $width, null, true );
+			$this->_pdf->useImportedPage( $page_id, 0, 0, $width, null, true );
 		} else {
-			$this->_pdf->useImportedPage( $pageId );
+			$this->_pdf->useImportedPage( $page_id );
 		}
 	}
 
@@ -102,13 +102,13 @@ class PDFMerger {
 	 *
 	 * @return bool
 	 */
-	private function _isPageInRange( $pageNumber, $pages = [] ) {
+	private function _isPageInRange( $page_number, $pages = array() ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore,WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 		if ( empty( $pages ) ) {
 			return true;
 		}
 
 		foreach ( $pages as $range ) {
-			if ( in_array( $pageNumber, $this->_getRange( $range ) ) ) {
+			if ( in_array( $page_number, $this->_getRange( $range ), true ) ) {
 				return true;
 			}
 		}
@@ -124,20 +124,19 @@ class PDFMerger {
 	 *
 	 * @return array
 	 */
-	private function _getRange( $value = null ) {
+	private function _getRange( $value = null ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore,WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 		$value = preg_replace( '/[^0-9\-.]/is', '', $value );
 
-		if ( $value == '' ) {
+		if ( '' === $value ) {
 			return false;
 		}
 
 		$value = explode( '-', $value );
-		if ( count( $value ) == 1 ) {
+
+		if ( 1 === count( $value ) ) {
 			return $value;
 		}
 
 		return range( $value[0] > $value[1] ? $value[1] : $value[0], $value[0] > $value[1] ? $value[0] : $value[1] );
-
 	}
-
 }

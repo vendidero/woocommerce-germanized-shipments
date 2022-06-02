@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\Labels;
+
 use WC_Object_Query;
 use WC_Data_Store;
 use WP_Date_Query;
@@ -79,8 +80,8 @@ class Query extends WC_Object_Query {
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/DHL
 		 */
-		$args    = apply_filters( 'woocommerce_gzd_shipment_label_query_args', $this->get_query_vars() );
-		$args    = WC_Data_Store::load( 'shipment-label' )->get_query_args( $args );
+		$args = apply_filters( 'woocommerce_gzd_shipment_label_query_args', $this->get_query_vars() );
+		$args = WC_Data_Store::load( 'shipment-label' )->get_query_args( $args );
 
 		$this->query( $args );
 
@@ -119,15 +120,15 @@ class Query extends WC_Object_Query {
 		if ( null === $this->results ) {
 			$this->request = "SELECT $this->query_fields $this->query_from $this->query_where $this->query_orderby $this->query_limit";
 
-			if ( is_array( $qv['fields'] ) || 'objects' == $qv['fields'] ) {
-				$this->results = $wpdb->get_results( $this->request );
+			if ( is_array( $qv['fields'] ) || 'objects' === $qv['fields'] ) {
+				$this->results = $wpdb->get_results( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			} else {
-				$this->results = $wpdb->get_col( $this->request );
+				$this->results = $wpdb->get_col( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			}
 
 			if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
 				$found_labels_query = 'SELECT FOUND_ROWS()';
-				$this->total_labels = (int) $wpdb->get_var( $found_labels_query );
+				$this->total_labels = (int) $wpdb->get_var( $found_labels_query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			}
 		}
 
@@ -135,7 +136,7 @@ class Query extends WC_Object_Query {
 			return;
 		}
 
-		if ( 'objects' == $qv['fields'] ) {
+		if ( 'objects' === $qv['fields'] ) {
 			foreach ( $this->results as $key => $label ) {
 				$this->results[ $key ] = wc_gzd_get_shipment_label( $label );
 			}
@@ -199,7 +200,7 @@ class Query extends WC_Object_Query {
 
 			$this->query_fields = implode( ',', $this->query_fields );
 
-		} elseif ( 'objects' == $this->args['fields'] ) {
+		} elseif ( 'objects' === $this->args['fields'] ) {
 			$this->query_fields = "$wpdb->gzd_shipment_labels.*";
 		} else {
 			$this->query_fields = "$wpdb->gzd_shipment_labels.label_id";
@@ -224,26 +225,26 @@ class Query extends WC_Object_Query {
 
 		// Number
 		if ( isset( $this->args['number'] ) ) {
-			$this->query_where .= $wpdb->prepare( " AND label_number IN ('%s')", $this->args['number'] );
+			$this->query_where .= $wpdb->prepare( " AND label_number IN ('%s')", $this->args['number'] ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedSimplePlaceholder
 		}
 
 		// Shipping provider
 		if ( isset( $this->args['shipping_provider'] ) ) {
-			$this->query_where .= $wpdb->prepare( " AND label_shipping_provider IN ('%s')", $this->args['shipping_provider'] );
+			$this->query_where .= $wpdb->prepare( " AND label_shipping_provider IN ('%s')", $this->args['shipping_provider'] ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedSimplePlaceholder
 		}
 
 		// Shipping provider
 		if ( isset( $this->args['product_id'] ) ) {
-			$this->query_where .= $wpdb->prepare( " AND label_product_id IN ('%s')", $this->args['product_id'] );
+			$this->query_where .= $wpdb->prepare( " AND label_product_id IN ('%s')", $this->args['product_id'] ); // phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedSimplePlaceholder
 		}
 
 		// type
 		if ( isset( $this->args['type'] ) ) {
-			$types    = $this->args['type'];
-			$p_types  = array();
+			$types   = $this->args['type'];
+			$p_types = array();
 
-			foreach( $types as $type ) {
-				$p_types[] = $wpdb->prepare( "label_type = '%s'", $type );
+			foreach ( $types as $type ) {
+				$p_types[] = $wpdb->prepare( 'label_type = %s', $type );
 			}
 
 			$where_type = implode( ' OR ', $p_types );
@@ -262,8 +263,8 @@ class Query extends WC_Object_Query {
 
 		if ( $search ) {
 
-			$leading_wild  = ( ltrim( $search, '*' ) != $search );
-			$trailing_wild = ( rtrim( $search, '*' ) != $search );
+			$leading_wild  = ( ltrim( $search, '*' ) !== $search );
+			$trailing_wild = ( rtrim( $search, '*' ) !== $search );
 
 			if ( $leading_wild && $trailing_wild ) {
 				$wild = 'both';
@@ -421,15 +422,15 @@ class Query extends WC_Object_Query {
 		global $wpdb;
 
 		$searches      = array();
-		$leading_wild  = ( 'leading' == $wild || 'both' == $wild ) ? '%' : '';
-		$trailing_wild = ( 'trailing' == $wild || 'both' == $wild ) ? '%' : '';
+		$leading_wild  = ( 'leading' === $wild || 'both' === $wild ) ? '%' : '';
+		$trailing_wild = ( 'trailing' === $wild || 'both' === $wild ) ? '%' : '';
 		$like          = $leading_wild . $wpdb->esc_like( $string ) . $trailing_wild;
 
 		foreach ( $cols as $col ) {
-			if ( 'ID' == $col ) {
-				$searches[] = $wpdb->prepare( "$col = %s", $string );
+			if ( 'ID' === $col ) {
+				$searches[] = $wpdb->prepare( "$col = %s", $string ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			} else {
-				$searches[] = $wpdb->prepare( "$col LIKE %s", $like );
+				$searches[] = $wpdb->prepare( "$col LIKE %s", $like ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			}
 		}
 
@@ -449,13 +450,13 @@ class Query extends WC_Object_Query {
 
 		$_orderby = '';
 
-		if ( in_array( $orderby, array( 'number', 'shipment_id', 'date_created' ) ) ) {
+		if ( in_array( $orderby, array( 'number', 'shipment_id', 'date_created' ), true ) ) {
 			$_orderby = 'label_' . $orderby;
-		} elseif ( 'ID' == $orderby || 'id' == $orderby ) {
+		} elseif ( 'ID' === $orderby || 'id' === $orderby ) {
 			$_orderby = 'label_id';
-		} elseif ( 'meta_value' == $orderby || $this->get( 'meta_key' ) == $orderby ) {
+		} elseif ( 'meta_value' === $orderby || $this->get( 'meta_key' ) === $orderby ) {
 			$_orderby = "$wpdb->gzd_shipment_labelmeta.meta_value";
-		} elseif ( 'meta_value_num' == $orderby ) {
+		} elseif ( 'meta_value_num' === $orderby ) {
 			$_orderby = "$wpdb->gzd_shipment_labelmeta.meta_value+0";
 		} elseif ( 'include' === $orderby && ! empty( $this->args['include'] ) ) {
 			$include     = wp_parse_id_list( $this->args['include'] );

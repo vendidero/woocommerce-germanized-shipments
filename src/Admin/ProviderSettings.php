@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\Admin;
+
 use Exception;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
@@ -17,8 +18,8 @@ class ProviderSettings {
 	public static function get_current_provider() {
 		$provider = false;
 
-		if ( isset( $_REQUEST['provider'] ) ) {
-			$provider_name = wc_clean( wp_unslash( $_REQUEST['provider'] ) );
+		if ( isset( $_REQUEST['provider'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$provider_name = wc_clean( wp_unslash( $_REQUEST['provider'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$helper        = Helper::instance();
 
 			$helper->get_shipping_providers();
@@ -39,37 +40,37 @@ class ProviderSettings {
 		} else {
 			return 'https://vendidero.de/dokument/versanddienstleister-verwalten';
 		}
- 	}
+	}
 
- 	public static function get_next_pointers_link( $provider_name = false ) {
-	    $providers        = wc_gzd_get_shipping_providers();
-	    $next_url         = admin_url( 'admin.php?page=wc-settings&tab=germanized-emails&tutorial=yes' );
-	    $provider_indexes = array();
-	    $provider_counts  = array();
-	    $count            = 0;
+	public static function get_next_pointers_link( $provider_name = false ) {
+		$providers        = wc_gzd_get_shipping_providers();
+		$next_url         = admin_url( 'admin.php?page=wc-settings&tab=germanized-emails&tutorial=yes' );
+		$provider_indexes = array();
+		$provider_counts  = array();
+		$count            = 0;
 
-	    foreach( $providers as $provider_key => $provider ) {
-		    if ( is_a( $provider, '\Vendidero\Germanized\Shipments\ShippingProvider\Auto' ) && ! empty( $provider->get_settings_help_pointers() ) ) {
-			    $provider_indexes[ $provider_key ] = $count;
-			    $provider_counts[ $count ]         = $provider_key;
-		    	$count++;
-		    }
-	    }
+		foreach ( $providers as $provider_key => $provider ) {
+			if ( is_a( $provider, '\Vendidero\Germanized\Shipments\ShippingProvider\Auto' ) && ! empty( $provider->get_settings_help_pointers() ) ) {
+				$provider_indexes[ $provider_key ] = $count;
+				$provider_counts[ $count ]         = $provider_key;
+				$count++;
+			}
+		}
 
-	    $next_index = isset( $provider_indexes[ $provider_name ] ) ? $provider_indexes[ $provider_name ] + 1 : -1;
+		$next_index = isset( $provider_indexes[ $provider_name ] ) ? $provider_indexes[ $provider_name ] + 1 : -1;
 
-	    // By default use the first provider
-	    if ( ! $provider_name ) {
-	    	$next_index = 0;
-	    }
+		// By default use the first provider
+		if ( ! $provider_name ) {
+			$next_index = 0;
+		}
 
-	    if ( isset( $provider_counts[ $next_index ] ) ) {
-	    	$next_provider = $providers[ $provider_counts[ $next_index ] ];
-		    $next_url      = add_query_arg( array( 'tutorial' => 'yes' ), $next_provider->get_edit_link() );
-	    }
+		if ( isset( $provider_counts[ $next_index ] ) ) {
+			$next_provider = $providers[ $provider_counts[ $next_index ] ];
+			$next_url      = add_query_arg( array( 'tutorial' => 'yes' ), $next_provider->get_edit_link() );
+		}
 
-	    return $next_url;
-    }
+		return $next_url;
+	}
 
 	public static function get_pointers( $section ) {
 		$pointers = array();
@@ -81,42 +82,39 @@ class ProviderSettings {
 		} else {
 			$pointers = array(
 				'pointers' => array(
-					'provider'          => array(
+					'provider' => array(
 						'target'       => '.wc-gzd-setting-tab-rows tr:first-child .wc-gzd-shipping-provider-title a.wc-gzd-shipping-provider-edit-link',
 						'next'         => 'activate',
 						'next_url'     => '',
 						'next_trigger' => array(),
 						'options'      => array(
-							'content'  => '<h3>' . esc_html_x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3>' .
-							              '<p>' . esc_html_x( 'You may find all the available shipping providers as a list here. Click on the link to edit the provider-specific settings.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
+							'content'  => '<h3>' . esc_html_x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3><p>' . esc_html_x( 'You may find all the available shipping providers as a list here. Click on the link to edit the provider-specific settings.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
 							'position' => array(
 								'edge'  => 'left',
 								'align' => 'left',
 							),
 						),
 					),
-					'activate'          => array(
+					'activate' => array(
 						'target'       => '.wc-gzd-setting-tab-rows tr:first-child .wc-gzd-shipping-provider-activated .woocommerce-gzd-input-toggle-trigger',
 						'next'         => 'new',
 						'next_url'     => '',
 						'next_trigger' => array(),
 						'options'      => array(
-							'content'  => '<h3>' . esc_html_x( 'Activate', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3>' .
-							              '<p>' . esc_html_x( 'Activate or deactivate a shipping provider by toggling this button.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
+							'content'  => '<h3>' . esc_html_x( 'Activate', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3><p>' . esc_html_x( 'Activate or deactivate a shipping provider by toggling this button.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
 							'position' => array(
 								'edge'  => 'right',
 								'align' => 'left',
 							),
 						),
 					),
-					'new'          => array(
+					'new'      => array(
 						'target'       => 'ul.wc-gzd-settings-breadcrumb .breadcrumb-item-active a.page-title-action:first',
 						'next'         => '',
 						'next_url'     => self::get_next_pointers_link(),
 						'next_trigger' => array(),
 						'options'      => array(
-							'content'  => '<h3>' . esc_html_x( 'Add new', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3>' .
-							              '<p>' . esc_html_x( 'You may want to manually add a new shipping provider in case an automatic integration does not exist.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
+							'content'  => '<h3>' . esc_html_x( 'Add new', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3><p>' . esc_html_x( 'You may want to manually add a new shipping provider in case an automatic integration does not exist.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
 							'position' => array(
 								'edge'  => 'top',
 								'align' => 'top',
@@ -144,7 +142,7 @@ class ProviderSettings {
 		$breadcrumb[] = array(
 			'class' => 'tab',
 			'href'  => $provider ? admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider' ) : '',
-			'title' => ! $provider ? self::get_breadcrumb_label( _x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' ) ) : _x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' )
+			'title' => ! $provider ? self::get_breadcrumb_label( _x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' ) ) : _x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' ),
 		);
 
 		if ( $provider = self::get_current_provider() ) {

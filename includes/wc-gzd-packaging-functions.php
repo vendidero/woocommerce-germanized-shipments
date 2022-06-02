@@ -22,7 +22,7 @@ function wc_gzd_get_packaging( $packaging_id = false ) {
 function wc_gzd_get_packaging_types() {
 	$types = array(
 		'cardboard' => _x( 'Cardboard', 'shipments', 'woocommerce-germanized-shipments' ),
-		'letter'    => _x( 'Letter', 'shipments', 'woocommerce-germanized-shipments' )
+		'letter'    => _x( 'Letter', 'shipments', 'woocommerce-germanized-shipments' ),
 	);
 
 	return apply_filters( 'woocommerce_gzd_packaging_types', $types );
@@ -52,7 +52,7 @@ function wc_gzd_get_packaging_select() {
 		'' => _x( 'None', 'shipments-packaging', 'woocommerce-germanized-shipments' ),
 	);
 
-	foreach( $list as $packaging ) {
+	foreach ( $list as $packaging ) {
 		$select[ $packaging->get_id() ] = $packaging->get_title();
 	}
 

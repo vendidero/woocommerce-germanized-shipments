@@ -25,10 +25,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		'label_auto_shipment_status_shipped' => false,
 	);
 
-	public function __construct( $data = 0 ) {
-		parent::__construct( $data );
-	}
-
 	public function get_label_default_shipment_weight( $context = 'view' ) {
 		$weight = $this->get_prop( 'label_default_shipment_weight', $context );
 
@@ -150,7 +146,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	}
 
 	public function set_label_auto_shipment_status( $status ) {
-		$this->set_prop( 'label_auto_shipment_status',$status );
+		$this->set_prop( 'label_auto_shipment_status', $status );
 	}
 
 	public function set_label_return_auto_enable( $enable ) {
@@ -158,7 +154,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	}
 
 	public function set_label_return_auto_shipment_status( $status ) {
-		$this->set_prop( 'label_return_auto_shipment_status',$status );
+		$this->set_prop( 'label_return_auto_shipment_status', $status );
 	}
 
 	public function get_label_classname( $type ) {
@@ -213,11 +209,11 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			$error = $settings;
 
 			ob_start();
-			include( Package::get_path() . '/includes/admin/views/label/html-shipment-label-backbone-error.php' );
+			include Package::get_path() . '/includes/admin/views/label/html-shipment-label-backbone-error.php';
 			$html = ob_get_clean();
 		} else {
 			ob_start();
-			include( Package::get_path() . '/includes/admin/views/label/html-shipment-label-backbone-form.php' );
+			include Package::get_path() . '/includes/admin/views/label/html-shipment-label-backbone-form.php';
 			$html = ob_get_clean();
 		}
 
@@ -226,66 +222,83 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	protected function get_automation_settings( $for_shipping_method = false ) {
 		$settings = array(
-			array( 'title' => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ), 'allow_override' => true, 'type' => 'title', 'id' => 'shipping_provider_label_auto_options' ),
+			array(
+				'title'          => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ),
+				'allow_override' => true,
+				'type'           => 'title',
+				'id'             => 'shipping_provider_label_auto_options',
+			),
 		);
 
 		$shipment_statuses = array_diff_key( wc_gzd_get_shipment_statuses(), array_fill_keys( array( 'gzd-draft', 'gzd-delivered', 'gzd-returned', 'gzd-requested' ), '' ) );
 
-		$settings = array_merge( $settings, array(
+		$settings = array_merge(
+			$settings,
 			array(
-				'title' 	        => _x( 'Labels', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc' 		        => _x( 'Automatically create labels for shipments.', 'shipments', 'woocommerce-germanized-shipments' ),
-				'id' 		        => 'label_auto_enable',
-				'type' 		        => 'gzd_toggle',
-				'value'             => wc_bool_to_string( $this->get_setting( 'label_auto_enable' ) )
-			),
-
-			array(
-				'title'             => _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'select',
-				'id'                => 'label_auto_shipment_status',
-				'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Choose a shipment status which should trigger generation of a label.', 'shipments', 'woocommerce-germanized-shipments' ) . ' ' . ( 'yes' === Package::get_setting( 'auto_enable' ) ? sprintf( _x( 'Your current default shipment status is: <em>%s</em>.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_status_name( Package::get_setting( 'auto_default_status' ) ) ) : '' ) . '</div>',
-				'options'           => $shipment_statuses,
-				'class'             => 'wc-enhanced-select',
-				'custom_attributes'	=> array( 'data-show_if_label_auto_enable' => '' ),
-				'value'             => $this->get_setting( 'label_auto_shipment_status' ),
-			),
-
-			array(
-				'title' 	        => _x( 'Shipment Status', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc' 		        => _x( 'Mark shipment as shipped after label has been created successfully.', 'shipments', 'woocommerce-germanized-shipments' ),
-				'id' 		        => 'label_auto_shipment_status_shipped',
-				'type' 		        => 'gzd_toggle',
-				'value'             => wc_bool_to_string( $this->get_setting( 'label_auto_shipment_status_shipped' ) ),
-			),
-		) );
-
-		if ( $this->supports_labels( 'return' ) ) {
-			$settings = array_merge( $settings, array(
 				array(
-					'title' 	        => _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ),
-					'desc' 		        => _x( 'Automatically create labels for returns.', 'shipments', 'woocommerce-germanized-shipments' ),
-					'id' 		        => 'label_return_auto_enable',
-					'type' 		        => 'gzd_toggle',
-					'value'             => wc_bool_to_string( $this->get_setting( 'label_return_auto_enable' ) ),
+					'title' => _x( 'Labels', 'shipments', 'woocommerce-germanized-shipments' ),
+					'desc'  => _x( 'Automatically create labels for shipments.', 'shipments', 'woocommerce-germanized-shipments' ),
+					'id'    => 'label_auto_enable',
+					'type'  => 'gzd_toggle',
+					'value' => wc_bool_to_string( $this->get_setting( 'label_auto_enable' ) ),
 				),
 
 				array(
 					'title'             => _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'              => 'select',
-					'id'                => 'label_return_auto_shipment_status',
-					'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Choose a shipment status which should trigger generation of a return label.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
+					'id'                => 'label_auto_shipment_status',
+					'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Choose a shipment status which should trigger generation of a label.', 'shipments', 'woocommerce-germanized-shipments' ) . ' ' . ( 'yes' === Package::get_setting( 'auto_enable' ) ? sprintf( _x( 'Your current default shipment status is: <em>%s</em>.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_status_name( Package::get_setting( 'auto_default_status' ) ) ) : '' ) . '</div>',
 					'options'           => $shipment_statuses,
 					'class'             => 'wc-enhanced-select',
-					'custom_attributes'	=> array( 'data-show_if_label_return_auto_enable' => '' ),
-					'value'             => $this->get_setting( 'label_return_auto_shipment_status' ),
+					'custom_attributes' => array( 'data-show_if_label_auto_enable' => '' ),
+					'value'             => $this->get_setting( 'label_auto_shipment_status' ),
+				),
+
+				array(
+					'title' => _x( 'Shipment Status', 'shipments', 'woocommerce-germanized-shipments' ),
+					'desc'  => _x( 'Mark shipment as shipped after label has been created successfully.', 'shipments', 'woocommerce-germanized-shipments' ),
+					'id'    => 'label_auto_shipment_status_shipped',
+					'type'  => 'gzd_toggle',
+					'value' => wc_bool_to_string( $this->get_setting( 'label_auto_shipment_status_shipped' ) ),
+				),
+			)
+		);
+
+		if ( $this->supports_labels( 'return' ) ) {
+			$settings = array_merge(
+				$settings,
+				array(
+					array(
+						'title' => _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ),
+						'desc'  => _x( 'Automatically create labels for returns.', 'shipments', 'woocommerce-germanized-shipments' ),
+						'id'    => 'label_return_auto_enable',
+						'type'  => 'gzd_toggle',
+						'value' => wc_bool_to_string( $this->get_setting( 'label_return_auto_enable' ) ),
+					),
+
+					array(
+						'title'             => _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' ),
+						'type'              => 'select',
+						'id'                => 'label_return_auto_shipment_status',
+						'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Choose a shipment status which should trigger generation of a return label.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
+						'options'           => $shipment_statuses,
+						'class'             => 'wc-enhanced-select',
+						'custom_attributes' => array( 'data-show_if_label_return_auto_enable' => '' ),
+						'value'             => $this->get_setting( 'label_return_auto_shipment_status' ),
+					),
 				)
-			) );
+			);
 		}
 
-		$settings = array_merge( $settings, array(
-			array( 'type' => 'sectionend', 'id' => 'shipping_provider_label_auto_options' ),
-		) );
+		$settings = array_merge(
+			$settings,
+			array(
+				array(
+					'type' => 'sectionend',
+					'id'   => 'shipping_provider_label_auto_options',
+				),
+			)
+		);
 
 		return $settings;
 	}
@@ -296,33 +309,40 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	protected function get_label_settings( $for_shipping_method = false ) {
 		$settings = array(
-			array( 'title' => '', 'type' => 'title', 'id' => 'shipping_provider_label_options' ),
-
 			array(
-				'title'             => _x( 'Default content weight (kg)', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'desc'              => _x( 'Choose a default shipment content weight to be used for labels if no weight has been applied to the shipment.', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc_tip'          => true,
-				'id' 		        => 'label_default_shipment_weight',
-				'css'               => 'max-width: 60px;',
-				'class'             => 'wc_input_decimal',
-				'default'           => $this->get_default_label_default_shipment_weight(),
-				'value'             => $this->get_setting( 'label_default_shipment_weight' )
+				'title' => '',
+				'type'  => 'title',
+				'id'    => 'shipping_provider_label_options',
 			),
 
 			array(
-				'title'             => _x( 'Minimum weight (kg)', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'              => 'text',
-				'desc'              => _x( 'Choose a minimum weight to be used for labels e.g. to prevent low shipment weight errors.', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc_tip'          => true,
-				'id' 		        => 'label_minimum_shipment_weight',
-				'css'               => 'max-width: 60px;',
-				'class'             => 'wc_input_decimal',
-				'default'           => $this->get_default_label_minimum_shipment_weight(),
-				'value'             => $this->get_setting( 'label_minimum_shipment_weight' )
+				'title'    => _x( 'Default content weight (kg)', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'     => 'text',
+				'desc'     => _x( 'Choose a default shipment content weight to be used for labels if no weight has been applied to the shipment.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc_tip' => true,
+				'id'       => 'label_default_shipment_weight',
+				'css'      => 'max-width: 60px;',
+				'class'    => 'wc_input_decimal',
+				'default'  => $this->get_default_label_default_shipment_weight(),
+				'value'    => $this->get_setting( 'label_default_shipment_weight' ),
 			),
 
-			array( 'type' => 'sectionend', 'id' => 'shipping_provider_label_options' ),
+			array(
+				'title'    => _x( 'Minimum weight (kg)', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'     => 'text',
+				'desc'     => _x( 'Choose a minimum weight to be used for labels e.g. to prevent low shipment weight errors.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc_tip' => true,
+				'id'       => 'label_minimum_shipment_weight',
+				'css'      => 'max-width: 60px;',
+				'class'    => 'wc_input_decimal',
+				'default'  => $this->get_default_label_minimum_shipment_weight(),
+				'value'    => $this->get_setting( 'label_minimum_shipment_weight' ),
+			),
+
+			array(
+				'type' => 'sectionend',
+				'id'   => 'shipping_provider_label_options',
+			),
 		);
 
 		return $settings;
@@ -373,10 +393,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'id'          => 'product_id',
 				'label'       => sprintf( _x( '%s Product', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title() ),
 				'description' => '',
-				'options'	  => $this->get_available_label_products( $shipment ),
+				'options'     => $this->get_available_label_products( $shipment ),
 				'value'       => $default && array_key_exists( $default, $available ) ? $default : '',
-				'type'        => 'select'
-			)
+				'type'        => 'select',
+			),
 		);
 
 		return $settings;
@@ -411,7 +431,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			'net_weight'        => wc_gzd_get_shipment_label_weight( $shipment, true ),
 			'shipment_id'       => $shipment->get_id(),
 			'services'          => array(),
-			'product_id'        => $this->get_default_label_product( $shipment )
+			'product_id'        => $this->get_default_label_product( $shipment ),
 		);
 
 		$dimensions = wc_gzd_get_shipment_label_dimensions( $shipment );
@@ -437,7 +457,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			 * By default checkbox fields won't be transmitted via POST data.
 			 * In case the values does not exist within props, assume not checked.
 			 */
-			foreach( $fields as $field ) {
+			foreach ( $fields as $field ) {
 				if ( ! isset( $field['value'] ) ) {
 					continue;
 				}
@@ -449,7 +469,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 					}
 
 					$props[ $field['id'] ] = 'no';
-				} elseif( 'multiselect' === $field['type'] ) {
+				} elseif ( 'multiselect' === $field['type'] ) {
 					if ( isset( $props[ $field['id'] ] ) ) {
 						$props[ $field['id'] ] = (array) $props[ $field['id'] ];
 					}
@@ -462,17 +482,17 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			 */
 			$props = wp_parse_args( $props, $this->get_default_label_props( $shipment ) );
 
-			foreach( $props as $key => $value ) {
+			foreach ( $props as $key => $value ) {
 				if ( substr( $key, 0, strlen( 'service_' ) ) === 'service_' ) {
 					$new_key = substr( $key, ( strlen( 'service_' ) ) );
 
-					if ( wc_string_to_bool( $value ) && in_array( $new_key, $this->get_available_label_services( $shipment ) ) ) {
-						if ( ! in_array( $new_key, $props['services'] ) ) {
+					if ( wc_string_to_bool( $value ) && in_array( $new_key, $this->get_available_label_services( $shipment ), true ) ) {
+						if ( ! in_array( $new_key, $props['services'], true ) ) {
 							$props['services'][] = $new_key;
 						}
 						unset( $props[ $key ] );
 					} else {
-						if ( ( $service_key = array_search( $new_key, $props['services'] ) ) !== false ) {
+						if ( ( $service_key = array_search( $new_key, $props['services'], true ) ) !== false ) {
 							unset( $props['services'][ $service_key ] );
 						}
 						unset( $props[ $key ] );
@@ -494,7 +514,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		$label = Factory::get_label( 0, $this->get_name(), $shipment->get_type() );
 
 		if ( $label ) {
-			foreach( $props as $key => $value ) {
+			foreach ( $props as $key => $value ) {
 				$setter = "set_{$key}";
 
 				if ( is_callable( array( $label, $setter ) ) ) {

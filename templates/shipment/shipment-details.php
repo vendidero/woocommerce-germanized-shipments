@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Vendidero/Germanized/Shipments/Templates
- * @version 3.1.0
+ * @version 3.1.1
  */
 use Vendidero\Germanized\Shipments\Shipment;
 
@@ -24,7 +24,7 @@ if ( ! $shipment ) {
 	return;
 }
 
-$order                 = $shipment->get_order();
+$order                 = $shipment->get_order(); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 $show_receiver_details = is_user_logged_in() && $order && $order->get_user_id() === get_current_user_id();
 $show_tracking         = $show_receiver_details && $shipment->has_tracking();
 $shipment_items        = $shipment->get_items();
@@ -45,18 +45,19 @@ if ( 'return' === $shipment->get_type() ) {
 	 * @param Shipment $shipment The shipment instance.
 	 *
 	 * @since 3.0.0
-     * @package Vendidero/Germanized/Shipments
+	 * @package Vendidero/Germanized/Shipments
 	 */
-    do_action( 'woocommerce_gzd_shipment_details_before_shipment_table', $shipment ); ?>
+	do_action( 'woocommerce_gzd_shipment_details_before_shipment_table', $shipment );
+	?>
 
-	<h2 class="woocommerce-shipment-details__title"><?php echo esc_html_x(  'Shipment details', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
+	<h2 class="woocommerce-shipment-details__title"><?php echo esc_html_x( 'Shipment details', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
 	<table class="woocommerce-table woocommerce-table--shipment-details shop_table shipment_details">
 
 		<thead>
 		<tr>
-			<th class="woocommerce-table__product-name product-name"><?php echo esc_html_x(  'Product', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
-			<th class="woocommerce-table__product-table product-quantity"><?php echo esc_html_x(  'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+			<th class="woocommerce-table__product-name product-name"><?php echo esc_html_x( 'Product', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+			<th class="woocommerce-table__product-table product-quantity"><?php echo esc_html_x( 'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
 		</tr>
 		</thead>
 
@@ -68,7 +69,7 @@ if ( 'return' === $shipment->get_type() ) {
 		 * @param Shipment $shipment The shipment instance.
 		 *
 		 * @since 3.0.0
-         * @package Vendidero/Germanized/Shipments
+		 * @package Vendidero/Germanized/Shipments
 		 */
 		do_action( 'woocommerce_gzd_shipment_details_before_shipment_table_items', $shipment );
 
@@ -78,10 +79,10 @@ if ( 'return' === $shipment->get_type() ) {
 			wc_get_template(
 				'shipment/shipment-details-item.php',
 				array(
-					'shipment'           => $shipment,
-					'item_id'            => $item_id,
-					'item'               => $item,
-					'product'            => $product,
+					'shipment' => $shipment,
+					'item_id'  => $item_id,
+					'item'     => $item,
+					'product'  => $product,
 				)
 			);
 		}
@@ -92,7 +93,7 @@ if ( 'return' === $shipment->get_type() ) {
 		 * @param Shipment $shipment The shipment instance.
 		 *
 		 * @since 3.0.0
-         * @package Vendidero/Germanized/Shipments
+		 * @package Vendidero/Germanized/Shipments
 		 */
 		do_action( 'woocommerce_gzd_shipment_details_after_shipment_table_items', $shipment );
 		?>
@@ -106,9 +107,10 @@ if ( 'return' === $shipment->get_type() ) {
 	 * @param Shipment $shipment The shipment instance.
 	 *
 	 * @since 3.0.0
-     * @package Vendidero/Germanized/Shipments
+	 * @package Vendidero/Germanized/Shipments
 	 */
-    do_action( 'woocommerce_gzd_shipment_details_after_shipment_table', $shipment ); ?>
+	do_action( 'woocommerce_gzd_shipment_details_after_shipment_table', $shipment );
+	?>
 </section>
 
 <?php

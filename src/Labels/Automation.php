@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\Labels;
+
 use Exception;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Shipment;
@@ -77,7 +78,7 @@ class Automation {
 
 				if ( $is_hook ) {
 					add_action( $hook_prefix . $status, array( __CLASS__, 'maybe_create_label' ), 5, 2 );
-				} elseif( $shipment->has_status( $status ) ) {
+				} elseif ( $shipment->has_status( $status ) ) {
 					self::maybe_create_label( $shipment->get_id(), $shipment );
 				}
 			}
@@ -111,7 +112,7 @@ class Automation {
 	}
 
 	private static function is_admin_edit_order_request() {
-		return ( isset( $_POST['action'] ) && 'editpost' === $_POST['action'] && isset( $_POST['post_type'] ) && 'shop_order' === $_POST['post_type'] );
+		return ( isset( $_POST['action'] ) && 'editpost' === $_POST['action'] && isset( $_POST['post_type'] ) && 'shop_order' === $_POST['post_type'] ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 	}
 
 	public static function maybe_create_label( $shipment_id, $shipment = false ) {

@@ -86,7 +86,7 @@ class ReturnLabel extends Label implements ShipmentReturnLabel {
 	}
 
 	public function get_sender_formatted_full_name() {
-		return sprintf( _x( '%1$s', 'shipments full name', 'woocommerce-germanized-shipments' ), $this->get_sender_name() );
+		return sprintf( _x( '%1$s', 'shipments full name', 'woocommerce-germanized-shipments' ), $this->get_sender_name() ); // phpcs:ignore WordPress.WP.I18n.NoEmptyStrings
 	}
 
 	public function get_sender_postcode( $context = 'view' ) {

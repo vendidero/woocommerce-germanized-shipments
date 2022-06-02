@@ -6,6 +6,7 @@
  * @version 1.0.0
  */
 namespace Vendidero\Germanized\Shipments;
+
 use WC_Data;
 use WC_Data_Store;
 use Exception;
@@ -74,7 +75,7 @@ class SimpleShipment extends Shipment {
 	 * @param Order $order_shipment The order shipment.
 	 */
 	public function set_order_shipment( &$order_shipment ) {
-		$this->order_shipment             = $order_shipment;
+		$this->order_shipment = $order_shipment;
 	}
 
 	/**
@@ -134,19 +135,25 @@ class SimpleShipment extends Shipment {
 			$default_provider_instance = wc_gzd_get_order_shipping_provider( $order );
 			$default_provider          = $default_provider_instance ? $default_provider_instance->get_name() : '';
 			$provider                  = $this->get_shipping_provider( 'edit' );
-			$address_data              = array_merge( ( $order->has_shipping_address() ? $order->get_address( 'shipping' ) : $order->get_address( 'billing' ) ), array( 'email' => $order->get_billing_email(), 'phone' => $order->get_billing_phone() ) );
+			$address_data              = array_merge(
+				( $order->has_shipping_address() ? $order->get_address( 'shipping' ) : $order->get_address( 'billing' ) ),
+				array(
+					'email' => $order->get_billing_email(),
+					'phone' => $order->get_billing_phone(),
+				)
+			);
 
 			// Prefer shipping phone in case exists
 			if ( is_callable( array( $order, 'get_shipping_phone' ) ) && $order->get_shipping_phone() ) {
 				$address_data['phone'] = $order->get_shipping_phone();
- 			}
+			}
 
 			/**
 			 * Fix to make sure that we are not syncing formatted customer titles (e.g. Herr)
 			 * which prevents shipment addresses from being translated.
 			 */
 			if ( isset( $address_data['title'] ) && ! empty( $address_data['title'] ) ) {
-				if ( $title = $order->get_meta( "_shipping_title", true ) ) {
+				if ( $title = $order->get_meta( '_shipping_title', true ) ) {
 					$address_data['title'] = $title;
 				}
 			}
@@ -158,26 +165,29 @@ class SimpleShipment extends Shipment {
 			$country      = substr( strtoupper( ( $order->has_shipping_address() ? $order->get_shipping_country() : $order->get_billing_country() ) ), 0, 2 );
 			$packaging_id = $this->get_packaging_id( 'edit' );
 
-			$dimensions   = array(
+			$dimensions = array(
 				'width'  => $this->get_width( 'edit' ),
 				'length' => $this->get_length( 'edit' ),
-				'height' => $this->get_height( 'edit' )
+				'height' => $this->get_height( 'edit' ),
 			);
 
-			$args = wp_parse_args( $args, array(
-				'order_id'          => $order->get_id(),
-				'shipping_method'   => wc_gzd_get_shipment_order_shipping_method_id( $order ),
-				'shipping_provider' => ( ! empty( $provider ) ) ? $provider : $default_provider,
-				'packaging_id'      => $this->get_packaging_id( 'edit' ),
-				'address'           => $address_data,
-				'country'           => $country,
-				'weight'            => $this->get_weight( 'edit' ),
-				'packaging_weight'  => $this->get_packaging_weight( 'edit' ),
-				'length'            => $dimensions['length'],
-				'width'             => $dimensions['width'],
-				'height'            => $dimensions['height'],
-				'additional_total'  => $order_shipment->calculate_shipment_additional_total( $this ),
-			) );
+			$args = wp_parse_args(
+				$args,
+				array(
+					'order_id'          => $order->get_id(),
+					'shipping_method'   => wc_gzd_get_shipment_order_shipping_method_id( $order ),
+					'shipping_provider' => ( ! empty( $provider ) ) ? $provider : $default_provider,
+					'packaging_id'      => $this->get_packaging_id( 'edit' ),
+					'address'           => $address_data,
+					'country'           => $country,
+					'weight'            => $this->get_weight( 'edit' ),
+					'packaging_weight'  => $this->get_packaging_weight( 'edit' ),
+					'length'            => $dimensions['length'],
+					'width'             => $dimensions['width'],
+					'height'            => $dimensions['height'],
+					'additional_total'  => $order_shipment->calculate_shipment_additional_total( $this ),
+				)
+			);
 
 			/**
 			 * Filter to allow adjusting the shipment props synced from the corresponding order.
@@ -230,16 +240,21 @@ class SimpleShipment extends Shipment {
 
 			$order = $order_shipment->get_order();
 
-			$args = wp_parse_args( $args, array(
-				'items' => array(),
-			) );
+			$args = wp_parse_args(
+				$args,
+				array(
+					'items' => array(),
+				)
+			);
 
-			$available_items = $order_shipment->get_available_items_for_shipment( array(
-				'shipment_id'              => $this->get_id(),
-				'exclude_current_shipment' => true,
-			) );
+			$available_items = $order_shipment->get_available_items_for_shipment(
+				array(
+					'shipment_id'              => $this->get_id(),
+					'exclude_current_shipment' => true,
+				)
+			);
 
-			foreach( $available_items as $item_id => $item_data ) {
+			foreach ( $available_items as $item_id => $item_data ) {
 
 				if ( $order_item = $order->get_item( $item_id ) ) {
 					$quantity = $item_data['max_quantity'];
@@ -266,10 +281,10 @@ class SimpleShipment extends Shipment {
 				}
 			}
 
-			foreach( $this->get_items() as $item ) {
+			foreach ( $this->get_items() as $item ) {
 
 				// Remove non-existent items
-				if( ! $order_item = $order->get_item( $item->get_order_item_id() ) ) {
+				if ( ! $order_item = $order->get_item( $item->get_order_item_id() ) ) {
 					$this->remove_item( $item->get_id() );
 				}
 			}
@@ -307,7 +322,7 @@ class SimpleShipment extends Shipment {
 		if ( $order = $this->get_order() ) {
 			$items = $order->get_shipping_methods();
 
-			foreach( $items as $item ) {
+			foreach ( $items as $item ) {
 				$methods[ $item->get_method_id() . ':' . $item->get_instance_id() ] = $item->get_name();
 			}
 		}

@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\DataStores;
+
 use DVDoug\BoxPacker\VolumePacker;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Packing\PackagingBox;
@@ -37,7 +38,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		'width',
 		'height',
 		'description',
-		'order'
+		'order',
 	);
 
 	/*
@@ -54,7 +55,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 	public function create( &$packaging ) {
 		global $wpdb;
 
-		$packaging->set_date_created( current_time( 'timestamp', true ) );
+		$packaging->set_date_created( time() );
 
 		$data = array(
 			'packaging_type'               => $packaging->get_type(),
@@ -95,7 +96,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			 * @since 3.3.0
 			 * @package Vendidero/Germanized/Shipments
 			 */
-			do_action( "woocommerce_gzd_new_packaging", $packaging_id, $packaging );
+			do_action( 'woocommerce_gzd_new_packaging', $packaging_id, $packaging );
 		}
 	}
 
@@ -118,8 +119,8 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 				continue;
 			}
 
-			switch( $prop ) {
-				case "date_created":
+			switch ( $prop ) {
+				case 'date_created':
 					if ( is_callable( array( $packaging, 'get_' . $prop ) ) ) {
 						$packaging_data[ 'packaging_' . $prop ]          = gmdate( 'Y-m-d H:i:s', $packaging->{'get_' . $prop}( 'edit' )->getOffsetTimestamp() );
 						$packaging_data[ 'packaging_' . $prop . '_gmt' ] = gmdate( 'Y-m-d H:i:s', $packaging->{'get_' . $prop}( 'edit' )->getTimestamp() );
@@ -157,7 +158,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		 * @since 3.3.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		do_action( "woocommerce_gzd_packaging_updated", $packaging->get_id(), $packaging );
+		do_action( 'woocommerce_gzd_packaging_updated', $packaging->get_id(), $packaging );
 	}
 
 	/**
@@ -184,7 +185,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		 * @since 3.3.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		do_action( "woocommerce_gzd_packaging_deleted", $packaging->get_id(), $packaging );
+		do_action( 'woocommerce_gzd_packaging_deleted', $packaging->get_id(), $packaging );
 	}
 
 	/**
@@ -234,7 +235,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			 * @since 3.3.0
 			 * @package Vendidero/Germanized/Shipments
 			 */
-			do_action( "woocommerce_gzd_packaging_loaded", $packaging );
+			do_action( 'woocommerce_gzd_packaging_loaded', $packaging );
 		} else {
 			throw new Exception( _x( 'Invalid packaging.', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
@@ -285,7 +286,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 	protected function read_packaging_data( &$packaging ) {
 		$props = array();
 
-		foreach( $this->internal_meta_keys as $meta_key ) {
+		foreach ( $this->internal_meta_keys as $meta_key ) {
 			$props[ substr( $meta_key, 1 ) ] = get_metadata( 'gzd_packaging', $packaging->get_id(), $meta_key, true );
 		}
 
@@ -299,10 +300,10 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		$updated_props     = array();
 		$meta_key_to_props = array();
 
-		foreach( $this->internal_meta_keys as $meta_key ) {
+		foreach ( $this->internal_meta_keys as $meta_key ) {
 			$prop_name = substr( $meta_key, 1 );
 
-			if ( in_array( $prop_name, $this->core_props ) ) {
+			if ( in_array( $prop_name, $this->core_props, true ) ) {
 				continue;
 			}
 
@@ -317,8 +318,8 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 				continue;
 			}
 
-			$value   = $packaging->{"get_$prop"}( 'edit' );
-			$value   = is_string( $value ) ? wp_slash( $value ) : $value;
+			$value = $packaging->{"get_$prop"}( 'edit' );
+			$value = is_string( $value ) ? wp_slash( $value ) : $value;
 
 			$updated = $this->update_or_delete_meta( $packaging, $meta_key, $value );
 
@@ -388,7 +389,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		}
 
 		if ( ! isset( $wp_query_args['meta_query'] ) ) {
-			$wp_query_args['meta_query'] = array();
+			$wp_query_args['meta_query'] = array(); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
 		}
 
 		// Allow Woo to treat these props as date query compatible
@@ -447,9 +448,12 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 
 		$all_types = array_keys( wc_gzd_get_packaging_types() );
 
-		$args = wp_parse_args( $args, array(
-			'type' => $all_types
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'type' => $all_types,
+			)
+		);
 
 		if ( ! is_array( $args['type'] ) ) {
 			$args['type'] = array( $args['type'] );
@@ -469,12 +473,12 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			$results = wp_cache_get( 'packaging-list', 'packaging' );
 
 			if ( false === $results ) {
-				$results = $wpdb->get_results( $query );
+				$results = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 				wp_cache_set( 'packaging-list', $results, 'packaging' );
 			}
 		} else {
-			$results = $wpdb->get_results( $query );
+			$results = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		}
 
 		foreach ( $results as $key => $packaging ) {
@@ -533,14 +537,14 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			$results = wp_cache_get( 'available-packaging-' . $shipment->get_id(), 'shipments' );
 		}
 
-		if ( false === $results && sizeof( $items_to_pack ) > 0 ) {
+		if ( false === $results && count( $items_to_pack ) > 0 ) {
 			$available_packaging_ids = array();
 
 			if ( Package::is_packing_supported() ) {
 				$packaging_list = wc_gzd_get_packaging_list();
 				$items          = \DVDoug\BoxPacker\ItemList::fromArray( $items_to_pack );
 
-				foreach( $packaging_list as $packaging ) {
+				foreach ( $packaging_list as $packaging ) {
 					/**
 					 * Make sure to only check naively fitting packaging to improve performance
 					 */
@@ -549,12 +553,12 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 					}
 
 					$box      = new PackagingBox( $packaging );
-					$org_size = sizeof( $items_to_pack );
+					$org_size = count( $items_to_pack );
 
 					$packer = new VolumePacker( $box, $items );
 					$packed = $packer->pack();
 
-					if ( sizeof( $packed->getItems() ) === $org_size ) {
+					if ( count( $packed->getItems() ) === $org_size ) {
 						$packaging_available[]     = $packaging;
 						$available_packaging_ids[] = $packaging->get_id();
 					}
@@ -565,7 +569,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 				$weight = wc_format_decimal( empty( $shipment->get_weight() ) ? 0 : wc_get_weight( $shipment->get_weight(), wc_gzd_get_packaging_weight_unit(), $shipment->get_weight_unit() ), 1 );
 				$length = wc_format_decimal( empty( $shipment->get_length() ) ? 0 : wc_get_dimension( $shipment->get_length(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );
 				$width  = wc_format_decimal( empty( $shipment->get_width() ) ? 0 : wc_get_dimension( $shipment->get_width(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );
-				$height = wc_format_decimal( empty( $shipment->get_height() ) ? 0 :  wc_get_dimension( $shipment->get_height(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );
+				$height = wc_format_decimal( empty( $shipment->get_height() ) ? 0 : wc_get_dimension( $shipment->get_height(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );
 
 				$types     = array_keys( wc_gzd_get_packaging_types() );
 				$threshold = apply_filters( 'woocommerce_gzd_shipment_packaging_match_threshold', 0, $shipment );
@@ -582,22 +586,22 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 					ORDER BY total_diff ASC, packaging_weight ASC, packaging_order ASC
 				";
 
-				$query   = $wpdb->prepare( $query_sql, $length, $width, $height, $length, $width, $height, $weight, $threshold, $threshold, $threshold );
-				$results = $wpdb->get_results( $query );
+				$query   = $wpdb->prepare( $query_sql, $length, $width, $height, $length, $width, $height, $weight, $threshold, $threshold, $threshold ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$results = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 				if ( $results ) {
-					foreach( $results as $result ) {
+					foreach ( $results as $result ) {
 						$available_packaging_ids[] = $result->packaging_id;
-						$packaging_available[] = wc_gzd_get_packaging( $result->packaging_id );
+						$packaging_available[]     = wc_gzd_get_packaging( $result->packaging_id );
 					}
 				}
 			}
 
 			wp_cache_set( 'available-packaging-' . $shipment->get_id(), $available_packaging_ids, 'shipments' );
-		} elseif ( sizeof( $items_to_pack ) <= 0 ) {
+		} elseif ( count( $items_to_pack ) <= 0 ) {
 			$packaging_available = wc_gzd_get_packaging_list();
 		} else {
-			foreach( (array) $results as $packaging_id ) {
+			foreach ( (array) $results as $packaging_id ) {
 				$packaging_available[] = wc_gzd_get_packaging( $packaging_id );
 			}
 		}
@@ -606,7 +610,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 	}
 
 	protected function sort_packaging_list( $packaging ) {
-		usort($packaging, array( $this, '_sort_packaging_list_callback' ) );
+		usort( $packaging, array( $this, 'sort_packaging_list_callback' ) );
 
 		return $packaging;
 	}
@@ -617,7 +621,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 	 *
 	 * @return int
 	 */
-	protected function _sort_packaging_list_callback( $packaging_a, $packaging_b ) {
+	protected function sort_packaging_list_callback( $packaging_a, $packaging_b ) {
 		if ( $packaging_a->get_volume() === $packaging_b->get_volume() ) {
 			return 0;
 		}
@@ -632,8 +636,8 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 	 * @return \Vendidero\Germanized\Shipments\Packaging|false
 	 */
 	public function find_best_match_for_shipment( $shipment ) {
-		$results    = $this->find_available_packaging_for_shipment( $shipment );
-		$packaging  = false;
+		$results   = $this->find_available_packaging_for_shipment( $shipment );
+		$packaging = false;
 
 		if ( ! empty( $results ) ) {
 			$packaging = $results[0];
@@ -641,13 +645,13 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			/**
 			 * In case more than one packaging is available - choose the default packaging in case it is available.
 			 */
-			if ( sizeof( $results ) > 1 ) {
+			if ( count( $results ) > 1 ) {
 				$default_packaging_id = Package::get_setting( 'default_packaging' );
 
 				if ( ! empty( $default_packaging_id ) ) {
 					$default_packaging_id = absint( $default_packaging_id );
 
-					foreach( $results as $result ) {
+					foreach ( $results as $result ) {
 						if ( $result->get_id() === $default_packaging_id ) {
 							$packaging = $result;
 							break;

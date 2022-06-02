@@ -11,30 +11,28 @@
  * the readme will list any important changes.
  *
  * @package Vendidero/Germanized/Shipments/Templates
- * @version 1.0.0
+ * @version 1.0.1
  */
 defined( 'ABSPATH' ) || exit;
 ?>
-<h2 class="woocommerce-add-return-shipment__title"><?php _ex( 'New return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
+<h2 class="woocommerce-add-return-shipment__title"><?php echo esc_html_x( 'New return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
-<p><?php _ex( 'Please select one or more items to return.', 'shipments', 'woocommerce-germanized-shipments' ); ?></p>
+<p><?php echo esc_html_x( 'Please select one or more items to return.', 'shipments', 'woocommerce-germanized-shipments' ); ?></p>
 
 <?php if ( wc_gzd_customer_return_needs_manual_confirmation( $order ) ) : ?>
-    <p><?php _ex( 'After submitting your return request we will review it and notify you via email about the next steps.', 'shipments', 'woocommerce-germanized-shipments' ); ?></p>
-<?php else: ?>
-    <p><?php _ex( 'After submitting your return request you\'ll receive an email with further information to the return process.', 'shipments', 'woocommerce-germanized-shipments' ); ?></p>
+	<p><?php echo esc_html_x( 'After submitting your return request we will review it and notify you via email about the next steps.', 'shipments', 'woocommerce-germanized-shipments' ); ?></p>
+<?php else : ?>
+	<p><?php echo esc_html_x( 'After submitting your return request you\'ll receive an email with further information to the return process.', 'shipments', 'woocommerce-germanized-shipments' ); ?></p>
 <?php endif; ?>
 
 <form id="add_return_shipment" method="post">
-
 	<table class="woocommerce-table woocommerce-table--shipment-details shop_table add_return_shipment_table">
-
 		<thead>
 		<tr>
-            <th class="woocommerce-table__product-select product-select"></th>
-            <th class="woocommerce-table__product-name product-name"><?php echo esc_html_x(  'Product', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
-			<th class="woocommerce-table__product-table product-reason"><?php echo esc_html_x(  'Reason', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
-			<th class="woocommerce-table__product-table product-quantity"><?php echo esc_html_x(  'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+			<th class="woocommerce-table__product-select product-select"></th>
+			<th class="woocommerce-table__product-name product-name"><?php echo esc_html_x( 'Product', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+			<th class="woocommerce-table__product-table product-reason"><?php echo esc_html_x( 'Reason', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+			<th class="woocommerce-table__product-table product-quantity"><?php echo esc_html_x( 'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
 		</tr>
 		</thead>
 
@@ -80,9 +78,9 @@ defined( 'ABSPATH' ) || exit;
 		<?php wp_nonce_field( 'add_return_shipment', 'add-return-shipment-nonce' ); ?>
 		<button type="submit" class="woocommerce-Button button" name="add_return_shipment" value="<?php echo esc_attr_x( 'Send request', 'shipments', 'woocommerce-germanized-shipments' ); ?>"><?php echo esc_attr_x( 'Send request', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
 
-        <input type="hidden" name="action" value="gzd_add_return_shipment" />
-        <input type="hidden" name="key" value="<?php echo esc_attr( wc_gzd_get_customer_order_return_request_key() ); ?>" />
-        <input type="hidden" name="order_id" value="<?php echo esc_attr( $order_id ); ?>" />
+		<input type="hidden" name="action" value="gzd_add_return_shipment" />
+		<input type="hidden" name="key" value="<?php echo esc_attr( wc_gzd_get_customer_order_return_request_key() ); ?>" />
+		<input type="hidden" name="order_id" value="<?php echo esc_attr( $order_id ); ?>" />
 	</p>
 </form>
 <?php

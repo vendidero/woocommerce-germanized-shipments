@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\DataStores;
+
 use WC_Data_Store_WP;
 use WC_Object_Data_Store_Interface;
 use Exception;
@@ -35,7 +36,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		'_return_manual_confirmation',
 		'_return_instructions',
 		'_supports_customer_returns',
-		'_supports_guest_returns'
+		'_supports_guest_returns',
 	);
 
 	protected $core_props = array(
@@ -93,7 +94,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 			 * @since 3.0.0
 			 * @package Vendidero/Germanized/Shipments
 			 */
-			do_action( "woocommerce_gzd_new_shipping_provider", $provider_id, $provider );
+			do_action( 'woocommerce_gzd_new_shipping_provider', $provider_id, $provider );
 		}
 	}
 
@@ -111,13 +112,13 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 
 		// Post slugs must be unique across all posts.
 		$check_sql           = "SELECT shipping_provider_name FROM $wpdb->gzd_shipping_provider WHERE shipping_provider_name = %s AND shipping_provider_id != %d LIMIT 1";
-		$provider_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $slug, $provider->get_id() ) );
+		$provider_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $slug, $provider->get_id() ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		if ( $provider_name_check ) {
 			$suffix = 2;
 			do {
 				$alt_provider_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
-				$provider_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_provider_name, $provider->get_id() ) );
+				$provider_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_provider_name, $provider->get_id() ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$suffix++;
 			} while ( $provider_name_check );
 			$slug = $alt_provider_name;
@@ -145,8 +146,8 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 				continue;
 			}
 
-			switch( $prop ) {
-				case "activated":
+			switch ( $prop ) {
+				case 'activated':
 					$provider_data[ 'shipping_provider_' . $prop ] = $provider->is_activated() ? 1 : 0;
 					break;
 				default:
@@ -181,7 +182,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		do_action( "woocommerce_gzd_shipping_provider_updated", $provider->get_id(), $provider );
+		do_action( 'woocommerce_gzd_shipping_provider_updated', $provider->get_id(), $provider );
 	}
 
 	/**
@@ -208,7 +209,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		do_action( "woocommerce_gzd_shipping_provider_deleted", $provider->get_id(), $provider );
+		do_action( 'woocommerce_gzd_shipping_provider_deleted', $provider->get_id(), $provider );
 	}
 
 	/**
@@ -252,7 +253,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 			 * @since 3.0.0
 			 * @package Vendidero/Germanized/Shipments
 			 */
-			do_action( "woocommerce_gzd_shipping_provider_loaded", $provider );
+			do_action( 'woocommerce_gzd_shipping_provider_loaded', $provider );
 		} else {
 			throw new Exception( _x( 'Invalid shipping provider.', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
@@ -305,7 +306,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 			$meta_keys[] = '_' . $key;
 		}
 
-		foreach( $meta_keys as $meta_key ) {
+		foreach ( $meta_keys as $meta_key ) {
 			$props[ substr( $meta_key, 1 ) ] = get_metadata( 'gzd_shipping_provider', $provider->get_id(), $meta_key, true );
 		}
 
@@ -321,10 +322,10 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		$updated_props     = array();
 		$meta_key_to_props = array();
 
-		foreach( $this->internal_meta_keys as $meta_key ) {
+		foreach ( $this->internal_meta_keys as $meta_key ) {
 			$prop_name = substr( $meta_key, 1 );
 
-			if ( in_array( $prop_name, $this->core_props ) ) {
+			if ( in_array( $prop_name, $this->core_props, true ) ) {
 				continue;
 			}
 
@@ -447,10 +448,10 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		$providers          = $wpdb->get_results( "SELECT * FROM $wpdb->gzd_shipping_provider" );
 		$shipping_providers = array();
 
-		foreach( $providers as $provider ) {
+		foreach ( $providers as $provider ) {
 			try {
 				$shipping_providers[ $provider->shipping_provider_name ] = $provider;
-			} catch( Exception $e ) {
+			} catch ( Exception $e ) {
 				continue;
 			}
 		}
