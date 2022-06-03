@@ -385,6 +385,10 @@ class ReturnShipment extends Shipment {
 						}
 					}
 
+					if ( $quantity <= 0 ) {
+						continue;
+					}
+
 					$sync_data = array(
 						'quantity' => $quantity,
 					);
