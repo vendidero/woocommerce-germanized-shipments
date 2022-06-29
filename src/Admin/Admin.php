@@ -73,7 +73,7 @@ class Admin {
 	 * @return void
 	 */
 	public static function observe_base_country_setting() {
-		if ( isset( $_POST['woocommerce_default_country'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing)
+		if ( isset( $_POST['woocommerce_default_country'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$new_base_country = wc_format_country_state_string( get_option( 'woocommerce_default_country' ) );
 
 			if ( 'AF' !== $new_base_country['country'] ) {
