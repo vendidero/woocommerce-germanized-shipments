@@ -61,6 +61,34 @@ class Admin {
 		// Product Options
 		add_action( 'woocommerce_product_options_shipping', array( __CLASS__, 'product_options' ), 9 );
 		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_product' ), 10, 1 );
+
+		// Observe base country setting
+		add_action( 'woocommerce_settings_save_general', array( __CLASS__, 'observe_base_country_setting' ), 100 );
+	}
+
+	/**
+	 * In case the shipper/return country is set to AF (or DE with missing state) due to a bug in Woo, make sure
+	 * to automatically adjust it to the right value in case the base country option is being saved.
+	 *
+	 * @return void
+	 */
+	public static function observe_base_country_setting() {
+		if ( isset( $_POST['woocommerce_default_country'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing)
+			$new_base_country = wc_format_country_state_string( get_option( 'woocommerce_default_country' ) );
+
+			if ( 'AF' !== $new_base_country['country'] ) {
+				$shipper_country = wc_format_country_state_string( get_option( 'woocommerce_gzd_shipments_shipper_address_country' ) );
+				$return_country  = wc_format_country_state_string( get_option( 'woocommerce_gzd_shipments_return_address_country' ) );
+
+				if ( 'AF' === $shipper_country['country'] || ( 'DE' === $new_base_country['country'] && 'DE' === $shipper_country['country'] && empty( $shipper_country['state'] ) && ! empty( $new_base_country['state'] ) ) ) {
+					update_option( 'woocommerce_gzd_shipments_shipper_address_country', get_option( 'woocommerce_default_country' ) );
+				}
+
+				if ( 'AF' === $return_country['country'] || ( 'DE' === $new_base_country['country'] && 'DE' === $return_country['country'] && empty( $return_country['state'] ) && ! empty( $return_country['state'] ) ) ) {
+					update_option( 'woocommerce_gzd_shipments_return_address_country', get_option( 'woocommerce_default_country' ) );
+				}
+			}
+		}
 	}
 
 	public static function product_options() {
