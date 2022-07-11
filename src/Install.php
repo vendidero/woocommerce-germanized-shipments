@@ -133,6 +133,32 @@ class Install {
 	private static function create_tables() {
 		global $wpdb;
 
+		$current_version = get_option( 'woocommerce_gzd_shipments_version', null );
+
+		/**
+		 * Make possible duplicate names unique.
+		 */
+		if ( null !== $current_version && isset( $wpdb->gzd_shipping_provider ) ) {
+			$providers          = $wpdb->get_results( "SELECT * FROM $wpdb->gzd_shipping_provider" );
+			$shipping_providers = array();
+
+			foreach ( $providers as $provider ) {
+				if ( in_array( $provider->shipping_provider_name, $shipping_providers, true ) ) {
+					$unique_provider_name = sanitize_title( $provider->shipping_provider_name . '_' . wp_generate_password( 4, false, false ) );
+
+					$wpdb->update(
+						$wpdb->gzd_shipping_provider,
+						array(
+							'shipping_provider_name' => $unique_provider_name,
+						),
+						array( 'shipping_provider_id' => $provider->shipping_provider_id )
+					);
+				} else {
+					$shipping_providers[] = $provider->shipping_provider_name;
+				}
+			}
+		}
+
 		$wpdb->hide_errors();
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( self::get_schema() );
@@ -274,7 +300,8 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_provider (
   shipping_provider_activated TINYINT(1) NOT NULL default 1,
   shipping_provider_title varchar(200) NOT NULL DEFAULT '',
   shipping_provider_name varchar(200) NOT NULL DEFAULT '',
-  PRIMARY KEY  (shipping_provider_id)
+  PRIMARY KEY  (shipping_provider_id),
+  UNIQUE KEY shipping_provider_name (shipping_provider_name)
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_providermeta (
   meta_id BIGINT UNSIGNED NOT NULL auto_increment,

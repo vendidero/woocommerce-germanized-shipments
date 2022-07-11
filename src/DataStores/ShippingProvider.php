@@ -114,17 +114,34 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		$check_sql           = "SELECT shipping_provider_name FROM $wpdb->gzd_shipping_provider WHERE shipping_provider_name = %s AND shipping_provider_id != %d LIMIT 1";
 		$provider_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $slug, $provider->get_id() ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-		if ( $provider_name_check ) {
+		if ( $provider_name_check || ( $this->is_manual_creation_request() && $this->is_reserved_name( $slug ) ) ) {
 			$suffix = 2;
 			do {
 				$alt_provider_name   = _truncate_post_slug( $slug, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 				$provider_name_check = $wpdb->get_var( $wpdb->prepare( $check_sql, $alt_provider_name, $provider->get_id() ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$suffix++;
-			} while ( $provider_name_check );
+			} while ( $provider_name_check || ( $this->is_manual_creation_request() && $this->is_reserved_name( $alt_provider_name ) ) );
 			$slug = $alt_provider_name;
 		}
 
 		return $slug;
+	}
+
+	protected function is_manual_creation_request() {
+		return apply_filters( 'woocommerce_gzd_shipments_shipping_provider_is_manual_creation_request', false );
+	}
+
+	protected function is_reserved_name( $name ) {
+		$reserved_names = array(
+			'dhl',
+			'deutsche_post',
+			'dpd',
+			'gls',
+			'ups',
+			'hermes'
+		);
+
+		return apply_filters( 'woocommerce_gzd_shipments_shipping_provider_is_reserved_name', in_array( $name, $reserved_names, true ) );
 	}
 
 	/**

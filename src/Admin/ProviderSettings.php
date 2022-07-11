@@ -200,7 +200,7 @@ class ProviderSettings {
 
 			$provider->update_settings( $section, null, false );
 
-			if ( $provider->get_id() <= 0 ) {
+			if ( $is_new ) {
 				if ( empty( $provider->get_tracking_desc_placeholder( 'edit' ) ) ) {
 					$provider->set_tracking_desc_placeholder( $provider->get_default_tracking_desc_placeholder() );
 				}
@@ -210,7 +210,15 @@ class ProviderSettings {
 				}
 			}
 
+			if ( isset( $_GET['provider'] ) && 'new' === $_GET['provider'] ) {
+				add_filter( 'woocommerce_gzd_shipments_shipping_provider_is_manual_creation_request', '__return_true', 15 );
+			}
+
 			$provider->save();
+
+			if ( isset( $_GET['provider'] ) && 'new' === $_GET['provider'] ) {
+				remove_filter( 'woocommerce_gzd_shipments_shipping_provider_is_manual_creation_request', '__return_true', 15 );
+			}
 
 			if ( $is_new ) {
 				$url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=' . $provider->get_name() );
