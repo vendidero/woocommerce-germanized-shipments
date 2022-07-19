@@ -249,12 +249,13 @@ class ShipmentItem extends WC_Data {
     }
 
     public function get_name( $context = 'view' ) {
+		$name = $this->get_prop( 'name', $context );
 
-        if ( 'view' === $context && ( $item = $this->get_order_item() ) ) {
-            return $item->get_name();
+        if ( 'view' === $context && empty( $name ) && ( $item = $this->get_order_item() ) ) {
+            $name = $item->get_name();
         }
 
-        return $this->get_prop( 'name', $context );
+        return $name;
     }
 
 	public function get_hs_code( $context = 'view' ) {
@@ -418,7 +419,6 @@ class ShipmentItem extends WC_Data {
     public function get_order_item() {
         if ( is_null( $this->order_item ) && 0 < $this->get_order_item_id() ) {
             if ( $shipment = $this->get_shipment() ) {
-
                 if ( $order = $shipment->get_order() ) {
                     $this->order_item = $order->get_item( $this->get_order_item_id() );
                 }

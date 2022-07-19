@@ -38,6 +38,8 @@ class ShipmentQuery extends WC_Object_Query {
 
     protected $total_shipments = 0;
 
+	protected $max_num_pages = 0;
+
     /**
      * Get the default allowed query vars.
      *
@@ -94,6 +96,10 @@ class ShipmentQuery extends WC_Object_Query {
         return apply_filters( 'woocommerce_gzd_shipment_query', $this->results, $args );
     }
 
+	public function get_max_num_pages() {
+		return $this->max_num_pages;
+	}
+
     public function get_total() {
         return $this->total_shipments;
     }
@@ -126,6 +132,7 @@ class ShipmentQuery extends WC_Object_Query {
             if ( isset( $qv['count_total'] ) && $qv['count_total'] ) {
                 $found_shipments_query = 'SELECT FOUND_ROWS()';
                 $this->total_shipments = (int) $wpdb->get_var( $found_shipments_query );
+	            $this->max_num_pages   = ceil( $this->total_shipments / $qv['posts_per_page'] );
             }
         }
 
