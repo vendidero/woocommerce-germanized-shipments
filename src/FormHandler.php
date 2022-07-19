@@ -60,7 +60,11 @@ class FormHandler {
 		$order_id_comp   = explode( '_', $order_id_parsed );
 
 		usort( $order_id_comp, function ( $a, $b ) {
-			return strlen( $a ) < strlen( $b );
+			if ( strlen( $a ) === strlen( $b ) ) {
+				return 0;
+			}
+
+			return ( strlen( $a ) < strlen( $b ) ) ? 1 : -1;
 		});
 
 		// Prefer longer, contiguous order numbers
