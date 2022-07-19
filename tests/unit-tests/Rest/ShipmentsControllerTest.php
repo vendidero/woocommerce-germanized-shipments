@@ -117,6 +117,8 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertEquals( 3, count( $shipments_response ) );
 
+		var_dump($shipments_response);
+
 		foreach ( $shipments_response as $shipment ) {
 			$this->check_single_shipment( $shipment );
 		}
