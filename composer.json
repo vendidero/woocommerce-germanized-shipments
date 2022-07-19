@@ -18,6 +18,7 @@
   },
   "config": {
     "optimize-autoloader": true,
+    "allow-plugins": true,
     "platform": {
       "php": "7.1"
     },
