@@ -71,9 +71,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.set-version.outputs.version }}
-          release_name: v${{ steps.set-version.outputs.version }}
-          body: ${{ steps.set-version.outputs.version }}
+          tag_name: v${{ steps.set-version.outputs.version }}
+          release_name: ${{ steps.set-version.outputs.version }}
+          body: "Release of version ${{ steps.set-version.outputs.version }}. See readme.txt for details."
           draft: false
           prerelease: false
           commitish: release/v${{ steps.set-version.outputs.version }}
