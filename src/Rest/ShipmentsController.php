@@ -457,7 +457,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		}
 
 		if ( ! empty( $request['date_created'] ) ) {
-			$date = rest_parse_date( $request['date_created'] );
+			$date = rest_parse_date( wc_clean( wp_unslash( $request['date_created'] ) ) );
 
 			if ( $date ) {
 				$shipment->set_date_created( $date );
@@ -465,7 +465,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		}
 
 		if ( ! empty( $request['date_created_gmt'] ) ) {
-			$date = rest_parse_date( $request['date_created_gmt'], true );
+			$date = rest_parse_date( wc_clean( wp_unslash( $request['date_created_gmt'] ) ), true );
 
 			if ( $date ) {
 				$shipment->set_date_created( $date );
@@ -473,7 +473,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		}
 
 		if ( ! empty( $request['est_delivery_date'] ) ) {
-			$date = rest_parse_date( $request['est_delivery_date'] );
+			$date = rest_parse_date( wc_clean( wp_unslash( $request['est_delivery_date'] ) ) );
 
 			if ( $date ) {
 				$shipment->set_est_delivery_date( $date );
@@ -481,7 +481,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		}
 
 		if ( ! empty( $request['est_delivery_date_gmt'] ) ) {
-			$date = rest_parse_date( $request['est_delivery_date_gmt'], true );
+			$date = rest_parse_date( wc_clean( wp_unslash( $request['est_delivery_date_gmt'] ) ), true );
 
 			if ( $date ) {
 				$shipment->set_est_delivery_date( $date );
@@ -489,7 +489,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		}
 
 		if ( ! empty( $request['date_sent'] ) ) {
-			$date = rest_parse_date( $request['date_sent'] );
+			$date = rest_parse_date( wc_clean( wp_unslash( $request['date_sent'] ) ) );
 
 			if ( $date ) {
 				$shipment->set_date_sent( $date );
@@ -497,7 +497,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		}
 
 		if ( ! empty( $request['date_sent_gmt'] ) ) {
-			$date = rest_parse_date( $request['date_sent_gmt'], true );
+			$date = rest_parse_date( wc_clean( wp_unslash( $request['date_sent_gmt'] ) ), true );
 
 			if ( $date ) {
 				$shipment->set_date_sent( $date );
@@ -527,10 +527,21 @@ class ShipmentsController extends \WC_REST_Controller {
 			}
 		}
 
+		if ( isset( $request['meta_data'] ) && is_array( $request['meta_data'] ) ) {
+			foreach ( $request['meta_data'] as $meta ) {
+				$meta = wc_clean( wp_unslash( $meta ) );
+
+				if ( isset( $meta['key'] ) ) {
+					$value = isset( $meta['value'] ) ? $meta['value'] : null;
+					$shipment->update_meta_data( $meta['key'], $value, isset( $meta['id'] ) ? $meta['id'] : '' );
+				}
+			}
+		}
+
 		if ( $shipment->get_item_count() <= 0 ) {
 			$shipment->delete( true );
 
-			throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_id', _x( 'This shipment does contain any items and was deleted.', 'shipments', 'woocommerce-germanized-shipments' ) );
+			throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_id', _x( 'This shipment does not contain any items and was deleted.', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
 
 		/**
@@ -570,10 +581,12 @@ class ShipmentsController extends \WC_REST_Controller {
 			}
 		}
 
-		if ( is_a( $shipment, '\Vendidero\Germanized\Shipments\ReturnShipment' ) && is_null( $item ) ) {
-			$item = new \Vendidero\Germanized\Shipments\ShipmentReturnItem();
-		} elseif ( is_null( $item ) ) {
-			$item = new \Vendidero\Germanized\Shipments\ShipmentItem();
+		if ( is_null( $item ) ) {
+			if ( 'return' === $shipment->get_type() ) {
+				$item = new \Vendidero\Germanized\Shipments\ShipmentReturnItem();
+			} else {
+				$item = new \Vendidero\Germanized\Shipments\ShipmentItem();
+			}
 		}
 
 		if ( isset( $posted['order_item_id'] ) ) {
@@ -696,6 +709,8 @@ class ShipmentsController extends \WC_REST_Controller {
 
 		if ( ! empty( $posted['meta_data'] ) && is_array( $posted['meta_data'] ) ) {
 			foreach ( $posted['meta_data'] as $meta ) {
+				$meta = wc_clean( wp_unslash( $meta ) );
+
 				if ( isset( $meta['key'] ) ) {
 					$value = isset( $meta['value'] ) ? $meta['value'] : null;
 					$item->update_meta_data( $meta['key'], $value, isset( $meta['id'] ) ? $meta['id'] : '' );
@@ -1167,6 +1182,7 @@ class ShipmentsController extends \WC_REST_Controller {
 			'sender_address'        => 'return' === $shipment->get_type() ? $shipment->get_sender_address( $context ) : array(),
 			'is_customer_requested' => 'return' === $shipment->get_type() ? $shipment->get_is_customer_requested( $context ) : false,
 			'items'                 => $item_data,
+			'meta_data'             => $shipment->get_meta_data(),
 		);
 	}
 
