@@ -7,8 +7,8 @@ on:
         description: 'Version (falls back to package.json)'
         required: false
 jobs:
-  createrelease:
-    name: Check version
+  update_version:
+    name: Update version
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -42,12 +42,12 @@ jobs:
           # make file runnable, might not be necessary
           chmod +x "bin/bump-version.sh"
           bin/bump-version.sh ${{ steps.set_version.outputs.version }}
-      - name: Get version
+      - name: Check Version
         # id must be specified to retrieve the output of the step
         id: version_step
         uses: michmich112/extract-version@main
         with:
           version-file: "package.json"
           schema: major.minor.build
-      - name: Current package.json version
+      - name: Validate version
         run: echo "Package.json version -> ${{ steps.version_step.outputs.version }}"
