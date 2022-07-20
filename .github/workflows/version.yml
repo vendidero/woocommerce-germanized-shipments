@@ -15,7 +15,7 @@ jobs:
         id: version-step
         uses: michmich112/extract-version@main
         with:
-          version-file: "{'path':'./package.json', 'line':4}"
+          version-file: "package.json"
           schema: major.minor.build
       - name: test
         run: |
