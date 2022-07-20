@@ -40,8 +40,8 @@ jobs:
       - name: Bump version
         run: |
           # make file runnable, might not be necessary
-          chmod +x "${GITHUB_WORKSPACE}/bin/bump-version.sh"
-          "${GITHUB_WORKSPACE}/bin/bump-version.sh ${{ steps.set_version.outputs.version }}"
+          chmod +x "bin/bump-version.sh"
+          "bin/bump-version.sh ${{ steps.set_version.outputs.version }}"
       - name: Get version
         # id must be specified to retrieve the output of the step
         id: version_step
