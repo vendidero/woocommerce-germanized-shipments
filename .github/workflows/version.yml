@@ -20,7 +20,9 @@ jobs:
           myToken: ${{ secrets.GITHUB_TOKEN }}
           view_top: 1
       - name: Latest GitHub version
-        run: echo "Latest version -> ${{ steps.last_release.outputs.name }}"
+        run: |
+          echo "Latest version tag name -> ${{ steps.last_release.outputs.tag_name }}"
+          echo "Latest version id -> ${{ steps.last_release.outputs.id }}"
       - name: Increase version
         id: increase_version
         run: |
