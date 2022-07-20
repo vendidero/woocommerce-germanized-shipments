@@ -1,6 +1,5 @@
 ---
 name: Release
-description: "This action creates a new release. Automatically bumps the version if necessary."
 on:
   workflow_dispatch:
     inputs:
