@@ -50,4 +50,4 @@ jobs:
           version-file: "package.json"
           schema: major.minor.build
       - name: Current package.json version
-          run: echo "Package.json version -> ${{ steps.version_step.outputs.version }}"
+        run: echo "Package.json version -> ${{ steps.version_step.outputs.version }}"
