@@ -57,12 +57,12 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Return_Shipment', false ) ) :
 			$this->template_base  = Package::get_path() . '/templates/';
 			$this->helper         = function_exists( 'wc_gzd_get_email_helper' ) ? wc_gzd_get_email_helper( $this ) : false;
 
-			$this->placeholders   = array(
-				'{site_title}'             => $this->get_blogname(),
-				'{shipment_number}'        => '',
-				'{order_number}'           => '',
-				'{order_date}'             => '',
-				'{date_sent}'              => '',
+			$this->placeholders = array(
+				'{site_title}'      => $this->get_blogname(),
+				'{shipment_number}' => '',
+				'{order_number}'    => '',
+				'{order_date}'      => '',
+				'{date_sent}'       => '',
 			);
 
 			// Triggers for this email.
@@ -202,7 +202,8 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Return_Shipment', false ) ) :
 		 */
 		public function get_content_html() {
 			return wc_get_template_html(
-				$this->template_html, array(
+				$this->template_html,
+				array(
 					'shipment'           => $this->shipment,
 					'order'              => $this->object,
 					'is_confirmation'    => $this->is_confirmation,
@@ -222,7 +223,8 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Return_Shipment', false ) ) :
 		 */
 		public function get_content_plain() {
 			return wc_get_template_html(
-				$this->template_plain, array(
+				$this->template_plain,
+				array(
 					'shipment'           => $this->shipment,
 					'order'              => $this->object,
 					'is_confirmation'    => $this->is_confirmation,

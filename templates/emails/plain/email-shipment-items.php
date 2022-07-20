@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/Shipments/Templates/Emails/Plain
- * @version 1.0.0
+ * @version 1.0.1
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
@@ -29,14 +29,14 @@ foreach ( $items as $item_id => $item ) :
 	}
 
 	/* This filter is documented in templates/emails/email-shipment-items.php */
-	echo apply_filters( 'woocommerce_gzd_shipment_item_name', $item->get_name(), $item, false );
+	echo wp_kses_post( apply_filters( 'woocommerce_gzd_shipment_item_name', $item->get_name(), $item, false ) );
 
 	if ( $show_sku && $sku ) {
-		echo ' (#' . $sku . ')';
+		echo ' (#' . esc_html( $sku ) . ')';
 	}
 
 	/* This filter is documented in templates/emails/email-shipment-items.php */
-	echo ' X ' . apply_filters( 'woocommerce_gzd_email_shipment_item_quantity', $item->get_quantity(), $item );
+	echo ' X ' . wp_kses_post( apply_filters( 'woocommerce_gzd_email_shipment_item_quantity', $item->get_quantity(), $item ) );
 	echo "\n";
 
 	/* This hook is documented in templates/emails/email-shipment-items.php */

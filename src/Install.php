@@ -29,7 +29,7 @@ class Install {
 	private static function update_providers() {
 		$providers = Helper::instance()->get_shipping_providers();
 
-		foreach( $providers as $provider ) {
+		foreach ( $providers as $provider ) {
 			if ( ! $provider->is_activated() ) {
 				continue;
 			}
@@ -58,7 +58,7 @@ class Install {
 					'order'  => 3,
 					'code'   => 'look',
 					'reason' => _x( 'Don\'t like the look', 'shipments', 'woocommerce-germanized-shipments' ),
-				)
+				),
 			);
 
 			update_option( 'woocommerce_gzd_shipments_return_reasons', $default_reasons );
@@ -82,7 +82,7 @@ class Install {
 					'height'             => 10,
 					'weight'             => 0.14,
 					'max_content_weight' => 30,
-					'type'               => 'cardboard'
+					'type'               => 'cardboard',
 				),
 				array(
 					'description'        => _x( 'Cardboard M', 'shipments', 'woocommerce-germanized-shipments' ),
@@ -91,7 +91,7 @@ class Install {
 					'height'             => 13.5,
 					'weight'             => 0.23,
 					'max_content_weight' => 30,
-					'type'               => 'cardboard'
+					'type'               => 'cardboard',
 				),
 				array(
 					'description'        => _x( 'Cardboard L', 'shipments', 'woocommerce-germanized-shipments' ),
@@ -100,7 +100,7 @@ class Install {
 					'height'             => 20,
 					'weight'             => 0.3,
 					'max_content_weight' => 30,
-					'type'               => 'cardboard'
+					'type'               => 'cardboard',
 				),
 				array(
 					'description'        => _x( 'Letter C5/6', 'shipments', 'woocommerce-germanized-shipments' ),
@@ -109,7 +109,7 @@ class Install {
 					'height'             => 1,
 					'weight'             => 0,
 					'max_content_weight' => 0.05,
-					'type'               => 'letter'
+					'type'               => 'letter',
 				),
 				array(
 					'description'        => _x( 'Letter C4', 'shipments', 'woocommerce-germanized-shipments' ),
@@ -118,11 +118,11 @@ class Install {
 					'height'             => 2,
 					'weight'             => 0.01,
 					'max_content_weight' => 1,
-					'type'               => 'letter'
+					'type'               => 'letter',
 				),
 			);
 
-			foreach( $defaults as $default ) {
+			foreach ( $defaults as $default ) {
 				$packaging = new Packaging();
 				$packaging->set_props( $default );
 				$packaging->save();
@@ -132,6 +132,32 @@ class Install {
 
 	private static function create_tables() {
 		global $wpdb;
+
+		$current_version = get_option( 'woocommerce_gzd_shipments_version', null );
+
+		/**
+		 * Make possible duplicate names unique.
+		 */
+		if ( null !== $current_version && isset( $wpdb->gzd_shipping_provider ) ) {
+			$providers          = $wpdb->get_results( "SELECT * FROM $wpdb->gzd_shipping_provider" );
+			$shipping_providers = array();
+
+			foreach ( $providers as $provider ) {
+				if ( in_array( $provider->shipping_provider_name, $shipping_providers, true ) ) {
+					$unique_provider_name = sanitize_title( $provider->shipping_provider_name . '_' . wp_generate_password( 4, false, false ) );
+
+					$wpdb->update(
+						$wpdb->gzd_shipping_provider,
+						array(
+							'shipping_provider_name' => $unique_provider_name,
+						),
+						array( 'shipping_provider_id' => $provider->shipping_provider_id )
+					);
+				} else {
+					$shipping_providers[] = $provider->shipping_provider_name;
+				}
+			}
+		}
 
 		$wpdb->hide_errors();
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -143,16 +169,16 @@ class Install {
 
 		$dir = Package::get_upload_dir();
 
-		if ( ! @is_dir( $dir['basedir'] ) ) {
-			@mkdir( $dir['basedir'] );
+		if ( ! @is_dir( $dir['basedir'] ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			@mkdir( $dir['basedir'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		}
 
 		if ( ! file_exists( trailingslashit( $dir['basedir'] ) . '.htaccess' ) ) {
-			@file_put_contents( trailingslashit( $dir['basedir'] ) . '.htaccess', 'deny from all' );
+			@file_put_contents( trailingslashit( $dir['basedir'] ) . '.htaccess', 'deny from all' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged,WordPress.WP.AlternativeFunctions.file_system_read_file_put_contents
 		}
 
 		if ( ! file_exists( trailingslashit( $dir['basedir'] ) . 'index.php' ) ) {
-			@touch( trailingslashit( $dir['basedir'] ) . 'index.php' );
+			@touch( trailingslashit( $dir['basedir'] ) . 'index.php' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
 		}
 	}
 
@@ -274,7 +300,8 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_provider (
   shipping_provider_activated TINYINT(1) NOT NULL default 1,
   shipping_provider_title varchar(200) NOT NULL DEFAULT '',
   shipping_provider_name varchar(200) NOT NULL DEFAULT '',
-  PRIMARY KEY  (shipping_provider_id)
+  PRIMARY KEY  (shipping_provider_id),
+  UNIQUE KEY shipping_provider_name (shipping_provider_name)
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_providermeta (
   meta_id BIGINT UNSIGNED NOT NULL auto_increment,

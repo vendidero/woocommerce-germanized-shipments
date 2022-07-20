@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Vendidero/Germanized/Shipments/Templates
- * @version 1.0.0
+ * @version 1.0.1
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -31,8 +31,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</p>
 
 	<p class="form-row form-row-last">
-        <label for="return-request-order-id"><?php echo esc_html_x( 'Order id', 'shipments', 'woocommerce-germanized-shipments' ); ?>&nbsp;<span class="required">*</span></label>
-        <input type="text" class="input-text" name="order_id" id="return-request-order-id" autocomplete="off" />
+		<label for="return-request-order-id"><?php echo esc_html_x( 'Order id', 'shipments', 'woocommerce-germanized-shipments' ); ?>&nbsp;<span class="required">*</span></label>
+		<input type="text" class="input-text" name="order_id" id="return-request-order-id" autocomplete="off" />
 	</p>
 
 	<div class="clear"></div>

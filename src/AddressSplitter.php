@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments;
+
 use Exception;
 use RuntimeException;
 
@@ -20,15 +21,16 @@ class AddressSplitter {
 	 * @return array
 	 * @throws Exception
 	 */
-	public static function splitAddress( $address ) {
+	public static function split_address( $address ) {
 		/* Matching this group signifies the following text is part of
 		 * additionToAddress2.
 		 *
 		 * See [1] for some of the English language stop words and abbreviations.
 		 *
 		 * [1] <https://web.archive.org/web/20180410130330/http://maf.directory/zp4/abbrev.html>
+		 *
 		 */
-		$addition2Introducers = '(?:
+		$addition_2_introducers = '(?:
             # {{{ Additions relating to who (a natural person) is addressed
             \s+ [Cc] \s* \/ \s* [Oo] \s
             | ℅
@@ -138,7 +140,7 @@ class AddressSplitter {
             | \s+ ( [\p{Lu}\p{Lt}] [\p{Ll}\p{Lo}]{2,}  \.? ) ($ | \s)
             # }}}
         )';
-		$regex                = '
+		$regex                  = '
             /\A\s*
             (?: #########################################################################
                 # Option A: [<Addition to address 1>] <House number> <Street name>      #
@@ -179,7 +181,7 @@ class AddressSplitter {
                             (?:
                                 # Do not match "care-of"-like additions as
                                 # house numbers:
-                                (?!' . $addition2Introducers . ')
+                                (?!' . $addition_2_introducers . ')
                                 \s*[\pL\pN]+
                             )
                             # Match any further slash- or dash-based house
@@ -187,7 +189,7 @@ class AddressSplitter {
                             (?:
                                 # Do not match "care-of"-like additions as
                                 # house numbers:
-                                (?!' . $addition2Introducers . ')
+                                (?!' . $addition_2_introducers . ')
                                 # Match any (optionally space-separated)
                                 # additionals parts of house numbers after
                                 # slashes or dashes.
@@ -203,10 +205,10 @@ class AddressSplitter {
                 )?
             )
             \s*\Z/xu';
-		$result               = preg_match( $regex, $address, $matches );
-		if ( $result === 0 ) {
+		$result                 = preg_match( $regex, $address, $matches );
+		if ( 0 === $result ) {
 			throw new Exception( sprintf( 'Error occurred while trying to split address \'%s\'', $address ) );
-		} elseif ( $result === false ) {
+		} elseif ( false === $result ) {
 			throw new RuntimeException( sprintf( 'Error occurred while trying to split address \'%s\'', $address ) );
 		}
 		if ( ! empty( $matches['A_Street_name'] ) ) {
@@ -216,9 +218,9 @@ class AddressSplitter {
 				'houseNumber'        => $matches['A_House_number_match'],
 				'houseNumberParts'   => array(
 					'base'      => $matches['A_House_number_base'],
-					'extension' => isset( $matches['A_House_number_extension'] ) ? trim( $matches['A_House_number_extension'] ) : ''
+					'extension' => isset( $matches['A_House_number_extension'] ) ? trim( $matches['A_House_number_extension'] ) : '',
 				),
-				'additionToAddress2' => ( isset( $matches['A_Addition_to_address_2'] ) ) ? $matches['A_Addition_to_address_2'] : ''
+				'additionToAddress2' => ( isset( $matches['A_Addition_to_address_2'] ) ) ? $matches['A_Addition_to_address_2'] : '',
 			);
 		} else {
 			return array(
@@ -227,20 +229,20 @@ class AddressSplitter {
 				'houseNumber'        => $matches['B_House_number_match'],
 				'houseNumberParts'   => array(
 					'base'      => $matches['B_House_number_base'],
-					'extension' => isset( $matches['B_House_number_extension'] ) ? trim( $matches['B_House_number_extension'] ) : ''
+					'extension' => isset( $matches['B_House_number_extension'] ) ? trim( $matches['B_House_number_extension'] ) : '',
 				),
-				'additionToAddress2' => isset( $matches['B_Addition_to_address_2'] ) ? $matches['B_Addition_to_address_2'] : ''
+				'additionToAddress2' => isset( $matches['B_Addition_to_address_2'] ) ? $matches['B_Addition_to_address_2'] : '',
 			);
 		}
 	}
 
 	/**
-	 * @param string $houseNumber A house number string to split in base and extension
+	 * @param string $house_number A house number string to split in base and extension
 	 *
 	 * @return array
 	 * @throws Exception
 	 */
-	public static function splitHouseNumber( $houseNumber ) {
+	public static function split_house_number( $house_number ) {
 		$regex  =
 			'/
             \A\s* # Trim white spaces at the beginning
@@ -255,16 +257,16 @@ class AddressSplitter {
             ) 
             \s*\Z # Trim white spaces at the end
             /xu'; // Option (u)nicode and e(x)tended syntax
-		$result = preg_match( $regex, $houseNumber, $matches );
-		if ( $result === 0 ) {
-			throw new Exception( sprintf( 'Error occurred while trying to house number \'%s\'', $houseNumber ) );
-		} elseif ( $result === false ) {
-			throw new RuntimeException( sprintf( 'Error occurred while trying to house number \'%s\'', $houseNumber ) );
+		$result = preg_match( $regex, $house_number, $matches );
+		if ( 0 === $result ) {
+			throw new Exception( sprintf( 'Error occurred while trying to house number \'%s\'', $house_number ) );
+		} elseif ( false === $result ) {
+			throw new RuntimeException( sprintf( 'Error occurred while trying to house number \'%s\'', $house_number ) );
 		}
 
 		return array(
 			'base'      => $matches['House_number_base'],
-			'extension' => $matches['House_number_extension']
+			'extension' => $matches['House_number_extension'],
 		);
 	}
 }

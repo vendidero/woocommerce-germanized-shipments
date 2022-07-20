@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/Shipments/Templates/Emails/Plain
- * @version 1.0.1
+ * @version 1.0.2
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -20,17 +20,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 $count = 0;
 
-foreach( $shipments as $key => $shipment ) {
+foreach ( $shipments as $key => $shipment ) {
 	$count++;
 
 	echo "\n";
 
-	if ( sizeof( $shipments ) > 1 ) {
-		echo sprintf( esc_html_x( 'Shipment %d of %d', 'shipments', 'woocommerce-germanized-shipments' ), $count, sizeof( $shipments ) ) . "\n\n";
+	if ( count( $shipments ) > 1 ) {
+		echo sprintf( esc_html_x( 'Shipment %1$d of %2$d', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( $count ), esc_html( count( $shipments ) ) ) . "\n\n";
 	}
 
 	if ( $shipment->get_est_delivery_date() ) {
-		echo esc_html( _x( 'Estimated date:', 'shipments', 'woocommerce-germanized-shipments' ) ) . ' ' . wc_format_datetime( $shipment->get_est_delivery_date(), wc_date_format() ) . "\n\n";
+		echo esc_html( _x( 'Estimated date:', 'shipments', 'woocommerce-germanized-shipments' ) ) . ' ' . esc_html( wc_format_datetime( $shipment->get_est_delivery_date(), wc_date_format() ) ) . "\n\n";
 	}
 
 	if ( $shipment->has_tracking() ) {

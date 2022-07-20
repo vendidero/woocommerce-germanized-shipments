@@ -41,9 +41,9 @@ class PDFSplitter {
 			$this->file      = $file;
 			$this->pagecount = $this->_pdf->setSourceFile( $file ); // How many pages?
 
-		} catch( PdfParserException $e ) {
-
-		} catch( Exception $e ) {}
+		} catch ( PdfParserException $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+		} catch ( Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+		}
 	}
 
 	public function get_page_count() {
@@ -64,8 +64,7 @@ class PDFSplitter {
 
 				$new_files[] = $new_pdf->Output( 'S', $this->filename );
 			}
-
-		} catch( PdfParserException $e ) {
+		} catch ( PdfParserException $e ) {
 			return false;
 		}
 
@@ -78,13 +77,12 @@ class PDFSplitter {
 	 * @param string $filename Filename of the source file
 	 * @param mixed $pages Range of files (if not set, all pages where imported)
 	 */
-	public function add( $filename, $pages = [] ) {
-		if (file_exists($filename))
-		{
-			$pageCount = $this->_pdf->setSourceFile($filename);
-			for ($i = 1; $i <= $pageCount; $i++) {
-				if ($this->_isPageInRange($i, $pages)) {
-					$this->_addPage($i);
+	public function add( $filename, $pages = array() ) {
+		if ( file_exists( $filename ) ) {
+			$page_count = $this->_pdf->setSourceFile( $filename );
+			for ( $i = 1; $i <= $page_count; $i++ ) {
+				if ( $this->_isPageInRange( $i, $pages ) ) {
+					$this->_addPage( $i );
 				}
 			}
 		}
@@ -96,9 +94,8 @@ class PDFSplitter {
 	 *
 	 * @param string $type
 	 */
-	public function output($filename, $type = 'I')
-	{
-		return $this->_pdf->Output($type, $filename);
+	public function output( $filename, $type = 'I' ) {
+		return $this->_pdf->Output( $type, $filename );
 	}
 
 	/**
@@ -107,9 +104,8 @@ class PDFSplitter {
 	 * @param $filename
 	 * @return string
 	 */
-	public function download($filename)
-	{
-		return $this->output($filename, 'D');
+	public function download( $filename ) {
+		return $this->output( $filename, 'D' );
 	}
 
 	/**
@@ -118,22 +114,20 @@ class PDFSplitter {
 	 * @param $filename
 	 * @return string
 	 */
-	public function save($filename)
-	{
-		return $this->output($filename, 'F');
+	public function save( $filename ) {
+		return $this->output( $filename, 'F' );
 	}
 
 	/**
 	 * Add single page
 	 *
-	 * @param $pageNumber
+	 * @param $page_number
 	 * @throws PdfReaderException
 	 */
-	private function _addPage($pageNumber)
-	{
-		$pageId = $this->_pdf->importPage($pageNumber);
+	private function _addPage( $page_number ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore,WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		$page_id = $this->_pdf->importPage( $page_number );
 		$this->_pdf->addPage();
-		$this->_pdf->useImportedPage($pageId);
+		$this->_pdf->useImportedPage( $page_id );
 	}
 
 
@@ -143,14 +137,13 @@ class PDFSplitter {
 	 *
 	 * @return bool
 	 */
-	private function _isPageInRange($pageNumber, $pages = [])
-	{
-		if (empty($pages)) {
+	private function _isPageInRange( $page_number, $pages = array() ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore,WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		if ( empty( $pages ) ) {
 			return true;
 		}
 
-		foreach ($pages as $range) {
-			if (in_array($pageNumber, $this->_getRange($range))) {
+		foreach ( $pages as $range ) {
+			if ( in_array( $page_number, $this->_getRange( $range ), true ) ) {
 				return true;
 			}
 		}
@@ -165,21 +158,20 @@ class PDFSplitter {
 	 * @param mixed $value
 	 * @return array
 	 */
-	private function _getRange($value = null)
-	{
-		$value = preg_replace('/[^0-9\-.]/is', '', $value);
+	private function _getRange( $value = null ) { // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore,WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
+		$value = preg_replace( '/[^0-9\-.]/is', '', $value );
 
-		if ($value == '') {
+		if ( '' === $value ) {
 			return false;
 		}
 
-		$value = explode('-', $value);
-		if (count($value) == 1) {
+		$value = explode( '-', $value );
+
+		if ( 1 === count( $value ) ) {
 			return $value;
 		}
 
-		return range($value[0] > $value[1] ? $value[1] : $value[0], $value[0] > $value[1] ? $value[0] : $value[1]);
-
+		return range( $value[0] > $value[1] ? $value[1] : $value[0], $value[0] > $value[1] ? $value[0] : $value[1] );
 	}
 
 }

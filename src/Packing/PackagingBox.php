@@ -35,11 +35,11 @@ class PackagingBox implements Box {
 		$this->dimensions = array(
 			'width'  => (int) floor( wc_get_dimension( $width, 'mm', wc_gzd_get_packaging_dimension_unit() ) ),
 			'length' => (int) floor( wc_get_dimension( $length, 'mm', wc_gzd_get_packaging_dimension_unit() ) ),
-			'depth'  => (int) floor( wc_get_dimension( $depth, 'mm', wc_gzd_get_packaging_dimension_unit() ) )
+			'depth'  => (int) floor( wc_get_dimension( $depth, 'mm', wc_gzd_get_packaging_dimension_unit() ) ),
 		);
 
-		$weight             = empty( $this->packaging->get_weight() ) ? 0 : wc_format_decimal( $this->packaging->get_weight() );
-		$this->weight       = (int) floor( wc_get_weight( $weight, 'g', wc_gzd_get_packaging_weight_unit() ) );
+		$weight       = empty( $this->packaging->get_weight() ) ? 0 : wc_format_decimal( $this->packaging->get_weight() );
+		$this->weight = (int) floor( wc_get_weight( $weight, 'g', wc_gzd_get_packaging_weight_unit() ) );
 
 		$max_content_weight = empty( $this->packaging->get_max_content_weight() ) ? 0 : wc_format_decimal( $this->packaging->get_max_content_weight() );
 		$this->max_weight   = (int) floor( wc_get_weight( $max_content_weight, 'g', wc_gzd_get_packaging_weight_unit() ) );
@@ -101,11 +101,11 @@ class PackagingBox implements Box {
 	 */
 	public function get_inner_dimension_buffer( $value, $type = 'width' ) {
 		if ( apply_filters( 'woocommerce_gzd_packaging_inner_dimension_use_percentage_buffer', false, $type, $this ) ) {
-			$percentage_buffer = apply_filters( 'woocommerce_gzd_packaging_inner_dimension_percentage_buffer,', 0.5, $type, $this ) / 100;
-			$value = $value - ( $value * $percentage_buffer );
+			$percentage_buffer = apply_filters( 'woocommerce_gzd_packaging_inner_dimension_percentage_buffer', 0.5, $type, $this ) / 100;
+			$value             = $value - ( $value * $percentage_buffer );
 		} else {
 			$fixed_buffer = apply_filters( 'woocommerce_gzd_packaging_inner_dimension_fixed_buffer_mm', 5, $type, $this );
-			$value = $value - $fixed_buffer;
+			$value        = $value - $fixed_buffer;
 		}
 
 		return max( $value, 0 );

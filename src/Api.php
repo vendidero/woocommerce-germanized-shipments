@@ -61,10 +61,19 @@ class Api {
         return $schema;
     }
 
+	protected static function get_shipment_statuses() {
+		$statuses = array();
+
+		foreach ( array_keys( wc_gzd_get_shipment_statuses() ) as $status ) {
+			$statuses[] = str_replace( 'gzd-', '', $status );
+		}
+
+		return $statuses;
+	}
+
 	public static function register_controllers( $controller ) {
 		$controller['wc/v3']['shipments'] = ShipmentsController::class;
 
 		return $controller;
 	}
-
 }

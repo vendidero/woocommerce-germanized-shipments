@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments;
+
 use WC_Product;
 
 defined( 'ABSPATH' ) || exit;
@@ -8,9 +9,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Product
  *
- * @class 		Product
- * @version		1.0.0
- * @author 		Vendidero
+ * @class       Product
+ * @version     1.0.0
+ * @author      Vendidero
  */
 class Product {
 

@@ -42,7 +42,7 @@ class Functions extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTest
 		update_option( 'woocommerce_gzd_shipments_shipper_address_address_1', 'Test Street 12' );
 		update_option( 'woocommerce_gzd_shipments_shipper_address_city', 'Berlin' );
 		update_option( 'woocommerce_gzd_shipments_shipper_address_postcode', '12345' );
-		update_option( 'woocommerce_gzd_shipments_shipper_address_country', 'DE' );
+		update_option( 'woocommerce_gzd_shipments_shipper_address_country', 'DE:DE-BE' );
 		update_option( 'woocommerce_gzd_shipments_shipper_address_email', 'test@test.com' );
 		update_option( 'woocommerce_gzd_shipments_shipper_address_phone', '+491234' );
 		update_option( 'woocommerce_gzd_shipments_shipper_address_customs_reference_number', '12345678' );
@@ -60,7 +60,7 @@ class Functions extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTest
 		$this->assertEquals( '12345', $return_address['postcode'] );
 		$this->assertEquals( 'test@test.com', $return_address['email'] );
 		$this->assertEquals( 'DE', $return_address['country'] );
-		$this->assertEquals( '', $return_address['state'] );
+		$this->assertEquals( 'DE-BE', $return_address['state'] );
 		$this->assertEquals( '+491234', $return_address['phone'] );
 		$this->assertEquals( '12345678', $return_address['customs_reference_number'] );
 	}
@@ -72,7 +72,7 @@ class Functions extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTest
 		update_option( 'woocommerce_gzd_shipments_shipper_address_address_1', 'Test Street 12' );
 		update_option( 'woocommerce_gzd_shipments_shipper_address_city', 'Berlin' );
 		update_option( 'woocommerce_gzd_shipments_shipper_address_postcode', '12345' );
-		update_option( 'woocommerce_gzd_shipments_shipper_address_country', 'DE' );
+		update_option( 'woocommerce_gzd_shipments_shipper_address_country', 'DE:DE-BE' );
 		update_option( 'woocommerce_gzd_shipments_shipper_address_email', 'test@test.com' );
 		update_option( 'woocommerce_gzd_shipments_shipper_address_phone', '+491234' );
 		update_option( 'woocommerce_gzd_shipments_shipper_address_customs_reference_number', '12345678' );
@@ -90,7 +90,7 @@ class Functions extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTest
 		$this->assertEquals( '12345', $shipper_address['postcode'] );
 		$this->assertEquals( 'test@test.com', $shipper_address['email'] );
 		$this->assertEquals( 'DE', $shipper_address['country'] );
-		$this->assertEquals( '', $shipper_address['state'] );
+		$this->assertEquals( 'DE-BE', $shipper_address['state'] );
 		$this->assertEquals( '+491234', $shipper_address['phone'] );
 		$this->assertEquals( '12345678', $shipper_address['customs_reference_number'] );
 

@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Vendidero/Germanized/Shipments/Templates
- * @version 3.0.0
+ * @version 3.0.1
  */
 use Vendidero\Germanized\Shipments\Shipment;
 
@@ -22,7 +22,7 @@ defined( 'ABSPATH' ) || exit;
 
 	<section class="woocommerce-columns--addresses addresses">
 
-		<h2 class="woocommerce-column__title"><?php echo esc_html_x(  'Shipment receiver', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
+		<h2 class="woocommerce-column__title"><?php echo esc_html_x( 'Shipment receiver', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
 		<address>
 			<?php echo wp_kses_post( $shipment->get_formatted_address( esc_html_x( 'N/A', 'shipments', 'woocommerce-germanized-shipments' ) ) ); ?>

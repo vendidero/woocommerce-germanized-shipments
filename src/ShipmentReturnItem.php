@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments;
+
 use WC_Data;
 use WC_Data_Store;
 use Exception;

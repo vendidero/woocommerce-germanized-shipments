@@ -1,6 +1,7 @@
 <?php
 
 namespace Vendidero\Germanized\Shipments\Packing;
+
 use DVDoug\BoxPacker\Item;
 
 defined( 'ABSPATH' ) || exit;
@@ -45,7 +46,7 @@ class OrderItem implements Item {
 			$this->dimensions = array(
 				'width'  => (int) wc_get_dimension( $width, 'mm' ),
 				'length' => (int) wc_get_dimension( $length, 'mm' ),
-				'depth'  => (int) wc_get_dimension( $depth, 'mm' )
+				'depth'  => (int) wc_get_dimension( $depth, 'mm' ),
 			);
 
 			$weight       = empty( $this->product->get_weight() ) ? 0 : wc_format_decimal( $this->product->get_weight() );

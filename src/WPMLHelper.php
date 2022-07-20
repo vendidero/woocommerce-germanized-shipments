@@ -42,7 +42,7 @@ class WPMLHelper {
 		add_filter( 'woocommerce_gzd_shipping_provider_get_tracking_url_placeholder', array( __CLASS__, 'filter_shipping_provider_url' ), 10, 2 );
 		add_filter( 'woocommerce_gzd_shipping_provider_get_return_instructions', array( __CLASS__, 'filter_shipping_provider_return_instructions' ), 10, 2 );
 
-		foreach( Helper::instance()->get_shipping_providers() as $provider ) {
+		foreach ( Helper::instance()->get_shipping_providers() as $provider ) {
 			add_filter( "woocommerce_gzd_shipping_provider_{$provider->get_name()}_get_tracking_desc_placeholder", array( __CLASS__, 'filter_shipping_provider_placeholder' ), 10, 2 );
 			add_filter( "woocommerce_gzd_shipping_provider_{$provider->get_name()}_get_tracking_url_placeholder", array( __CLASS__, 'filter_shipping_provider_url' ), 10, 2 );
 			add_filter( "woocommerce_gzd_shipping_provider_{$provider->get_name()}_get_return_instructions", array( __CLASS__, 'filter_shipping_provider_return_instructions' ), 10, 2 );
@@ -50,21 +50,21 @@ class WPMLHelper {
 	}
 
 	public static function filter_shipping_provider_return_instructions( $instructions, $provider ) {
-		$string_name       = "return_instructions";
+		$string_name       = 'return_instructions';
 		$translated_string = apply_filters( 'wpml_translate_string', $instructions, self::get_shipping_provider_string_id( $string_name, $provider ), self::get_shipping_provider_string_package( $string_name, $provider ) );
 
 		return $translated_string;
 	}
 
 	public static function filter_shipping_provider_url( $placeholder, $provider ) {
-		$string_name       = "tracking_url_placeholder";
+		$string_name       = 'tracking_url_placeholder';
 		$translated_string = apply_filters( 'wpml_translate_string', $placeholder, self::get_shipping_provider_string_id( $string_name, $provider ), self::get_shipping_provider_string_package( $string_name, $provider ) );
 
 		return $translated_string;
 	}
 
 	public static function filter_shipping_provider_placeholder( $placeholder, $provider ) {
-		$string_name       = "tracking_desc_placeholder";
+		$string_name       = 'tracking_desc_placeholder';
 		$translated_string = apply_filters( 'wpml_translate_string', $placeholder, self::get_shipping_provider_string_id( $string_name, $provider ), self::get_shipping_provider_string_package( $string_name, $provider ) );
 
 		return $translated_string;
@@ -76,7 +76,7 @@ class WPMLHelper {
 	 */
 	public static function register_shipping_provider_strings( $provider_id, $provider ) {
 
-		foreach( self::get_shipping_provider_strings() as $string_name => $title ) {
+		foreach ( self::get_shipping_provider_strings() as $string_name => $title ) {
 			$title  = sprintf( $title, $provider->get_title() );
 			$getter = "get_{$string_name}";
 
@@ -115,7 +115,7 @@ class WPMLHelper {
 		$package = array();
 
 		if ( array_key_exists( $string_name, $strings ) ) {
-			$title  = sprintf( $strings[ $string_name ], $provider->get_title() );
+			$title = sprintf( $strings[ $string_name ], $provider->get_title() );
 
 			$package = array(
 				'kind'      => 'Shipping Provider',

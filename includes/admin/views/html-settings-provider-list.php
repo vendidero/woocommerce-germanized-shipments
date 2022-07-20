@@ -18,17 +18,17 @@ defined( 'ABSPATH' ) || exit;
 	<?php foreach ( $providers as $provider_name => $provider ) : ?>
 		<tr data-shipping-provider="<?php echo esc_attr( $provider->get_name() ); ?>">
 			<td class="wc-gzd-shipping-provider-title" id="wc-gzd-shipping-provider-title-<?php echo esc_attr( $provider->get_name() ); ?>">
-				<a href="<?php echo esc_url( $provider->get_edit_link() ); ?>" class="wc-gzd-shipping-provider-edit-link"><?php echo $provider->get_title(); ?></a>
-			    <div class="row-actions">
-                    <a href="<?php echo esc_url( $provider->get_edit_link() ); ?>"><?php _ex( 'Edit', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
-                    <?php if ( $provider->is_manual_integration() ) : ?>
-                        <span class="sep">|</span>
-                        <a class="wc-gzd-shipping-provider-delete" href="#"><?php _ex( 'Delete', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
-                    <?php endif; ?>
-                </div>
-            </td>
+				<a href="<?php echo esc_url( $provider->get_edit_link() ); ?>" class="wc-gzd-shipping-provider-edit-link"><?php echo wp_kses_post( $provider->get_title() ); ?></a>
+				<div class="row-actions">
+					<a href="<?php echo esc_url( $provider->get_edit_link() ); ?>"><?php echo esc_html_x( 'Edit', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+					<?php if ( $provider->is_manual_integration() ) : ?>
+						<span class="sep">|</span>
+						<a class="wc-gzd-shipping-provider-delete" href="#"><?php echo esc_html_x( 'Delete', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+					<?php endif; ?>
+				</div>
+			</td>
 			<td class="wc-gzd-shipping-provider-description" id="wc-gzd-shipping-provider-description-<?php echo esc_attr( $provider->get_name() ); ?>">
-				<p><?php echo $provider->get_description(); ?></p>
+				<p><?php echo wp_kses_post( $provider->get_description() ); ?></p>
 			</td>
 			<td class="wc-gzd-shipping-provider-activated" id="wc-gzd-shipping-provider-activated-<?php echo esc_attr( $provider->get_name() ); ?>">
 				<fieldset>
@@ -47,17 +47,20 @@ defined( 'ABSPATH' ) || exit;
 			</td>
 			<td class="wc-gzd-shipping-provider-actions">
 				<?php if ( '' !== $provider->get_help_link() ) : ?>
-                    <a class="button button-secondary wc-gzd-dash-button help-link"
-                       aria-label="<?php echo esc_attr_x( 'Help', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
-                       title="<?php echo esc_attr_x( 'Help', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
-                       href="<?php echo $provider->get_help_link(); ?>"><?php _ex( 'Help', 'shipments', 'woocommerce-germanized-shipments' ); ?>
-                    </a>
+					<a
+						class="button button-secondary wc-gzd-dash-button help-link"
+						aria-label="<?php echo esc_attr_x( 'Help', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
+						title="<?php echo esc_attr_x( 'Help', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
+						href="<?php echo esc_url( $provider->get_help_link() ); ?>"
+					><?php echo esc_html_x( 'Help', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 				<?php endif; ?>
-				<a class="button button-secondary wc-gzd-dash-button"
-				   aria-label="<?php echo esc_attr_x( 'Manage shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
-				   title="<?php echo esc_attr_x( 'Manage shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
-				   href="<?php echo $provider->get_edit_link(); ?>"><?php _ex( 'Manage', 'shipments', 'woocommerce-germanized-shipments' ); ?>
-                </a>
+				<a
+					class="button button-secondary wc-gzd-dash-button"
+					aria-label="<?php echo esc_attr_x( 'Manage shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
+					title="<?php echo esc_attr_x( 'Manage shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
+					href="<?php echo esc_url( $provider->get_edit_link() ); ?>"
+				><?php echo esc_html_x( 'Manage', 'shipments', 'woocommerce-germanized-shipments' ); ?>
+				</a>
 			</td>
 		</tr>
 	<?php endforeach; ?>

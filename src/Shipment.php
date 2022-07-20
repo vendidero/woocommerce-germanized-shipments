@@ -6,6 +6,7 @@
  * @version 1.0.0
  */
 namespace Vendidero\Germanized\Shipments;
+
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
 use Vendidero\Germanized\Shipments\ShippingProvider\Method;
@@ -24,37 +25,37 @@ defined( 'ABSPATH' ) || exit;
  */
 abstract class Shipment extends WC_Data {
 
-    /**
-     * Stores data about status changes so relevant hooks can be fired.
-     *
-     * @var bool|array
-     */
-    protected $status_transition = false;
+	/**
+	 * Stores data about status changes so relevant hooks can be fired.
+	 *
+	 * @var bool|array
+	 */
+	protected $status_transition = false;
 
-    /**
-     * This is the name of this object type.
-     *
-     * @since 1.0.0
-     * @var string
-     */
-    protected $object_type = 'shipment';
+	/**
+	 * This is the name of this object type.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
+	protected $object_type = 'shipment';
 
-    /**
-     * Contains a reference to the data store for this class.
-     *
-     * @since 1.0.0
-     * @var object
-     */
-    protected $data_store_name = 'shipment';
+	/**
+	 * Contains a reference to the data store for this class.
+	 *
+	 * @since 1.0.0
+	 * @var object
+	 */
+	protected $data_store_name = 'shipment';
 
-    /**
-     * Stores meta in cache for future reads.
-     * A group must be set to to enable caching.
-     *
-     * @since 1.0.0
-     * @var string
-     */
-    protected $cache_group = 'shipment';
+	/**
+	 * Stores meta in cache for future reads.
+	 * A group must be set to to enable caching.
+	 *
+	 * @since 1.0.0
+	 * @var string
+	 */
+	protected $cache_group = 'shipment';
 
 	/**
 	 * The contained ShipmentItems.
@@ -119,34 +120,34 @@ abstract class Shipment extends WC_Data {
 	 */
 	protected $shipping_method_instance = null;
 
-    /**
-     * Stores shipment data.
-     *
-     * @var array
-     */
-    protected $data = array(
-        'date_created'          => null,
-        'date_sent'             => null,
-        'status'                => '',
-        'weight'                => '',
-        'width'                 => '',
-        'height'                => '',
-        'length'                => '',
-        'packaging_weight'      => '',
-        'weight_unit'           => '',
-        'dimension_unit'        => '',
-        'country'               => '',
-        'address'               => array(),
-        'tracking_id'           => '',
-        'shipping_provider'     => '',
-        'shipping_method'       => '',
-        'total'                 => 0,
-        'subtotal'              => 0,
-	    'additional_total'      => 0,
-        'est_delivery_date'     => null,
-	    'packaging_id'          => 0,
-	    'version'               => ''
-    );
+	/**
+	 * Stores shipment data.
+	 *
+	 * @var array
+	 */
+	protected $data = array(
+		'date_created'      => null,
+		'date_sent'         => null,
+		'status'            => '',
+		'weight'            => '',
+		'width'             => '',
+		'height'            => '',
+		'length'            => '',
+		'packaging_weight'  => '',
+		'weight_unit'       => '',
+		'dimension_unit'    => '',
+		'country'           => '',
+		'address'           => array(),
+		'tracking_id'       => '',
+		'shipping_provider' => '',
+		'shipping_method'   => '',
+		'total'             => 0,
+		'subtotal'          => 0,
+		'additional_total'  => 0,
+		'est_delivery_date' => null,
+		'packaging_id'      => 0,
+		'version'           => '',
+	);
 
 	/**
 	 * Get the shipment if ID is passed, otherwise the shipment is new and empty.
@@ -154,84 +155,84 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @param int|object|Shipment $shipment Shipment to read.
 	 */
-    public function __construct( $data = 0 ) {
-        parent::__construct( $data );
+	public function __construct( $data = 0 ) {
+		parent::__construct( $data );
 
-        if ( $data instanceof Shipment ) {
-            $this->set_id( absint( $data->get_id() ) );
-        } elseif ( is_numeric( $data ) ) {
-            $this->set_id( $data );
-        }
+		if ( $data instanceof Shipment ) {
+			$this->set_id( absint( $data->get_id() ) );
+		} elseif ( is_numeric( $data ) ) {
+			$this->set_id( $data );
+		}
 
-        $this->data_store = WC_Data_Store::load( $this->data_store_name );
+		$this->data_store = WC_Data_Store::load( $this->data_store_name );
 
-        // If we have an ID, load the user from the DB.
-        if ( $this->get_id() ) {
-            try {
-                $this->data_store->read( $this );
-            } catch ( Exception $e ) {
-                $this->set_id( 0 );
-                $this->set_object_read( true );
-            }
-        } else {
-            $this->set_object_read( true );
-        }
-    }
+		// If we have an ID, load the user from the DB.
+		if ( $this->get_id() ) {
+			try {
+				$this->data_store->read( $this );
+			} catch ( Exception $e ) {
+				$this->set_id( 0 );
+				$this->set_object_read( true );
+			}
+		} else {
+			$this->set_object_read( true );
+		}
+	}
 
-    public function get_type() {
-    	return '';
-    }
+	public function get_type() {
+		return '';
+	}
 
-    /**
-     * Merge changes with data and clear.
-     * Overrides WC_Data::apply_changes.
-     *
-     * @since 3.2.0
-     */
-    public function apply_changes() {
-        if ( function_exists( 'array_replace' ) ) {
-            $this->data = array_replace( $this->data, $this->changes ); // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.array_replaceFound
-        } else { // PHP 5.2 compatibility.
-            foreach ( $this->changes as $key => $change ) {
-                $this->data[ $key ] = $change;
-            }
-        }
-        $this->changes = array();
-    }
+	/**
+	 * Merge changes with data and clear.
+	 * Overrides WC_Data::apply_changes.
+	 *
+	 * @since 3.2.0
+	 */
+	public function apply_changes() {
+		if ( function_exists( 'array_replace' ) ) {
+			$this->data = array_replace( $this->data, $this->changes ); // phpcs:ignore PHPCompatibility.FunctionUse.NewFunctions.array_replaceFound
+		} else { // PHP 5.2 compatibility.
+			foreach ( $this->changes as $key => $change ) {
+				$this->data[ $key ] = $change;
+			}
+		}
+		$this->changes = array();
+	}
 
 	/**
 	 * @return bool|Order
 	 */
-    public function get_order_shipment() {
-    	return false;
-    }
+	public function get_order_shipment() {
+		return false;
+	}
 
-    public function set_order_shipment( &$order_shipment ) {}
+	public function set_order_shipment( &$order_shipment ) {}
 
 	/**
 	 * Return item count (quantities summed up).
 	 *
 	 * @return int
 	 */
-    public function get_item_count() {
-        $items    = $this->get_items();
-        $quantity = 0;
+	public function get_item_count() {
+		$items    = $this->get_items();
+		$quantity = 0;
 
-        foreach( $items as $item ) {
-            $quantity += $item->get_quantity();
-        }
+		foreach ( $items as $item ) {
+			$quantity += $item->get_quantity();
+		}
 
-        return $quantity;
-    }
+		return $quantity;
+	}
 
-    /**
-     * Prefix for action and filter hooks on data.
-     *
-     * @return string
-     */
-    protected function get_hook_prefix() {
-        return $this->get_general_hook_prefix() . 'get_';
-    }
+	/**
+	 * Prefix for action and filter hooks on data.
+	 *
+	 * @return string
+	 */
+	protected function get_hook_prefix() {
+		return $this->get_general_hook_prefix() . 'get_';
+	}
 
 	/**
 	 * Prefix for action and filter hooks on data.
@@ -245,11 +246,14 @@ abstract class Shipment extends WC_Data {
 	}
 
 	public function is_shipping_domestic() {
-		return Package::is_shipping_domestic( $this->get_country(), array(
-			'sender_country'  => $this->get_sender_country(),
-			'sender_postcode' => $this->get_sender_postcode(),
-			'postcode'        => $this->get_postcode()
-		) );
+		return Package::is_shipping_domestic(
+			$this->get_country(),
+			array(
+				'sender_country'  => $this->get_sender_country(),
+				'sender_postcode' => $this->get_sender_postcode(),
+				'postcode'        => $this->get_postcode(),
+			)
+		);
 	}
 
 	/**
@@ -259,11 +263,14 @@ abstract class Shipment extends WC_Data {
 	 * @return bool
 	 */
 	public function is_shipping_inner_eu() {
-		if ( Package::is_shipping_inner_eu_country( $this->get_country(), array(
-			'sender_country'  => $this->get_sender_country(),
-			'sender_postcode' => $this->get_sender_postcode(),
-			'postcode'        => $this->get_postcode()
-		) ) ) {
+		if ( Package::is_shipping_inner_eu_country(
+			$this->get_country(),
+			array(
+				'sender_country'  => $this->get_sender_country(),
+				'sender_postcode' => $this->get_sender_postcode(),
+				'postcode'        => $this->get_postcode(),
+			)
+		) ) {
 			return true;
 		}
 
@@ -278,35 +285,35 @@ abstract class Shipment extends WC_Data {
 		return true;
 	}
 
-    /**
-     * Return the shipment statuses without gzd- internal prefix.
-     *
-     * @param  string $context View or edit context.
-     * @return string
-     */
-    public function get_status( $context = 'view' ) {
-        $status = $this->get_prop( 'status', $context );
+	/**
+	 * Return the shipment statuses without gzd- internal prefix.
+	 *
+	 * @param  string $context View or edit context.
+	 * @return string
+	 */
+	public function get_status( $context = 'view' ) {
+		$status = $this->get_prop( 'status', $context );
 
-        if ( empty( $status ) && 'view' === $context ) {
+		if ( empty( $status ) && 'view' === $context ) {
 
-	        /**
-	         * Filters the default Shipment status used as fallback.
-	         *
-	         * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
-	         * unique hook for a shipment type.
-	         *
-	         * Example hook name: woocommerce_gzd_shipment_get_default_shipment_status
-	         *
-	         * @param string $status Default fallback status.
-	         *
-	         * @since 3.0.0
-	         * @package Vendidero/Germanized/Shipments
-	         */
-            $status = apply_filters( "{$this->get_hook_prefix()}}default_shipment_status", 'draft' );
-        }
+			/**
+			 * Filters the default Shipment status used as fallback.
+			 *
+			 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+			 * unique hook for a shipment type.
+			 *
+			 * Example hook name: woocommerce_gzd_shipment_get_default_shipment_status
+			 *
+			 * @param string $status Default fallback status.
+			 *
+			 * @since 3.0.0
+			 * @package Vendidero/Germanized/Shipments
+			 */
+			$status = apply_filters( "{$this->get_hook_prefix()}}default_shipment_status", 'draft' ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+		}
 
-        return $status;
-    }
+		return $status;
+	}
 
 	/**
 	 * Checks whether the shipment has a specific status or not.
@@ -314,39 +321,39 @@ abstract class Shipment extends WC_Data {
 	 * @param  string|string[] $status The status to be checked against.
 	 * @return boolean
 	 */
-    public function has_status( $status ) {
-	    /**
-	     * Filter to decide whether a Shipment has a certain status or not.
-	     *
-	     * @param boolean                                  $has_status Whether the Shipment has a status or not.
-	     * @param Shipment $this The shipment object.
-	     * @param string                                   $status The status to be checked against.
-	     *
-	     * @since 3.0.0
-	     * @package Vendidero/Germanized/Shipments
-	     */
-        return apply_filters( 'woocommerce_gzd_shipment_has_status', ( is_array( $status ) && in_array( $this->get_status(), $status, true ) ) || $this->get_status() === $status, $this, $status );
-    }
+	public function has_status( $status ) {
+		/**
+		 * Filter to decide whether a Shipment has a certain status or not.
+		 *
+		 * @param boolean                                  $has_status Whether the Shipment has a status or not.
+		 * @param Shipment $this The shipment object.
+		 * @param string                                   $status The status to be checked against.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_shipment_has_status', ( is_array( $status ) && in_array( $this->get_status(), $status, true ) ) || $this->get_status() === $status, $this, $status );
+	}
 
-    /**
-     * Return the date this shipment was created.
-     *
-     * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
-     * @return WC_DateTime|null object if the date is set or null if there is no date.
-     */
-    public function get_date_created( $context = 'view' ) {
-        return $this->get_prop( 'date_created', $context );
-    }
+	/**
+	 * Return the date this shipment was created.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return WC_DateTime|null object if the date is set or null if there is no date.
+	 */
+	public function get_date_created( $context = 'view' ) {
+		return $this->get_prop( 'date_created', $context );
+	}
 
-    /**
-     * Return the date this shipment was sent.
-     *
-     * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
-     * @return WC_DateTime|null object if the date is set or null if there is no date.
-     */
-    public function get_date_sent( $context = 'view' ) {
-        return $this->get_prop( 'date_sent', $context );
-    }
+	/**
+	 * Return the date this shipment was sent.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return WC_DateTime|null object if the date is set or null if there is no date.
+	 */
+	public function get_date_sent( $context = 'view' ) {
+		return $this->get_prop( 'date_sent', $context );
+	}
 
 	/**
 	 * Returns the shipment method.
@@ -374,21 +381,21 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_weight( $context = 'view' ) {
-        $weight = $this->get_prop( 'weight', $context );
+	public function get_weight( $context = 'view' ) {
+		$weight = $this->get_prop( 'weight', $context );
 
-        if ( 'view' === $context && '' === $weight ) {
-            return $this->get_content_weight();
-        }
+		if ( 'view' === $context && '' === $weight ) {
+			return $this->get_content_weight();
+		}
 
-        return $weight;
-    }
+		return $weight;
+	}
 
-    public function get_total_weight() {
-    	$weight = $this->get_weight() + $this->get_packaging_weight();
+	public function get_total_weight() {
+		$weight = $this->get_weight() + $this->get_packaging_weight();
 
-	    return $weight;
-    }
+		return $weight;
+	}
 
 	public function get_packaging_weight( $context = 'view' ) {
 		$weight = $this->get_prop( 'packaging_weight', $context );
@@ -406,24 +413,24 @@ abstract class Shipment extends WC_Data {
 		return $weight;
 	}
 
-    public function get_items_to_pack() {
-	    if ( ! Package::is_packing_supported() ) {
+	public function get_items_to_pack() {
+		if ( ! Package::is_packing_supported() ) {
 			return $this->get_items();
-	    } else {
-		    if ( is_null( $this->items_to_pack ) ) {
-			    $this->items_to_pack = array();
+		} else {
+			if ( is_null( $this->items_to_pack ) ) {
+				$this->items_to_pack = array();
 
-			    foreach( $this->get_items() as $item ) {
-				    for ( $i = 0; $i < $item->get_quantity(); $i++ ) {
-					    $box_item = new Packing\ShipmentItem( $item );
-					    $this->items_to_pack[] = $box_item;
-				    }
-			    }
-		    }
+				foreach ( $this->get_items() as $item ) {
+					for ( $i = 0; $i < $item->get_quantity(); $i++ ) { // phpcs:ignore Generic.CodeAnalysis.ForLoopWithTestFunctionCall.NotAllowed
+						$box_item              = new Packing\ShipmentItem( $item );
+						$this->items_to_pack[] = $box_item;
+					}
+				}
+			}
 
-		    return apply_filters( "{$this->get_hook_prefix()}items_to_pack", $this->items_to_pack, $this );
-	    }
-    }
+			return apply_filters( "{$this->get_hook_prefix()}items_to_pack", $this->items_to_pack, $this );
+		}
+	}
 
 	/**
 	 * Returns the shipment weight unit.
@@ -463,32 +470,32 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_length( $context = 'view' ) {
-        $length = $this->get_prop( 'length', $context );
+	public function get_length( $context = 'view' ) {
+		$length = $this->get_prop( 'length', $context );
 
-        if ( 'view' === $context && '' === $length ) {
-            return $this->get_content_length();
-        }
+		if ( 'view' === $context && '' === $length ) {
+			return $this->get_content_length();
+		}
 
-        return $length;
-    }
+		return $length;
+	}
 
-    public function get_package_length() {
-	    $length = $this->get_length();
+	public function get_package_length() {
+		$length = $this->get_length();
 
-    	// Older versions did not sync dimensions with packaging dimensions
-    	if ( '' === $this->get_version() ) {
-		    if ( $packaging = $this->get_packaging() ) {
-			    $length = wc_get_dimension( $packaging->get_length(), $this->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() );
-		    }
-	    }
+		// Older versions did not sync dimensions with packaging dimensions
+		if ( '' === $this->get_version() ) {
+			if ( $packaging = $this->get_packaging() ) {
+				$length = wc_get_dimension( $packaging->get_length(), $this->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() );
+			}
+		}
 
-    	return $length;
-    }
+		return $length;
+	}
 
-    public function has_packaging() {
-    	return ( $this->get_packaging_id() > 0 && $this->get_packaging() ) ? true : false;
-    }
+	public function has_packaging() {
+		return ( $this->get_packaging_id() > 0 && $this->get_packaging() ) ? true : false;
+	}
 
 	/**
 	 * Returns the shipment width. In case view context was chosen and width is not yet set, returns the content width.
@@ -496,15 +503,15 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_width( $context = 'view' ) {
-        $width = $this->get_prop( 'width', $context );
+	public function get_width( $context = 'view' ) {
+		$width = $this->get_prop( 'width', $context );
 
-        if ( 'view' === $context && '' === $width ) {
-            return $this->get_content_width();
-        }
+		if ( 'view' === $context && '' === $width ) {
+			return $this->get_content_width();
+		}
 
-        return $width;
-    }
+		return $width;
+	}
 
 	public function get_package_width() {
 		$width = $this->get_width();
@@ -524,83 +531,83 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_height( $context = 'view' ) {
-        $height = $this->get_prop( 'height', $context );
+	public function get_height( $context = 'view' ) {
+		$height = $this->get_prop( 'height', $context );
 
-        if ( 'view' === $context && '' === $height ) {
-            return $this->get_content_height();
-        }
-
-        return $height;
-    }
-
-	public function get_package_height() {
-		$height = $this->get_height();
-
-    	if ( '' === $this->get_version() ) {
-    		if ( $packaging = $this->get_packaging() ) {
-			    $height = wc_get_dimension( $packaging->get_height(), $this->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() );
-		    }
-	    }
+		if ( 'view' === $context && '' === $height ) {
+			return $this->get_content_height();
+		}
 
 		return $height;
 	}
 
-    public function has_dimensions() {
-    	$width  = $this->get_width();
-    	$length = $this->get_length();
-    	$height = $this->get_height();
+	public function get_package_height() {
+		$height = $this->get_height();
 
-    	return ( ! empty( $width ) && ! empty( $length ) && ! empty( $height ) );
-    }
+		if ( '' === $this->get_version() ) {
+			if ( $packaging = $this->get_packaging() ) {
+				$height = wc_get_dimension( $packaging->get_height(), $this->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() );
+			}
+		}
+
+		return $height;
+	}
+
+	public function has_dimensions() {
+		$width  = $this->get_width();
+		$length = $this->get_length();
+		$height = $this->get_height();
+
+		return ( ! empty( $width ) && ! empty( $length ) && ! empty( $height ) );
+	}
 
 	/**
 	 * Returns the calculated weights for included items.
 	 *
 	 * @return float[]
 	 */
-    public function get_item_weights() {
-        if ( is_null( $this->weights ) ) {
-            $this->weights = array();
+	public function get_item_weights() {
+		if ( is_null( $this->weights ) ) {
+			$this->weights = array();
 
-            foreach( $this->get_items() as $item ) {
-                $this->weights[ $item->get_id() ] = ( ( $item->get_weight() === '' ? 0 : $item->get_weight() ) * $item->get_quantity() );
-            }
+			foreach ( $this->get_items() as $item ) {
+				$this->weights[ $item->get_id() ] = ( ( $item->get_weight() === '' ? 0 : $item->get_weight() ) * $item->get_quantity() );
+			}
 
-            if ( empty( $this->weights ) ) {
-                $this->weights = array( 0 );
-            }
-        }
+			if ( empty( $this->weights ) ) {
+				$this->weights = array( 0 );
+			}
+		}
 
-        return $this->weights;
-    }
+		return $this->weights;
+	}
 
 	/**
 	 * Returns the calculated lengths for included items.
 	 *
 	 * @return float[]
 	 */
-    public function get_item_lengths() {
-        if ( is_null( $this->lengths ) ) {
-            $this->lengths = array();
+	public function get_item_lengths() {
+		if ( is_null( $this->lengths ) ) {
+			$this->lengths = array();
 
-            foreach( $this->get_items() as $item ) {
-                $this->lengths[ $item->get_id() ] = $item->get_length() === '' ? 0 : $item->get_length();
-            }
+			foreach ( $this->get_items() as $item ) {
+				$this->lengths[ $item->get_id() ] = $item->get_length() === '' ? 0 : $item->get_length();
+			}
 
-            if ( empty( $this->lengths ) ) {
-                $this->lengths = array( 0 );
-            }
-        }
+			if ( empty( $this->lengths ) ) {
+				$this->lengths = array( 0 );
+			}
+		}
 
-        return $this->lengths;
-    }
+		return $this->lengths;
+	}
 
 	public function get_item_volumes() {
 		if ( is_null( $this->volumes ) ) {
 			$this->volumes = array();
 
-			foreach( $this->get_items() as $item ) {
+			foreach ( $this->get_items() as $item ) {
 				$dimensions = $item->get_dimensions();
 				$volume     = ( '' !== $dimensions['length'] ? (float) $dimensions['length'] : 0 ) * ( '' !== $dimensions['width'] ? (float) $dimensions['width'] : 0 ) * ( '' !== $dimensions['height'] ? (float) $dimensions['height'] : 0 );
 
@@ -620,51 +627,51 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @return float[]
 	 */
-    public function get_item_widths() {
-        if ( is_null( $this->widths ) ) {
-            $this->widths = array();
+	public function get_item_widths() {
+		if ( is_null( $this->widths ) ) {
+			$this->widths = array();
 
-            foreach( $this->get_items() as $item ) {
-                $this->widths[ $item->get_id() ] = $item->get_width() === '' ? 0 : $item->get_width();
-            }
+			foreach ( $this->get_items() as $item ) {
+				$this->widths[ $item->get_id() ] = $item->get_width() === '' ? 0 : $item->get_width();
+			}
 
-            if ( empty( $this->widths ) ) {
-                $this->widths = array( 0 );
-            }
-        }
+			if ( empty( $this->widths ) ) {
+				$this->widths = array( 0 );
+			}
+		}
 
-        return $this->widths;
-    }
+		return $this->widths;
+	}
 
 	/**
 	 * Returns the calculated heights for included items.
 	 *
 	 * @return float[]
 	 */
-    public function get_item_heights() {
-        if ( is_null( $this->heights ) ) {
-            $this->heights = array();
+	public function get_item_heights() {
+		if ( is_null( $this->heights ) ) {
+			$this->heights = array();
 
-            foreach( $this->get_items() as $item ) {
-                $this->heights[ $item->get_id() ] = ( $item->get_height() === '' ? 0 : $item->get_height() ) * $item->get_quantity();
-            }
+			foreach ( $this->get_items() as $item ) {
+				$this->heights[ $item->get_id() ] = ( $item->get_height() === '' ? 0 : $item->get_height() ) * $item->get_quantity();
+			}
 
-            if ( empty( $this->heights ) ) {
-                $this->heights = array( 0 );
-            }
-        }
+			if ( empty( $this->heights ) ) {
+				$this->heights = array( 0 );
+			}
+		}
 
-        return $this->heights;
-    }
+		return $this->heights;
+	}
 
 	/**
 	 * Returns the calculated weight for included items.
 	 *
 	 * @return float
 	 */
-    public function get_content_weight() {
-        return wc_format_decimal( array_sum( $this->get_item_weights() ) );
-    }
+	public function get_content_weight() {
+		return wc_format_decimal( array_sum( $this->get_item_weights() ) );
+	}
 
 	public function get_content_dimensions() {
 		return array(
@@ -679,22 +686,22 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @return float
 	 */
-    public function get_content_length() {
-	    $default = max( $this->get_item_lengths() );
+	public function get_content_length() {
+		$default = max( $this->get_item_lengths() );
 
-	    return wc_format_decimal( $default, false, true );
-    }
+		return wc_format_decimal( $default, false, true );
+	}
 
 	/**
 	 * Returns the calculated width for included items.
 	 *
 	 * @return float
 	 */
-    public function get_content_width() {
-	    $default = max( $this->get_item_widths() );
+	public function get_content_width() {
+		$default = max( $this->get_item_widths() );
 
-	    return wc_format_decimal( $default, false, true );
-    }
+		return wc_format_decimal( $default, false, true );
+	}
 
 	/**
 	 * Returns the calculated volume for included items.
@@ -712,11 +719,11 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @return float
 	 */
-    public function get_content_height() {
-    	$default_height = array_sum( $this->get_item_heights() );
+	public function get_content_height() {
+		$default_height = array_sum( $this->get_item_heights() );
 
-        return wc_format_decimal( $default_height, false, true );
-    }
+		return wc_format_decimal( $default_height, false, true );
+	}
 
 	/**
 	 * Returns the shipping address properties.
@@ -724,9 +731,9 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string[]
 	 */
-    public function get_address( $context = 'view' ) {
-        return $this->get_prop( 'address', $context );
-    }
+	public function get_address( $context = 'view' ) {
+		return $this->get_prop( 'address', $context );
+	}
 
 	/**
 	 * Returns the shipment total.
@@ -734,9 +741,9 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return float
 	 */
-    public function get_total( $context = 'view' ) {
-        return $this->get_prop( 'total', $context );
-    }
+	public function get_total( $context = 'view' ) {
+		return $this->get_prop( 'total', $context );
+	}
 
 	/**
 	 * Returns the shipment total.
@@ -765,24 +772,24 @@ abstract class Shipment extends WC_Data {
 		return $this->get_prop( 'additional_total', $context );
 	}
 
-    public function has_tracking() {
+	public function has_tracking() {
 		$has_tracking = true;
 
-	    if ( ! $this->has_tracking_instruction() && ! $this->get_tracking_url() ) {
-		    $has_tracking = false;
-	    }
+		if ( ! $this->has_tracking_instruction() && ! $this->get_tracking_url() ) {
+			$has_tracking = false;
+		}
 
-	    /**
-	     * Check whether the label supports tracking or not
-	     */
-	    if ( $this->has_label() && ( $label = $this->get_label() ) ) {
-	    	if ( ! $label->is_trackable() ) {
-	    		$has_tracking = false;
-		    }
-	    }
+		/**
+		 * Check whether the label supports tracking or not
+		 */
+		if ( $this->has_label() && ( $label = $this->get_label() ) ) {
+			if ( ! $label->is_trackable() ) {
+				$has_tracking = false;
+			}
+		}
 
-	    return apply_filters( "{$this->get_general_hook_prefix()}has_tracking", $has_tracking, $this );
-    }
+		return apply_filters( "{$this->get_general_hook_prefix()}has_tracking", $has_tracking, $this );
+	}
 
 	/**
 	 * Returns the shipment tracking id.
@@ -790,9 +797,9 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_tracking_id( $context = 'view' ) {
-        return $this->get_prop( 'tracking_id', $context );
-    }
+	public function get_tracking_id( $context = 'view' ) {
+		return $this->get_prop( 'tracking_id', $context );
+	}
 
 	/**
 	 * Returns the shipment tracking URL.
@@ -858,9 +865,9 @@ abstract class Shipment extends WC_Data {
 	 * @return boolean
 	 */
 	public function has_tracking_instruction() {
-    	$instruction = $this->get_tracking_instruction( true );
+		$instruction = $this->get_tracking_instruction( true );
 
-    	return ( ! empty( $instruction ) ) ? true : false;
+		return ( ! empty( $instruction ) ) ? true : false;
 	}
 
 	/**
@@ -869,9 +876,9 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_shipping_provider( $context = 'view' ) {
-	    return $this->get_prop( 'shipping_provider', $context );
-    }
+	public function get_shipping_provider( $context = 'view' ) {
+		return $this->get_prop( 'shipping_provider', $context );
+	}
 
 	public function get_shipping_provider_title() {
 		if ( $provider = $this->get_shipping_provider_instance() ) {
@@ -881,15 +888,15 @@ abstract class Shipment extends WC_Data {
 		return '';
 	}
 
-    public function get_shipping_provider_instance() {
-    	$provider = $this->get_shipping_provider();
+	public function get_shipping_provider_instance() {
+		$provider = $this->get_shipping_provider();
 
-    	if ( ! empty( $provider ) ) {
-    		return wc_gzd_get_shipping_provider( $provider );
-	    }
+		if ( ! empty( $provider ) ) {
+			return wc_gzd_get_shipping_provider( $provider );
+		}
 
-    	return false;
-    }
+		return false;
+	}
 
 	/**
 	 * Returns the formatted shipping address.
@@ -897,11 +904,11 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $empty_content Content to show if no address is present.
 	 * @return string
 	 */
-    public function get_formatted_address( $empty_content = '' ) {
-        $address = WC()->countries->get_formatted_address( $this->get_address() );
+	public function get_formatted_address( $empty_content = '' ) {
+		$address = WC()->countries->get_formatted_address( $this->get_address() );
 
-        return $address ? $address : $empty_content;
-    }
+		return $address ? $address : $empty_content;
+	}
 
 	/**
 	 * Get a formatted shipping address for the order.
@@ -952,9 +959,9 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_phone( $context = 'view' ) {
-        return $this->get_address_prop( 'phone', $context );
-    }
+	public function get_phone( $context = 'view' ) {
+		return $this->get_address_prop( 'phone', $context );
+	}
 
 	/**
 	 * Returns the shipment address email.
@@ -962,9 +969,9 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_email( $context = 'view' ) {
-        return $this->get_address_prop( 'email', $context );
-    }
+	public function get_email( $context = 'view' ) {
+		return $this->get_address_prop( 'email', $context );
+	}
 
 	/**
 	 * Returns the shipment address first line.
@@ -972,9 +979,9 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_address_1( $context = 'view' ) {
-        return $this->get_address_prop( 'address_1', $context );
-    }
+	public function get_address_1( $context = 'view' ) {
+		return $this->get_address_prop( 'address_1', $context );
+	}
 
 	/**
 	 * Returns the shipment address second line.
@@ -982,9 +989,9 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_address_2( $context = 'view' ) {
-        return $this->get_address_prop( 'address_2', $context );
-    }
+	public function get_address_2( $context = 'view' ) {
+		return $this->get_address_prop( 'address_2', $context );
+	}
 
 	/**
 	 * Returns the shipment address street number by splitting the address.
@@ -993,20 +1000,20 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @return string
 	 */
-    public function get_address_street_number( $type = 'address_1' ) {
-	    $split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
+	public function get_address_street_number( $type = 'address_1' ) {
+		$split = wc_gzd_split_shipment_street( $this->{"get_$type"}() );
 
-	    /**
-	     * Filter to adjust the shipment address street number.
-	     *
-	     * @param string   $number The shipment address street number.
-	     * @param Shipment $shipment The shipment object.
-	     *
-	     * @since 3.0.6
-	     * @package Vendidero/Germanized/Shipments
-	     */
-	    return apply_filters( 'woocommerce_gzd_get_shipment_address_street_number', $split['number'], $this );
-    }
+		/**
+		 * Filter to adjust the shipment address street number.
+		 *
+		 * @param string   $number The shipment address street number.
+		 * @param Shipment $shipment The shipment object.
+		 *
+		 * @since 3.0.6
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_get_shipment_address_street_number', $split['number'], $this );
+	}
 
 	/**
 	 * Returns the shipment address street without number by splitting the address.
@@ -1066,9 +1073,9 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_company( $context = 'view' ) {
-        return $this->get_address_prop( 'company', $context );
-    }
+	public function get_company( $context = 'view' ) {
+		return $this->get_address_prop( 'company', $context );
+	}
 
 	/**
 	 * Returns the shipment address first name.
@@ -1076,9 +1083,9 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_first_name( $context = 'view' ) {
-        return $this->get_address_prop( 'first_name', $context );
-    }
+	public function get_first_name( $context = 'view' ) {
+		return $this->get_address_prop( 'first_name', $context );
+	}
 
 	/**
 	 * Returns the shipment address last name.
@@ -1086,18 +1093,18 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_last_name( $context = 'view' ) {
-        return $this->get_address_prop( 'last_name', $context );
-    }
+	public function get_last_name( $context = 'view' ) {
+		return $this->get_address_prop( 'last_name', $context );
+	}
 
 	/**
 	 * Returns the shipment address formatted full name.
 	 *
 	 * @return string
 	 */
-    public function get_formatted_full_name() {
-	    return sprintf( _x( '%1$s %2$s', 'full name', 'woocommerce-germanized-shipments' ), $this->get_first_name(), $this->get_last_name() );
-    }
+	public function get_formatted_full_name() {
+		return sprintf( _x( '%1$s %2$s', 'full name', 'woocommerce-germanized-shipments' ), $this->get_first_name(), $this->get_last_name() );
+	}
 
 	/**
 	 * Returns the shipment address postcode.
@@ -1105,9 +1112,9 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_postcode( $context = 'view' ) {
-        return $this->get_address_prop( 'postcode', $context );
-    }
+	public function get_postcode( $context = 'view' ) {
+		return $this->get_address_prop( 'postcode', $context );
+	}
 
 	/**
 	 * Returns the shipment address city.
@@ -1115,9 +1122,9 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_city( $context = 'view' ) {
-        return $this->get_address_prop( 'city', $context );
-    }
+	public function get_city( $context = 'view' ) {
+		return $this->get_address_prop( 'city', $context );
+	}
 
 	/**
 	 * Returns the shipment address state.
@@ -1125,17 +1132,17 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_state( $context = 'view' ) {
-        return $this->get_address_prop( 'state', $context );
-    }
+	public function get_state( $context = 'view' ) {
+		return $this->get_address_prop( 'state', $context );
+	}
 
-    public function get_formatted_state() {
-    	if ( '' === $this->get_state() || '' === $this->get_country() ) {
-    		return '';
-	    }
+	public function get_formatted_state() {
+		if ( '' === $this->get_state() || '' === $this->get_country() ) {
+			return '';
+		}
 
-	    return wc_gzd_get_formatted_state( $this->get_state(), $this->get_country() );
-    }
+		return wc_gzd_get_formatted_state( $this->get_state(), $this->get_country() );
+	}
 
 	/**
 	 * Returns the shipment address country.
@@ -1143,9 +1150,9 @@ abstract class Shipment extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return string
 	 */
-    public function get_country( $context = 'view' ) {
-        return $this->get_address_prop( 'country', $context ) ? $this->get_address_prop( 'country', $context ) : '';
-    }
+	public function get_country( $context = 'view' ) {
+		return $this->get_address_prop( 'country', $context ) ? $this->get_address_prop( 'country', $context ) : '';
+	}
 
 	/**
 	 * Returns the shipment address customs reference number.
@@ -1220,17 +1227,21 @@ abstract class Shipment extends WC_Data {
 	 * @return string[]
 	 */
 	public function get_sender_address( $context = 'view' ) {
-		return apply_filters( "{$this->get_hook_prefix()}sender_address", array(
-			'company'    => $this->get_sender_company( $context ),
-			'first_name' => $this->get_sender_first_name( $context ),
-			'last_name'  => $this->get_sender_last_name( $context ),
-			'address_1'  => $this->get_sender_address_1( $context ),
-			'address_2'  => $this->get_sender_address_2( $context ),
-			'postcode'   => $this->get_sender_postcode( $context ),
-			'city'       => $this->get_sender_city( $context ),
-			'country'    => $this->get_sender_country( $context ),
-			'state'      => $this->get_sender_state( $context ),
-		), $this );
+		return apply_filters(
+			"{$this->get_hook_prefix()}sender_address",
+			array(
+				'company'    => $this->get_sender_company( $context ),
+				'first_name' => $this->get_sender_first_name( $context ),
+				'last_name'  => $this->get_sender_last_name( $context ),
+				'address_1'  => $this->get_sender_address_1( $context ),
+				'address_2'  => $this->get_sender_address_2( $context ),
+				'postcode'   => $this->get_sender_postcode( $context ),
+				'city'       => $this->get_sender_city( $context ),
+				'country'    => $this->get_sender_country( $context ),
+				'state'      => $this->get_sender_state( $context ),
+			),
+			$this
+		);
 	}
 
 	/**
@@ -1432,22 +1443,22 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @return boolean
 	 */
-    public function send_to_external_pickup( $types ) {
-        $types = is_array( $types ) ? $types : array( $types );
+	public function send_to_external_pickup( $types ) {
+		$types = is_array( $types ) ? $types : array( $types );
 
-	    /**
-	     * Filter to decide whether a Shipment is to be sent to a external pickup location
-	     * e.g. packstation.
-	     *
-	     * @param boolean                                  $external True if the Shipment goes to a pickup location.
-	     * @param array                                    $types Array containing the types to be checked agains.
-	     * @param Shipment $this The shipment object.
-	     *
-	     * @since 3.0.0
-	     * @package Vendidero/Germanized/Shipments
-	     */
-        return apply_filters( 'woocommerce_gzd_shipment_send_to_external_pickup', false, $types, $this );
-    }
+		/**
+		 * Filter to decide whether a Shipment is to be sent to a external pickup location
+		 * e.g. packstation.
+		 *
+		 * @param boolean                                  $external True if the Shipment goes to a pickup location.
+		 * @param array                                    $types Array containing the types to be checked agains.
+		 * @param Shipment $this The shipment object.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_shipment_send_to_external_pickup', false, $types, $this );
+	}
 
 	/**
 	 * Returns an address prop.
@@ -1511,179 +1522,180 @@ abstract class Shipment extends WC_Data {
 		);
 	}
 
-    public function get_formatted_dimensions() {
-	    return wc_gzd_format_shipment_dimensions( $this->get_dimensions(), $this->get_dimension_unit() );
-    }
+	public function get_formatted_dimensions() {
+		return wc_gzd_format_shipment_dimensions( $this->get_dimensions(), $this->get_dimension_unit() );
+	}
 
 	/**
 	 * Returns whether the shipment is editable or not.
 	 *
 	 * @return boolean
 	 */
-    public function is_editable() {
-	    /**
-	     * Filter to dedice whether the current Shipment is still editable or not.
-	     *
-	     * @param boolean                                  $is_editable Whether the Shipment is editable or not.
-	     * @param Shipment $this The shipment object.
-	     *
-	     * @since 3.0.0
-	     * @package Vendidero/Germanized/Shipments
-	     */
-        return apply_filters( 'woocommerce_gzd_shipment_is_editable', $this->has_status( wc_gzd_get_shipment_editable_statuses() ), $this );
-    }
+	public function is_editable() {
+		/**
+		 * Filter to dedice whether the current Shipment is still editable or not.
+		 *
+		 * @param boolean                                  $is_editable Whether the Shipment is editable or not.
+		 * @param Shipment $this The shipment object.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_shipment_is_editable', $this->has_status( wc_gzd_get_shipment_editable_statuses() ), $this );
+	}
 
 	/**
 	 * Returns the shipment number.
 	 *
 	 * @return string
 	 */
-    public function get_shipment_number() {
-	    /**
-	     * Filter to adjust a Shipment's number.
-	     *
-	     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
-	     * unique hook for a shipment type.
-	     *
-	     * Example hook name: woocommerce_gzd_shipment_get_shipment_number
-	     *
-	     * @param string                                   $number The shipment number.
-	     * @param Shipment $this The shipment object.
-	     *
-	     * @since 3.0.0
-	     * @package Vendidero/Germanized/Shipments
-	     */
-        return (string) apply_filters( "{$this->get_hook_prefix()}shipment_number", $this->get_id(), $this );
-    }
+	public function get_shipment_number() {
+		/**
+		 * Filter to adjust a Shipment's number.
+		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type.
+		 *
+		 * Example hook name: woocommerce_gzd_shipment_get_shipment_number
+		 *
+		 * @param string                                   $number The shipment number.
+		 * @param Shipment $this The shipment object.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return (string) apply_filters( "{$this->get_hook_prefix()}shipment_number", $this->get_id(), $this );
+	}
 
-    /*
-    |--------------------------------------------------------------------------
-    | Setters
-    |--------------------------------------------------------------------------
-    */
+	/*
+	|--------------------------------------------------------------------------
+	| Setters
+	|--------------------------------------------------------------------------
+	*/
 
-    /**
-     * Set shipment status.
-     *
-     * @param string  $new_status Status to change the shipment to. No internal gzd- prefix is required.
-     * @param boolean $manual_update Whether it is a manual status update or not.
-     * @return array  details of change
-     */
-    public function set_status( $new_status, $manual_update = false ) {
-        $old_status = $this->get_status();
-        $new_status = 'gzd-' === substr( $new_status, 0, 4 ) ? substr( $new_status, 4 ) : $new_status;
+	/**
+	 * Set shipment status.
+	 *
+	 * @param string  $new_status Status to change the shipment to. No internal gzd- prefix is required.
+	 * @param boolean $manual_update Whether it is a manual status update or not.
+	 * @return array  details of change
+	 */
+	public function set_status( $new_status, $manual_update = false ) {
+		$old_status = $this->get_status();
+		$new_status = 'gzd-' === substr( $new_status, 0, 4 ) ? substr( $new_status, 4 ) : $new_status;
 
-        $this->set_prop( 'status', $new_status );
+		$this->set_prop( 'status', $new_status );
 
-        $result = array(
-            'from' => $old_status,
-            'to'   => $new_status,
-        );
+		$result = array(
+			'from' => $old_status,
+			'to'   => $new_status,
+		);
 
-        if ( true === $this->object_read && ! empty( $result['from'] ) && $result['from'] !== $result['to'] ) {
-            $this->status_transition = array(
-                'from'   => ! empty( $this->status_transition['from'] ) ? $this->status_transition['from'] : $result['from'],
-                'to'     => $result['to'],
-                'manual' => (bool) $manual_update,
-            );
+		if ( true === $this->object_read && ! empty( $result['from'] ) && $result['from'] !== $result['to'] ) {
+			$this->status_transition = array(
+				'from'   => ! empty( $this->status_transition['from'] ) ? $this->status_transition['from'] : $result['from'],
+				'to'     => $result['to'],
+				'manual' => (bool) $manual_update,
+			);
 
-            if ( $manual_update ) {
-	            /**
-	             * Action that fires after a shipment status has been updated manually.
-	             *
-	             * @param integer $shipment_id The shipment id.
-	             * @param string  $status The new shipment status.
-	             *
-	             * @since 3.0.0
-	             * @package Vendidero/Germanized/Shipments
-	             */
-                do_action( 'woocommerce_gzd_shipment_edit_status', $this->get_id(), $result['to'] );
-            }
+			if ( $manual_update ) {
+				/**
+				 * Action that fires after a shipment status has been updated manually.
+				 *
+				 * @param integer $shipment_id The shipment id.
+				 * @param string  $status The new shipment status.
+				 *
+				 * @since 3.0.0
+				 * @package Vendidero/Germanized/Shipments
+				 */
+				do_action( 'woocommerce_gzd_shipment_edit_status', $this->get_id(), $result['to'] );
+			}
 
-            $this->maybe_set_date_sent();
-        }
+			$this->maybe_set_date_sent();
+		}
 
-        return $result;
-    }
+		return $result;
+	}
 
-    public function is_shipped() {
-    	$is_shipped = $this->has_status( wc_gzd_get_shipment_sent_statuses() );
+	public function is_shipped() {
+		$is_shipped = $this->has_status( wc_gzd_get_shipment_sent_statuses() );
 
-    	return apply_filters( $this->get_hook_prefix() . "is_shipped", $is_shipped, $this );
-    }
+		return apply_filters( $this->get_hook_prefix() . 'is_shipped', $is_shipped, $this );
+	}
 
-    /**
-     * Maybe set date sent.
-     *
-     * Sets the date sent variable when transitioning to the shipped shipment status.
-     * Date sent is set once in this manner - only when it is not already set.
-     */
-    public function maybe_set_date_sent() {
-        // This logic only runs if the date_sent prop has not been set yet.
-        if ( ! $this->get_date_sent( 'edit' ) ) {
-            if ( $this->is_shipped() ) {
-                // If payment complete status is reached, set paid now.
-                $this->set_date_sent( current_time( 'timestamp', true ) );
-            }
-        }
-    }
+	/**
+	 * Maybe set date sent.
+	 *
+	 * Sets the date sent variable when transitioning to the shipped shipment status.
+	 * Date sent is set once in this manner - only when it is not already set.
+	 */
+	public function maybe_set_date_sent() {
+		// This logic only runs if the date_sent prop has not been set yet.
+		if ( ! $this->get_date_sent( 'edit' ) ) {
+			if ( $this->is_shipped() ) {
+				// If payment complete status is reached, set paid now.
+				$this->set_date_sent( time() );
+			}
+		}
+	}
 
-    /**
-     * Updates status of shipment immediately.
-     *
-     * @uses Shipment::set_status()
-     *
-     * @param string $new_status    Status to change the shipment to. No internal gzd- prefix is required.
-     * @param bool   $manual        Is this a manual order status change?
-     * @return bool
-     */
-    public function update_status( $new_status, $manual = false ) {
-        if ( ! $this->get_id() ) {
-            return false;
-        }
+	/**
+	 * Updates status of shipment immediately.
+	 *
+	 * @uses Shipment::set_status()
+	 *
+	 * @param string $new_status    Status to change the shipment to. No internal gzd- prefix is required.
+	 * @param bool   $manual        Is this a manual order status change?
+	 * @return bool
+	 */
+	public function update_status( $new_status, $manual = false ) {
+		if ( ! $this->get_id() ) {
+			return false;
+		}
 
-        try {
-            $this->set_status( $new_status, $manual );
-            $this->save();
-        } catch ( Exception $e ) {
-            $logger = wc_get_logger();
-            $logger->error(
-                sprintf( 'Error updating status for shipment #%d', $this->get_id() ), array(
-                    'shipment' => $this,
-                    'error'    => $e,
-                )
-            );
-            return false;
-        }
-        return true;
-    }
+		try {
+			$this->set_status( $new_status, $manual );
+			$this->save();
+		} catch ( Exception $e ) {
+			$logger = wc_get_logger();
+			$logger->error(
+				sprintf( 'Error updating status for shipment #%d', $this->get_id() ),
+				array(
+					'shipment' => $this,
+					'error'    => $e,
+				)
+			);
+			return false;
+		}
+		return true;
+	}
 
-    /**
-     * Set the date this shipment was created.
-     *
-     * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
-     */
-    public function set_date_created( $date = null ) {
-        $this->set_date_prop( 'date_created', $date );
-    }
+	/**
+	 * Set the date this shipment was created.
+	 *
+	 * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
+	 */
+	public function set_date_created( $date = null ) {
+		$this->set_date_prop( 'date_created', $date );
+	}
 
-    /**
-     * Set the date this shipment was sent.
-     *
-     * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
-     */
-    public function set_date_sent( $date = null ) {
-        $this->set_date_prop( 'date_sent', $date );
-    }
+	/**
+	 * Set the date this shipment was sent.
+	 *
+	 * @param  string|integer|null $date UTC timestamp, or ISO 8601 DateTime. If the DateTime string has no timezone or offset, WordPress site timezone will be assumed. Null if their is no date.
+	 */
+	public function set_date_sent( $date = null ) {
+		$this->set_date_prop( 'date_sent', $date );
+	}
 
 	/**
 	 * Set shipment weight in kg.
 	 *
 	 * @param string $weight The weight.
 	 */
-    public function set_weight( $weight ) {
-        $this->set_prop( 'weight', '' === $weight ? '' : wc_format_decimal( $weight ) );
-    }
+	public function set_weight( $weight ) {
+		$this->set_prop( 'weight', '' === $weight ? '' : wc_format_decimal( $weight ) );
+	}
 
 	public function set_packaging_weight( $weight ) {
 		$this->set_prop( 'packaging_weight', '' === $weight ? '' : wc_format_decimal( $weight ) );
@@ -1703,13 +1715,13 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @param string $width The width.
 	 */
-    public function set_width( $width ) {
-        $this->set_prop( 'width', '' === $width ? '' : wc_format_decimal( $width ) );
-    }
+	public function set_width( $width ) {
+		$this->set_prop( 'width', '' === $width ? '' : wc_format_decimal( $width ) );
+	}
 
-    public function set_weight_unit( $unit ) {
-	    $this->set_prop( 'weight_unit', $unit );
-    }
+	public function set_weight_unit( $unit ) {
+		$this->set_prop( 'weight_unit', $unit );
+	}
 
 	public function set_dimension_unit( $unit ) {
 		$this->set_prop( 'dimension_unit', $unit );
@@ -1720,27 +1732,27 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @param string $length The length.
 	 */
-    public function set_length( $length ) {
-        $this->set_prop( 'length', '' === $length ? '' : wc_format_decimal( $length ) );
-    }
+	public function set_length( $length ) {
+		$this->set_prop( 'length', '' === $length ? '' : wc_format_decimal( $length ) );
+	}
 
 	/**
 	 * Set shipment height.
 	 *
 	 * @param string $height The height.
 	 */
-    public function set_height( $height ) {
-        $this->set_prop( 'height', '' === $height ? '' : wc_format_decimal( $height ) );
-    }
+	public function set_height( $height ) {
+		$this->set_prop( 'height', '' === $height ? '' : wc_format_decimal( $height ) );
+	}
 
 	/**
 	 * Set shipment address.
 	 *
 	 * @param string[] $address The address props.
 	 */
-    public function set_address( $address ) {
-        $this->set_prop( 'address', empty( $address ) ? array() : (array) $address );
-    }
+	public function set_address( $address ) {
+		$this->set_prop( 'address', empty( $address ) ? array() : (array) $address );
+	}
 
 	/**
 	 * Set shipment shipping method.
@@ -1776,15 +1788,15 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @param float|string $value The shipment total.
 	 */
-    public function set_total( $value ) {
-        $value = wc_format_decimal( $value );
+	public function set_total( $value ) {
+		$value = wc_format_decimal( $value );
 
-        if ( ! is_numeric( $value ) ) {
-            $value = 0;
-        }
+		if ( ! is_numeric( $value ) ) {
+			$value = 0;
+		}
 
-        $this->set_prop( 'total', $value );
-    }
+		$this->set_prop( 'total', $value );
+	}
 
 	/**
 	 * Set shipment total.
@@ -1821,9 +1833,9 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @param string $country The country in ISO format.
 	 */
-    public function set_country( $country ) {
-        $this->set_address_prop( 'country', $country );
-    }
+	public function set_country( $country ) {
+		$this->set_address_prop( 'country', $country );
+	}
 
 	/**
 	 * Update a specific address prop.
@@ -1831,21 +1843,21 @@ abstract class Shipment extends WC_Data {
 	 * @param $prop
 	 * @param $value
 	 */
-    protected function set_address_prop( $prop, $value ) {
-	    $address          = $this->get_address();
-	    $address[ $prop ] = $value;
+	protected function set_address_prop( $prop, $value ) {
+		$address          = $this->get_address();
+		$address[ $prop ] = $value;
 
-	    $this->set_address( $address );
-    }
+		$this->set_address( $address );
+	}
 
 	/**
 	 * Set shipment tracking id.
 	 *
 	 * @param string $tracking_id The trakcing id.
 	 */
-    public function set_tracking_id( $tracking_id ) {
-        $this->set_prop( 'tracking_id', $tracking_id );
-    }
+	public function set_tracking_id( $tracking_id ) {
+		$this->set_prop( 'tracking_id', $tracking_id );
+	}
 
 	/**
 	 * Set shipment shipping provider.
@@ -1875,8 +1887,8 @@ abstract class Shipment extends WC_Data {
 		if ( ! empty( $packaging_id ) ) {
 			$exists = false;
 
-			foreach( $available_packaging as $packaging ) {
-				if ( $packaging_id == $packaging->get_id() ) {
+			foreach ( $available_packaging as $packaging ) {
+				if ( (int) $packaging_id === (int) $packaging->get_id() ) {
 					$exists = true;
 					break;
 				}
@@ -1898,7 +1910,7 @@ abstract class Shipment extends WC_Data {
 				'width'            => wc_get_dimension( $packaging->get_width( 'edit' ), $this->get_dimension_unit(), $packaging_dimension ),
 				'length'           => wc_get_dimension( $packaging->get_length( 'edit' ), $this->get_dimension_unit(), $packaging_dimension ),
 				'height'           => wc_get_dimension( $packaging->get_height( 'edit' ), $this->get_dimension_unit(), $packaging_dimension ),
-				'packaging_weight' => wc_get_weight( $packaging->get_weight( 'edit' ), $this->get_weight_unit(), wc_gzd_get_packaging_weight_unit() )
+				'packaging_weight' => wc_get_weight( $packaging->get_weight( 'edit' ), $this->get_weight_unit(), wc_gzd_get_packaging_weight_unit() ),
 			);
 
 			$this->set_props( $props );
@@ -1910,7 +1922,7 @@ abstract class Shipment extends WC_Data {
 			 * Maybe reset dimensions in case they've not been explicitly set
 			 */
 			if ( array_key_exists( 'packaging_id', $changes ) ) {
-				foreach( array( 'length', 'width', 'height' ) as $dim_prop ) {
+				foreach ( array( 'length', 'width', 'height' ) as $dim_prop ) {
 					if ( ! array_key_exists( $dim_prop, $changes ) ) {
 						$props = array_merge( $props, array( $dim_prop => '' ) );
 					}
@@ -1924,292 +1936,293 @@ abstract class Shipment extends WC_Data {
 		return true;
 	}
 
-    /**
-     * Return an array of items within this shipment.
-     *
-     * @return ShipmentItem[]
-     */
-    public function get_items() {
-        $items = array();
+	/**
+	 * Return an array of items within this shipment.
+	 *
+	 * @return ShipmentItem[]
+	 */
+	public function get_items() {
+		$items = array();
 
-        if ( is_null( $this->items ) ) {
-            $this->items = array_filter( $this->data_store->read_items( $this ) );
+		if ( is_null( $this->items ) ) {
+			$this->items = array_filter( $this->data_store->read_items( $this ) );
 
-            $items = (array) $this->items;
-        } else {
-            $items = (array) $this->items;
-        }
+			$items = (array) $this->items;
+		} else {
+			$items = (array) $this->items;
+		}
 
-	    /**
-	     * Filter to adjust items belonging to a Shipment.
-	     *
-	     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
-	     * unique hook for a shipment type.
-	     *
-	     * Example hook name: woocommerce_gzd_shipment_get_items
-	     *
-	     * @param string                                   $number The shipment number.
-	     * @param Shipment $this The shipment object.
-	     *
-	     * @since 3.0.0
-	     * @package Vendidero/Germanized/Shipments
-	     */
-        return apply_filters( "{$this->get_hook_prefix()}items", $items, $this );
-    }
+		/**
+		 * Filter to adjust items belonging to a Shipment.
+		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type.
+		 *
+		 * Example hook name: woocommerce_gzd_shipment_get_items
+		 *
+		 * @param string                                   $number The shipment number.
+		 * @param Shipment $this The shipment object.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( "{$this->get_hook_prefix()}items", $items, $this );
+	}
 
-    /**
-     * Get's the URL to edit the shipment in the backend.
-     *
-     * @return string
-     */
-    abstract public function get_edit_shipment_url();
+	/**
+	 * Get's the URL to edit the shipment in the backend.
+	 *
+	 * @return string
+	 */
+	abstract public function get_edit_shipment_url();
 
-    public function get_view_shipment_url() {
-	    /**
-	     * Filter to adjust the URL being used to access the view shipment page on the customer account page.
-	     *
-	     * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
-	     * unique hook for a shipment type.
-	     *
-	     * Example hook name: woocommerce_gzd_shipment_view_shipment_url
-	     *
-	     * @param string   $url The URL pointing to the view page.
-	     * @param Shipment $this The shipment object.
-	     *
-	     * @since 3.0.0
-	     * @package Vendidero/Germanized/Shipments
-	     */
-	    return apply_filters( "{$this->get_hook_prefix()}_view_shipment_url", wc_get_endpoint_url( 'view-shipment', $this->get_id(), wc_get_page_permalink( 'myaccount' ) ), $this );
-    }
+	public function get_view_shipment_url() {
+		/**
+		 * Filter to adjust the URL being used to access the view shipment page on the customer account page.
+		 *
+		 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+		 * unique hook for a shipment type.
+		 *
+		 * Example hook name: woocommerce_gzd_shipment_view_shipment_url
+		 *
+		 * @param string   $url The URL pointing to the view page.
+		 * @param Shipment $this The shipment object.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( "{$this->get_hook_prefix()}_view_shipment_url", wc_get_endpoint_url( 'view-shipment', $this->get_id(), wc_get_page_permalink( 'myaccount' ) ), $this );
+	}
 
-    /**
-     * Get an item object.
-     *
-     * @param  int  $item_id ID of item to get.
-     *
-     * @return ShipmentItem|false
-     */
-    public function get_item( $item_id ) {
-        $items = $this->get_items();
+	/**
+	 * Get an item object.
+	 *
+	 * @param  int  $item_id ID of item to get.
+	 *
+	 * @return ShipmentItem|false
+	 */
+	public function get_item( $item_id ) {
+		$items = $this->get_items();
 
-        if ( isset( $items[ $item_id ] ) ) {
-            return $items[ $item_id ];
-        }
+		if ( isset( $items[ $item_id ] ) ) {
+			return $items[ $item_id ];
+		}
 
-        return false;
-    }
+		return false;
+	}
 
-    /**
-     * Remove item from the shipment.
-     *
-     * @param int $item_id Item ID to delete.
-     *
-     * @return false|void
-     */
-    public function remove_item( $item_id ) {
-        $item = $this->get_item( $item_id );
+	/**
+	 * Remove item from the shipment.
+	 *
+	 * @param int $item_id Item ID to delete.
+	 *
+	 * @return false|void
+	 */
+	public function remove_item( $item_id ) {
+		$item = $this->get_item( $item_id );
 
-        // Unset and remove later.
-        $this->items_to_delete[] = $item;
+		// Unset and remove later.
+		$this->items_to_delete[] = $item;
 
-        unset( $this->items[ $item->get_id() ] );
+		unset( $this->items[ $item->get_id() ] );
 
-        $this->reset_content_data();
-        $this->calculate_totals();
-        $this->sync_packaging();
-    }
+		$this->reset_content_data();
+		$this->calculate_totals();
+		$this->sync_packaging();
+	}
 
-    public function update_item_quantity( $item_id, $quantity = 1 ) {
-	    if ( $item = $this->get_item( $item_id ) ) {
-	        $item->set_quantity( $quantity );
+	public function update_item_quantity( $item_id, $quantity = 1 ) {
+		if ( $item = $this->get_item( $item_id ) ) {
+			$item->set_quantity( $quantity );
 
-	        if ( array_key_exists( 'quantity', $item->get_changes() ) ) {
-	        	$this->sync_packaging();
-	        }
+			if ( array_key_exists( 'quantity', $item->get_changes() ) ) {
+				$this->sync_packaging();
+			}
 
-	        return true;
-	    }
+			return true;
+		}
 
-	    return false;
-    }
+		return false;
+	}
 
-    /**
-     * Adds a shipment item to this shipment. The shipment item will not persist until save.
-     *
-     * @since 3.0.0
-     * @param ShipmentItem $item Shipment item object.
-     *
-     * @return false|void
-     */
-    public function add_item( $item ) {
-        // Make sure that items are loaded
-        $items = $this->get_items();
+	/**
+	 * Adds a shipment item to this shipment. The shipment item will not persist until save.
+	 *
+	 * @since 3.0.0
+	 * @param ShipmentItem $item Shipment item object.
+	 *
+	 * @return false|void
+	 */
+	public function add_item( $item ) {
+		// Make sure that items are loaded
+		$items = $this->get_items();
 
-        // Set parent.
-        $item->set_shipment_id( $this->get_id() );
+		// Set parent.
+		$item->set_shipment_id( $this->get_id() );
 
-        // Append new row with generated temporary ID.
-        $item_id = $item->get_id();
+		// Append new row with generated temporary ID.
+		$item_id = $item->get_id();
 
-        if ( $item_id ) {
-            $this->items[ $item_id ] = $item;
-        } else {
-            $this->items[ 'new:' . count( $this->items ) ] = $item;
-        }
+		if ( $item_id ) {
+			$this->items[ $item_id ] = $item;
+		} else {
+			$this->items[ 'new:' . count( $this->items ) ] = $item;
+		}
 
-        $this->items_to_pack = null;
+		$this->items_to_pack = null;
 
-        $this->reset_content_data();
-        $this->calculate_totals();
-	    $this->sync_packaging();
-    }
+		$this->reset_content_data();
+		$this->calculate_totals();
+		$this->sync_packaging();
+	}
 
 	/**
 	 * Reset item content data.
 	 */
-    protected function reset_content_data() {
-        $this->weights = null;
-        $this->lengths = null;
-        $this->widths  = null;
-        $this->heights = null;
-	    $this->volumes = null;
-    }
+	protected function reset_content_data() {
+		$this->weights = null;
+		$this->lengths = null;
+		$this->widths  = null;
+		$this->heights = null;
+		$this->volumes = null;
+	}
 
-    /**
-     * Handle the status transition.
-     */
-    protected function status_transition() {
-        $status_transition = $this->status_transition;
+	/**
+	 * Handle the status transition.
+	 */
+	protected function status_transition() {
+		$status_transition = $this->status_transition;
 
-        // Reset status transition variable.
-        $this->status_transition = false;
+		// Reset status transition variable.
+		$this->status_transition = false;
 
-        if ( $status_transition ) {
-            try {
-	            /**
-	             * Action that fires before a shipment status transition happens.
-	             *
-	             * @param integer  $shipment_id The shipment id.
-	             * @param Shipment $shipment The shipment object.
-	             * @param array    $status_transition The status transition data.
-	             *
-	             * @since 3.0.0
-	             * @package Vendidero/Germanized/Shipments
-	             */
-	            do_action( 'woocommerce_gzd_shipment_before_status_change', $this->get_id(), $this, $this->status_transition );
+		if ( $status_transition ) {
+			try {
+				/**
+				 * Action that fires before a shipment status transition happens.
+				 *
+				 * @param integer  $shipment_id The shipment id.
+				 * @param Shipment $shipment The shipment object.
+				 * @param array    $status_transition The status transition data.
+				 *
+				 * @since 3.0.0
+				 * @package Vendidero/Germanized/Shipments
+				 */
+				do_action( 'woocommerce_gzd_shipment_before_status_change', $this->get_id(), $this, $this->status_transition );
 
-                $status_to          = $status_transition['to'];
-                $status_hook_prefix = 'woocommerce_gzd_' . ( 'simple' === $this->get_type() ? '' : $this->get_type() . '_' ) . 'shipment_status';
+				$status_to          = $status_transition['to'];
+				$status_hook_prefix = 'woocommerce_gzd_' . ( 'simple' === $this->get_type() ? '' : $this->get_type() . '_' ) . 'shipment_status';
 
-	            /**
-	             * Action that indicates shipment status change to a specific status.
-	             *
-	             * The dynamic portion of the hook name, `$status_hook_prefix` constructs a unique prefix
-	             * based on the shipment type. `$status_to` refers to the new shipment status.
-	             *
-	             * Example hook name: `woocommerce_gzd_return_shipment_status_processing`
-	             *
-	             * @param integer  $shipment_id The shipment id.
-	             * @param Shipment $shipment The shipment object.
-	             *
-	             * @see wc_gzd_get_shipment_statuses()
-	             *
-	             * @since 3.0.0
-	             * @package Vendidero/Germanized/Shipments
-	             */
-                do_action( "{$status_hook_prefix}_$status_to", $this->get_id(), $this );
+				/**
+				 * Action that indicates shipment status change to a specific status.
+				 *
+				 * The dynamic portion of the hook name, `$status_hook_prefix` constructs a unique prefix
+				 * based on the shipment type. `$status_to` refers to the new shipment status.
+				 *
+				 * Example hook name: `woocommerce_gzd_return_shipment_status_processing`
+				 *
+				 * @param integer  $shipment_id The shipment id.
+				 * @param Shipment $shipment The shipment object.
+				 *
+				 * @see wc_gzd_get_shipment_statuses()
+				 *
+				 * @since 3.0.0
+				 * @package Vendidero/Germanized/Shipments
+				 */
+				do_action( "{$status_hook_prefix}_$status_to", $this->get_id(), $this );
 
-                if ( ! empty( $status_transition['from'] ) ) {
-                    $status_from = $status_transition['from'];
+				if ( ! empty( $status_transition['from'] ) ) {
+					$status_from = $status_transition['from'];
 
-	                /**
-	                 * Action that indicates shipment status change from a specific status to a specific status.
-	                 *
-	                 * The dynamic portion of the hook name, `$status_hook_prefix` constructs a unique prefix
-	                 * based on the shipment type. `$status_from` refers to the old shipment status.
-	                 * `$status_to` refers to the new status.
-	                 *
-	                 * Example hook name: `woocommerce_gzd_return_shipment_status_processing_to_shipped`
-	                 *
-	                 * @param integer  $shipment_id The shipment id.
-	                 * @param Shipment $shipment The shipment object.
-	                 *
-	                 * @see wc_gzd_get_shipment_statuses()
-	                 *
-	                 * @since 3.0.0
-	                 * @package Vendidero/Germanized/Shipments
-	                 */
-                    do_action( "{$status_hook_prefix}_{$status_from}_to_{$status_to}", $this->get_id(), $this );
+					/**
+					 * Action that indicates shipment status change from a specific status to a specific status.
+					 *
+					 * The dynamic portion of the hook name, `$status_hook_prefix` constructs a unique prefix
+					 * based on the shipment type. `$status_from` refers to the old shipment status.
+					 * `$status_to` refers to the new status.
+					 *
+					 * Example hook name: `woocommerce_gzd_return_shipment_status_processing_to_shipped`
+					 *
+					 * @param integer  $shipment_id The shipment id.
+					 * @param Shipment $shipment The shipment object.
+					 *
+					 * @see wc_gzd_get_shipment_statuses()
+					 *
+					 * @since 3.0.0
+					 * @package Vendidero/Germanized/Shipments
+					 */
+					do_action( "{$status_hook_prefix}_{$status_from}_to_{$status_to}", $this->get_id(), $this );
 
-	                /**
-	                 * Action that indicates shipment status change.
-	                 *
-	                 * @param integer  $shipment_id The shipment id.
-	                 * @param string   $status_from The old shipment status.
-	                 * @param string   $status_to The new shipment status.
-	                 * @param Shipment $shipment The shipment object.
-	                 *
-	                 * @see wc_gzd_get_shipment_statuses()
-	                 *
-	                 * @since 3.0.0
-	                 * @package Vendidero/Germanized/Shipments
-	                 */
-                    do_action( 'woocommerce_gzd_shipment_status_changed', $this->get_id(), $status_from, $status_to, $this );
-                }
-            } catch ( Exception $e ) {
-                $logger = wc_get_logger();
-                $logger->error(
-                    sprintf( 'Status transition of shipment #%d errored!', $this->get_id() ), array(
-                        'shipment' => $this,
-                        'error'    => $e,
-                    )
-                );
-            }
-        }
-    }
+					/**
+					 * Action that indicates shipment status change.
+					 *
+					 * @param integer  $shipment_id The shipment id.
+					 * @param string   $status_from The old shipment status.
+					 * @param string   $status_to The new shipment status.
+					 * @param Shipment $shipment The shipment object.
+					 *
+					 * @see wc_gzd_get_shipment_statuses()
+					 *
+					 * @since 3.0.0
+					 * @package Vendidero/Germanized/Shipments
+					 */
+					do_action( 'woocommerce_gzd_shipment_status_changed', $this->get_id(), $status_from, $status_to, $this );
+				}
+			} catch ( Exception $e ) {
+				$logger = wc_get_logger();
+				$logger->error(
+					sprintf( 'Status transition of shipment #%d errored!', $this->get_id() ),
+					array(
+						'shipment' => $this,
+						'error'    => $e,
+					)
+				);
+			}
+		}
+	}
 
-    /**
-     * Remove all items from the shipment.
-     */
-    public function remove_items() {
-        $this->data_store->delete_items( $this );
-        $this->items = array();
+	/**
+	 * Remove all items from the shipment.
+	 */
+	public function remove_items() {
+		$this->data_store->delete_items( $this );
+		$this->items = array();
 
-	    $this->items_to_pack = null;
+		$this->items_to_pack = null;
 
-        $this->reset_content_data();
-        $this->calculate_totals();
-	    $this->sync_packaging();
-    }
+		$this->reset_content_data();
+		$this->calculate_totals();
+		$this->sync_packaging();
+	}
 
-    /**
-     * Save all items which are part of this shipment.
-     */
-    protected function save_items() {
-        $items_changed = false;
+	/**
+	 * Save all items which are part of this shipment.
+	 */
+	protected function save_items() {
+		$items_changed = false;
 
-        foreach ( $this->items_to_delete as $item ) {
-            $item->delete();
-            $items_changed = true;
-        }
+		foreach ( $this->items_to_delete as $item ) {
+			$item->delete();
+			$items_changed = true;
+		}
 
-        $this->items_to_delete = array();
+		$this->items_to_delete = array();
 
-        foreach ( $this->get_items() as $item_key => $item ) {
-            $item->set_shipment_id( $this->get_id() );
+		foreach ( $this->get_items() as $item_key => $item ) {
+			$item->set_shipment_id( $this->get_id() );
 
-            $item_id = $item->save();
+			$item_id = $item->save();
 
-            // If ID changed (new item saved to DB)...
-            if ( $item_id !== $item_key ) {
-                $this->items[ $item_id ] = $item;
+			// If ID changed (new item saved to DB)...
+			if ( $item_id !== $item_key ) {
+				$this->items[ $item_id ] = $item;
 
-                unset( $this->items[ $item_key ] );
+				unset( $this->items[ $item_key ] );
 
-                $items_changed = true;
-            }
-        }
-    }
+				$items_changed = true;
+			}
+		}
+	}
 
 	/**
 	 * Finds an ShipmentItem based on an order item id.
@@ -2221,7 +2234,7 @@ abstract class Shipment extends WC_Data {
 	public function get_item_by_order_item_id( $order_item_id ) {
 		$items = $this->get_items();
 
-		foreach( $items as $item ) {
+		foreach ( $items as $item ) {
 			if ( $item->get_order_item_id() === (int) $order_item_id ) {
 				return $item;
 			}
@@ -2316,7 +2329,7 @@ abstract class Shipment extends WC_Data {
 
 		$new_items = $item_id;
 
-		foreach( $item_id as $key => $order_item_id ) {
+		foreach ( $item_id as $key => $order_item_id ) {
 
 			if ( is_a( $order_item_id, 'WC_Order_Item' ) ) {
 				$order_item_id   = $order_item_id->get_id();
@@ -2357,7 +2370,7 @@ abstract class Shipment extends WC_Data {
 	public function get_item_by_item_parent_id( $item_parent_id ) {
 		$items = $this->get_items();
 
-		foreach( $items as $item ) {
+		foreach ( $items as $item ) {
 			if ( $item->get_parent_id() === $item_parent_id ) {
 				return $item;
 			}
@@ -2448,7 +2461,7 @@ abstract class Shipment extends WC_Data {
 		 * Sanitize props
 		 */
 		if ( is_array( $props ) ) {
-			foreach( $props as $key => $value ) {
+			foreach ( $props as $key => $value ) {
 				$props[ $key ] = wc_clean( wp_unslash( $value ) );
 			}
 		}
@@ -2484,12 +2497,12 @@ abstract class Shipment extends WC_Data {
 			}
 		}
 
-	    if ( $label = $this->get_label() ) {
-	        $this->set_tracking_id( $label->get_number() );
+		if ( $label = $this->get_label() ) {
+			$this->set_tracking_id( $label->get_number() );
 
-		    /**
+			/**
 			 * Action for shipping providers to adjust the shipment before updating it after a label has
-		     * been successfully generated.
+			 * been successfully generated.
 			 *
 			 * The dynamic portion of this hook, `$hook_prefix` is used to construct a
 			 * unique hook for a shipment type. `$provider` is related to the current shipping provider
@@ -2497,21 +2510,21 @@ abstract class Shipment extends WC_Data {
 			 *
 			 * Example hook name: `woocommerce_gzd_return_shipment_created_dhl_label`
 			 *
-		     * @param Shipment  $shipment The current shipment instance.
-		     * @param array     $props Array containing props extracted from post data (if created manually) and sanitized via `wc_clean`.
+			 * @param Shipment  $shipment The current shipment instance.
+			 * @param array     $props Array containing props extracted from post data (if created manually) and sanitized via `wc_clean`.
 			 * @param array     $raw_data Raw post data unsanitized.
 			 *
 			 * @since 3.1.2
 			 * @package Vendidero/Germanized/Shipments
 			 */
-	        do_action( "{$hook_prefix}created_{$provider_name}label", $this, $props );
+			do_action( "{$hook_prefix}created_{$provider_name}label", $this, $props );
 
-		    do_action( "{$hook_prefix}created_label", $this, $props );
+			do_action( "{$hook_prefix}created_label", $this, $props );
 
-	        $this->save();
-	    }
+			$this->save();
+		}
 
-	    return true;
+		return true;
 	}
 
 	public function delete_label( $force = false ) {
@@ -2651,101 +2664,102 @@ abstract class Shipment extends WC_Data {
 	/**
 	 * Calculate totals based on contained items.
 	 */
-    protected function calculate_totals() {
-        $total    = 0;
-        $subtotal = 0;
+	protected function calculate_totals() {
+		$total    = 0;
+		$subtotal = 0;
 
-        foreach( $this->get_items() as $item ) {
-            $total    += round( $item->get_total(), wc_get_price_decimals() );
-	        $subtotal += round( $item->get_subtotal(), wc_get_price_decimals() );
-        }
+		foreach ( $this->get_items() as $item ) {
+			$total    += round( $item->get_total(), wc_get_price_decimals() );
+			$subtotal += round( $item->get_subtotal(), wc_get_price_decimals() );
+		}
 
-        $this->set_total( $total );
+		$this->set_total( $total );
 
-        if ( empty( $subtotal ) ) {
-        	$subtotal = $total;
-        }
+		if ( empty( $subtotal ) ) {
+			$subtotal = $total;
+		}
 
-	    $this->set_subtotal( $subtotal );
-    }
+		$this->set_subtotal( $subtotal );
+	}
 
-    public function delete( $force_delete = false ) {
-    	$this->delete_label( $force_delete );
+	public function delete( $force_delete = false ) {
+		$this->delete_label( $force_delete );
 
-	    return parent::delete( $force_delete );
-    }
+		return parent::delete( $force_delete );
+	}
 
 	/**
-     * Save data to the database.
-     *
-     * @return integer shipment id
-     */
-    public function save() {
-        try {
-            $this->calculate_totals();
-            $is_new = false;
+	 * Save data to the database.
+	 *
+	 * @return integer shipment id
+	 */
+	public function save() {
+		try {
+			$this->calculate_totals();
+			$is_new = false;
 
-	        if ( array_key_exists( 'packaging_id', $this->get_changes() ) || $this->is_editable() ) {
-		        $this->update_packaging();
-	        }
+			if ( array_key_exists( 'packaging_id', $this->get_changes() ) || $this->is_editable() ) {
+				$this->update_packaging();
+			}
 
-            if ( $this->data_store ) {
-                // Trigger action before saving to the DB. Allows you to adjust object props before save.
-                do_action( 'woocommerce_before_' . $this->object_type . '_object_save', $this, $this->data_store );
+			if ( $this->data_store ) {
+				// Trigger action before saving to the DB. Allows you to adjust object props before save.
+				do_action( 'woocommerce_before_' . $this->object_type . '_object_save', $this, $this->data_store );
 
-                if ( $this->get_id() ) {
-                    $this->data_store->update( $this );
-                } else {
-                    $this->data_store->create( $this );
-	                $is_new = true;
-                }
-            }
+				if ( $this->get_id() ) {
+					$this->data_store->update( $this );
+				} else {
+					$this->data_store->create( $this );
+					$is_new = true;
+				}
+			}
 
-            $this->save_items();
+			$this->save_items();
 
-	        /**
-	         * Trigger action after saving shipment to the DB.
-	         *
-	         * @param Shipment          $shipment The shipment object being saved.
-	         * @param WC_Data_Store_WP $data_store THe data store persisting the data.
-	         */
-	        do_action( 'woocommerce_after_' . $this->object_type . '_object_save', $this, $this->data_store );
+			/**
+			 * Trigger action after saving shipment to the DB.
+			 *
+			 * @param Shipment          $shipment The shipment object being saved.
+			 * @param WC_Data_Store_WP $data_store THe data store persisting the data.
+			 */
+			do_action( 'woocommerce_after_' . $this->object_type . '_object_save', $this, $this->data_store );
 
-	        $hook_postfix = '';
+			$hook_postfix = '';
 
-	        if ( 'simple' !== $this->get_type() ) {
-		        $hook_postfix = $this->get_type() . '_';
-	        }
+			if ( 'simple' !== $this->get_type() ) {
+				$hook_postfix = $this->get_type() . '_';
+			}
 
-	        /**
-	         * Trigger action after saving shipment to the DB.
-	         *
-	         * The dynamic portion of this hook, `$hook_postfix` is used to construct a
-	         * unique hook for a shipment type.
-	         *
-	         * Example hook name: woocommerce_gzd_shipment_after_save
-	         *
-	         * @param Shipment $shipment The shipment object being saved.
-	         * @param boolean  $is_new Indicator to determine whether this is a new shipment or not.
-	         *
-	         * @since 3.0.0
-	         * @package Vendidero/Germanized/Shipments
-	         */
-	        do_action( "woocommerce_gzd_{$hook_postfix}shipment_after_save", $this, $is_new );
+			/**
+			 * Trigger action after saving shipment to the DB.
+			 *
+			 * The dynamic portion of this hook, `$hook_postfix` is used to construct a
+			 * unique hook for a shipment type.
+			 *
+			 * Example hook name: woocommerce_gzd_shipment_after_save
+			 *
+			 * @param Shipment $shipment The shipment object being saved.
+			 * @param boolean  $is_new Indicator to determine whether this is a new shipment or not.
+			 *
+			 * @since 3.0.0
+			 * @package Vendidero/Germanized/Shipments
+			 */
+			do_action( "woocommerce_gzd_{$hook_postfix}shipment_after_save", $this, $is_new );
 
-            $this->status_transition();
-            $this->reset_content_data();
+			$this->status_transition();
+			$this->reset_content_data();
 
-        } catch ( Exception $e ) {
-            $logger = wc_get_logger();
-            $logger->error(
-                sprintf( 'Error saving shipment #%d', $this->get_id() ), array(
-                    'shipment' => $this,
-                    'error'    => $e,
-                )
-            );
-        }
+		} catch ( Exception $e ) {
+			$logger = wc_get_logger();
+			$logger->error(
+				sprintf( 'Error saving shipment #%d', $this->get_id() ),
+				array(
+					'shipment' => $this,
+					'error'    => $e,
+				)
+			);
+		}
 
-        return $this->get_id();
-    }
+		return $this->get_id();
+	}
 }

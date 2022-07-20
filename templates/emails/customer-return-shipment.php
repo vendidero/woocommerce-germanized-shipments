@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/Shipments/Templates/Emails
- * @version 1.0.0
+ * @version 1.0.1
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -24,14 +24,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
 
 <?php /* translators: %s: Customer first name */ ?>
-	<p><?php printf( __( 'Hi %s,', 'woocommerce' ), $order->get_billing_first_name() ); ?></p><?php // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped ?>
+	<p><?php printf( esc_html__( 'Hi %s,', 'woocommerce' ), esc_html( $order->get_billing_first_name() ) ); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch ?></p>
 
 	<p>
 		<?php
 		if ( $is_confirmation ) {
-			_ex( 'Your return request has been accepted. Please follow the instructions beneath to return your shipment.', 'shipments', 'woocommerce-germanized-shipments' );
+			echo esc_html_x( 'Your return request has been accepted. Please follow the instructions beneath to return your shipment.', 'shipments', 'woocommerce-germanized-shipments' );
 		} else {
-			_ex( 'A new return has been added to your order. Please follow the instructions beneath to return your shipment.', 'shipments', 'woocommerce-germanized-shipments' );
+			echo esc_html_x( 'A new return has been added to your order. Please follow the instructions beneath to return your shipment.', 'shipments', 'woocommerce-germanized-shipments' );
 		}
 		?>
 	</p>

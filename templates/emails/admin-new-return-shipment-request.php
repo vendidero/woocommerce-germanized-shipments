@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/Shipments/Templates/Emails
- * @version 1.0.0
+ * @version 1.0.1
  *
  * @var \Vendidero\Germanized\Shipments\ReturnShipment $shipment
  * @var WC_Order $order
@@ -27,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
 
 <?php /* translators: %s: Customer billing full name */ ?>
-	<p><?php printf( esc_html_x( 'You’ve received the following return request from %s:', 'shipments', 'woocommerce-germanized-shipments' ), $shipment->get_formatted_sender_full_name() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
+	<p><?php printf( esc_html_x( 'You’ve received the following return request from %s:', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( $shipment->get_formatted_sender_full_name() ) ); ?></p>
 <?php
 
 /*

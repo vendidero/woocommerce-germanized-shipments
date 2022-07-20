@@ -46,7 +46,7 @@ class PackagingFactory {
 		try {
 			return new $classname( $packaging_id );
 		} catch ( Exception $e ) {
-			wc_caught_exception( $e, __FUNCTION__, func_get_args() );
+			wc_caught_exception( $e, __FUNCTION__, array( $packaging_id ) );
 			return false;
 		}
 	}

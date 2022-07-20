@@ -20,8 +20,8 @@ class FormHandler {
 	}
 
 	public static function return_request_success_message() {
-		if ( isset( $_GET['return-request-success'], $_GET['needs-confirmation'] ) && 'yes' === $_GET['return-request-success'] ) {
-			wc_add_notice( self::get_return_request_success_message( wc_string_to_bool( $_GET['needs-confirmation'] ) ), 'success' );
+		if ( isset( $_GET['return-request-success'], $_GET['needs-confirmation'] ) && 'yes' === $_GET['return-request-success'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			wc_add_notice( self::get_return_request_success_message( wc_string_to_bool( wc_clean( wp_unslash( $_GET['needs-confirmation'] ) ) ) ), 'success' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		}
 	}
 
@@ -68,9 +68,9 @@ class FormHandler {
 		});
 
 		// Prefer longer, contiguous order numbers
-		$order_id = reset($order_id_comp );
+		$order_id = reset( $order_id_comp );
 
-		return apply_filters( "woocommerce_gzd_return_request_order_id_from_string", $order_id, $order_id_str );
+		return apply_filters( 'woocommerce_gzd_return_request_order_id_from_string', $order_id, $order_id_str );
 	}
 
 	public static function process_return_request() {
@@ -78,38 +78,48 @@ class FormHandler {
 
 		if ( isset( $_POST['return_request'], $_POST['email'], $_POST['order_id'] ) && wp_verify_nonce( $nonce_value, 'woocommerce-gzd-return-request' ) ) {
 			try {
-				$email            = sanitize_email( $_POST['email'] );
-				$order_id         = wc_clean( $_POST['order_id'] );
-				$order_id_parsed  = self::get_order_id_from_string( $order_id );
-				$db_order_id      = false;
-				$orders           = wc_get_orders( apply_filters( 'woocommerce_gzd_return_request_order_query_args', array(
-					'billing_email' => $email,
-					'post__in'      => array( $order_id_parsed ),
-					'limit'         => 1,
-					'return'        => 'ids'
-				) ) );
+				$email           = sanitize_email( wp_unslash( $_POST['email'] ) );
+				$order_id        = wc_clean( wp_unslash( $_POST['order_id'] ) );
+				$order_id_parsed = self::get_order_id_from_string( $order_id );
+				$db_order_id     = false;
+				$orders          = wc_get_orders(
+					apply_filters(
+						'woocommerce_gzd_return_request_order_query_args',
+						array(
+							'billing_email' => $email,
+							'post__in'      => array( $order_id_parsed ),
+							'limit'         => 1,
+							'return'        => 'ids',
+						)
+					)
+				);
 
 				// Now lets try to find the order by a custom order number
 				if ( empty( $orders ) ) {
-					$orders = new WP_Query( apply_filters( 'woocommerce_gzd_return_request_order_query_args', array(
-						'post_type'   => 'shop_order',
-						'post_status' => 'any',
-						'limit'       => 1,
-						'fields'      => 'ids',
-						'meta_query'  => array(
-							'relation' => 'AND',
+					$orders = new WP_Query(
+						apply_filters(
+							'woocommerce_gzd_return_request_order_query_args',
 							array(
-								'key'     => '_billing_email',
-								'value'   => $email,
-								'compare' => '=',
-							),
-							array(
-								'key'     => apply_filters( 'woocommerce_gzd_return_request_customer_order_number_meta_key', '_order_number' ),
-								'value'   => $order_id,
-								'compare' => '='
-							),
-						),
-					) ) );
+								'post_type'   => 'shop_order',
+								'post_status' => 'any',
+								'limit'       => 1,
+								'fields'      => 'ids',
+								'meta_query'  => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+									'relation' => 'AND',
+									array(
+										'key'     => '_billing_email',
+										'value'   => $email,
+										'compare' => '=',
+									),
+									array(
+										'key'     => apply_filters( 'woocommerce_gzd_return_request_customer_order_number_meta_key', '_order_number' ),
+										'value'   => $order_id,
+										'compare' => '=',
+									),
+								),
+							)
+						)
+					);
 
 					if ( ! empty( $orders->posts ) ) {
 						$db_order_id = $orders->posts[0];
@@ -138,18 +148,18 @@ class FormHandler {
 
 				do_action( 'woocommerce_gzd_return_request_successfull', $order );
 
-			} catch( Exception $e ) {
+			} catch ( Exception $e ) {
 				wc_add_notice( $e->getMessage(), 'error' );
 				do_action( 'woocommerce_gzd_return_request_failed' );
 			}
- 		}
+		}
 	}
 
 	/**
 	 * Save the password/account details and redirect back to the my account page.
 	 */
 	public static function add_return_shipment() {
-		$nonce_value = isset( $_REQUEST['add-return-shipment-nonce'] ) ? $_REQUEST['add-return-shipment-nonce'] : '';
+		$nonce_value = isset( $_REQUEST['add-return-shipment-nonce'] ) ? wp_unslash( $_REQUEST['add-return-shipment-nonce'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		if ( ! wp_verify_nonce( $nonce_value, 'add_return_shipment' ) ) {
 			return;
@@ -183,7 +193,7 @@ class FormHandler {
 		$return_items   = array();
 		$shipment_order = wc_gzd_get_shipment_order( $order );
 
-		foreach( $items as $order_item_id ) {
+		foreach ( $items as $order_item_id ) {
 
 			if ( $item = $shipment_order->get_simple_shipment_item( $order_item_id ) ) {
 
@@ -194,7 +204,7 @@ class FormHandler {
 				if ( ! empty( $reason ) && ! wc_gzd_return_shipment_reason_exists( $reason ) ) {
 					wc_add_notice( _x( 'The return reason you have chosen does not exist.', 'shipments', 'woocommerce-germanized-shipments' ), 'error' );
 					return;
-				} elseif( empty( $reason ) && ! wc_gzd_allow_customer_return_empty_return_reason( $order ) ) {
+				} elseif ( empty( $reason ) && ! wc_gzd_allow_customer_return_empty_return_reason( $order ) ) {
 					wc_add_notice( _x( 'Please choose a return reason from the list.', 'shipments', 'woocommerce-germanized-shipments' ), 'error' );
 					return;
 				}
@@ -228,23 +238,26 @@ class FormHandler {
 		}
 
 		// Add return shipment
-		$return_shipment = wc_gzd_create_return_shipment( $shipment_order, array(
-			'items' => $return_items,
-			'props' => array(
-				/**
-				 * This filter may be used to adjust the default status of a return shipment
-				 * added by a customer.
-				 *
-				 * @param string    $status The default status.
-				 * @param WC_Order $order The order object.
-				 *
-				 * @since 3.1.0
-				 * @package Vendidero/Germanized/Shipments
-				 */
-				'status'                => apply_filters( 'woocommerce_gzd_customer_new_return_shipment_request_status', $default_status, $order ),
-				'is_customer_requested' => true,
-			),
-		) );
+		$return_shipment = wc_gzd_create_return_shipment(
+			$shipment_order,
+			array(
+				'items' => $return_items,
+				'props' => array(
+					/**
+					 * This filter may be used to adjust the default status of a return shipment
+					 * added by a customer.
+					 *
+					 * @param string    $status The default status.
+					 * @param WC_Order $order The order object.
+					 *
+					 * @since 3.1.0
+					 * @package Vendidero/Germanized/Shipments
+					 */
+					'status'                => apply_filters( 'woocommerce_gzd_customer_new_return_shipment_request_status', $default_status, $order ),
+					'is_customer_requested' => true,
+				),
+			)
+		);
 
 		if ( is_wp_error( $return_shipment ) ) {
 			wc_add_notice( _x( 'There was an error while creating the return. Please contact us for further information.', 'shipments', 'woocommerce-germanized-shipments' ), 'error' );
@@ -279,7 +292,13 @@ class FormHandler {
 			}
 
 			if ( $order->get_customer_id() <= 0 ) {
-				$return_url = add_query_arg( array( 'return-request-success' => 'yes', 'needs-confirmation' => wc_bool_to_string( $needs_manual_confirmation ) ), wc_get_page_permalink( 'myaccount' ) );
+				$return_url = add_query_arg(
+					array(
+						'return-request-success' => 'yes',
+						'needs-confirmation'     => wc_bool_to_string( $needs_manual_confirmation ),
+					),
+					wc_get_page_permalink( 'myaccount' )
+				);
 			}
 
 			/**
@@ -296,7 +315,7 @@ class FormHandler {
 			 */
 			$redirect = apply_filters( 'woocommerce_gzd_customer_new_return_shipment_request_redirect', $return_url, $return_shipment, $needs_manual_confirmation );
 
-			wp_safe_redirect( $redirect );
+			wp_safe_redirect( esc_url_raw( $redirect ) );
 			exit;
 		}
 	}

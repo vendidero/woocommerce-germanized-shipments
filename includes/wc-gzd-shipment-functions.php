@@ -34,20 +34,20 @@ function wc_gzd_get_formatted_state( $country = '', $state = '' ) {
 }
 
 function wc_gzd_get_shipment_order( $order ) {
-    if ( is_numeric( $order ) ) {
-        $order = wc_get_order( $order );
-    }
+	if ( is_numeric( $order ) ) {
+		$order = wc_get_order( $order );
+	}
 
-    if ( is_a( $order, 'WC_Order' ) ) {
-        try {
-            return new Vendidero\Germanized\Shipments\Order( $order );
-        } catch ( Exception $e ) {
-            wc_caught_exception( $e, __FUNCTION__, func_get_args() );
-            return false;
-        }
-    }
+	if ( is_a( $order, 'WC_Order' ) ) {
+		try {
+			return new Vendidero\Germanized\Shipments\Order( $order );
+		} catch ( Exception $e ) {
+			wc_caught_exception( $e, __FUNCTION__, array( $order ) );
+			return false;
+		}
+	}
 
-    return false;
+	return false;
 }
 
 function wc_gzd_get_shipment_label_title( $type, $plural = false ) {
@@ -69,22 +69,25 @@ function wc_gzd_get_shipment_types() {
  * @package Vendidero/Germanized/Shipments
  */
 function wc_gzd_get_shipment_type_data( $type = false ) {
-	$types = apply_filters( 'woocommerce_gzd_shipment_type_data', array(
-		'simple' => array(
-			'class_name' => '\Vendidero\Germanized\Shipments\SimpleShipment',
-			'labels'     => array(
-				'singular' => _x( 'Shipment', 'shipments', 'woocommerce-germanized-shipments' ),
-				'plural'   => _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ),
+	$types = apply_filters(
+		'woocommerce_gzd_shipment_type_data',
+		array(
+			'simple' => array(
+				'class_name' => '\Vendidero\Germanized\Shipments\SimpleShipment',
+				'labels'     => array(
+					'singular' => _x( 'Shipment', 'shipments', 'woocommerce-germanized-shipments' ),
+					'plural'   => _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ),
+				),
 			),
-		),
-		'return' => array(
-			'class_name' => '\Vendidero\Germanized\Shipments\ReturnShipment',
-			'labels'     => array(
-				'singular' => _x( 'Return', 'shipments', 'woocommerce-germanized-shipments' ),
-				'plural'   => _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ),
+			'return' => array(
+				'class_name' => '\Vendidero\Germanized\Shipments\ReturnShipment',
+				'labels'     => array(
+					'singular' => _x( 'Return', 'shipments', 'woocommerce-germanized-shipments' ),
+					'plural'   => _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ),
+				),
 			),
-		),
-	) );
+		)
+	);
 
 	if ( $type && array_key_exists( $type, $types ) ) {
 		return $types[ $type ];
@@ -106,11 +109,11 @@ function wc_gzd_get_shipments_by_order( $order ) {
 }
 
 function wc_gzd_get_shipment_order_shipping_statuses() {
-    $shipment_statuses = array(
-        'gzd-not-shipped'       => _x( 'Not shipped', 'shipments', 'woocommerce-germanized-shipments' ),
-        'gzd-partially-shipped' => _x( 'Partially shipped', 'shipments', 'woocommerce-germanized-shipments' ),
-        'gzd-shipped'           => _x( 'Shipped', 'shipments', 'woocommerce-germanized-shipments' ),
-    );
+	$shipment_statuses = array(
+		'gzd-not-shipped'       => _x( 'Not shipped', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-partially-shipped' => _x( 'Partially shipped', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-shipped'           => _x( 'Shipped', 'shipments', 'woocommerce-germanized-shipments' ),
+	);
 
 	/**
 	 * Filter to adjust or add order shipping statuses.
@@ -121,7 +124,7 @@ function wc_gzd_get_shipment_order_shipping_statuses() {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-    return apply_filters( 'woocommerce_gzd_order_shipping_statuses', $shipment_statuses );
+	return apply_filters( 'woocommerce_gzd_order_shipping_statuses', $shipment_statuses );
 }
 
 function wc_gzd_get_shipment_order_return_statuses() {
@@ -155,10 +158,10 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 		$instance_id = $original_id->get_instance_id();
 	} elseif ( is_a( $original_id, 'WC_Shipping_Method' ) ) {
 		$instance_id = $original_id->get_instance_id();
-	} elseif( ! is_numeric( $instance_id ) && is_string( $instance_id ) ) {
+	} elseif ( ! is_numeric( $instance_id ) && is_string( $instance_id ) ) {
 		if ( strpos( $instance_id, ':' ) !== false ) {
 			$expl        = explode( ':', $instance_id );
-			$instance_id = ( ( ! empty( $expl ) && sizeof( $expl ) > 1 ) ? (int) $expl[1] : 0 );
+			$instance_id = ( ( ! empty( $expl ) && count( $expl ) > 1 ) ? (int) $expl[1] : 0 );
 		} else {
 			/**
 			 * Plugins like Flexible Shipping use underscores to separate instance ids.
@@ -255,16 +258,16 @@ function wc_gzd_get_current_shipping_provider_method() {
 }
 
 function wc_gzd_get_shipment_order_shipping_status_name( $status ) {
-    if ( 'gzd-' !== substr( $status, 0, 4 ) ) {
-        $status = 'gzd-' . $status;
-    }
+	if ( 'gzd-' !== substr( $status, 0, 4 ) ) {
+		$status = 'gzd-' . $status;
+	}
 
-    $status_name = '';
-    $statuses    = wc_gzd_get_shipment_order_shipping_statuses();
+	$status_name = '';
+	$statuses    = wc_gzd_get_shipment_order_shipping_statuses();
 
-    if ( array_key_exists( $status, $statuses ) ) {
-        $status_name = $statuses[ $status ];
-    }
+	if ( array_key_exists( $status, $statuses ) ) {
+		$status_name = $statuses[ $status ];
+	}
 
 	/**
 	 * Filter to adjust the status name for a certain order shipping status.
@@ -277,7 +280,7 @@ function wc_gzd_get_shipment_order_shipping_status_name( $status ) {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-    return apply_filters( 'woocommerce_gzd_order_shipping_status_name', $status_name, $status );
+	return apply_filters( 'woocommerce_gzd_order_shipping_status_name', $status_name, $status );
 }
 
 function wc_gzd_get_shipment_order_return_status_name( $status ) {
@@ -315,9 +318,9 @@ function wc_gzd_get_shipment_order_return_status_name( $status ) {
  *@since  3.0.0
  */
 function wc_gzd_get_shipments( $args ) {
-    $query = new Vendidero\Germanized\Shipments\ShipmentQuery( $args );
+	$query = new Vendidero\Germanized\Shipments\ShipmentQuery( $args );
 
-    return $query->get_shipments();
+	return $query->get_shipments();
 }
 
 function wc_gzd_get_shipment_customer_visible_statuses( $shipment_type = 'simple' ) {
@@ -345,7 +348,7 @@ function wc_gzd_get_shipment_customer_visible_statuses( $shipment_type = 'simple
  * @return bool|SimpleShipment|ReturnShipment|Shipment
  */
 function wc_gzd_get_shipment( $the_shipment ) {
-    return ShipmentFactory::get_shipment( $the_shipment );
+	return ShipmentFactory::get_shipment( $the_shipment );
 }
 
 /**
@@ -354,13 +357,13 @@ function wc_gzd_get_shipment( $the_shipment ) {
  * @return array
  */
 function wc_gzd_get_shipment_statuses() {
-    $shipment_statuses = array(
-        'gzd-draft'      => _x( 'Draft', 'shipments', 'woocommerce-germanized-shipments' ),
-        'gzd-processing' => _x( 'Processing', 'shipments', 'woocommerce-germanized-shipments' ),
-        'gzd-shipped'    => _x( 'Shipped', 'shipments', 'woocommerce-germanized-shipments' ),
-        'gzd-delivered'  => _x( 'Delivered', 'shipments', 'woocommerce-germanized-shipments' ),
-        'gzd-requested'  => _x( 'Requested', 'shipments', 'woocommerce-germanized-shipments' ),
-    );
+	$shipment_statuses = array(
+		'gzd-draft'      => _x( 'Draft', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-processing' => _x( 'Processing', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-shipped'    => _x( 'Shipped', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-delivered'  => _x( 'Delivered', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-requested'  => _x( 'Requested', 'shipments', 'woocommerce-germanized-shipments' ),
+	);
 
 	/**
 	 * Add or adjust available Shipment statuses.
@@ -370,7 +373,7 @@ function wc_gzd_get_shipment_statuses() {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-    return apply_filters( 'woocommerce_gzd_shipment_statuses', $shipment_statuses );
+	return apply_filters( 'woocommerce_gzd_shipment_statuses', $shipment_statuses );
 }
 
 /**
@@ -415,10 +418,13 @@ function wc_gzd_create_return_shipment( $order_shipment, $args = array() ) {
 			throw new Exception( _x( 'This order is already fully returned.', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
 
-		$args = wp_parse_args( $args, array(
-			'items' => array(),
-			'props' => array(),
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'items' => array(),
+				'props' => array(),
+			)
+		);
 
 		$shipment = ShipmentFactory::get_shipment( false, 'return' );
 
@@ -446,58 +452,61 @@ function wc_gzd_create_return_shipment( $order_shipment, $args = array() ) {
  * @return Shipment|WP_Error
  */
 function wc_gzd_create_shipment( $order_shipment, $args = array() ) {
-    try {
+	try {
 
-        if ( ! $order_shipment || ! is_a( $order_shipment, 'Vendidero\Germanized\Shipments\Order' ) ) {
-            throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
-        }
+		if ( ! $order_shipment || ! is_a( $order_shipment, 'Vendidero\Germanized\Shipments\Order' ) ) {
+			throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
+		}
 
-        if ( ! $order = $order_shipment->get_order() ) {
-            throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
-        }
+		if ( ! $order = $order_shipment->get_order() ) {
+			throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
+		}
 
-        $args = wp_parse_args( $args, array(
-            'items' => array(),
-	        'props' => array(),
-        ) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'items' => array(),
+				'props' => array(),
+			)
+		);
 
-        $shipment = ShipmentFactory::get_shipment( false, 'simple' );
+		$shipment = ShipmentFactory::get_shipment( false, 'simple' );
 
-        if ( ! $shipment ) {
-	        throw new Exception( _x( 'Error while creating the shipment instance', 'shipments', 'woocommerce-germanized-shipments' ) );
-        }
+		if ( ! $shipment ) {
+			throw new Exception( _x( 'Error while creating the shipment instance', 'shipments', 'woocommerce-germanized-shipments' ) );
+		}
 
-        $shipment->set_order_shipment( $order_shipment );
-        $shipment->sync( $args['props'] );
-        $shipment->sync_items( $args );
-        $shipment->save();
+		$shipment->set_order_shipment( $order_shipment );
+		$shipment->sync( $args['props'] );
+		$shipment->sync_items( $args );
+		$shipment->save();
 
-    } catch ( Exception $e ) {
-        return new WP_Error( 'error', $e->getMessage() );
-    }
+	} catch ( Exception $e ) {
+		return new WP_Error( 'error', $e->getMessage() );
+	}
 
-    return $shipment;
+	return $shipment;
 }
 
 function wc_gzd_create_shipment_item( $shipment, $order_item, $args = array() ) {
-    try {
+	try {
 
-        if ( ! $order_item || ! is_a( $order_item, 'WC_Order_Item' ) ) {
-            throw new Exception( _x( 'Invalid order item', 'shipments', 'woocommerce-germanized-shipments' ) );
-        }
+		if ( ! $order_item || ! is_a( $order_item, 'WC_Order_Item' ) ) {
+			throw new Exception( _x( 'Invalid order item', 'shipments', 'woocommerce-germanized-shipments' ) );
+		}
 
-        $item = new Vendidero\Germanized\Shipments\ShipmentItem();
+		$item = new Vendidero\Germanized\Shipments\ShipmentItem();
 
-        $item->set_order_item_id( $order_item->get_id() );
-        $item->set_shipment( $shipment );
-        $item->sync( $args );
-        $item->save();
+		$item->set_order_item_id( $order_item->get_id() );
+		$item->set_shipment( $shipment );
+		$item->sync( $args );
+		$item->save();
 
-    } catch ( Exception $e ) {
-        return new WP_Error( 'error', $e->getMessage() );
-    }
+	} catch ( Exception $e ) {
+		return new WP_Error( 'error', $e->getMessage() );
+	}
 
-    return $item;
+	return $item;
 }
 
 function wc_gzd_allow_customer_return_empty_return_reason( $order ) {
@@ -531,7 +540,7 @@ function wc_gzd_get_return_shipment_reasons( $order_item = false ) {
 	$reasons   = apply_filters( 'woocommerce_gzd_return_shipment_reasons_raw', $reasons, $order_item );
 	$instances = array();
 
-	foreach( $reasons as $reason ) {
+	foreach ( $reasons as $reason ) {
 		$instances[] = new ReturnReason( $reason );
 	}
 
@@ -553,7 +562,7 @@ function wc_gzd_return_shipment_reason_exists( $maybe_reason, $shipment = false 
 	$reasons = wc_gzd_get_return_shipment_reasons( $shipment );
 	$exists  = false;
 
-	foreach( $reasons as $reason ) {
+	foreach ( $reasons as $reason ) {
 
 		if ( $reason->get_code() === $maybe_reason ) {
 			$exists = true;
@@ -569,7 +578,7 @@ function wc_gzd_return_shipment_reason_exists( $maybe_reason, $shipment = false 
  * @param ReturnReason $b
  */
 function _wc_gzd_sort_return_shipment_reasons( $a, $b ) {
-	if ( $a->get_order() == $b->get_order() ) {
+	if ( $a->get_order() === $b->get_order() ) {
 		return 0;
 	} elseif ( $a->get_order() > $b->get_order() ) {
 		return 1;
@@ -601,7 +610,7 @@ function wc_gzd_shipment_wp_error_has_errors( $error ) {
  * @return ShipmentReturnItem|WP_Error
  */
 function wc_gzd_create_return_shipment_item( $shipment, $shipment_item, $args = array() ) {
-  
+
 	try {
 
 		if ( ! $shipment_item || ! is_a( $shipment_item, '\Vendidero\Germanized\Shipments\ShipmentItem' ) ) {
@@ -631,19 +640,19 @@ function wc_gzd_get_shipment_editable_statuses() {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-    return apply_filters( 'woocommerce_gzd_shipment_editable_statuses', array( 'draft', 'requested', 'processing' ) );
+	return apply_filters( 'woocommerce_gzd_shipment_editable_statuses', array( 'draft', 'requested', 'processing' ) );
 }
 
-function wc_gzd_split_shipment_street( $streetStr ) {
+function wc_gzd_split_shipment_street( $street_str ) {
 	$return = array(
-		'street'     => $streetStr,
+		'street'     => $street_str,
 		'number'     => '',
 		'addition'   => '',
 		'addition_2' => '',
 	);
 
 	try {
-		$split = AddressSplitter::splitAddress( $streetStr );
+		$split = AddressSplitter::split_address( $street_str );
 
 		$return['street'] = $split['streetName'];
 		$return['number'] = $split['houseNumber'];
@@ -655,7 +664,8 @@ function wc_gzd_split_shipment_street( $streetStr ) {
 		 * E.g. details to the location prefixed to the street name
 		 */
 		$return['addition_2'] = isset( $split['additionToAddress1'] ) ? $split['additionToAddress1'] : '';
-	} catch( Exception $e ) {}
+	} catch ( Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+	}
 
 	return $return;
 }
@@ -689,7 +699,7 @@ function wc_gzd_get_shipping_provider_select() {
 		'' => _x( 'None', 'shipments', 'woocommerce-germanized-shipments' ),
 	);
 
-	foreach( $providers as $provider ) {
+	foreach ( $providers as $provider ) {
 		if ( ! $provider->is_activated() ) {
 			continue;
 		}
@@ -727,7 +737,7 @@ function wc_gzd_get_shipment_shipping_provider_title( $shipment ) {
 	$title = $shipment->get_shipping_provider_title();
 
 	if ( empty( $title ) ) {
-		$title =  apply_filters( 'woocommerce_gzd_shipping_provider_unknown_title', _x( 'Unknown', 'shipments-shipping-provider', 'woocommerce-germanized-shipments' ) );
+		$title = apply_filters( 'woocommerce_gzd_shipping_provider_unknown_title', _x( 'Unknown', 'shipments-shipping-provider', 'woocommerce-germanized-shipments' ) );
 	}
 
 	return $title;
@@ -736,9 +746,9 @@ function wc_gzd_get_shipment_shipping_provider_title( $shipment ) {
 function wc_gzd_get_shipping_provider_slug( $provider ) {
 	$providers = wc_gzd_get_shipping_providers();
 
-	if ( in_array( $provider, $providers ) ) {
-		$slug = array_search( $provider, $providers );
-	} elseif( array_key_exists( $provider, $providers ) ) {
+	if ( in_array( $provider, $providers, true ) ) {
+		$slug = array_search( $provider, $providers, true );
+	} elseif ( array_key_exists( $provider, $providers ) ) {
 		$slug = $provider;
 	} else {
 		$slug = sanitize_key( $provider );
@@ -757,7 +767,7 @@ function wc_gzd_shipments_upload_data( $filename, $bits, $relative = true ) {
 		$GLOBALS['gzd_shipments_unique_filename'] = $filename;
 		add_filter( 'wp_unique_filename', '_wc_gzd_shipments_keep_force_filename', 10, 1 );
 
-		$tmp = wp_upload_bits( $filename,null, $bits );
+		$tmp = wp_upload_bits( $filename, null, $bits );
 
 		unset( $GLOBALS['gzd_shipments_unique_filename'] );
 		remove_filter( 'wp_unique_filename', '_wc_gzd_shipments_keep_force_filename', 10 );
@@ -812,7 +822,7 @@ function wc_gzd_get_shipment_setting_address_fields( $address_type = 'shipper' )
 		$default_address_data = wc_gzd_get_shipment_setting_address_fields( 'shipper' );
 	}
 
-	foreach( $default_address_fields as $prop ) {
+	foreach ( $default_address_fields as $prop ) {
 		$key   = "woocommerce_gzd_shipments_{$address_type}_address_{$prop}";
 		$value = get_option( $key, '' );
 
@@ -904,16 +914,16 @@ function wc_gzd_render_shipment_action_buttons( $actions ) {
 }
 
 function wc_gzd_get_shipment_status_name( $status ) {
-    if ( 'gzd-' !== substr( $status, 0, 4 ) ) {
-        $status = 'gzd-' . $status;
-    }
+	if ( 'gzd-' !== substr( $status, 0, 4 ) ) {
+		$status = 'gzd-' . $status;
+	}
 
-    $status_name = '';
-    $statuses    = wc_gzd_get_shipment_statuses();
+	$status_name = '';
+	$statuses    = wc_gzd_get_shipment_statuses();
 
-    if ( array_key_exists( $status, $statuses ) ) {
-        $status_name = $statuses[ $status ];
-    }
+	if ( array_key_exists( $status, $statuses ) ) {
+		$status_name = $statuses[ $status ];
+	}
 
 	/**
 	 * Filter to adjust the shipment status name or title.
@@ -924,7 +934,7 @@ function wc_gzd_get_shipment_status_name( $status ) {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-    return apply_filters( 'woocommerce_gzd_shipment_status_name', $status_name, $status );
+	return apply_filters( 'woocommerce_gzd_shipment_status_name', $status_name, $status );
 }
 
 function wc_gzd_get_shipment_sent_statuses() {
@@ -936,47 +946,50 @@ function wc_gzd_get_shipment_sent_statuses() {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-    return apply_filters( 'woocommerce_gzd_shipment_sent_statuses', array(
-        'shipped',
-        'delivered',
-    ) );
+	return apply_filters(
+		'woocommerce_gzd_shipment_sent_statuses',
+		array(
+			'shipped',
+			'delivered',
+		)
+	);
 }
 
 function wc_gzd_get_shipment_counts( $type = '' ) {
-    $counts = array();
+	$counts = array();
 
-    foreach( array_keys( wc_gzd_get_shipment_statuses() ) as $status ) {
-        $counts[ $status ] = wc_gzd_get_shipment_count( $status, $type );
-    }
+	foreach ( array_keys( wc_gzd_get_shipment_statuses() ) as $status ) {
+		$counts[ $status ] = wc_gzd_get_shipment_count( $status, $type );
+	}
 
-    return $counts;
+	return $counts;
 }
 
 function wc_gzd_get_shipment_count( $status, $type = '' ) {
-    $count             = 0;
-    $status            = ( substr( $status, 0, 4 ) ) === 'gzd-' ? $status : 'gzd-' . $status;
-    $shipment_statuses = array_keys( wc_gzd_get_shipment_statuses() );
+	$count             = 0;
+	$status            = ( substr( $status, 0, 4 ) ) === 'gzd-' ? $status : 'gzd-' . $status;
+	$shipment_statuses = array_keys( wc_gzd_get_shipment_statuses() );
 
-    if ( ! in_array( $status, $shipment_statuses, true ) ) {
-        return 0;
-    }
+	if ( ! in_array( $status, $shipment_statuses, true ) ) {
+		return 0;
+	}
 
-    $cache_key    = WC_Cache_Helper::get_cache_prefix( 'shipments' ) . $status . $type;
-    $cached_count = wp_cache_get( $cache_key, 'counts' );
+	$cache_key    = WC_Cache_Helper::get_cache_prefix( 'shipments' ) . $status . $type;
+	$cached_count = wp_cache_get( $cache_key, 'counts' );
 
-    if ( false !== $cached_count ) {
-        return $cached_count;
-    }
+	if ( false !== $cached_count ) {
+		return $cached_count;
+	}
 
-    $data_store = WC_Data_Store::load( 'shipment' );
+	$data_store = WC_Data_Store::load( 'shipment' );
 
-    if ( $data_store ) {
-        $count += $data_store->get_shipment_count( $status, $type );
-    }
+	if ( $data_store ) {
+		$count += $data_store->get_shipment_count( $status, $type );
+	}
 
-    wp_cache_set( $cache_key, $count, 'counts' );
+	wp_cache_set( $cache_key, $count, 'counts' );
 
-    return $count;
+	return $count;
 }
 
 /**
@@ -986,9 +999,9 @@ function wc_gzd_get_shipment_count( $status, $type = '' ) {
  * @return bool
  */
 function wc_gzd_is_shipment_status( $maybe_status ) {
-    $shipment_statuses = wc_gzd_get_shipment_statuses();
+	$shipment_statuses = wc_gzd_get_shipment_statuses();
 
-    return isset( $shipment_statuses[ $maybe_status ] );
+	return isset( $shipment_statuses[ $maybe_status ] );
 }
 
 /**
@@ -1002,17 +1015,17 @@ function wc_gzd_is_shipment_status( $maybe_status ) {
  * @return bool|ShipmentItem
  */
 function wc_gzd_get_shipment_item( $the_item = false, $item_type = 'simple' ) {
-    $item_id = wc_gzd_get_shipment_item_id( $the_item );
+	$item_id = wc_gzd_get_shipment_item_id( $the_item );
 
-    if ( ! $item_id ) {
-        return false;
-    }
+	if ( ! $item_id ) {
+		return false;
+	}
 
-    $item_class = 'Vendidero\Germanized\Shipments\ShipmentItem';
+	$item_class = 'Vendidero\Germanized\Shipments\ShipmentItem';
 
-    if ( 'return' === $item_type ) {
-	    $item_class = 'Vendidero\Germanized\Shipments\ShipmentReturnItem';
-    }
+	if ( 'return' === $item_type ) {
+		$item_class = 'Vendidero\Germanized\Shipments\ShipmentReturnItem';
+	}
 
 	/**
 	 * Filter to adjust the classname used to construct a ShipmentItem.
@@ -1024,18 +1037,18 @@ function wc_gzd_get_shipment_item( $the_item = false, $item_type = 'simple' ) {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-    $classname = apply_filters( 'woocommerce_gzd_shipment_item_class', $item_class, $item_id, $item_type );
+	$classname = apply_filters( 'woocommerce_gzd_shipment_item_class', $item_class, $item_id, $item_type );
 
-    if ( ! class_exists( $classname ) ) {
-        return false;
-    }
+	if ( ! class_exists( $classname ) ) {
+		return false;
+	}
 
-    try {
-        return new $classname( $item_id );
-    } catch ( Exception $e ) {
-        wc_caught_exception( $e, __FUNCTION__, func_get_args() );
-        return false;
-    }
+	try {
+		return new $classname( $item_id );
+	} catch ( Exception $e ) {
+		wc_caught_exception( $e, __FUNCTION__, array( $the_item, $item_type ) );
+		return false;
+	}
 }
 
 /**
@@ -1046,15 +1059,15 @@ function wc_gzd_get_shipment_item( $the_item = false, $item_type = 'simple' ) {
  * @return int|bool false on failure
  */
 function wc_gzd_get_shipment_item_id( $item ) {
-    if ( is_numeric( $item ) ) {
-        return $item;
-    } elseif ( $item instanceof Vendidero\Germanized\Shipments\ShipmentItem ) {
-        return $item->get_id();
-    } elseif ( ! empty( $item->shipment_item_id ) ) {
-        return $item->shipment_item_id;
-    } else {
-        return false;
-    }
+	if ( is_numeric( $item ) ) {
+		return $item;
+	} elseif ( $item instanceof Vendidero\Germanized\Shipments\ShipmentItem ) {
+		return $item->get_id();
+	} elseif ( ! empty( $item->shipment_item_id ) ) {
+		return $item->shipment_item_id;
+	} else {
+		return false;
+	}
 }
 
 /**
@@ -1065,14 +1078,14 @@ function wc_gzd_get_shipment_item_id( $item ) {
  * @return string
  */
 function wc_gzd_format_shipment_dimensions( $dimensions, $unit = '' ) {
-    $dimension_string = implode( ' &times; ', array_filter( array_map( 'wc_format_localized_decimal', $dimensions ) ) );
+	$dimension_string = implode( ' &times; ', array_filter( array_map( 'wc_format_localized_decimal', $dimensions ) ) );
 
-    if ( ! empty( $dimension_string ) ) {
-	    $unit = empty( $unit ) ? get_option( 'woocommerce_dimension_unit' ) : $unit;
-        $dimension_string .= ' ' . $unit;
-    } else {
-        $dimension_string = _x( 'N/A', 'shipments', 'woocommerce-germanized-shipments' );
-    }
+	if ( ! empty( $dimension_string ) ) {
+		$unit              = empty( $unit ) ? get_option( 'woocommerce_dimension_unit' ) : $unit;
+		$dimension_string .= ' ' . $unit;
+	} else {
+		$dimension_string = _x( 'N/A', 'shipments', 'woocommerce-germanized-shipments' );
+	}
 
 	/**
 	 * Filter to adjust the format of Shipment dimensions e.g. LxBxH.
@@ -1084,7 +1097,7 @@ function wc_gzd_format_shipment_dimensions( $dimensions, $unit = '' ) {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-    return apply_filters( 'woocommerce_gzd_format_shipment_dimensions', $dimension_string, $dimensions, $unit );
+	return apply_filters( 'woocommerce_gzd_format_shipment_dimensions', $dimension_string, $dimensions, $unit );
 }
 
 /**
@@ -1095,14 +1108,14 @@ function wc_gzd_format_shipment_dimensions( $dimensions, $unit = '' ) {
  * @return string
  */
 function wc_gzd_format_shipment_weight( $weight, $unit = '' ) {
-    $weight_string = wc_format_localized_decimal( $weight );
+	$weight_string = wc_format_localized_decimal( $weight );
 
-    if ( ! empty( $weight_string ) ) {
-    	$unit = empty( $unit ) ? get_option( 'woocommerce_weight_unit' ) : $unit;
-        $weight_string .= ' ' . $unit;
-    } else {
-        $weight_string = _x( 'N/A', 'shipments', 'woocommerce-germanized-shipments' );
-    }
+	if ( ! empty( $weight_string ) ) {
+		$unit           = empty( $unit ) ? get_option( 'woocommerce_weight_unit' ) : $unit;
+		$weight_string .= ' ' . $unit;
+	} else {
+		$weight_string = _x( 'N/A', 'shipments', 'woocommerce-germanized-shipments' );
+	}
 
 	/**
 	 * Filter to adjust the format of Shipment weight.
@@ -1114,7 +1127,7 @@ function wc_gzd_format_shipment_weight( $weight, $unit = '' ) {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-    return apply_filters( 'woocommerce_gzd_format_shipment_weight', $weight_string, $weight, $unit );
+	return apply_filters( 'woocommerce_gzd_format_shipment_weight', $weight_string, $weight, $unit );
 }
 
 /**
@@ -1142,7 +1155,8 @@ function wc_gzd_get_account_shipments_columns( $type = 'simple' ) {
 			'shipment-status'   => _x( 'Status', 'shipments', 'woocommerce-germanized-shipments' ),
 			'shipment-tracking' => _x( 'Tracking', 'shipments', 'woocommerce-germanized-shipments' ),
 			'shipment-actions'  => _x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' ),
-		), $type
+		),
+		$type
 	);
 
 	return $columns;
@@ -1175,7 +1189,7 @@ function wc_gzd_get_order_customer_add_return_url( $order ) {
 	 * @since 3.0.0
 	 * @package Vendidero/Germanized/Shipments
 	 */
-	return apply_filters( "woocommerce_gzd_shipments_add_return_shipment_url", $url, $shipment_order->get_order() );
+	return apply_filters( 'woocommerce_gzd_shipments_add_return_shipment_url', $url, $shipment_order->get_order() );
 }
 
 /**
@@ -1215,7 +1229,7 @@ function wc_gzd_order_is_customer_returnable( $order, $check_date = true ) {
 
 			if ( $shipment_order->get_date_shipped() ) {
 				$completed_date = $shipment_order->get_date_shipped();
-			} elseif( $shipment_order->get_order()->get_date_completed() ) {
+			} elseif ( $shipment_order->get_order()->get_date_completed() ) {
 				$completed_date = $shipment_order->get_order()->get_date_completed();
 			}
 
@@ -1292,7 +1306,7 @@ function wc_gzd_get_order_shipping_provider( $order ) {
 }
 
 function wc_gzd_get_customer_order_return_request_key() {
-	$key = ( isset( $_REQUEST['key'] ) ? wc_clean( wp_unslash( $_REQUEST['key'] ) ) : '' );
+	$key = ( isset( $_REQUEST['key'] ) ? wc_clean( wp_unslash( $_REQUEST['key'] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 	return $key;
 }
@@ -1300,7 +1314,7 @@ function wc_gzd_get_customer_order_return_request_key() {
 function wc_gzd_customer_can_add_return_shipment( $order_id ) {
 	$can_view_shipments = false;
 
-	if ( isset( $_REQUEST['key'] ) && ! empty( $_REQUEST['key'] ) ) {
+	if ( isset( $_REQUEST['key'] ) && ! empty( $_REQUEST['key'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$key = wc_gzd_get_customer_order_return_request_key();
 
 		if ( ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) && ! empty( $key ) ) {
@@ -1354,7 +1368,7 @@ function wc_gzd_customer_return_needs_manual_confirmation( $order ) {
 	 * @package Vendidero/Germanized/Shipments
 	 */
 	return apply_filters( 'woocommerce_gzd_customer_return_needs_manual_confirmation', $needs_manual_confirmation, $order );
- }
+}
 
 /**
  * Get account shipments actions.
@@ -1375,7 +1389,7 @@ function wc_gzd_get_account_shipments_actions( $shipment ) {
 	}
 
 	$actions = array(
-		'view'   => array(
+		'view' => array(
 			'url'  => $shipment->get_view_shipment_url(),
 			'name' => _x( 'View', 'shipments', 'woocommerce-germanized-shipments' ),
 		),
@@ -1408,7 +1422,7 @@ function wc_gzd_shipments_get_product( $the_product ) {
 		}
 
 		return new \Vendidero\Germanized\Shipments\Product( $the_product );
-	} catch( \Exception $e ) {
+	} catch ( \Exception $e ) {
 		return false;
 	}
 }

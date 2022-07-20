@@ -7,9 +7,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Shipment Order
  *
- * @class 		WC_GZD_Shipment_Order
- * @version		1.0.0
- * @author 		Vendidero
+ * @class       WC_GZD_Shipment_Order
+ * @version     1.0.0
+ * @author      Vendidero
  */
 abstract class BulkActionHandler {
 
@@ -23,7 +23,7 @@ abstract class BulkActionHandler {
 	protected $ids = array();
 
 	protected $notices = array();
-	
+
 	protected $type = 'simple';
 
 	public function __construct() {
@@ -107,13 +107,13 @@ abstract class BulkActionHandler {
 	abstract public function get_action();
 
 	public function get_max_step() {
-		return (int) ceil( sizeof( $this->get_ids() ) / $this->get_limit() );
+		return (int) ceil( count( $this->get_ids() ) / $this->get_limit() );
 	}
 
 	abstract public function get_limit();
 
 	public function get_total() {
-		return sizeof( $this->get_ids() );
+		return count( $this->get_ids() );
 	}
 
 	abstract public function handle();

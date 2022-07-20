@@ -7,20 +7,23 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Return reason
  *
- * @class 		ReturnReason
- * @version		1.0.0
- * @author 		Vendidero
+ * @class       ReturnReason
+ * @version     1.0.0
+ * @author      Vendidero
  */
 class ReturnReason {
 
 	protected $args = array();
 
 	public function __construct( $args ) {
-		$args = wp_parse_args( $args, array(
-			'code'   => '',
-			'reason' => '',
-			'order'  => 0,
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'code'   => '',
+				'reason' => '',
+				'order'  => 0,
+			)
+		);
 
 		$this->args = $args;
 	}

@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/Shipments/Templates/Emails
- * @version 1.0.0
+ * @version 1.0.1
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -24,17 +24,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 do_action( 'woocommerce_email_header', $email_heading, $email ); ?>
 
 <?php /* translators: %s: Customer first name */ ?>
-	<p><?php printf( __( 'Hi %s,', 'woocommerce' ), $order->get_billing_first_name() ); ?></p><?php // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped ?>
+	<p><?php printf( esc_html__( 'Hi %s,', 'woocommerce' ), esc_html( $order->get_billing_first_name() ) ); // phpcs:ignore WordPress.WP.I18n.TextDomainMismatch ?></p>
 
 	<p>
-		<?php printf( _x( 'You\'ve requested a return to your order %s. Please follow the link to add your return request.', 'shipments', 'woocommerce-germanized-shipments' ), $order->get_order_number() ); ?>
+		<?php printf( esc_html_x( 'You\'ve requested a return to your order %s. Please follow the link to add your return request.', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( $order->get_order_number() ) ); ?>
 	</p>
 
 	<p>
-		<a class="wc-button button" href="<?php echo esc_url( $add_return_request_url ); ?>"><?php _ex( 'Add return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+		<a class="wc-button button" href="<?php echo esc_url( $add_return_request_url ); ?>"><?php echo esc_html_x( 'Add return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 	</p>
 
-	<p><?php printf( _x( 'If you cannot follow the link above please copy this url and paste it to your browser bar: %s', 'shipments', 'woocommerce-germanized-shipments' ), esc_url( $add_return_request_url ) ); ?></p>
+	<p><?php printf( esc_html_x( 'If you cannot follow the link above please copy this url and paste it to your browser bar: %s', 'shipments', 'woocommerce-germanized-shipments' ), esc_url( $add_return_request_url ) ); ?></p>
 <?php
 
 /**

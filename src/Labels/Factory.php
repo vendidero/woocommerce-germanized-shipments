@@ -72,7 +72,7 @@ class Factory {
 		try {
 			return new $classname( $label_id );
 		} catch ( Exception $e ) {
-			wc_caught_exception( $e, __FUNCTION__, func_get_args() );
+			wc_caught_exception( $e, __FUNCTION__, array( $label_id, $shipping_provider_name, $label_type ) );
 			return false;
 		}
 	}
