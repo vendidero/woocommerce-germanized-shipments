@@ -1,0 +1,30 @@
+---
+name: Version
+on:
+  workflow_dispatch:
+    inputs:
+      versionName:
+        description: 'Version (falls back to package.json)'
+        required: false
+jobs:
+  createrelease:
+    name: Check version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+      - name: "Get latest GitHub Release"
+        id: last_release
+        uses: InsonusK/get-latest-release@v1.0.1
+        with:
+          myToken: ${{ secrets.GITHUB_TOKEN }}
+          view_top: 1
+      - name: Latest GitHub version
+        run: echo "Latest version -> ${{ steps.last_release.outputs.name }}"
+      - name: Increase version
+        id: increase_version
+        run: |
+          NEXT_VERSION=$(echo ${{ steps.last_release.outputs.name }} | awk -F. -v OFS=. '{$NF += 1 ; print}')
+          echo ::set-output name=version::$NEXT_VERSION
+      - name: Version test increased
+        run: echo "Version increased -> ${{ steps.increase_version.outputs.version }}"
