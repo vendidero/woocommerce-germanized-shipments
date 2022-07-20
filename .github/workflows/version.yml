@@ -1,15 +1,18 @@
-name: Get version test
-
+---
+name: Get version
 on:
-  push:
   workflow_dispatch:
-
+    inputs:
+      versionName:
+        description: 'Version (ie 5.5.0)'
+        required: false
 jobs:
-  test:
+  checkversion:
+    name: Check version
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@master
       - name: Get version
         # id must be specified to retrieve the output of the step
         id: version-step
@@ -17,8 +20,13 @@ jobs:
         with:
           version-file: "package.json"
           schema: major.minor.build
-      - name: test
+      - name: Set version
+        id: set-version
         run: |
-          echo "version -> $VERSION"
-        env:
-          VERSION: ${{ steps.version-step.outputs.version }}
+          if [ "${{ github.event.inputs.versionName }}" == "" ]; then
+            echo ::set-output name=version::${{ steps.version-step.outputs.version }}
+          else
+            echo ::set-output name=version::${{ github.event.inputs.versionName }}
+          fi
+      - name: Test version
+        run: echo ${{ steps.set-version.outputs.version }}
