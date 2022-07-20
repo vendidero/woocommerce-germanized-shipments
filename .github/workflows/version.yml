@@ -23,6 +23,7 @@ jobs:
         run: |
           echo "Latest version tag name -> ${{ steps.last_release.outputs.tag_name }}"
           echo "Latest version id -> ${{ steps.last_release.outputs.id }}"
+          echo "Latest version name -> ${{ steps.last_release.outputs.name }}"
       - name: Increase version
         id: increase_version
         run: |
