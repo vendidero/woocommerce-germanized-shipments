@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       versionName:
-        description: 'Version (falls back to package.json)'
+        description: 'Version (falls back to the next version available)'
         required: false
 jobs:
-  update_version:
-    name: Update version
+  create_release:
+    name: Create release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -19,6 +19,10 @@ jobs:
         with:
           myToken: ${{ secrets.GITHUB_TOKEN }}
           view_top: 1
+      - name: Initialize mandatory git config
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email noreply@github.com
       - name: Increase version
         id: increase_version
         run: |
@@ -37,12 +41,17 @@ jobs:
           else
             echo ::set-output name=version::${{ github.event.inputs.versionName }}
           fi
-      - name: Bump version
+      - name: Maybe bump version
         run: |
           # make file runnable, might not be necessary
           chmod +x "bin/bump-version.sh"
-          bin/bump-version.sh ${{ steps.set_version.outputs.version }}
-      - name: Check Version
+          bin/bump-version.sh -s -v ${{ steps.set_version.outputs.version }}
+      - name: Commit version
+        id: commit_version
+        run: |
+          git diff-index --quiet HEAD || git commit -m 'Version bump' --no-verify
+          git push
+      - name: Retrieve current version from package.json
         # id must be specified to retrieve the output of the step
         id: version_step
         uses: michmich112/extract-version@main
@@ -50,4 +59,4 @@ jobs:
           version-file: "package.json"
           schema: major.minor.build
       - name: Validate version
-        run: echo "Package.json version -> ${{ steps.version_step.outputs.version }}"
+        run: echo "Next release version will be -> ${{ steps.version_step.outputs.version }}"
