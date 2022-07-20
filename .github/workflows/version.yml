@@ -49,6 +49,7 @@ jobs:
       - name: Commit version
         id: commit_version
         run: |
+          git add .
           git diff-index --quiet HEAD || git commit -m 'Version bump' --no-verify && git push -f
       - name: Retrieve current version from package.json
         # id must be specified to retrieve the output of the step
