@@ -1,5 +1,6 @@
 ---
 name: Release
+description: "This action creates a new release. Automatically bumps the version if necessary."
 on:
   workflow_dispatch:
     inputs:
@@ -49,8 +50,8 @@ jobs:
       - name: Commit version
         id: commit_version
         run: |
-          git diff-index --quiet HEAD || git commit -m 'Version bump' --no-verify
-          git push
+          git add .
+          git diff-index --quiet HEAD || git commit -m 'Version bump' --no-verify && git push -f
       - name: Retrieve current version from package.json
         # id must be specified to retrieve the output of the step
         id: version_step
