@@ -50,7 +50,7 @@ class ShipmentsController extends \WC_REST_Controller {
 					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::CREATABLE ),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
-			),
+			)
 		);
 		register_rest_route(
 			$this->namespace,
@@ -83,7 +83,7 @@ class ShipmentsController extends \WC_REST_Controller {
 					),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
-			),
+			)
 		);
 
 		register_rest_route(
@@ -123,7 +123,7 @@ class ShipmentsController extends \WC_REST_Controller {
 									),
 								),
 							),
-						)
+						),
 					),
 				),
 				array(
@@ -139,7 +139,7 @@ class ShipmentsController extends \WC_REST_Controller {
 					),
 				),
 				'schema' => array( $this, 'get_public_item_label_schema' ),
-			),
+			)
 		);
 	}
 
@@ -261,19 +261,19 @@ class ShipmentsController extends \WC_REST_Controller {
 			$prepared_args['offset'] = ( $request['page'] - 1 ) * $prepared_args['limit'];
 		}
 
-        $objects   = array();
+		$objects   = array();
 		$query     = new \Vendidero\Germanized\Shipments\ShipmentQuery( $prepared_args );
 		$shipments = $query->get_shipments();
 
-        if ( ! empty( $shipments ) ) {
-            foreach ( $shipments as $shipment ) {
-	            if ( ! $this->check_permissions( 'shipment', 'read', $shipment->get_id() ) ) {
-		            continue;
-	            }
+		if ( ! empty( $shipments ) ) {
+			foreach ( $shipments as $shipment ) {
+				if ( ! $this->check_permissions( 'shipment', 'read', $shipment->get_id() ) ) {
+					continue;
+				}
 
-	            $objects[] = $this->prepare_object_for_response( $shipment, $request );
-            }
-        }
+				$objects[] = $this->prepare_object_for_response( $shipment, $request );
+			}
+		}
 
 		$page      = (int) $request['page'];
 		$max_pages = $query->get_max_num_pages();
@@ -550,7 +550,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		 * @param Shipment        $shipment Shipment object.
 		 * @param WP_REST_Request $request  Request object.
 		 */
-		return apply_filters( "woocommerce_gzd_rest_pre_insert_shipment_object", $shipment, $request );
+		return apply_filters( 'woocommerce_gzd_rest_pre_insert_shipment_object', $shipment, $request );
 	}
 
 	/**
@@ -633,15 +633,21 @@ class ShipmentsController extends \WC_REST_Controller {
 				$quantity_left = 0;
 
 				if ( 'return' === $shipment->get_type() ) {
-					$quantity_left = $order_shipment->get_item_quantity_left_for_returning( $item->get_order_item_id(), array(
-						'exclude_current_shipment' => true,
-						'shipment_id'              => $shipment->get_id(),
-					) );
+					$quantity_left = $order_shipment->get_item_quantity_left_for_returning(
+						$item->get_order_item_id(),
+						array(
+							'exclude_current_shipment' => true,
+							'shipment_id'              => $shipment->get_id(),
+						)
+					);
 				} elseif ( $order_item = $item->get_order_item() ) {
-					$quantity_left = $order_shipment->get_item_quantity_left_for_shipping( $order_item, array(
-						'exclude_current_shipment' => true,
-						'shipment_id'              => $shipment->get_id(),
-					) );
+					$quantity_left = $order_shipment->get_item_quantity_left_for_shipping(
+						$order_item,
+						array(
+							'exclude_current_shipment' => true,
+							'shipment_id'              => $shipment->get_id(),
+						)
+					);
 				}
 
 				if ( $quantity > $quantity_left ) {
@@ -669,7 +675,7 @@ class ShipmentsController extends \WC_REST_Controller {
 			'return_reason_code',
 		);
 
-		foreach( $props_to_set as $prop ) {
+		foreach ( $props_to_set as $prop ) {
 			$setter = "set_{$prop}";
 
 			if ( isset( $posted[ $prop ] ) && is_callable( array( $item, $setter ) ) ) {
@@ -692,14 +698,17 @@ class ShipmentsController extends \WC_REST_Controller {
 		if ( isset( $posted['attributes'] ) && is_array( $posted['attributes'] ) ) {
 			$attributes_to_save = array();
 
-			foreach( $posted['attributes'] as $attribute ) {
+			foreach ( $posted['attributes'] as $attribute ) {
 				$attribute = wc_clean( wp_unslash( $attribute ) );
-				$attribute = wp_parse_args( $attribute, array(
-					'key'                => '',
-					'value'              => '',
-					'label'              => '',
-					'order_item_meta_id' => 0,
-				) );
+				$attribute = wp_parse_args(
+					$attribute,
+					array(
+						'key'                => '',
+						'value'              => '',
+						'label'              => '',
+						'order_item_meta_id' => 0,
+					)
+				);
 
 				$attributes_to_save[] = array_intersect_key( $attribute, array_flip( array( 'key', 'value', 'label', 'order_item_meta_id' ) ) );
 			}
@@ -782,7 +791,7 @@ class ShipmentsController extends \WC_REST_Controller {
 	public function create_item( $request ) {
 		if ( ! empty( $request['id'] ) ) {
 			/* translators: %s: post type */
-			return new WP_Error( "woocommerce_gzd_rest_shipment_exists", _x( 'Cannot create existing shipment.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 400 ) );
+			return new WP_Error( 'woocommerce_gzd_rest_shipment_exists', _x( 'Cannot create existing shipment.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 400 ) );
 		}
 
 		$object = $this->save_object( $request, true );
@@ -801,7 +810,7 @@ class ShipmentsController extends \WC_REST_Controller {
 			 * @param WP_REST_Request $request   Request object.
 			 * @param boolean         $creating  True when creating object, false when updating.
 			 */
-			do_action( "woocommerce_gzd_rest_insert_shipment_object", $object, $request, true );
+			do_action( 'woocommerce_gzd_rest_insert_shipment_object', $object, $request, true );
 		} catch ( \WC_Data_Exception $e ) {
 			$object->delete();
 			return new WP_Error( $e->getErrorCode(), $e->getMessage(), $e->getErrorData() );
@@ -829,7 +838,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		$shipment = $this->get_object( (int) $request['id'] );
 
 		if ( ! $shipment || 0 === $shipment->get_id() ) {
-			return new WP_Error( "woocommerce_gzd_rest_shipment_invalid_id", _x( 'Invalid ID.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 400 ) );
+			return new WP_Error( 'woocommerce_gzd_rest_shipment_invalid_id', _x( 'Invalid ID.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 400 ) );
 		}
 
 		$shipment = $this->save_object( $request, false );
@@ -848,7 +857,7 @@ class ShipmentsController extends \WC_REST_Controller {
 			 * @param WP_REST_Request $request   Request object.
 			 * @param boolean         $creating  True when creating object, false when updating.
 			 */
-			do_action( "woocommerce_gzd_rest_insert_shipment_object", $shipment, $request, false );
+			do_action( 'woocommerce_gzd_rest_insert_shipment_object', $shipment, $request, false );
 		} catch ( \WC_Data_Exception $e ) {
 			return new WP_Error( $e->getErrorCode(), $e->getMessage(), $e->getErrorData() );
 		} catch ( \WC_REST_Exception $e ) {
@@ -886,7 +895,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		 * @param Shipment         $shipment   Object data.
 		 * @param WP_REST_Request  $request  Request object.
 		 */
-		return apply_filters( "woocommerce_gzd_rest_prepare_shipment_object", $response, $shipment, $request );
+		return apply_filters( 'woocommerce_gzd_rest_prepare_shipment_object', $response, $shipment, $request );
 	}
 
 	/**
@@ -919,7 +928,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		$object = $this->get_object( (int) $request['id'] );
 
 		if ( ! $object || 0 === $object->get_id() ) {
-			return new WP_Error( "woocommerce_gzd_rest_shipment_invalid_id", _x( 'Invalid ID.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 404 ) );
+			return new WP_Error( 'woocommerce_gzd_rest_shipment_invalid_id', _x( 'Invalid ID.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 404 ) );
 		}
 
 		$data     = $this->prepare_object_for_response( $object, $request );
@@ -957,7 +966,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		$shipment = $this->get_shipment( (int) $request['id'] );
 
 		if ( ! $shipment ) {
-			return new WP_Error( "woocommerce_gzd_rest_shipment_invalid_id", _x( 'Invalid ID.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 404 ) );
+			return new WP_Error( 'woocommerce_gzd_rest_shipment_invalid_id', _x( 'Invalid ID.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 404 ) );
 		}
 
 		if ( ! $shipment->delete( $force ) ) {
@@ -995,13 +1004,13 @@ class ShipmentsController extends \WC_REST_Controller {
 		$shipment = $this->get_shipment( (int) $request['id'] );
 
 		if ( ! $shipment ) {
-			return new WP_Error( "woocommerce_gzd_rest_shipment_invalid_id", _x( 'Invalid ID.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 404 ) );
+			return new WP_Error( 'woocommerce_gzd_rest_shipment_invalid_id', _x( 'Invalid ID.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 404 ) );
 		}
 
 		$label = $shipment->get_label();
 
 		if ( ! $label ) {
-			return new WP_Error( "woocommerce_gzd_rest_shipment_invalid_id", _x( 'Invalid ID.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 404 ) );
+			return new WP_Error( 'woocommerce_gzd_rest_shipment_invalid_id', _x( 'Invalid ID.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 404 ) );
 		}
 
 		$label_data = self::prepare_label( $label );
@@ -1014,7 +1023,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		$shipment = $this->get_shipment( (int) $request['id'] );
 
 		if ( ! $shipment ) {
-			return new WP_Error( "woocommerce_gzd_rest_shipment_invalid_id", _x( 'Invalid ID.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 404 ) );
+			return new WP_Error( 'woocommerce_gzd_rest_shipment_invalid_id', _x( 'Invalid ID.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 404 ) );
 		}
 
 		$label = $shipment->get_label();
@@ -1030,11 +1039,11 @@ class ShipmentsController extends \WC_REST_Controller {
 		$shipment = $this->get_shipment( (int) $request['id'] );
 
 		if ( ! $shipment ) {
-			return new WP_Error( "woocommerce_gzd_rest_shipment_invalid_id", _x( 'Invalid ID.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 404 ) );
+			return new WP_Error( 'woocommerce_gzd_rest_shipment_invalid_id', _x( 'Invalid ID.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 404 ) );
 		}
 
 		if ( ! $shipment->supports_label() || ! $shipment->needs_label() ) {
-			return new WP_Error( "woocommerce_gzd_rest_shipment_label_exists", _x( 'Label already exists, please delete first.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 404 ) );
+			return new WP_Error( 'woocommerce_gzd_rest_shipment_label_exists', _x( 'Label already exists, please delete first.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 404 ) );
 		}
 
 		$request->set_param( 'context', 'edit' );
@@ -1046,13 +1055,13 @@ class ShipmentsController extends \WC_REST_Controller {
 		if ( is_wp_error( $result ) ) {
 			$message = implode( ' | ', $result->get_error_messages() );
 
-			return new WP_Error( "woocommerce_gzd_rest_shipment_label_create", $message, array( 'status' => 500 ) );
+			return new WP_Error( 'woocommerce_gzd_rest_shipment_label_create', $message, array( 'status' => 500 ) );
 		}
 
 		$label = $shipment->get_label();
 
 		if ( ! $label ) {
-			return new WP_Error( "woocommerce_gzd_rest_shipment_label_create", _x( 'There was an error creating the label.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 500 ) );
+			return new WP_Error( 'woocommerce_gzd_rest_shipment_label_create', _x( 'There was an error creating the label.', 'shipments', 'woocommerce-germanized-shipments' ), array( 'status' => 500 ) );
 		}
 
 		$response = self::prepare_label( $label, $request );
@@ -1201,9 +1210,9 @@ class ShipmentsController extends \WC_REST_Controller {
 
 		if ( $file = $label->get_file( $file_type ) ) {
 			try {
-				$content        = file_get_contents( $file );
-				$result['file'] = chunk_split( base64_encode( $content ) );
-			} catch( \Exception $ex ) {
+				$content        = file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+				$result['file'] = chunk_split( base64_encode( $content ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+			} catch ( \Exception $ex ) {
 				$result['file'] = '';
 			}
 		}
@@ -1220,29 +1229,29 @@ class ShipmentsController extends \WC_REST_Controller {
 	 */
 	public static function prepare_label( $label, $context = 'view', $dp = false ) {
 		$label_data = array(
-			'id'                => $label->get_id(),
-			'date_created'      => wc_rest_prepare_date_response( $label->get_date_created( $context ), false ),
-			'date_created_gmt'  => wc_rest_prepare_date_response( $label->get_date_created( $context ) ),
-			'weight'            => wc_format_decimal( $label->get_weight( $context ), $dp ),
-			'net_weight'        => wc_format_decimal( $label->get_net_weight( $context ), $dp ),
+			'id'                    => $label->get_id(),
+			'date_created'          => wc_rest_prepare_date_response( $label->get_date_created( $context ), false ),
+			'date_created_gmt'      => wc_rest_prepare_date_response( $label->get_date_created( $context ) ),
+			'weight'                => wc_format_decimal( $label->get_weight( $context ), $dp ),
+			'net_weight'            => wc_format_decimal( $label->get_net_weight( $context ), $dp ),
 			'dimensions'            => array(
 				'length' => wc_format_decimal( $label->get_length( $context ), $dp ),
 				'width'  => wc_format_decimal( $label->get_width( $context ), $dp ),
 				'height' => wc_format_decimal( $label->get_height( $context ), $dp ),
 			),
-			'shipment_id'       => $label->get_shipment_id( $context ),
-			'parent_id'         => $label->get_parent_id( $context ),
-			'product_id'        => $label->get_product_id( $context ),
-			'number'            => $label->get_number( $context ),
-			'type'              => $label->get_type(),
-			'shipping_provider' => $label->get_shipping_provider( $context ),
-			'created_via'       => $label->get_created_via( $context ),
-			'services'          => $label->get_services( $context ),
+			'shipment_id'           => $label->get_shipment_id( $context ),
+			'parent_id'             => $label->get_parent_id( $context ),
+			'product_id'            => $label->get_product_id( $context ),
+			'number'                => $label->get_number( $context ),
+			'type'                  => $label->get_type(),
+			'shipping_provider'     => $label->get_shipping_provider( $context ),
+			'created_via'           => $label->get_created_via( $context ),
+			'services'              => $label->get_services( $context ),
 			'additional_file_types' => array(),
-			'files'              => array( self::get_label_file( $label ) ),
+			'files'                 => array( self::get_label_file( $label ) ),
 		);
 
-		foreach( $label->get_additional_file_types() as $file_type ) {
+		foreach ( $label->get_additional_file_types() as $file_type ) {
 			if ( 'default' === $file_type ) {
 				continue;
 			}
@@ -1250,7 +1259,7 @@ class ShipmentsController extends \WC_REST_Controller {
 			$label_file = self::get_label_file( $label, $file_type );
 
 			if ( ! empty( $label_file['file'] ) ) {
-				$label_data['files'][] = $label_file;
+				$label_data['files'][]                 = $label_file;
 				$label_data['additional_file_types'][] = $file_type;
 			}
 		}
@@ -1268,55 +1277,55 @@ class ShipmentsController extends \WC_REST_Controller {
 
 		$params['context']['default'] = 'view';
 
-		$params['offset'] = array(
-			'description'        => _x( 'Offset the result set by a specific number of items.', 'shipments', 'woocommerce-germanized-shipments' ),
-			'type'               => 'integer',
-			'sanitize_callback'  => 'absint',
-			'validate_callback'  => 'rest_validate_request_arg',
+		$params['offset']   = array(
+			'description'       => _x( 'Offset the result set by a specific number of items.', 'shipments', 'woocommerce-germanized-shipments' ),
+			'type'              => 'integer',
+			'sanitize_callback' => 'absint',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
-		$params['order'] = array(
-			'default'            => 'desc',
-			'description'        => _x( 'Order sort attribute ascending or descending.', 'shipments', 'woocommerce-germanized-shipments' ),
-			'enum'               => array( 'asc', 'desc' ),
-			'sanitize_callback'  => 'sanitize_key',
-			'type'               => 'string',
-			'validate_callback'  => 'rest_validate_request_arg',
+		$params['order']    = array(
+			'default'           => 'desc',
+			'description'       => _x( 'Order sort attribute ascending or descending.', 'shipments', 'woocommerce-germanized-shipments' ),
+			'enum'              => array( 'asc', 'desc' ),
+			'sanitize_callback' => 'sanitize_key',
+			'type'              => 'string',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
-		$params['orderby'] = array(
-			'default'            => 'date_created',
-			'description'        => _x( 'Sort collection by object attribute.', 'shipments', 'woocommerce-germanized-shipments' ),
-			'enum'               =>  array(
+		$params['orderby']  = array(
+			'default'           => 'date_created',
+			'description'       => _x( 'Sort collection by object attribute.', 'shipments', 'woocommerce-germanized-shipments' ),
+			'enum'              => array(
 				'country',
 				'status',
 				'tracking_id',
 				'date_created',
 				'order_id',
-				'weight'
+				'weight',
 			),
-			'sanitize_callback'  => 'sanitize_key',
-			'type'               => 'string',
-			'validate_callback'  => 'rest_validate_request_arg',
+			'sanitize_callback' => 'sanitize_key',
+			'type'              => 'string',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
 		$params['order_id'] = array(
-			'description'        => _x( 'Limit result set to shipments belonging to a certain order id.', 'shipments', 'woocommerce-germanized-shipments' ),
-			'type'               => 'integer',
-			'sanitize_callback'  => 'absint',
-			'validate_callback'  => 'rest_validate_request_arg',
+			'description'       => _x( 'Limit result set to shipments belonging to a certain order id.', 'shipments', 'woocommerce-germanized-shipments' ),
+			'type'              => 'integer',
+			'sanitize_callback' => 'absint',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
-		$params['status'] = array(
-			'description'        => _x( 'Limit result set to shipments having a certain status.', 'shipments', 'woocommerce-germanized-shipments' ),
-			'enum'               =>  self::get_shipment_statuses(),
-			'sanitize_callback'  => 'sanitize_key',
-			'type'               => 'string',
-			'validate_callback'  => 'rest_validate_request_arg',
+		$params['status']   = array(
+			'description'       => _x( 'Limit result set to shipments having a certain status.', 'shipments', 'woocommerce-germanized-shipments' ),
+			'enum'              => self::get_shipment_statuses(),
+			'sanitize_callback' => 'sanitize_key',
+			'type'              => 'string',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
-		$params['type'] = array(
-			'description'        => _x( 'Limit result set to shipments of a certain type.', 'shipments', 'woocommerce-germanized-shipments' ),
-			'default'            => 'simple',
-			'enum'               =>  wc_gzd_get_shipment_types(),
-			'sanitize_callback'  => 'sanitize_key',
-			'type'               => 'string',
-			'validate_callback'  => 'rest_validate_request_arg',
+		$params['type']     = array(
+			'description'       => _x( 'Limit result set to shipments of a certain type.', 'shipments', 'woocommerce-germanized-shipments' ),
+			'default'           => 'simple',
+			'enum'              => wc_gzd_get_shipment_types(),
+			'sanitize_callback' => 'sanitize_key',
+			'type'              => 'string',
+			'validate_callback' => 'rest_validate_request_arg',
 		);
 		return $params;
 	}
@@ -1342,18 +1351,18 @@ class ShipmentsController extends \WC_REST_Controller {
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'shipment_number'        => array(
+				'shipment_number'       => array(
 					'description' => _x( 'Shipment number.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'order_id'        => array(
+				'order_id'              => array(
 					'description' => _x( 'Shipment order id.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'order_number'        => array(
+				'order_number'          => array(
 					'description' => _x( 'Shipment order number.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
@@ -1387,7 +1396,7 @@ class ShipmentsController extends \WC_REST_Controller {
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'date_created_gmt'    => array(
+				'date_created_gmt'      => array(
 					'description' => _x( 'The date the shipment was created, as GMT.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view', 'edit' ),
@@ -1399,7 +1408,7 @@ class ShipmentsController extends \WC_REST_Controller {
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'date_sent_gmt'    => array(
+				'date_sent_gmt'         => array(
 					'description' => _x( 'The date the shipment was sent, as GMT.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view', 'edit' ),
@@ -1410,12 +1419,12 @@ class ShipmentsController extends \WC_REST_Controller {
 					'type'        => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'est_delivery_date_gmt'    => array(
+				'est_delivery_date_gmt' => array(
 					'description' => _x( 'The estimated delivery date of the shipment, as GMT.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'type' => array(
+				'type'                  => array(
 					'description' => _x( 'Shipment type, e.g. simple or return.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
@@ -1426,57 +1435,57 @@ class ShipmentsController extends \WC_REST_Controller {
 					'type'        => 'boolean',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'sender_address'   => array(
+				'sender_address'        => array(
 					'description' => _x( 'Return sender address.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'object',
 					'context'     => array( 'view', 'edit' ),
 					'properties'  => array(
-						'first_name' => array(
+						'first_name'               => array(
 							'description' => _x( 'First name.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'last_name'  => array(
+						'last_name'                => array(
 							'description' => _x( 'Last name.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'company'    => array(
+						'company'                  => array(
 							'description' => _x( 'Company name.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'address_1'  => array(
+						'address_1'                => array(
 							'description' => _x( 'Address line 1', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'address_2'  => array(
+						'address_2'                => array(
 							'description' => _x( 'Address line 2', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'city'       => array(
+						'city'                     => array(
 							'description' => _x( 'City name.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'state'      => array(
+						'state'                    => array(
 							'description' => _x( 'ISO code or name of the state, province or district.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'postcode'   => array(
+						'postcode'                 => array(
 							'description' => _x( 'Postal code.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'country'    => array(
+						'country'                  => array(
 							'description' => _x( 'Country code in ISO 3166-1 alpha-2 format.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'customs_reference_number'    => array(
+						'customs_reference_number' => array(
 							'description' => _x( 'Customs reference number.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
@@ -1488,13 +1497,13 @@ class ShipmentsController extends \WC_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'content_weight'                => array(
+				'content_weight'        => array(
 					'description' => _x( 'Shipment content weight.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'content_dimensions'   => array(
+				'content_dimensions'    => array(
 					'description' => _x( 'Shipment content dimensions.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'object',
 					'context'     => array( 'view', 'edit' ),
@@ -1520,43 +1529,43 @@ class ShipmentsController extends \WC_REST_Controller {
 						),
 					),
 				),
-				'weight_unit'                => array(
+				'weight_unit'           => array(
 					'description' => _x( 'Shipment weight unit.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'default'     => $weight_unit,
 				),
-				'packaging_id'    => array(
+				'packaging_id'          => array(
 					'description' => _x( 'Shipment packaging id.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'packaging_weight'                => array(
+				'packaging_weight'      => array(
 					'description' => _x( 'Shipment packaging weight.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'total'    => array(
+				'total'                 => array(
 					'description' => _x( 'Shipment total.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'subtotal'    => array(
+				'subtotal'              => array(
 					'description' => _x( 'Shipment subtotal.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'additional_total'    => array(
+				'additional_total'      => array(
 					'description' => _x( 'Shipment additional total.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'version'    => array(
+				'version'               => array(
 					'description' => _x( 'Shipment version.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'shipping_method'    => array(
+				'shipping_method'       => array(
 					'description' => _x( 'Shipment shipping method.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
@@ -1583,7 +1592,7 @@ class ShipmentsController extends \WC_REST_Controller {
 						),
 					),
 				),
-				'package_dimensions'            => array(
+				'package_dimensions'    => array(
 					'description' => _x( 'Shipment package dimensions.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'object',
 					'context'     => array( 'view', 'edit' ),
@@ -1609,7 +1618,7 @@ class ShipmentsController extends \WC_REST_Controller {
 						),
 					),
 				),
-				'dimension_unit'    => array(
+				'dimension_unit'        => array(
 					'description' => _x( 'Shipment dimension unit.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
@@ -1620,59 +1629,59 @@ class ShipmentsController extends \WC_REST_Controller {
 					'type'        => 'object',
 					'context'     => array( 'view', 'edit' ),
 					'properties'  => array(
-						'first_name' => array(
+						'first_name'               => array(
 							'description' => _x( 'First name.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'last_name'  => array(
+						'last_name'                => array(
 							'description' => _x( 'Last name.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'company'    => array(
+						'company'                  => array(
 							'description' => _x( 'Company name.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'address_1'  => array(
+						'address_1'                => array(
 							'description' => _x( 'Address line 1', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'address_2'  => array(
+						'address_2'                => array(
 							'description' => _x( 'Address line 2', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'city'       => array(
+						'city'                     => array(
 							'description' => _x( 'City name.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'state'      => array(
+						'state'                    => array(
 							'description' => _x( 'ISO code or name of the state, province or district.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'postcode'   => array(
+						'postcode'                 => array(
 							'description' => _x( 'Postal code.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'country'    => array(
+						'country'                  => array(
 							'description' => _x( 'Country code in ISO 3166-1 alpha-2 format.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
-						'customs_reference_number'    => array(
+						'customs_reference_number' => array(
 							'description' => _x( 'Customs reference number.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 						),
 					),
 				),
-				'meta_data'       => array(
+				'meta_data'             => array(
 					'description' => _x( 'Meta data.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),
@@ -1705,63 +1714,63 @@ class ShipmentsController extends \WC_REST_Controller {
 					'items'       => array(
 						'type'       => 'object',
 						'properties' => array(
-							'id'            => array(
+							'id'                  => array(
 								'description' => _x( 'Item ID.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'integer',
 								'context'     => array( 'view', 'edit' ),
 								'readonly'    => true,
 							),
-							'name'          => array(
+							'name'                => array(
 								'description' => _x( 'Item name.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'mixed',
 								'context'     => array( 'view', 'edit' ),
 							),
-							'order_item_id' => array(
+							'order_item_id'       => array(
 								'description' => _x( 'Order Item ID.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'integer',
 								'context'     => array( 'view', 'edit' ),
 							),
-							'product_id'    => array(
+							'product_id'          => array(
 								'description' => _x( 'Product ID.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'mixed',
 								'context'     => array( 'view', 'edit' ),
 							),
-							'quantity'      => array(
+							'quantity'            => array(
 								'description' => _x( 'Quantity.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'integer',
 								'context'     => array( 'view', 'edit' ),
 							),
-							'weight'                => array(
+							'weight'              => array(
 								'description' => _x( 'Item weight.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit' ),
 							),
-							'sku'                => array(
+							'sku'                 => array(
 								'description' => _x( 'Item SKU.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit' ),
 							),
-							'total'                => array(
+							'total'               => array(
 								'description' => _x( 'Item total.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit' ),
 							),
-							'subtotal'                => array(
+							'subtotal'            => array(
 								'description' => _x( 'Item subtotal.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit' ),
 							),
-							'hs_code'                => array(
+							'hs_code'             => array(
 								'description' => _x( 'Item HS Code (customs).', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit' ),
 							),
-							'manufacture_country'     => array(
+							'manufacture_country' => array(
 								'description' => _x( 'Item country of manufacture in ISO 3166-1 alpha-2 format.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit' ),
 							),
-							'dimensions'            => array(
+							'dimensions'          => array(
 								'description' => _x( 'Item dimensions.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'object',
 								'context'     => array( 'view', 'edit' ),
@@ -1783,22 +1792,22 @@ class ShipmentsController extends \WC_REST_Controller {
 									),
 								),
 							),
-							'attributes'      => array(
+							'attributes'          => array(
 								'description' => _x( 'Item attributes.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'object',
 								'context'     => array( 'view', 'edit' ),
 								'properties'  => array(
-									'key' => array(
+									'key'                => array(
 										'description' => _x( 'Attribute key.', 'shipments', 'woocommerce-germanized-shipments' ),
 										'type'        => 'string',
 										'context'     => array( 'view', 'edit' ),
 									),
-									'value'  => array(
+									'value'              => array(
 										'description' => _x( 'Attribute value.', 'shipments', 'woocommerce-germanized-shipments' ),
 										'type'        => 'string',
 										'context'     => array( 'view', 'edit' ),
 									),
-									'label' => array(
+									'label'              => array(
 										'description' => _x( 'Attribute label.', 'shipments', 'woocommerce-germanized-shipments' ),
 										'type'        => 'string',
 										'context'     => array( 'view', 'edit' ),
@@ -1810,7 +1819,7 @@ class ShipmentsController extends \WC_REST_Controller {
 									),
 								),
 							),
-							'meta_data' => array(
+							'meta_data'           => array(
 								'description' => _x( 'Shipment item meta data.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'array',
 								'context'     => array( 'view', 'edit' ),
@@ -1850,7 +1859,7 @@ class ShipmentsController extends \WC_REST_Controller {
 			'readonly'    => false,
 			'type'        => 'object',
 			'properties'  => array(
-				'id'              => array(
+				'id'                    => array(
 					'description' => _x( 'Label ID.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit' ),
@@ -1862,29 +1871,29 @@ class ShipmentsController extends \WC_REST_Controller {
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'date_created_gmt'    => array(
+				'date_created_gmt'      => array(
 					'description' => _x( 'The date the label was created, as GMT.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'shipment_id'     => array(
+				'shipment_id'           => array(
 					'description' => _x( 'Shipment id.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit' ),
-					'readonly'    => true
+					'readonly'    => true,
 				),
-				'parent_id'       => array(
+				'parent_id'             => array(
 					'description' => _x( 'Parent id.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'product_id'     => array(
+				'product_id'            => array(
 					'description' => _x( 'Label product id.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'number'     => array(
+				'number'                => array(
 					'description' => _x( 'Label number.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
@@ -1895,53 +1904,53 @@ class ShipmentsController extends \WC_REST_Controller {
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'weight'     => array(
+				'weight'                => array(
 					'description' => _x( 'Weight.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'net_weight'     => array(
+				'net_weight'            => array(
 					'description' => _x( 'Net weight.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'created_via'     => array(
+				'created_via'           => array(
 					'description' => _x( 'Created via.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'is_trackable'     => array(
+				'is_trackable'          => array(
 					'description' => _x( 'Is trackable?', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'boolean',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'additional_file_types'     => array(
+				'additional_file_types' => array(
 					'description' => _x( 'Additional file types', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 					'items'       => array(
-						'type' => 'string'
+						'type' => 'string',
 					),
 				),
-				'files'     => array(
+				'files'                 => array(
 					'description' => _x( 'Label file data.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
-					'items'  => array(
-						'context'     => array( 'view', 'edit' ),
-						'readonly'    => true,
-						'type'        => 'object',
-						'properties'  => array(
+					'items'       => array(
+						'context'    => array( 'view', 'edit' ),
+						'readonly'   => true,
+						'type'       => 'object',
+						'properties' => array(
 							'path'     => array(
 								'description' => _x( 'File path.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit' ),
 								'readonly'    => true,
 							),
-							'filename'     => array(
+							'filename' => array(
 								'description' => _x( 'File name.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit' ),
@@ -1962,7 +1971,7 @@ class ShipmentsController extends \WC_REST_Controller {
 						),
 					),
 				),
-				'type'     => array(
+				'type'                  => array(
 					'description' => _x( 'Label type, e.g. simple or return.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
@@ -1990,15 +1999,15 @@ class ShipmentsController extends \WC_REST_Controller {
 						),
 					),
 				),
-				'services' => array(
+				'services'              => array(
 					'description' => _x( 'Label services.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),
-					'items'   => array(
-						'type' => 'string'
+					'items'       => array(
+						'type' => 'string',
 					),
 				),
-				'meta_data' => array(
+				'meta_data'             => array(
 					'description' => _x( 'Label meta data.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),
@@ -2024,7 +2033,7 @@ class ShipmentsController extends \WC_REST_Controller {
 						),
 					),
 				),
-			)
+			),
 		);
 	}
 }

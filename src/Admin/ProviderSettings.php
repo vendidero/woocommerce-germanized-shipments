@@ -210,13 +210,13 @@ class ProviderSettings {
 				}
 			}
 
-			if ( isset( $_GET['provider'] ) && 'new' === $_GET['provider'] ) {
+			if ( isset( $_GET['provider'] ) && 'new' === $_GET['provider'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				add_filter( 'woocommerce_gzd_shipments_shipping_provider_is_manual_creation_request', '__return_true', 15 );
 			}
 
 			$provider->save();
 
-			if ( isset( $_GET['provider'] ) && 'new' === $_GET['provider'] ) {
+			if ( isset( $_GET['provider'] ) && 'new' === $_GET['provider'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				remove_filter( 'woocommerce_gzd_shipments_shipping_provider_is_manual_creation_request', '__return_true', 15 );
 			}
 

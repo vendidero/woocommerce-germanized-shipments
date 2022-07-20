@@ -59,13 +59,16 @@ class FormHandler {
 		$order_id_parsed = trim( preg_replace( '/[^0-9]/', '_', $order_id_str ) );
 		$order_id_comp   = explode( '_', $order_id_parsed );
 
-		usort( $order_id_comp, function ( $a, $b ) {
-			if ( strlen( $a ) === strlen( $b ) ) {
-				return 0;
-			}
+		usort(
+			$order_id_comp,
+			function ( $a, $b ) {
+				if ( strlen( $a ) === strlen( $b ) ) {
+					return 0;
+				}
 
-			return ( strlen( $a ) < strlen( $b ) ) ? 1 : -1;
-		});
+				return ( strlen( $a ) < strlen( $b ) ) ? 1 : -1;
+			}
+		);
 
 		// Prefer longer, contiguous order numbers
 		$order_id = reset( $order_id_comp );
