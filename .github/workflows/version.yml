@@ -41,7 +41,7 @@ jobs:
         run: |
           # make file runnable, might not be necessary
           chmod +x "bin/bump-version.sh"
-          "bin/bump-version.sh ${{ steps.set_version.outputs.version }}"
+          bin/bump-version.sh ${{ steps.set_version.outputs.version }}
       - name: Get version
         # id must be specified to retrieve the output of the step
         id: version_step
