@@ -19,11 +19,6 @@ jobs:
         with:
           myToken: ${{ secrets.GITHUB_TOKEN }}
           view_top: 1
-      - name: Latest GitHub version
-        run: |
-          echo "Latest version tag name -> ${{ steps.last_release.outputs.tag_name }}"
-          echo "Latest version id -> ${{ steps.last_release.outputs.id }}"
-          echo "Latest version name -> ${{ steps.last_release.outputs.name }}"
       - name: Increase version
         id: increase_version
         run: |
@@ -32,5 +27,27 @@ jobs:
           echo "Latest version -> $LAST_VERSION"
           NEXT_VERSION=$(echo $LAST_VERSION | awk -F. -v OFS=. '{$NF += 1 ; print}')
           echo ::set-output name=version::$NEXT_VERSION
-      - name: Version test increased
+      - name: Next GitHub version
         run: echo "Version increased -> ${{ steps.increase_version.outputs.version }}"
+      - name: Set version
+        id: set_version
+        run: |
+          if [ "${{ github.event.inputs.versionName }}" == "" ]; then
+            echo ::set-output name=version::${{ steps.increase_version.outputs.version }}
+          else
+            echo ::set-output name=version::${{ github.event.inputs.versionName }}
+          fi
+      - name: Bump version
+        run: |
+          # make file runnable, might not be necessary
+          chmod +x "${GITHUB_WORKSPACE}/bin/bump-version.sh"
+          "${GITHUB_WORKSPACE}/bin/bump-version.sh ${{ steps.set_version.outputs.version }}"
+      - name: Get version
+        # id must be specified to retrieve the output of the step
+        id: version_step
+        uses: michmich112/extract-version@main
+        with:
+          version-file: "package.json"
+          schema: major.minor.build
+      - name: Current package.json version
+          run: echo "Package.json version -> ${{ steps.version_step.outputs.version }}"
