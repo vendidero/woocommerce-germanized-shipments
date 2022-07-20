@@ -27,7 +27,8 @@ jobs:
       - name: Increase version
         id: increase_version
         run: |
-          LAST_VERSION="${{{ steps.last_release.outputs.tag_name }}/v}"
+          CUR_V=${{ steps.last_release.outputs.tag_name }}
+          LAST_VERSION="${CUR_V/v}"
           echo "Latest version -> $LAST_VERSION"
           NEXT_VERSION=$(echo $LAST_VERSION | awk -F. -v OFS=. '{$NF += 1 ; print}')
           echo ::set-output name=version::$NEXT_VERSION
