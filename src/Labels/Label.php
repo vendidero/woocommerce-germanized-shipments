@@ -242,6 +242,14 @@ class Label extends WC_Data implements ShipmentLabel {
 		return $this->get_prop( 'height', $context );
 	}
 
+	public function get_dimensions( $context = 'view' ) {
+		return array(
+			'length' => $this->get_length( $context ),
+			'width'  => $this->get_width( $context ),
+			'height' => $this->get_height( $context ),
+		);
+	}
+
 	public function has_dimensions() {
 		$width  = $this->get_width();
 		$length = $this->get_length();

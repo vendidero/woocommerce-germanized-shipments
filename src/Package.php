@@ -70,7 +70,6 @@ class Package {
 		global $wp;
 
 		if ( 'myaccount/form-login.php' === $template_name ) {
-
 			try {
 				$key      = ( isset( $_GET['key'] ) ? wc_clean( wp_unslash( $_GET['key'] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				$order_id = false;

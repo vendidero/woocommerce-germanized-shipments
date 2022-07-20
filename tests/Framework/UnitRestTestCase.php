@@ -4,6 +4,9 @@ namespace Vendidero\Germanized\Shipments\Tests\Framework;
 
 class UnitRestTestCase extends UnitTestCase {
 
+	/**
+	 * @var \WP_Test_Spy_REST_Server
+	 */
 	protected $server;
 
 	/**

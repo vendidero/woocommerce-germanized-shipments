@@ -195,68 +195,69 @@ class ShipmentItem extends WC_Data {
 		return $subtotal;
 	}
 
-	/**
-	 * Get quantity.
-	 *
-	 * @return int
-	 */
-	public function get_sku( $context = 'view' ) {
-		return $this->get_prop( 'sku', $context );
-	}
+    /**
+     * Get quantity.
+     *
+     * @return int
+     */
+    public function get_sku( $context = 'view' ) {
+        return $this->get_prop( 'sku', $context );
+    }
 
-	/**
-	 * Get quantity.
-	 *
-	 * @return int
-	 */
-	public function get_quantity( $context = 'view' ) {
-		return $this->get_prop( 'quantity', $context );
-	}
+    /**
+     * Get quantity.
+     *
+     * @return int
+     */
+    public function get_quantity( $context = 'view' ) {
+        return $this->get_prop( 'quantity', $context );
+    }
 
-	/**
-	 * Get weight.
-	 *
-	 * @return string
-	 */
-	public function get_weight( $context = 'view' ) {
-		return $this->get_prop( 'weight', $context );
-	}
+    /**
+     * Get weight.
+     *
+     * @return string
+     */
+    public function get_weight( $context = 'view' ) {
+        return $this->get_prop( 'weight', $context );
+    }
 
-	/**
-	 * Get width.
-	 *
-	 * @return string
-	 */
-	public function get_width( $context = 'view' ) {
-		return $this->get_prop( 'width', $context );
-	}
+    /**
+     * Get width.
+     *
+     * @return string
+     */
+    public function get_width( $context = 'view' ) {
+        return $this->get_prop( 'width', $context );
+    }
 
-	/**
-	 * Get length.
-	 *
-	 * @return string
-	 */
-	public function get_length( $context = 'view' ) {
-		return $this->get_prop( 'length', $context );
-	}
+    /**
+     * Get length.
+     *
+     * @return string
+     */
+    public function get_length( $context = 'view' ) {
+        return $this->get_prop( 'length', $context );
+    }
 
-	/**
-	 * Get height.
-	 *
-	 * @return string
-	 */
-	public function get_height( $context = 'view' ) {
-		return $this->get_prop( 'height', $context );
-	}
+    /**
+     * Get height.
+     *
+     * @return string
+     */
+    public function get_height( $context = 'view' ) {
+        return $this->get_prop( 'height', $context );
+    }
 
-	public function get_name( $context = 'view' ) {
+    public function get_name( $context = 'view' ) {
+		$name = $this->get_prop( 'name', $context );
 
-		if ( 'view' === $context && ( $item = $this->get_order_item() ) ) {
-			return $item->get_name();
-		}
+        if ( 'view' === $context && empty( $name ) && ( $item = $this->get_order_item() ) ) {
+            $name = $item->get_name();
+        }
 
-		return $this->get_prop( 'name', $context );
-	}
+        return $name;
+    }
 
 	public function get_hs_code( $context = 'view' ) {
 		$legacy = $this->get_meta( '_dhl_hs_code', $context );
@@ -563,13 +564,13 @@ class ShipmentItem extends WC_Data {
 		$this->set_prop( 'height', '' === $height ? '' : wc_format_decimal( $height ) );
 	}
 
-	public function get_dimensions() {
-		return array(
-			'length' => $this->get_length(),
-			'width'  => $this->get_width(),
-			'height' => $this->get_height(),
-		);
-	}
+    public function get_dimensions( $context = 'view' ) {
+        return array(
+            'length' => $this->get_length( $context ),
+            'width'  => $this->get_width( $context ),
+            'height' => $this->get_height( $context ),
+        );
+    }
 
 	public function set_quantity( $quantity ) {
 		$this->set_prop( 'quantity', absint( $quantity ) );

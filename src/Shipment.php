@@ -673,6 +673,14 @@ abstract class Shipment extends WC_Data {
 		return wc_format_decimal( array_sum( $this->get_item_weights() ) );
 	}
 
+	public function get_content_dimensions() {
+		return array(
+			'length' => $this->get_content_length(),
+			'width'  => $this->get_content_width(),
+			'height' => $this->get_content_height(),
+		);
+	}
+
 	/**
 	 * Returns the calculated length for included items.
 	 *
@@ -1460,46 +1468,46 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @return null|string
 	 */
-	protected function get_address_prop( $prop, $context = 'view' ) {
-		$value = null;
+    protected function get_address_prop( $prop, $context = 'view' ) {
+        $value = null;
 
-		if ( isset( $this->changes['address'][ $prop ] ) || isset( $this->data['address'][ $prop ] ) ) {
-			$value = isset( $this->changes['address'][ $prop ] ) ? $this->changes['address'][ $prop ] : $this->data['address'][ $prop ];
+        if ( isset( $this->changes['address'][ $prop ] ) || isset( $this->data['address'][ $prop ] ) ) {
+            $value = isset( $this->changes['address'][ $prop ] ) ? $this->changes['address'][ $prop ] : $this->data['address'][ $prop ];
 
-			if ( 'view' === $context ) {
-				/**
-				 * Filter to adjust a Shipment's shipping address property e.g. first_name.
-				 *
-				 * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
-				 * unique hook for a shipment type. `$prop` refers to the actual address property e.g. first_name.
-				 *
-				 * Example hook name: woocommerce_gzd_shipment_get_address_first_name
-				 *
-				 * @param string                                   $value The address property value.
-				 * @param Shipment $this The shipment object.
-				 *
-				 * @since 3.0.0
-				 * @package Vendidero/Germanized/Shipments
-				 */
-				$value = apply_filters( "{$this->get_hook_prefix()}address_{$prop}", $value, $this );
-			}
-		}
+            if ( 'view' === $context ) {
+	            /**
+	             * Filter to adjust a Shipment's shipping address property e.g. first_name.
+	             *
+	             * The dynamic portion of this hook, `$this->get_hook_prefix()` is used to construct a
+	             * unique hook for a shipment type. `$prop` refers to the actual address property e.g. first_name.
+	             *
+	             * Example hook name: woocommerce_gzd_shipment_get_address_first_name
+	             *
+	             * @param string                                   $value The address property value.
+	             * @param Shipment $this The shipment object.
+	             *
+	             * @since 3.0.0
+	             * @package Vendidero/Germanized/Shipments
+	             */
+                $value = apply_filters( "{$this->get_hook_prefix()}address_{$prop}", $value, $this );
+            }
+        }
 
-		return $value;
-	}
+        return $value;
+    }
 
-	/**
-	 * Returns dimensions.
-	 *
-	 * @return string|array
-	 */
-	public function get_dimensions() {
-		return array(
-			'length' => $this->get_length(),
-			'width'  => $this->get_width(),
-			'height' => $this->get_height(),
-		);
-	}
+    /**
+     * Returns dimensions.
+     *
+     * @return string|array
+     */
+    public function get_dimensions( $context = 'view' ) {
+        return array(
+            'length' => $this->get_length( $context ),
+            'width'  => $this->get_width( $context ),
+            'height' => $this->get_height( $context ),
+        );
+    }
 
 	/**
 	 * Returns dimensions.

@@ -21,6 +21,8 @@ class ShipmentHelper {
 
 	/**
 	 * Create simple shipment.
+	 *
+	 * @return \Vendidero\Germanized\Shipments\Shipment|\WP_Error
 	 */
 	public static function create_simple_shipment( $props = array(), $items = array() ) {
 
