@@ -1,0 +1,64 @@
+---
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      versionName:
+        description: 'Version (ie 5.5.0)'
+        required: true
+jobs:
+  createrelease:
+    name: Create release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+      - name: Create release branch
+        run: git checkout -b release/v${{ github.event.inputs.versionName }}
+      - name: Initialize mandatory git config
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email noreply@github.com
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          tools: composer
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, mysql, mysqli, pdo_mysql, bcmath, soap, intl, gd, exif, iconv, imagick
+          ini-values: post_max_size=256M, short_open_tag=On #optional, setup php.ini configuration
+          coverage: xdebug #optional, setup coverage driver
+      - name: Composer install
+        run: composer install --no-dev && composer dump-autoload
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+      - name: Build Project
+        run: |
+          npm install
+          npm run build
+      - name: Commit build
+        id: make-commit
+        run: |
+          git add vendor/. --force
+          git add .
+          git commit -m "Adding /vendor directory to release" --no-verify
+          git add assets/. --force
+          git add .
+          git diff-index --quiet HEAD || git commit -m 'Adding /assets directory with compiled and minified files to release' --no-verify
+      - name: Push new branch
+        run: git push origin release/v${{ github.event.inputs.versionName }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.versionName }}
+          release_name: v${{ github.event.inputs.versionName }}
+          body: ${{ github.event.inputs.versionName }}
+          draft: false
+          prerelease: false
+          commitish: release/v${{ github.event.inputs.versionName }}
+      - name: Remove branch
+        run: git checkout main && git branch -D release/v${{ github.event.inputs.versionName }} && git push origin --delete release/v${{ github.event.inputs.versionName }}
