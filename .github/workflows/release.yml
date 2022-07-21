@@ -27,7 +27,7 @@ jobs:
         id: increase_version
         run: |
           CUR_V=${{ steps.last_release.outputs.tag_name }}
-          LAST_VERSION="${CUR_V/v}"
+          LAST_VERSION=$(sed 's/[^0-9.]//g' <<< "$CUR_V")
           echo "Latest version -> $LAST_VERSION"
           NEXT_VERSION=$(echo $LAST_VERSION | awk -F. -v OFS=. '{$NF += 1 ; print}')
           echo ::set-output name=version::$NEXT_VERSION
@@ -42,26 +42,20 @@ jobs:
             echo ::set-output name=version::${{ github.event.inputs.versionName }}
           fi
       - name: Maybe bump version
+        id: "bump_version"
         run: |
           # make file runnable, might not be necessary
           chmod +x "bin/bump-version.sh"
-          bin/bump-version.sh -s -v ${{ steps.set_version.outputs.version }}
+          echo "::set-output name=VERSION::$(bin/bump-version.sh -s -v ${{ steps.set_version.outputs.version }})"
+      - name: Validate version
+        run: echo "Next release version will be -> ${{ steps.bump_version.outputs.VERSION }}"
       - name: Commit version
         id: commit_version
         run: |
           git add .
           git diff-index --quiet HEAD || git commit -m 'Version bump' --no-verify && git push -f
-      - name: Retrieve current version from package.json
-        # id must be specified to retrieve the output of the step
-        id: version_step
-        uses: michmich112/extract-version@main
-        with:
-          version-file: "package.json"
-          schema: major.minor.build
-      - name: Validate version
-        run: echo "Next release version will be -> ${{ steps.version_step.outputs.version }}"
       - name: Create release branch
-        run: git checkout -b release/v${{ steps.version_step.outputs.version }}
+        run: git checkout -b release/v${{ steps.bump_version.outputs.VERSION }}
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -90,21 +84,21 @@ jobs:
           git add .
           git diff-index --quiet HEAD || git commit -m 'Adding /assets directory with compiled and minified files to release' --no-verify
       - name: Push new branch
-        run: git push origin release/v${{ steps.version_step.outputs.version }}
+        run: git push origin release/v${{ steps.bump_version.outputs.VERSION }}
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ steps.version_step.outputs.version }}
-          release_name: ${{ steps.version_step.outputs.version }}
-          body: "Release of version ${{ steps.version_step.outputs.version }}. See readme.txt for details."
+          tag_name: v${{ steps.bump_version.outputs.VERSION }}
+          release_name: ${{ steps.bump_version.outputs.VERSION }}
+          body: "Release of version ${{ steps.bump_version.outputs.VERSION }}. See readme.txt for details."
           draft: false
           prerelease: false
-          commitish: release/v${{ steps.version_step.outputs.version }}
+          commitish: release/v${{ steps.bump_version.outputs.VERSION }}
       - name: Remove branch
-        run: git checkout master && git branch -D release/v${{ steps.version_step.outputs.version }} && git push origin --delete release/v${{ steps.version_step.outputs.version }}
+        run: git checkout master && git branch -D release/v${{ steps.bump_version.outputs.VERSION }} && git push origin --delete release/v${{ steps.bump_version.outputs.VERSION }}
     env:
       NODE_VERSION: "12.x"
       APP_VERSION: "1.0.O"
