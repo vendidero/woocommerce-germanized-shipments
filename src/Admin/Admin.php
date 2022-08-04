@@ -64,7 +64,58 @@ class Admin {
 
 		// Observe base country setting
 		add_action( 'woocommerce_settings_save_general', array( __CLASS__, 'observe_base_country_setting' ), 100 );
+
+        // Order shipping status
+		add_filter( 'manage_shop_order_posts_columns', array( __CLASS__, 'register_order_shipping_status_column' ), 20 );
+		add_filter( 'default_hidden_columns', array( __CLASS__, 'default_hidden_order_columns' ), 20, 2 );
+		add_action( 'manage_shop_order_posts_custom_column', array( __CLASS__, 'render_order_columns' ), 20, 2 );
 	}
+
+    public static function render_order_columns( $column, $post_id ) {
+        if ( 'shipping_status' === $column ) {
+	        global $the_order;
+
+	        if ( ! $the_order || $the_order->get_id() !== $post_id ) {
+		        $the_order = wc_get_order( $post_id );
+	        }
+
+            if ( $shipment_order = wc_gzd_get_shipment_order( $the_order ) ) {
+                $shipping_status = $shipment_order->get_shipping_status();
+
+                echo '<span class="order-shipping-status status-' . esc_attr( $shipping_status ) . '">' . esc_html( wc_gzd_get_shipment_order_shipping_status_name( $shipping_status ) ) . '</span>';
+            }
+        }
+    }
+
+    public static function default_hidden_order_columns( $hidden, $screen ) {
+	    if ( isset( $screen->id ) && 'edit-shop_order' === $screen->id ) {
+		    $hidden = array_merge( $hidden, array(
+                'shipping_status'
+            ) );
+	    }
+
+        return $hidden;
+    }
+
+    public static function register_order_shipping_status_column( $columns ) {
+        $new_columns  = array();
+        $added_column = false;
+
+        foreach( $columns as $column_name => $title ) {
+            if ( ! $added_column && ( 'shipping_address' === $column_name || 'wc_actions' === $column_name ) ) {
+	            $new_columns['shipping_status']  = _x( 'Shipping', 'shipments', 'woocommerce-germanized-shipments' );
+	            $added_column = true;
+            }
+
+	        $new_columns[ $column_name ] = $title;
+        }
+
+        if ( ! $added_column ) {
+	        $new_columns['shipping_status']  = _x( 'Shipping', 'shipments', 'woocommerce-germanized-shipments' );
+        }
+
+        return $new_columns;
+    }
 
 	/**
 	 * In case the shipper/return country is set to AF (or DE with missing state) due to a bug in Woo, make sure

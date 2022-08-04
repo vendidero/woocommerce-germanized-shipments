@@ -213,7 +213,6 @@ table.wc-gzd-shipping-providers {
 }
 
 .woocommerce_page_wc-gzd-shipments, .woocommerce_page_wc-gzd-return-shipments {
-
   .tablenav {
     .actions {
       overflow: visible;
@@ -509,6 +508,26 @@ table.wc-gzd-shipping-providers {
             }
           }
         }
+      }
+    }
+  }
+}
+
+.post-type-shop_order, .woocommerce_page_wc-orders {
+  .wp-list-table {
+    .column-shipping_status {
+      width: 12ch;
+    }
+
+    .shipping_status {
+      .order-shipping-status {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 13px;
+        line-height: 2.5em;
+        display: inline-flex;
+        max-width: 100%;
+        padding: 0 1em;
       }
     }
   }
