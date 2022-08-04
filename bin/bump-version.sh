@@ -1,5 +1,9 @@
 #!/bin/bash
 
+MAIN_PLUGIN_FILE="woocommerce-germanized-shipments.php"
+PACKAGE_JSON_FILE=package.json
+PACKAGE_FILE=src/Package.php
+
 # Allow passing a custom version string - defaults to "next"
 SMOOTH_BUMP=false
 VERSION=''
@@ -17,9 +21,17 @@ while getopts 'sv:' flag; do
   esac
 done
 
-LAST_PACKAGE_JSON=$(perl -ne 'print $1 while /\s*"version":\s\"(\d+\.\d+\.\d+)/sg' package.json)
-LAST_PACKAGE=$(perl -ne 'print $1 while /\s*const\sVERSION\s=\s'\''(\d+\.\d+\.\d+)/sg' src/Package.php)
-LAST_MAIN_FILE=$(perl -ne 'print $1 while /\s*\*\sVersion:\s(\d+\.\d+\.\d+)/sg' woocommerce-germanized-shipments.php)
+LAST_MAIN_FILE=$(perl -ne 'print $1 while /\s*\*\sVersion:\s(\d+\.\d+\.\d+)/sg' $MAIN_PLUGIN_FILE)
+LAST_PACKAGE_JSON=$LAST_MAIN_FILE
+LAST_PACKAGE=$LAST_MAIN_FILE
+
+if test -f "$PACKAGE_JSON_FILE"; then
+    LAST_PACKAGE_JSON=$(perl -ne 'print $1 while /\s*"version":\s\"(\d+\.\d+\.\d+)/sg' $PACKAGE_JSON_FILE)
+fi
+
+if test -f "$PACKAGE_FILE"; then
+    LAST_PACKAGE=$(perl -ne 'print $1 while /\s*const\sVERSION\s=\s'\''(\d+\.\d+\.\d+)/sg' $PACKAGE_FILE)
+fi
 
 # Store the latest version detected in the actual files
 LATEST=$(printf "$LAST_PACKAGE_JSON\n$LAST_PACKAGE\n$LAST_MAIN_FILE" | sort -V -r | head -1)
@@ -42,9 +54,15 @@ NEW_VERSION=$(printf "$NEXT_VERSION\n$VERSION" | sort -V -r | head -1)
 
 export NEW_VERSION
 
-perl -pe '/^\s*"version":/ and s/(\d+\.\d+\.\d+)/$2 . ("$ENV{'NEW_VERSION'}")/e' -i package.json
-perl -pe '/^\s*const\sVERSION\s=\s/ and s/(\d+\.\d+\.\d+)/$2 . ("$ENV{'NEW_VERSION'}")/e' -i src/Package.php
-perl -pe '/^\s*\*\sVersion:/ and s/(\d+\.\d+\.\d+)/$2 . ("$ENV{'NEW_VERSION'}")/e' -i woocommerce-germanized-shipments.php
+if test -f "$PACKAGE_JSON_FILE"; then
+    perl -pe '/^\s*"version":/ and s/(\d+\.\d+\.\d+)/$2 . ("$ENV{'NEW_VERSION'}")/e' -i $PACKAGE_JSON_FILE
+fi
+
+if test -f "$PACKAGE_FILE"; then
+    perl -pe '/^\s*const\sVERSION\s=\s/ and s/(\d+\.\d+\.\d+)/$2 . ("$ENV{'NEW_VERSION'}")/e' -i $PACKAGE_FILE
+fi
+
+perl -pe '/^\s*\*\sVersion:/ and s/(\d+\.\d+\.\d+)/$2 . ("$ENV{'NEW_VERSION'}")/e' -i $MAIN_PLUGIN_FILE
 
 # Output the current package.json version including appendices
-echo $(perl -ne 'print $1 while /\s*"version":\s\"(\d+\.\d+\.\d+(-(beta|alpha|dev))?)/sg' package.json)
+echo $(perl -ne 'print $1 while /\s*\*\sVersion:\s(\d+\.\d+\.\d+(-(beta|alpha|dev))?)/sg' $MAIN_PLUGIN_FILE)

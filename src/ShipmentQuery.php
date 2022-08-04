@@ -334,7 +334,7 @@ class ShipmentQuery extends WC_Object_Query {
 
 			if ( ! $search_columns ) {
 				if ( is_numeric( $search ) ) {
-					$search_columns = array( 'shipment_id', 'shipment_order_id' );
+					$search_columns = array( 'shipment_id', 'shipment_order_id', 'shipment_tracking_id' );
 				} elseif ( strlen( $search ) === 2 ) {
 					$search_columns = array( 'shipment_country' );
 				} else {
