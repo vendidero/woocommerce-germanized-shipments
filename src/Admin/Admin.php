@@ -67,7 +67,6 @@ class Admin {
 
 		// Order shipping status
 		add_filter( 'manage_shop_order_posts_columns', array( __CLASS__, 'register_order_shipping_status_column' ), 20 );
-		add_filter( 'default_hidden_columns', array( __CLASS__, 'default_hidden_order_columns' ), 20, 2 );
 		add_action( 'manage_shop_order_posts_custom_column', array( __CLASS__, 'render_order_columns' ), 20, 2 );
 	}
 
@@ -90,19 +89,6 @@ class Admin {
 				}
 			}
 		}
-	}
-
-	public static function default_hidden_order_columns( $hidden, $screen ) {
-		if ( isset( $screen->id ) && 'edit-shop_order' === $screen->id ) {
-			$hidden = array_merge(
-				$hidden,
-				array(
-					'shipping_status',
-				)
-			);
-		}
-
-		return $hidden;
 	}
 
 	public static function register_order_shipping_status_column( $columns ) {
