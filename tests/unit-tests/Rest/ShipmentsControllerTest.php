@@ -55,6 +55,18 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 	}
 
 	/**
+	 * Tests reading one shipment from rest api.
+	 */
+	function test_get_shipment_unauthenticated() {
+		$shipment_initial = ShipmentHelper::create_simple_shipment();
+
+		$response = $this->server->dispatch( new WP_REST_Request( 'GET', '/wc/v3/shipments/' . $shipment_initial->get_id() ) );
+		$shipment_response = $response->get_data();
+
+		$this->assertEquals( 401, $response->get_status() );
+	}
+
+	/**
 	 * Tests updating one shipment via rest api
 	 */
 	public function test_update_shipment() {
