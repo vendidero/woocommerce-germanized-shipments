@@ -31,7 +31,7 @@ class Helper {
 	 * Ensures only one instance of the Shipping Provider Helper is loaded or can be loaded.
 	 *
 	 * @return Helper Main instance
-	 *@since 1.0.5
+	 * @since 1.0.5
 	 */
 	public static function instance() {
 		if ( is_null( self::$_instance ) ) {
