@@ -418,6 +418,10 @@ class ShipmentsController extends \WC_REST_Controller {
 			$shipment->set_packaging_weight( wc_clean( wp_unslash( $request['order_id'] ) ) );
 		}
 
+		if ( isset( $request['tracking_id'] ) ) {
+			$shipment->set_tracking_id( wc_clean( wp_unslash( $request['tracking_id'] ) ) );
+		}
+
 		if ( isset( $request['dimensions'] ) ) {
 			if ( isset( $request['dimensions']['length'] ) ) {
 				$shipment->set_length( wc_clean( wp_unslash( $request['dimensions']['length'] ) ) );
@@ -430,8 +434,16 @@ class ShipmentsController extends \WC_REST_Controller {
 			}
 		}
 
+		if ( isset( $request['dimension_unit'] ) ) {
+			$shipment->set_dimension_unit( wc_clean( wp_unslash( $request['dimension_unit'] ) ) );
+		}
+
 		if ( isset( $request['weight'] ) ) {
 			$shipment->set_weight( wc_clean( wp_unslash( $request['weight'] ) ) );
+		}
+
+		if ( isset( $request['weight_unit'] ) ) {
+			$shipment->set_weight_unit( wc_clean( wp_unslash( $request['weight_unit'] ) ) );
 		}
 
 		if ( isset( $request['address'] ) && is_array( $request['address'] ) ) {
@@ -440,6 +452,14 @@ class ShipmentsController extends \WC_REST_Controller {
 			if ( isset( $request['address']['country'] ) ) {
 				$shipment->set_country( wc_clean( wp_unslash( $request['address']['country'] ) ) );
 			}
+		}
+
+		if ( isset( $request['total'] ) ) {
+			$shipment->set_total( wc_clean( wp_unslash( $request['total'] ) ) );
+		}
+
+		if ( isset( $request['subtotal'] ) ) {
+			$shipment->set_subtotal( wc_clean( wp_unslash( $request['subtotal'] ) ) );
 		}
 
 		if ( isset( $request['additional_total'] ) ) {
