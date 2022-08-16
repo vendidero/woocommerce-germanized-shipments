@@ -97,7 +97,7 @@ class Admin {
 
 		foreach ( $columns as $column_name => $title ) {
 			if ( ! $added_column && ( 'shipping_address' === $column_name || 'wc_actions' === $column_name ) ) {
-				$new_columns['shipping_status'] = _x( 'Shipping', 'shipments', 'woocommerce-germanized-shipments' );
+				$new_columns['shipping_status'] = _x( 'Shipping Status', 'shipments-order-column-name', 'woocommerce-germanized-shipments' );
 				$added_column                   = true;
 			}
 
@@ -105,7 +105,7 @@ class Admin {
 		}
 
 		if ( ! $added_column ) {
-			$new_columns['shipping_status'] = _x( 'Shipping', 'shipments', 'woocommerce-germanized-shipments' );
+			$new_columns['shipping_status'] = _x( 'Shipping Status', 'shipments-order-column-name', 'woocommerce-germanized-shipments' );
 		}
 
 		return $new_columns;
