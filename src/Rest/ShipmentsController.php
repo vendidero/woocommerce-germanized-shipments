@@ -415,7 +415,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		}
 
 		if ( isset( $request['packaging_weight'] ) ) {
-			$shipment->set_packaging_weight( wc_clean( wp_unslash( $request['order_id'] ) ) );
+			$shipment->set_packaging_weight( wc_clean( wp_unslash( $request['packaging_weight'] ) ) );
 		}
 
 		if ( isset( $request['tracking_id'] ) ) {
