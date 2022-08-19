@@ -79,7 +79,37 @@ class Report {
 	}
 
 	public function get_url() {
-		return admin_url( 'admin.php?page=wc-gzd-shipments&packaging-report=' . $this->get_id() );
+		return admin_url( 'admin.php?page=shipment-packaging-report&report=' . $this->get_id() );
+	}
+
+	public function get_delete_link() {
+		return add_query_arg(
+			array(
+				'action'    => 'wc_gzd_shipments_packaging_delete_report',
+				'report_id' => $this->get_id(),
+			),
+			wp_nonce_url( admin_url( 'admin-post.php' ), 'wc_gzd_shipments_packaging_delete_report' )
+		);
+	}
+
+	public function get_refresh_link() {
+		return add_query_arg(
+			array(
+				'action'    => 'wc_gzd_shipments_packaging_refresh_report',
+				'report_id' => $this->get_id(),
+			),
+			wp_nonce_url( admin_url( 'admin-post.php' ), 'wc_gzd_shipments_packaging_refresh_report' )
+		);
+	}
+
+	public function get_cancel_link() {
+		return add_query_arg(
+			array(
+				'action'    => 'wc_gzd_shipments_packaging_cancel_report',
+				'report_id' => $this->get_id(),
+			),
+			wp_nonce_url( admin_url( 'admin-post.php' ), 'wc_gzd_shipments_packaging_cancel_report' )
+		);
 	}
 
 	public function get_type() {
@@ -215,7 +245,7 @@ class Report {
 			$weight = $this->args['packaging'][ "$packaging_id" ]['weight_in_kg'];
 		}
 
-		$weight = wc_get_weight( $this->args['totals']['weight_in_kg'], $unit, 'kg' );
+		$weight = wc_get_weight( $weight, $unit, 'kg' );
 
 		return $this->maybe_round( $weight, $round );
 	}

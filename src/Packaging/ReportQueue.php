@@ -35,7 +35,7 @@ class ReportQueue {
 
 			$queue->schedule_single(
 				time() + 10,
-				'woocommerce_gzd_shipments_packaging_' . $generator->get_id(),
+				self::get_hook_name( $generator->get_id() ),
 				array( 'args' => $queue_args ),
 				'woocommerce_gzd_shipments'
 			);
@@ -70,13 +70,12 @@ class ReportQueue {
 		);
 
 		if ( $queue = self::get_queue() ) {
-
-			if ( $next_date = $queue->get_next( 'woocommerce_gzd_shipments_packaging_' . $report_id ) ) {
+			if ( $next_date = $queue->get_next( self::get_hook_name( $report_id ) ) ) {
 				$details['next_date'] = $next_date;
 			}
 
 			$search_args = array(
-				'hook'     => 'woocommerce_gzd_shipments_packaging_' . $report_id,
+				'hook'     => self::get_hook_name( $report_id ),
 				'status'   => \ActionScheduler_Store::STATUS_RUNNING,
 				'order'    => 'DESC',
 				'per_page' => 1,
@@ -93,7 +92,7 @@ class ReportQueue {
 			}
 
 			/**
-			 *  Last resort: Search for completed (e.g. if no pending and no running are found - must have been completed)
+			 * Last resort: Search for completed (e.g. if no pending and no running are found - must have been completed)
 			 */
 			if ( empty( $results ) ) {
 				$search_args['status'] = \ActionScheduler_Store::STATUS_COMPLETE;
@@ -121,7 +120,7 @@ class ReportQueue {
 
 	public static function get_shipment_statuses() {
 		$statuses = array_keys( wc_gzd_get_shipment_statuses() );
-		$statuses = array_diff( $statuses, array( 'gzd-draft' ) );
+		$statuses = array_diff( $statuses, array( 'gzd-draft', 'gzd-requested' ) );
 
 		return apply_filters( 'woocommerce_gzd_shipments_packaging_report_valid_statuses', $statuses );
 	}
@@ -161,7 +160,7 @@ class ReportQueue {
 		/**
 		 * Cancel outstanding events and queue new.
 		 */
-		$queue->cancel_all( 'woocommerce_gzd_shipments_packaging_' . $id );
+		$queue->cancel_all( self::get_hook_name( $id ) );
 	}
 
 	public static function get_queue() {
@@ -171,11 +170,19 @@ class ReportQueue {
 	public static function is_running( $id ) {
 		$running = self::get_reports_running();
 
-		if ( in_array( $id, $running, true ) && self::get_queue()->get_next( 'woocommerce_gzd_shipments_packaging_' . $id ) ) {
+		if ( in_array( $id, $running, true ) && self::get_queue()->get_next( self::get_hook_name( $id ) ) ) {
 			return true;
 		}
 
 		return false;
+	}
+
+	public static function get_hook_name( $id ) {
+		if ( ! strstr( $id, 'woocommerce_gzd_shipments_' ) ) {
+			$id = 'woocommerce_gzd_shipments_' . $id;
+		}
+
+		return $id;
 	}
 
 	public static function next( $type, $args ) {
@@ -194,13 +201,13 @@ class ReportQueue {
 			// Increase offset
 			$new_args['offset'] = (int) $new_args['offset'] + (int) $new_args['limit'];
 
-			$queue->cancel_all( 'woocommerce_gzd_shipments_packaging_' . $generator->get_id() );
+			$queue->cancel_all( self::get_hook_name( $generator->get_id() ) );
 
 			Package::log( sprintf( 'Starting new queue: %s', wc_print_r( $new_args, true ) ) );
 
 			$queue->schedule_single(
 				time() + 10,
-				'woocommerce_gzd_shipments_packaging_' . $generator->get_id(),
+				self::get_hook_name( $generator->get_id() ),
 				array( 'args' => $new_args ),
 				'woocommerce_gzd_shipments'
 			);
@@ -219,7 +226,7 @@ class ReportQueue {
 		/**
 		 * Cancel outstanding events.
 		 */
-		$queue->cancel_all( 'woocommerce_gzd_shipments_packaging_' . $generator->get_id() );
+		$queue->cancel_all( self::get_hook_name( $generator->get_id() ) );
 
 		$report = $generator->complete();
 		$status = 'failed';
@@ -241,7 +248,7 @@ class ReportQueue {
 			update_option( 'woocommerce_gzd_shipments_packaging_reports_running', $reports_running, false );
 
 			if ( $queue = self::get_queue() ) {
-				$queue->cancel_all( 'woocommerce_gzd_shipments_packaging_' . $report_id );
+				$queue->cancel_all( self::get_hook_name( $report_id ) );
 			}
 
 			/**

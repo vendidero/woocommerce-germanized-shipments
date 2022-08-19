@@ -15,7 +15,7 @@ class ReportHelper {
 			$type = $data['type'];
 
 			add_action(
-				'woocommerce_gzd_shipments_packaging_' . $id,
+				ReportQueue::get_hook_name( $id ),
 				function( $args ) use ( $type ) {
 					ReportQueue::next( $type, $args );
 				},
@@ -27,6 +27,117 @@ class ReportHelper {
 		// Setup or cancel recurring tasks
 		add_action( 'init', array( __CLASS__, 'setup_recurring_actions' ), 10 );
 		add_action( 'woocommerce_gzd_shipments_daily_cleanup', array( __CLASS__, 'cleanup' ), 10 );
+
+		add_action( 'admin_menu', array( __CLASS__, 'add_menu' ), 25 );
+
+		foreach ( array( 'delete', 'refresh', 'cancel' ) as $action ) {
+			add_action( 'admin_post_wc_gzd_shipments_packaging_' . $action . '_report', array( __CLASS__, $action . '_report' ) );
+		}
+	}
+
+	public static function add_menu() {
+		add_submenu_page( 'woocommerce', _x( 'Packaging Report', 'shipments', 'woocommerce-germanized-shipments' ), _x( 'Packaging Report', 'shipments', 'woocommerce-germanized-shipments' ), 'manage_woocommerce', 'shipment-packaging-report', array( __CLASS__, 'render_report' ) );
+	}
+
+	/**
+	 * @param Report $report
+	 *
+	 * @return array[]
+	 */
+	public static function get_report_actions( $report ) {
+		$actions = array(
+			'view'       => array(
+				'url'   => $report->get_url(),
+				'title' => _x( 'View', 'shipments-packaging-report', 'woocommerce-germanized-shipments' ),
+			),
+			'refresh'    => array(
+				'url'   => $report->get_refresh_link(),
+				'title' => _x( 'Refresh', 'shipments-packaging-report', 'woocommerce-germanized-shipments' ),
+			),
+			'delete'     => array(
+				'url'   => $report->get_delete_link(),
+				'title' => _x( 'Delete', 'shipments-packaging-report', 'woocommerce-germanized-shipments' ),
+			),
+		);
+
+		if ( 'completed' !== $report->get_status() ) {
+			$actions['cancel']          = $actions['delete'];
+			$actions['cancel']['title'] = _x( 'Cancel', 'shipments-packaging-report', 'woocommerce-germanized-shipments' );
+
+			unset( $actions['view'] );
+			unset( $actions['refresh'] );
+			unset( $actions['delete'] );
+		}
+
+		return $actions;
+	}
+
+	public static function render_report() {
+		if ( isset( $_GET['report'] ) ) {
+			$report_id = isset( $_GET['report'] ) ? wc_clean( wp_unslash( $_GET['report'] ) ) : false; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+			if ( ! $report_id ) {
+				return;
+			}
+
+			if ( ! $report = self::get_report( $report_id ) ) {
+				return;
+			}
+
+			$columns = array(
+				'packaging' => _x( 'Packaging', 'shipments', 'woocommerce-germanized-shipments' ),
+				'weight'    => _x( 'Weight', 'shipments', 'woocommerce-germanized-shipments' ),
+				'count'     => _x( 'Count', 'shipments', 'woocommerce-germanized-shipments' ),
+			);
+
+			$packaging_ids = $report->get_packaging_ids();
+			$actions       = self::get_report_actions( $report );
+			?>
+			<div class="wrap wc-gzd-shipments-packaging-report packaging-report-<?php echo esc_attr( $report->get_id() ); ?>">
+				<h1 class="wp-heading-inline"><?php echo esc_html( $report->get_title() ); ?></h1>
+
+				<?php foreach ( $actions as $action_type => $action ) :
+					if ( 'view' === $action_type ) {
+						continue;
+					}
+ 					?>
+					<a class="page-title-action button-<?php echo esc_attr( $action_type ); ?>" href="<?php echo esc_url( $action['url'] ); ?>"><?php echo esc_html( $action['title'] ); ?></a>
+				<?php endforeach; ?>
+
+				<?php if ( 'completed' === $report->get_status() ) : ?>
+					<p class="summary"><?php echo esc_html( $report->get_date_start()->date_i18n( wc_date_format() ) ); ?> &ndash; <?php echo esc_html( $report->get_date_end()->date_i18n( wc_date_format() ) ); ?>: <?php echo esc_html( wc_gzd_format_shipment_weight( $report->get_total_weight(), wc_gzd_get_packaging_weight_unit() ) ); ?> (<?php echo esc_html( sprintf( '%d units', $report->get_total_count() ) ); ?>)</p>
+					<hr class="wp-header-end" />
+					<?php if ( ! empty( $packaging_ids ) ) : ?>
+						<table class="wp-list-table widefat fixed striped posts wc-gzd-shipments-packaging-report-details" cellspacing="0">
+							<thead>
+							<tr>
+								<?php foreach ( $columns as $key => $column ) : ?>
+									<th class="wc-gzd-shipments-packaging-report-table-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $column ); ?></th>
+								<?php endforeach; ?>
+							</tr>
+							</thead>
+							<tbody>
+							<?php foreach ( $packaging_ids as $packaging_id ) :
+								$packaging = is_numeric( $packaging_id ) ? wc_gzd_get_packaging( $packaging_id ) : false;
+								?>
+								<tr>
+									<td class="wc-gzd-shipments-packaging-report-table-packaging"><?php echo esc_html( $packaging ? $packaging->get_description() : _x( 'Unknown', 'shipments-packaging-title', 'woocommerce-germanized-shipments' ) ); ?></td>
+									<td class="wc-gzd-shipments-packaging-report-table-weight"><?php echo esc_html( wc_gzd_format_shipment_weight( $report->get_packaging_weight( $packaging_id ), wc_gzd_get_packaging_weight_unit() ) ); ?></td>
+									<td class="wc-gzd-shipments-packaging-report-table-count"><?php echo esc_html( $report->get_packaging_count( $packaging_id ) ); ?></td>
+								</tr>
+							<?php endforeach; ?>
+							</tbody>
+						</table>
+					<?php endif; ?>
+				<?php
+				else :
+					$details = ReportQueue::get_queue_details( $report_id );
+					?>
+					<p class="summary"><?php printf( _x( 'Currently processed %1$s shipments. Next iteration is scheduled for %2$s. <a href="%3$s">Find pending actions</a>', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( $details['shipment_count'] ), ( $details['next_date'] ? esc_html( $details['next_date']->date_i18n( wc_date_format() . ' @ ' . wc_time_format() ) ) : esc_html_x( 'Not yet known', 'shipments', 'woocommerce-germanized-shipments' ) ), esc_url( $details['link'] ) ); ?></p>
+				<?php endif; ?>
+			</div>
+			<?php
+		}
 	}
 
 	public static function cleanup() {
@@ -141,12 +252,15 @@ class ReportHelper {
 	}
 
 	public static function get_report_data( $id ) {
-		$id_parts = explode( '_', $id );
+		$clean_id = str_replace( 'packaging_', '', $id );
+		$clean_id = str_replace( 'woocommerce_gzd_shipments_', '', $clean_id );
+		$id_parts = explode( '_', $clean_id );
+
 		$data     = array(
 			'id'         => $id,
-			'type'       => $id_parts[1],
-			'date_start' => self::string_to_datetime( $id_parts[3] ),
-			'date_end'   => self::string_to_datetime( $id_parts[4] ),
+			'type'       => $id_parts[0],
+			'date_start' => self::string_to_datetime( $id_parts[2] ),
+			'date_end'   => self::string_to_datetime( $id_parts[3] ),
 		);
 
 		return $data;
@@ -276,5 +390,83 @@ class ReportHelper {
 		}
 
 		return false;
+	}
+
+	public static function delete_report() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? wp_unslash( $_GET['_wpnonce'] ) : '', 'wc_gzd_shipments_packaging_delete_report' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			wp_die();
+		}
+
+		$report_id = isset( $_GET['report_id'] ) ? wc_clean( wp_unslash( $_GET['report_id'] ) ) : '';
+
+		if ( ! empty( $report_id ) && ( $report = self::get_report( $report_id ) ) ) {
+			$report->delete();
+
+			$referer = self::get_clean_referer();
+
+			/**
+			 * Do not redirect deleted, refreshed reports back to report details page
+			 */
+			if ( strstr( $referer, '&report=' ) ) {
+				$referer = admin_url( 'admin.php?page=wc-gzd-shipments' );
+			}
+
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'report_deleted' => $report_id ), $referer ) ) );
+			exit();
+		}
+
+		wp_safe_redirect( esc_url_raw( wp_get_referer() ) );
+		exit();
+	}
+
+	protected static function get_clean_referer() {
+		$referer = wp_get_referer();
+
+		return remove_query_arg( array( 'report_created', 'report_deleted', 'report_restarted', 'report_cancelled' ), $referer );
+	}
+
+	public static function refresh_report() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? wp_unslash( $_GET['_wpnonce'] ) : '', 'wc_gzd_shipments_packaging_refresh_report' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			wp_die();
+		}
+
+		$report_id = isset( $_GET['report_id'] ) ? wc_clean( wp_unslash( $_GET['report_id'] ) ) : '';
+
+		if ( ! empty( $report_id ) && ( $report = self::get_report( $report_id ) ) ) {
+			ReportQueue::start( $report->get_type(), $report->get_date_start(), $report->get_date_end() );
+
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'report_restarted' => $report_id ), self::get_clean_referer() ) ) );
+			exit();
+		}
+
+		wp_safe_redirect( esc_url_raw( wp_get_referer() ) );
+		exit();
+	}
+
+	public static function cancel_report() {
+		if ( ! current_user_can( 'manage_woocommerce' ) || ! wp_verify_nonce( isset( $_GET['_wpnonce'] ) ? wp_unslash( $_GET['_wpnonce'] ) : '', 'wc_gzd_shipments_packaging_cancel_report' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			wp_die();
+		}
+
+		$report_id = isset( $_GET['report_id'] ) ? wc_clean( wp_unslash( $_GET['report_id'] ) ) : '';
+
+		if ( ! empty( $report_id ) && ReportQueue::is_running( $report_id ) ) {
+			ReportQueue::cancel( $report_id );
+
+			$referer = self::get_clean_referer();
+
+			/**
+			 * Do not redirect deleted, refreshed reports back to report details page
+			 */
+			if ( strstr( $referer, '&report=' ) ) {
+				$referer = admin_url( 'admin.php?page=wc-gzd-shipments' );
+			}
+
+			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'report_cancelled' => $report_id ), $referer ) ) );
+			exit();
+		}
+
+		wp_safe_redirect( esc_url_raw( wp_get_referer() ) );
+		exit();
 	}
 }

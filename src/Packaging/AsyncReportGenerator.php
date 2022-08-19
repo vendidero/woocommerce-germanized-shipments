@@ -12,7 +12,7 @@ class AsyncReportGenerator {
 
 	protected $type = '';
 
-	public function __construct( $type = 'quarterly', $args = array() ) {
+	public function __construct( $type = 'yearly', $args = array() ) {
 		$this->type    = $type;
 		$default_end   = new \WC_DateTime();
 		$default_start = new \WC_DateTime( 'now' );
