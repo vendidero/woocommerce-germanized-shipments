@@ -28,15 +28,20 @@ class ReportHelper {
 		add_action( 'init', array( __CLASS__, 'setup_recurring_actions' ), 10 );
 		add_action( 'woocommerce_gzd_shipments_daily_cleanup', array( __CLASS__, 'cleanup' ), 10 );
 
-		add_action( 'admin_menu', array( __CLASS__, 'add_menu' ), 25 );
+		add_action( 'admin_menu', array( __CLASS__, 'add_page' ), 25 );
+		add_action( 'admin_head', array( __CLASS__, 'hide_page_from_menu' ) );
 
 		foreach ( array( 'delete', 'refresh', 'cancel' ) as $action ) {
 			add_action( 'admin_post_wc_gzd_shipments_packaging_' . $action . '_report', array( __CLASS__, $action . '_report' ) );
 		}
 	}
 
-	public static function add_menu() {
+	public static function add_page() {
 		add_submenu_page( 'woocommerce', _x( 'Packaging Report', 'shipments', 'woocommerce-germanized-shipments' ), _x( 'Packaging Report', 'shipments', 'woocommerce-germanized-shipments' ), 'manage_woocommerce', 'shipment-packaging-report', array( __CLASS__, 'render_report' ) );
+	}
+
+	public static function hide_page_from_menu() {
+		remove_submenu_page( 'woocommerce', 'shipment-packaging-report' );
 	}
 
 	/**
@@ -46,15 +51,15 @@ class ReportHelper {
 	 */
 	public static function get_report_actions( $report ) {
 		$actions = array(
-			'view'       => array(
+			'view'    => array(
 				'url'   => $report->get_url(),
 				'title' => _x( 'View', 'shipments-packaging-report', 'woocommerce-germanized-shipments' ),
 			),
-			'refresh'    => array(
+			'refresh' => array(
 				'url'   => $report->get_refresh_link(),
 				'title' => _x( 'Refresh', 'shipments-packaging-report', 'woocommerce-germanized-shipments' ),
 			),
-			'delete'     => array(
+			'delete'  => array(
 				'url'   => $report->get_delete_link(),
 				'title' => _x( 'Delete', 'shipments-packaging-report', 'woocommerce-germanized-shipments' ),
 			),
@@ -73,7 +78,7 @@ class ReportHelper {
 	}
 
 	public static function render_report() {
-		if ( isset( $_GET['report'] ) ) {
+		if ( isset( $_GET['report'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$report_id = isset( $_GET['report'] ) ? wc_clean( wp_unslash( $_GET['report'] ) ) : false; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 			if ( ! $report_id ) {
@@ -96,11 +101,12 @@ class ReportHelper {
 			<div class="wrap wc-gzd-shipments-packaging-report packaging-report-<?php echo esc_attr( $report->get_id() ); ?>">
 				<h1 class="wp-heading-inline"><?php echo esc_html( $report->get_title() ); ?></h1>
 
-				<?php foreach ( $actions as $action_type => $action ) :
+				<?php
+				foreach ( $actions as $action_type => $action ) :
 					if ( 'view' === $action_type ) {
 						continue;
 					}
- 					?>
+					?>
 					<a class="page-title-action button-<?php echo esc_attr( $action_type ); ?>" href="<?php echo esc_url( $action['url'] ); ?>"><?php echo esc_html( $action['title'] ); ?></a>
 				<?php endforeach; ?>
 
@@ -117,11 +123,12 @@ class ReportHelper {
 							</tr>
 							</thead>
 							<tbody>
-							<?php foreach ( $packaging_ids as $packaging_id ) :
+							<?php
+							foreach ( $packaging_ids as $packaging_id ) :
 								$packaging = is_numeric( $packaging_id ) ? wc_gzd_get_packaging( $packaging_id ) : false;
 								?>
 								<tr>
-									<td class="wc-gzd-shipments-packaging-report-table-packaging"><?php echo esc_html( $packaging ? $packaging->get_description() : _x( 'Unknown', 'shipments-packaging-title', 'woocommerce-germanized-shipments' ) ); ?></td>
+									<td class="wc-gzd-shipments-packaging-report-table-packaging"><?php echo esc_html( ( $packaging && $packaging->get_id() > 0 ? $packaging->get_description() : _x( 'Unknown', 'shipments-packaging-title', 'woocommerce-germanized-shipments' ) ) ); ?></td>
 									<td class="wc-gzd-shipments-packaging-report-table-weight"><?php echo esc_html( wc_gzd_format_shipment_weight( $report->get_packaging_weight( $packaging_id ), wc_gzd_get_packaging_weight_unit() ) ); ?></td>
 									<td class="wc-gzd-shipments-packaging-report-table-count"><?php echo esc_html( $report->get_packaging_count( $packaging_id ) ); ?></td>
 								</tr>
@@ -129,7 +136,7 @@ class ReportHelper {
 							</tbody>
 						</table>
 					<?php endif; ?>
-				<?php
+					<?php
 				else :
 					$details = ReportQueue::get_queue_details( $report_id );
 					?>
@@ -256,7 +263,7 @@ class ReportHelper {
 		$clean_id = str_replace( 'woocommerce_gzd_shipments_', '', $clean_id );
 		$id_parts = explode( '_', $clean_id );
 
-		$data     = array(
+		$data = array(
 			'id'         => $id,
 			'type'       => $id_parts[0],
 			'date_start' => self::string_to_datetime( $id_parts[2] ),
@@ -299,6 +306,14 @@ class ReportHelper {
 		}
 
 		return $reports;
+	}
+
+	public static function get_report_status_title( $status ) {
+		if ( 'completed' === $status ) {
+			return _x( 'Completed', 'shipments-report-status', 'woocommerce-germanized-shipments' );
+		} else {
+			return _x( 'Pending', 'shipments-report-status', 'woocommerce-germanized-shipments' );
+		}
 	}
 
 	/**
@@ -408,7 +423,7 @@ class ReportHelper {
 			 * Do not redirect deleted, refreshed reports back to report details page
 			 */
 			if ( strstr( $referer, '&report=' ) ) {
-				$referer = admin_url( 'admin.php?page=wc-gzd-shipments' );
+				$referer = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=packaging' );
 			}
 
 			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'report_deleted' => $report_id ), $referer ) ) );
@@ -459,7 +474,7 @@ class ReportHelper {
 			 * Do not redirect deleted, refreshed reports back to report details page
 			 */
 			if ( strstr( $referer, '&report=' ) ) {
-				$referer = admin_url( 'admin.php?page=wc-gzd-shipments' );
+				$referer = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=packaging' );
 			}
 
 			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'report_cancelled' => $report_id ), $referer ) ) );

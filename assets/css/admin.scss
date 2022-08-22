@@ -183,6 +183,21 @@ table.wc-gzd-shipping-providers {
   }
 }
 
+.packaging-report-status {
+  background: #f8dda7;
+  color: #94660c;
+  padding: .2em .5em;
+  font-size: .9em;
+  border-radius: 3px;
+  display: inline-flex;
+  white-space: nowrap;
+
+  &.status-completed {
+    background: #c6e1c6;
+    color: #5b841b;
+  }
+}
+
 .shipment-status, .order-shipping-status, .order-return-status {
   background: #eee;
   padding: .2em .5em;

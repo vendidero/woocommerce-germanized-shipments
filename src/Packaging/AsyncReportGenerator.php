@@ -52,11 +52,13 @@ class AsyncReportGenerator {
 	}
 
 	public function get_id() {
-		return ReportHelper::get_report_id( array(
-			'type'       => $this->type,
-			'date_start' => $this->args['start'],
-			'date_end'   => $this->args['end'],
-		) );
+		return ReportHelper::get_report_id(
+			array(
+				'type'       => $this->type,
+				'date_start' => $this->args['start'],
+				'date_end'   => $this->args['end'],
+			)
+		);
 	}
 
 	public function delete() {

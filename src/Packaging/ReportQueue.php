@@ -136,7 +136,7 @@ class ReportQueue {
 			'offset'       => $args['offset'],
 			'type'         => $args['type'],
 			'status'       => $args['status'],
-			'limit'        => $args['limit']
+			'limit'        => $args['limit'],
 		);
 
 		return wc_gzd_get_shipments( $query_args );

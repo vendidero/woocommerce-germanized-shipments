@@ -2265,7 +2265,12 @@ abstract class Shipment extends WC_Data {
 
 	public function get_packaging() {
 		if ( is_null( $this->packaging ) && $this->get_packaging_id() > 0 ) {
-			$this->packaging = wc_gzd_get_packaging( $this->get_packaging_id() );
+			if ( $packaging = wc_gzd_get_packaging( $this->get_packaging_id() ) ) {
+				// Do only allow load packaging if it does really exist in DB.
+				if ( $packaging->get_id() > 0 ) {
+					$this->packaging = $packaging;
+				}
+			}
 		}
 
 		return $this->packaging;

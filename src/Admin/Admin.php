@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments\Admin;
 
 use Vendidero\Germanized\Shipments\Package;
+use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\Automation;
 
@@ -49,6 +50,8 @@ class Admin {
 		add_action( 'woocommerce_admin_field_packaging_list', array( __CLASS__, 'output_packaging_list' ) );
 		add_action( 'woocommerce_gzd_admin_settings_after_save_shipments_packaging', array( __CLASS__, 'save_packaging_list' ), 10 );
 
+		add_action( 'woocommerce_admin_field_packaging_reports', array( __CLASS__, 'output_packaging_reports' ) );
+
 		// Menu count
 		add_action( 'admin_head', array( __CLASS__, 'menu_return_count' ) );
 
@@ -82,7 +85,7 @@ class Admin {
 				$shipping_status = $shipment_order->get_shipping_status();
 				$status_html     = '<span class="order-shipping-status status-' . esc_attr( $shipping_status ) . '">' . esc_html( wc_gzd_get_shipment_order_shipping_status_name( $shipping_status ) ) . '</span>';
 
-				if ( in_array( $shipping_status, array( 'shipped', 'partially-shipped' ) ) && $shipment_order->get_shipments() ) {
+				if ( in_array( $shipping_status, array( 'shipped', 'partially-shipped' ), true ) && $shipment_order->get_shipments() ) {
 					echo '<a target="_blank" href="' . esc_url( add_query_arg( array( 'order_id' => $post_id ), admin_url( 'admin.php?page=wc-gzd-shipments' ) ) ) . '">' . wp_kses_post( $status_html ) . '</a>';
 				} else {
 					echo wp_kses_post( $status_html );
@@ -493,6 +496,108 @@ class Admin {
 						});
 					});
 				</script>
+			</td>
+		</tr>
+		<?php
+		$html = ob_get_clean();
+
+		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	public static function output_packaging_reports( $value ) {
+		$reports = ReportHelper::get_reports();
+		ob_start();
+		?>
+		<tr valign="top">
+			<th scope="row" class="titledesc"><?php echo esc_html_x( 'Packaging Reports', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+			<td class="forminp" id="packaging_reports_wrapper">
+				<style>
+					.wc-gzd-shipments-create-packaging-report {
+						margin-bottom: 15px;
+						padding: 0;
+					}
+					.wc-gzd-shipments-create-packaging-report select {
+						width: auto !important;
+						min-width: 120px;
+					}
+					.wc-gzd-shipments-create-packaging-report button.button {
+						height: 34px;
+						margin-left: 10px;
+					}
+					table.packaging_reports_table thead th {
+						padding: 10px;
+					}
+					table.packaging_reports_table tbody td {
+						padding: 15px 10px;
+					}
+
+					table.packaging_reports_table tbody td .packaging-report-status {
+						margin-left: 5px;
+					}
+				</style>
+				<div class="wc-gzd-shipments-create-packaging-report submit">
+					<select name="report_year" id="wc_gzd_shipments_create_packaging_report_year">
+						<?php
+						foreach ( array_reverse( range( (int) date( 'Y' ) - 2, (int) date( 'Y' ) ) ) as $year ) : // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+							$start_day = date( 'Y-m-d', strtotime( $year . '-01-01' ) ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+							?>
+							<option value="<?php echo esc_html( $start_day ); ?>"><?php echo esc_html( $year ); ?></option>
+						<?php endforeach; ?>
+					</select>
+
+					<button class="button" type="submit" name="save" value="create_report"><?php echo esc_html_x( 'Create report', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
+				</div>
+
+				<?php if ( ! empty( $reports ) ) : ?>
+					<table class="widefat packaging_reports_table" cellspacing="0">
+						<thead>
+						<tr>
+							<th style="width: 30ch;"><?php echo esc_html_x( 'Report', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+							<th style="width: 20ch;"><?php echo esc_html_x( 'Start', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+							<th style="width: 20ch;"><?php echo esc_html_x( 'End', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+							<th style="width: 15ch;"><?php echo esc_html_x( 'Total weight', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+							<th style="width: 15ch;"><?php echo esc_html_x( 'Count', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+						</tr>
+						</thead>
+						<tbody class="">
+							<?php foreach ( $reports as $report ) : ?>
+								<tr>
+									<td><a href="<?php echo esc_url( $report->get_url() ); ?>" target="_blank"><?php echo esc_html( $report->get_title() ); ?></a> <span class="packaging-report-status status-<?php echo esc_attr( $report->get_status() ); ?>"><?php echo esc_html( ReportHelper::get_report_status_title( $report->get_status() ) ); ?></span></td>
+									<td>
+										<?php
+										$show_date = $report->get_date_start()->date_i18n( wc_date_format() );
+
+										printf(
+											'<time datetime="%1$s" title="%2$s">%3$s</time>',
+											esc_attr( $report->get_date_start()->date( 'c' ) ),
+											esc_html( $report->get_date_start()->date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) ) ),
+											esc_html( $show_date )
+										);
+										?>
+									</td>
+									<td>
+										<?php
+										$show_date = $report->get_date_end()->date_i18n( wc_date_format() );
+
+										printf(
+											'<time datetime="%1$s" title="%2$s">%3$s</time>',
+											esc_attr( $report->get_date_end()->date( 'c' ) ),
+											esc_html( $report->get_date_end()->date_i18n( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ) ) ),
+											esc_html( $show_date )
+										);
+										?>
+									</td>
+									<td>
+										<?php echo esc_html( wc_gzd_format_shipment_weight( $report->get_total_weight(), wc_gzd_get_packaging_weight_unit() ) ); ?>
+									</td>
+									<td>
+										<?php echo esc_html( $report->get_total_count() ); ?>
+									</td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				<?php endif; ?>
 			</td>
 		</tr>
 		<?php

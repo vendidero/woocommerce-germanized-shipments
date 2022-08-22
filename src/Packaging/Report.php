@@ -254,7 +254,7 @@ class Report {
 		if ( ! isset( $this->args['packaging'][ "$packaging_id" ] ) ) {
 			$this->args['packaging'][ "$packaging_id" ] = array(
 				'count'        => 0,
-				'weight_in_kg' => 0.0
+				'weight_in_kg' => 0.0,
 			);
 		}
 
@@ -265,7 +265,7 @@ class Report {
 		if ( ! isset( $this->args['packaging'][ "$packaging_id" ] ) ) {
 			$this->args['packaging'][ "$packaging_id" ] = array(
 				'count'        => 0,
-				'weight_in_kg' => 0.0
+				'weight_in_kg' => 0.0,
 			);
 		}
 
