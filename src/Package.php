@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments;
 
 use Exception;
+use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
 use Vendidero\Germanized\Shipments\ShippingProvider\Method;
 use WC_Shipping;
 use WC_Shipping_Method;
@@ -556,7 +557,6 @@ class Package {
 	}
 
 	private static function includes() {
-
 		if ( is_admin() ) {
 			Admin\Admin::init();
 		}
@@ -569,6 +569,7 @@ class Package {
 		Validation::init();
 		Api::init();
 		FormHandler::init();
+		ReportHelper::init();
 
 		if ( self::is_frontend_request() ) {
 			include_once self::get_path() . '/includes/wc-gzd-shipment-template-hooks.php';

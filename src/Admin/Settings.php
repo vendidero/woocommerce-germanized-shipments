@@ -2,10 +2,8 @@
 
 namespace Vendidero\Germanized\Shipments\Admin;
 
-use Exception;
-use Vendidero\Germanized\Shipments\Package;
-use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
-use WC_Admin_Settings;
+use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
+use Vendidero\Germanized\Shipments\Packaging\ReportQueue;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -383,6 +381,12 @@ class Settings {
 			),
 
 			array(
+				'type'  => 'packaging_reports',
+				'title' => _x( 'Packaging Report', 'shipments', 'woocommerce-germanized-shipments' ),
+				'id'    => 'packaging_reports',
+			),
+
+			array(
 				'type' => 'sectionend',
 				'id'   => 'packaging_options',
 			),
@@ -415,6 +419,17 @@ class Settings {
 			'packaging' => _x( 'Packaging', 'shipments', 'woocommerce-germanized-shipments' ),
 			'address'   => _x( 'Addresses', 'shipments', 'woocommerce-germanized-shipments' ),
 		);
+	}
+
+	public static function after_save( $current_section = '' ) {
+		if ( 'packaging' === $current_section ) {
+			if ( isset( $_POST['save'] ) && 'create_report' === wc_clean( wp_unslash( $_POST['save'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				$start_date = isset( $_POST['report_year'] ) ? wc_clean( wp_unslash( $_POST['report_year'] ) ) : '01-01-' . ( (int) date( 'Y' ) - 1 ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.DateTime.RestrictedFunctions.date_date
+				$start_date = ReportHelper::string_to_datetime( $start_date );
+
+				ReportQueue::start( 'yearly', $start_date );
+			}
+		}
 	}
 
 	public static function get_sanitized_settings( $settings, $data = null ) {
