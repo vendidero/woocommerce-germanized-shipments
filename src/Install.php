@@ -191,6 +191,10 @@ class Install {
 			$collate = $wpdb->get_charset_collate();
 		}
 
+		/**
+		 * Use a varchar(191) for shipping_provider_name as the key length might overflow max key length for older MySQL (< 5.7).
+		 * @see https://stackoverflow.com/a/31474509
+		 */
 		$tables = "
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_items (
   shipment_item_id BIGINT UNSIGNED NOT NULL auto_increment,
@@ -299,7 +303,7 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_provider (
   shipping_provider_id BIGINT UNSIGNED NOT NULL auto_increment,
   shipping_provider_activated TINYINT(1) NOT NULL default 1,
   shipping_provider_title varchar(200) NOT NULL DEFAULT '',
-  shipping_provider_name varchar(200) NOT NULL DEFAULT '',
+  shipping_provider_name varchar(191) NOT NULL DEFAULT '',
   PRIMARY KEY  (shipping_provider_id),
   UNIQUE KEY shipping_provider_name (shipping_provider_name)
 ) $collate;

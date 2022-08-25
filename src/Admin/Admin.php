@@ -509,7 +509,7 @@ class Admin {
 		ob_start();
 		?>
 		<tr valign="top">
-			<th scope="row" class="titledesc"><?php echo esc_html_x( 'Packaging Reports', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+			<th scope="row" class="titledesc"><label for="wc_gzd_shipments_create_packaging_report_year"><?php echo esc_html_x( 'Packaging Reports', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'Generate summary reports which contain information about the amount of packaging material used for your shipments.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></label></th>
 			<td class="forminp" id="packaging_reports_wrapper">
 				<style>
 					.wc-gzd-shipments-create-packaging-report {
