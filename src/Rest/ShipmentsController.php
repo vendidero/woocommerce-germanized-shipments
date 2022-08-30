@@ -164,13 +164,7 @@ class ShipmentsController extends \WC_REST_Controller {
 	}
 
 	private static function get_shipment_statuses() {
-		$statuses = array();
-
-		foreach ( array_keys( wc_gzd_get_shipment_statuses() ) as $status ) {
-			$statuses[] = str_replace( 'gzd-', '', $status );
-		}
-
-		return $statuses;
+		return array_map( array( 'Vendidero\Germanized\Shipments\Api', 'remove_status_prefix' ), array_keys( wc_gzd_get_shipment_statuses() ) );
 	}
 
 	/**
