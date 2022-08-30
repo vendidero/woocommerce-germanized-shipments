@@ -74,22 +74,45 @@ class Order {
 		return $date_shipped;
 	}
 
+	public function is_shipped() {
+		$shipping_status = $this->get_shipping_status();
+
+		return apply_filters( 'woocommerce_gzd_shipment_order_shipping_status', ( in_array( $shipping_status, array( 'shipped', 'delivered' ), true ) || ( 'partially-delivered' === $shipping_status && ! $this->needs_shipping( array( 'sent_only' => true ) ) ) ), $this );
+	}
+
 	public function get_shipping_status() {
-		$status    = 'not-shipped';
-		$shipments = $this->get_simple_shipments();
+		$status       = 'not-shipped';
+		$shipments    = $this->get_simple_shipments();
+		$all_shipments_delivered = false;
+		$all_shipments_shipped   = false;
 
 		if ( ! empty( $shipments ) ) {
-			foreach ( $shipments as $shipment ) {
+			$all_shipments_delivered = true;
+			$all_shipments_shipped   = true;
 
-				if ( $shipment->is_shipped() ) {
+			foreach ( $shipments as $shipment ) {
+				if ( ! $shipment->has_status( 'delivered' ) ) {
+					$all_shipments_delivered = false;
+				} else {
+					$status = 'partially-delivered';
+				}
+
+				if ( ! $shipment->is_shipped() ) {
+					$all_shipments_shipped = false;
+				} elseif ( 'partially-delivered' !== $status ) {
 					$status = 'partially-shipped';
-					break;
 				}
 			}
 		}
 
-		if ( ! $this->needs_shipping( array( 'sent_only' => true ) ) ) {
+		$needs_shipping = $this->needs_shipping( array( 'sent_only' => true ) );
+
+		if ( $all_shipments_delivered && ! $needs_shipping ) {
+			$status = 'delivered';
+		} elseif ( 'partially-delivered' !== $status && ( $all_shipments_shipped && ! $needs_shipping ) ) {
 			$status = 'shipped';
+		} elseif ( ! in_array( $status, array( 'partially-shipped', 'partially-delivered' ), true ) && ! $needs_shipping ) {
+			$status = 'no-shipping-needed';
 		}
 
 		return apply_filters( 'woocommerce_gzd_shipment_order_shipping_status', $status, $this );
@@ -99,7 +122,6 @@ class Order {
 		$shipments = $this->get_simple_shipments();
 
 		foreach ( $shipments as $shipment ) {
-
 			if ( $shipment->is_shipped() ) {
 				return true;
 			}
@@ -114,7 +136,6 @@ class Order {
 
 		if ( ! empty( $shipments ) ) {
 			foreach ( $shipments as $shipment ) {
-
 				if ( $shipment->has_status( 'delivered' ) ) {
 					$status = 'partially-returned';
 					break;

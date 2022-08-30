@@ -110,9 +110,12 @@ function wc_gzd_get_shipments_by_order( $order ) {
 
 function wc_gzd_get_shipment_order_shipping_statuses() {
 	$shipment_statuses = array(
-		'gzd-not-shipped'       => _x( 'Not shipped', 'shipments', 'woocommerce-germanized-shipments' ),
-		'gzd-partially-shipped' => _x( 'Partially shipped', 'shipments', 'woocommerce-germanized-shipments' ),
-		'gzd-shipped'           => _x( 'Shipped', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-not-shipped'         => _x( 'Not shipped', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-partially-shipped'   => _x( 'Partially shipped', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-shipped'             => _x( 'Shipped', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-partially-delivered' => _x( 'Partially delivered', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-delivered'           => _x( 'Delivered', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-no-shipping-needed'  => _x( 'No shipping needed', 'shipments', 'woocommerce-germanized-shipments' ),
 	);
 
 	/**

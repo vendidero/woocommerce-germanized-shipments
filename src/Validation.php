@@ -82,7 +82,7 @@ class Validation {
 
 	public static function check_order_shipped( $order ) {
 		if ( $shipment_order = wc_gzd_get_shipment_order( $order ) ) {
-			if ( 'shipped' === $shipment_order->get_shipping_status() ) {
+			if ( $shipment_order->is_shipped() ) {
 				/**
 				 * Action that fires as soon as an order has been shipped completely.
 				 * That is the case when the order contains all relevant shipments and all the shipments are marked as shipped.
