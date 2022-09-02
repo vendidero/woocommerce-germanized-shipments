@@ -124,7 +124,7 @@ class Label extends WC_Data implements ShipmentLabel {
 	protected function get_general_hook_prefix() {
 		$prefix = 'simple' === $this->get_type() ? '' : $this->get_type() . '_';
 
-		return "woocommerce_gzd_shipment_{$this->get_shipping_provider()}_{$prefix}label_";
+		return "woocommerce_gzd_shipment_{$prefix}label_";
 	}
 
 	/**
