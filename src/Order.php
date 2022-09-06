@@ -81,8 +81,8 @@ class Order {
 	}
 
 	public function get_shipping_status() {
-		$status       = 'not-shipped';
-		$shipments    = $this->get_simple_shipments();
+		$status                  = 'not-shipped';
+		$shipments               = $this->get_simple_shipments();
 		$all_shipments_delivered = false;
 		$all_shipments_shipped   = false;
 

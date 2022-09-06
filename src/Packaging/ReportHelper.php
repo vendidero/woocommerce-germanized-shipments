@@ -111,7 +111,7 @@ class ReportHelper {
 				<?php endforeach; ?>
 
 				<?php if ( 'completed' === $report->get_status() ) : ?>
-					<p class="summary"><?php echo esc_html( $report->get_date_start()->date_i18n( wc_date_format() ) ); ?> &ndash; <?php echo esc_html( $report->get_date_end()->date_i18n( wc_date_format() ) ); ?>: <?php echo esc_html( wc_gzd_format_shipment_weight( $report->get_total_weight(), wc_gzd_get_packaging_weight_unit() ) ); ?> (<?php echo esc_html( sprintf( '%d units', $report->get_total_count() ) ); ?>)</p>
+					<p class="summary"><?php echo esc_html( $report->get_date_start()->date_i18n( wc_date_format() ) ); ?> &ndash; <?php echo esc_html( $report->get_date_end()->date_i18n( wc_date_format() ) ); ?>: <?php echo esc_html( wc_gzd_format_shipment_weight( $report->get_total_weight(), wc_gzd_get_packaging_weight_unit() ) ); ?> (<?php echo esc_html( sprintf( _x( '%d units', 'shipments-packaging-report', 'woocommerce-germanized-shipments' ), $report->get_total_count() ) ); ?>)</p>
 					<hr class="wp-header-end" />
 					<?php if ( ! empty( $packaging_ids ) ) : ?>
 						<table class="wp-list-table widefat fixed striped posts wc-gzd-shipments-packaging-report-details" cellspacing="0">
