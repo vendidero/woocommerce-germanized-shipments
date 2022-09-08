@@ -573,21 +573,11 @@ class Settings {
 				<div class="<?php echo ( $hide_default ? 'hide-default' : '' ); ?> show-if-further-services">
 				<?php
 			} elseif ( 'columns' === $setting['type'] ) {
-				if ( $missing_div_closes > 0 ) {
-					echo '</div>';
-					$missing_div_closes--;
-				}
-
 				$missing_div_closes++;
 				?>
-				<div class="columns">
+				<div class="columns <?php echo esc_attr( isset( $setting['class'] ) ? $setting['class'] : '' ); ?>">
 				<?php
 			} elseif ( 'wrapper' === $setting['type'] ) {
-				if ( $missing_div_closes > 0 ) {
-					echo '</div>';
-					$missing_div_closes--;
-				}
-
 				$missing_div_closes++;
 				?>
 					<div class="wc-gzd-shipment-label-wrapper" id="wc-gzd-shipment-label-wrapper-<?php echo esc_attr( $setting['id'] ); ?>">

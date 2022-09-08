@@ -205,9 +205,21 @@ window.germanized.admin = window.germanized.admin || {};
             },
 
             getFormData: function( $form ) {
-                var data = {};
+                var data = {}
+                    hideService = false;
 
-                $.each( $form.serializeArray(), function( index, item ) {
+                /**
+                 * Service data should always be transmitted, even though not shown
+                 */
+                if ( ! $form.find( '.show-if-further-services' ).is( ':visible' ) ) {
+                    $form.find( '.show-if-further-services' ).show();
+                    hideService = true;
+                }
+
+                /**
+                 * Do only transmit data of visible label fields
+                 */
+                $.each( $form.find( ':input:visible' ).serializeArray(), function( index, item ) {
                     if ( item.name.indexOf( '[]' ) !== -1 ) {
                         item.name = item.name.replace( '[]', '' );
                         data[ item.name ] = $.makeArray( data[ item.name ] );
@@ -216,6 +228,10 @@ window.germanized.admin = window.germanized.admin || {};
                         data[ item.name ] = item.value;
                     }
                 });
+
+                if ( hideService ) {
+                    $form.find( '.show-if-further-services' ).hide();
+                }
 
                 return data;
             },
