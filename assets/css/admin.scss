@@ -82,14 +82,23 @@ $layout-spacing: 1rem;
   }
 
   p.form-field {
+    display: flex;
+    flex-wrap: wrap;
+
     label {
-      width: 100%;
-      display: block;
       margin-bottom: 5px;
       font-weight: bold;
+      display: inline-flex;
     }
-    select, input[type=text], input[type=email] {
+
+    .woocommerce-help-tip {
+      display: inline-flex;
+      margin-bottom: 5px;
+    }
+
+    select, input[type=text], input[type=email], input[type=date] {
       width: 100%;
+      flex: 0 0 100%;
       max-width: 100%;
     }
 

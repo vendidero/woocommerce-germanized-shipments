@@ -194,6 +194,7 @@ window.germanized.admin = window.germanized.admin || {};
 
                 $( document.body ).trigger( 'wc-enhanced-select-init' );
                 $( document.body ).trigger( 'wc-init-datepickers' );
+                $( document.body ).trigger( 'init_tooltips' );
                 $( document.body ).trigger( 'wc_gzd_shipment_label_after_init' );
 
                 $modal.find( 'input.show-if-trigger' ).trigger( 'change' );

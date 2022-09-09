@@ -53,41 +53,45 @@
 .germanized-create-label .show-if label {
   color: #777; }
 
-.germanized-create-label p.form-field label {
-  width: 100%;
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold; }
-
-.germanized-create-label p.form-field select, .germanized-create-label p.form-field input[type=text], .germanized-create-label p.form-field input[type=email] {
-  width: 100%;
-  max-width: 100%; }
-
-.germanized-create-label p.form-field.form-field-checkbox {
+.germanized-create-label p.form-field {
   display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
-  justify-content: flex-start;
-  margin-top: 10px !important;
-  margin-bottom: 10px !important;
-  align-items: center; }
-  .germanized-create-label p.form-field.form-field-checkbox label {
-    width: auto;
-    margin-left: .5em;
-    font-weight: normal;
-    order: 2;
-    margin-bottom: 0; }
-  .germanized-create-label p.form-field.form-field-checkbox input[type=checkbox] {
-    order: 1; }
-  .germanized-create-label p.form-field.form-field-checkbox .woocommerce-help-tip {
-    order: 3;
-    margin-left: 3px; }
-  .germanized-create-label p.form-field.form-field-checkbox .description {
+  flex-wrap: wrap; }
+  .germanized-create-label p.form-field label {
+    margin-bottom: 5px;
+    font-weight: bold;
+    display: inline-flex; }
+  .germanized-create-label p.form-field .woocommerce-help-tip {
+    display: inline-flex;
+    margin-bottom: 5px; }
+  .germanized-create-label p.form-field select, .germanized-create-label p.form-field input[type=text], .germanized-create-label p.form-field input[type=email], .germanized-create-label p.form-field input[type=date] {
     width: 100%;
-    margin-top: 5px;
-    color: #777;
-    order: 4;
-    font-style: normal; }
+    flex: 0 0 100%;
+    max-width: 100%; }
+  .germanized-create-label p.form-field.form-field-checkbox {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    justify-content: flex-start;
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+    align-items: center; }
+    .germanized-create-label p.form-field.form-field-checkbox label {
+      width: auto;
+      margin-left: .5em;
+      font-weight: normal;
+      order: 2;
+      margin-bottom: 0; }
+    .germanized-create-label p.form-field.form-field-checkbox input[type=checkbox] {
+      order: 1; }
+    .germanized-create-label p.form-field.form-field-checkbox .woocommerce-help-tip {
+      order: 3;
+      margin-left: 3px; }
+    .germanized-create-label p.form-field.form-field-checkbox .description {
+      width: 100%;
+      margin-top: 5px;
+      color: #777;
+      order: 4;
+      font-style: normal; }
 
 table.wc-gzd-shipping-providers {
   margin-top: 1.5em; }
