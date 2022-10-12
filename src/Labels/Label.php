@@ -842,6 +842,8 @@ class Label extends WC_Data implements ShipmentLabel {
 				// e.g. EORI number
 				'sender_customs_ref_number'     => $shipment->get_sender_customs_reference_number(),
 				'receiver_customs_ref_number'   => $shipment->get_customs_reference_number(),
+				// Customs UK VAT ID (HMRC) for totals <= 135 GBP
+				'sender_customs_uk_vat_id'      => $shipment->get_sender_customs_uk_vat_id(),
 				'items'                         => $customs_items,
 				'item_total_weight_in_kg'       => $total_weight,
 				'item_total_gross_weight_in_kg' => $total_gross_weight,

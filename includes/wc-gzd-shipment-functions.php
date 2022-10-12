@@ -809,6 +809,7 @@ function wc_gzd_get_shipment_setting_default_address_fields( $type = 'shipper' )
 		'phone'                    => _x( 'Phone', 'shipments', 'woocommerce-germanized-shipments' ),
 		'email'                    => _x( 'Email', 'shipments', 'woocommerce-germanized-shipments' ),
 		'customs_reference_number' => _x( 'Customs Reference Number', 'shipments', 'woocommerce-germanized-shipments' ),
+		'customs_uk_vat_id'        => _x( 'UK VAT ID (HMRC)', 'shipments', 'woocommerce-germanized-shipments' ),
 	);
 
 	return apply_filters( 'woocommerce_gzd_shipment_default_address_fields', $address_fields, $type );

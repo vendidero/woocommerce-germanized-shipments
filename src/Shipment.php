@@ -1408,6 +1408,16 @@ abstract class Shipment extends WC_Data {
 		return $this->get_sender_address_prop( 'customs_reference_number', $context ) ? $this->get_sender_address_prop( 'customs_reference_number', $context ) : '';
 	}
 
+	/**
+	 * Returns the sender address customs reference number.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
+	public function get_sender_customs_uk_vat_id( $context = 'view' ) {
+		return $this->get_sender_address_prop( 'customs_uk_vat_id', $context ) ? $this->get_sender_address_prop( 'customs_uk_vat_id', $context ) : '';
+	}
+
 	public function get_formatted_sender_state() {
 		if ( '' === $this->get_sender_state() || '' === $this->get_sender_country() ) {
 			return '';
