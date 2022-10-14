@@ -17,42 +17,72 @@ window.germanized.admin = window.germanized.admin || {};
             $( document )
                 .on( 'click', '.germanized-create-label .show-further-services', self.onExpandServices )
                 .on( 'click', '.germanized-create-label .show-fewer-services', self.onHideServices )
-                .on( 'change', '.germanized-create-label input.show-if-trigger', self.onShowIf )
                 .on( 'click', '.germanized-create-label .notice .notice-dismiss', self.onRemoveNotice )
-                .on( 'change', '.germanized-create-label #product_id', self.onChangeProductId );
+                .on( 'change', '.germanized-create-label #product_id', self.onChangeProductId )
+                .on( 'change', '.germanized-create-label :input:visible', self.onChangeField );
 
             $( document.body )
                 .on( 'wc_backbone_modal_loaded', self.backbone.init )
                 .on( 'wc_backbone_modal_response', self.backbone.response );
         },
 
+        onChangeField: function() {
+            var self     = germanized.admin.shipment_label_backbone,
+                $wrapper = $( '.germanized-create-label' ),
+                fieldId  = $( this ).attr( 'id' ),
+                val      = $( this ).val();
+
+            /**
+             * Show or hide a wrapper based on checkbox status
+             */
+            if ( $( this ).hasClass( 'show-if-trigger' ) ) {
+                var $show = $wrapper.find( $( this ).data( 'show-if' ) );
+
+                if ( $show.length > 0 ) {
+                    if ( $( this ) .is( ':checked' ) ) {
+                        $show.show();
+                    } else {
+                        $show.hide();
+                    }
+
+                    $( document.body ).trigger( 'wc_gzd_shipment_label_show_if' );
+                }
+            } else {
+                $wrapper.find( ':input[data-show-if-' + fieldId + ']' ).parents( '.form-field' ).hide();
+
+                if ( $( this ).is( ':checkbox' ) ) {
+                    if ( $( this ).is( ':checked' ) ) {
+                        $wrapper.find( ':input[data-show-if-' + fieldId + ']' ).parents( '.form-field' ).show();
+                    }
+                } else {
+                    $wrapper.find( ':input[data-show-if-' + fieldId + '*="' + val + '"]' ).parents( '.form-field' ).show();
+                }
+            }
+        },
+
         onChangeProductId: function() {
             var self = germanized.admin.shipment_label_backbone;
 
-            self.showOrHideServices( $( this ).val() );
+            self.showOrHideByProduct( $( this ).val() );
         },
 
-        showOrHideServices: function( productId ) {
-            var $services = $( '.show-if-further-services' ).find( 'p.form-field' );
+        showOrHideByProduct: function( productId ) {
+            var $wrapper  = $( '.germanized-create-label' ),
+                $fields   = $wrapper.find( 'p.form-field :input[data-products-supported]' );
 
-            $services.each( function() {
-                var $service      = $( this ),
-                    $serviceField = $service.find( ':input' ),
-                    supported     = $serviceField.data( 'products-supported' ) ? $serviceField.data( 'products-supported' ).split( ',' ) : [],
-                    isHidden      = false;
+            $fields.each( function() {
+                var $field    = $( this ),
+                    isHidden  = true,
+                    supported = $field.data( 'products-supported' ).split( ',' );
 
-                if ( $serviceField.data( 'products-supported' ) ) {
-                    isHidden = true;
-
-                    if ( $.inArray( productId, supported ) !== -1 ) {
-                        isHidden = false;
-                    }
+                if ( $.inArray( productId, supported ) !== -1 ) {
+                    isHidden = false;
                 }
 
                 if ( isHidden ) {
-                    $service.hide();
+                    $field.parents( '.form-field' ).hide();
                 } else {
-                    $service.show();
+                    $field.parents( '.form-field' ).show();
                 }
             } );
         },
@@ -63,27 +93,12 @@ window.germanized.admin = window.germanized.admin || {};
             });
         },
 
-        onShowIf: function() {
-            var $wrapper  = $( this ).parents( '.germanized-create-label' ),
-                $show     = $wrapper.find( $( this ).data( 'show-if' ) ),
-                $checkbox = $( this );
-
-            if ( $show.length > 0 ) {
-                if ( $checkbox.is( ':checked' ) ) {
-                    $show.show();
-                } else {
-                    $show.hide();
-                }
-
-                $( document.body ).trigger( 'wc_gzd_shipment_label_show_if' );
-            }
-        },
-
         onExpandServices: function() {
             var $wrapper  = $( this ).parents( '.germanized-create-label' ).find( '.show-if-further-services' ),
                 $trigger  = $( this ).parents( '.show-services-trigger' );
 
             $wrapper.show();
+            $wrapper.find( ':input:visible' ).trigger( 'change' );
 
             $trigger.find( '.show-further-services' ).hide();
             $trigger.find( '.show-fewer-services' ).show();
@@ -197,8 +212,7 @@ window.germanized.admin = window.germanized.admin || {};
                 $( document.body ).trigger( 'init_tooltips' );
                 $( document.body ).trigger( 'wc_gzd_shipment_label_after_init' );
 
-                $modal.find( 'input.show-if-trigger' ).trigger( 'change' );
-                $modal.find( '#product_id' ).trigger( 'change' );
+                $modal.find( ':input:visible' ).trigger( 'change' );
 
                 $modal.parents( '.wc-backbone-modal' ).on( 'click', '#btn-ok', { 'shipmentId': shipmentId }, self.onSubmit );
                 $modal.parents( '.wc-backbone-modal' ).on( 'touchstart', '#btn-ok', { 'shipmentId': shipmentId }, self.onSubmit );
