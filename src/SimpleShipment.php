@@ -255,7 +255,6 @@ class SimpleShipment extends Shipment {
 			);
 
 			foreach ( $available_items as $item_id => $item_data ) {
-
 				if ( $order_item = $order->get_item( $item_id ) ) {
 					$quantity = $item_data['max_quantity'];
 
@@ -282,7 +281,6 @@ class SimpleShipment extends Shipment {
 			}
 
 			foreach ( $this->get_items() as $item ) {
-
 				// Remove non-existent items
 				if ( ! $order_item = $order->get_item( $item->get_order_item_id() ) ) {
 					$this->remove_item( $item->get_id() );

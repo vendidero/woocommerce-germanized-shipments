@@ -13,6 +13,8 @@ defined( 'ABSPATH' ) || exit;
 
 class Automation {
 
+	protected static $current_new_order_id = null;
+
 	public static function init() {
 		if ( 'yes' === Package::get_setting( 'auto_enable' ) ) {
 			foreach ( self::get_auto_statuses() as $status ) {
@@ -31,21 +33,13 @@ class Automation {
 			add_action(
 				'woocommerce_new_order',
 				function( $order_id ) {
-					add_action(
-						'woocommerce_after_order_object_save',
-						function( $order ) use ( $order_id ) {
-							if ( $order_id === $order->get_id() ) {
-								self::maybe_create_shipments( $order );
-							}
-						},
-						150
-					);
+					self::$current_new_order_id = $order_id;
+					add_action( 'woocommerce_after_order_object_save', array( __CLASS__, 'after_new_order' ), 150 );
 				},
 				10,
 				1
 			);
 
-			add_action( 'woocommerce_new_order', array( __CLASS__, 'maybe_create_shipments' ), 10, 2 );
 			add_filter( 'wcs_renewal_order_created', array( __CLASS__, 'maybe_create_subscription_shipments' ), 10 );
 		}
 
@@ -55,6 +49,22 @@ class Automation {
 
 		if ( 'yes' === Package::get_setting( 'auto_order_completed_shipped_enable' ) ) {
 			add_action( 'woocommerce_order_status_changed', array( __CLASS__, 'maybe_mark_shipments_shipped' ), 150, 4 );
+		}
+	}
+
+	/**
+	 * Make sure that his callback is only executed once for new order requests.
+	 *
+	 * @param WC_Order $order
+	 *
+	 * @return void
+	 */
+	public static function after_new_order( $order ) {
+		if ( self::$current_new_order_id === $order->get_id() ) {
+			self::maybe_create_shipments( $order );
+
+			remove_action( 'woocommerce_after_order_object_save', array( __CLASS__, 'after_new_order' ), 150 );
+			self::$current_new_order_id = null;
 		}
 	}
 

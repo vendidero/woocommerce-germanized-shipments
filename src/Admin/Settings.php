@@ -253,7 +253,7 @@ class Settings {
 		if ( 'customs_reference_number' === $prop ) {
 			$desc = _x( 'Your customs reference number, e.g. EORI number', 'shipments', 'woocommerce-germanized-shipments' );
 		} elseif ( 'customs_uk_vat_id' === $prop ) {
-            $desc = _x( 'Your UK VAT ID, e.g. for UK exports <= 135 GBP.', 'shipments', 'woocommerce-germanized-shipments' );
+			$desc = _x( 'Your UK VAT ID, e.g. for UK exports <= 135 GBP.', 'shipments', 'woocommerce-germanized-shipments' );
 		}
 
 		return $desc;
