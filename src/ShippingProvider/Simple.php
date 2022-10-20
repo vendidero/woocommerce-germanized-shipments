@@ -876,7 +876,11 @@ class Simple extends WC_Data implements ShippingProvider {
 		if ( $method = $shipment->get_shipping_method_instance() ) {
 			$prefixed_key = $this->get_name() . '_' . $key;
 
-			if ( $method->has_option( $prefixed_key ) ) {
+			/**
+			 * Do only allow overriding settings in case the shipping provider
+			 * selected for the shipping method matches the current shipping provider.
+			 */
+			if ( $method->get_provider() === $this->get_name() && $method->has_option( $prefixed_key ) ) {
 				$method_value = $method->get_option( $prefixed_key );
 
 				if ( ! is_null( $method_value ) && $value !== $method_value ) {

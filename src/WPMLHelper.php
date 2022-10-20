@@ -35,6 +35,30 @@ class WPMLHelper {
 		} else {
 			add_action( 'woocommerce_gzd_load_shipping_providers', array( __CLASS__, 'register_provider_filters' ) );
 		}
+
+		/**
+		 * Translate shipment item name
+		 */
+		add_filter( 'woocommerce_gzd_email_shipment_items_args', array( __CLASS__, 'translate_email_shipment_items' ), 10 );
+	}
+
+	public static function translate_email_shipment_items( $args ) {
+		$shipment = $args['shipment'];
+
+		if ( $order = wc_get_order( $shipment->get_order_id() ) ) {
+			$language = $order->get_meta( 'wpml_language', true );
+
+			foreach ( $args['items'] as $key => $item ) {
+				$id = $item->get_product_id();
+				$id = apply_filters( 'wpml_object_id', $id, get_post_type( $id ), true, $language );
+
+				if ( $product = wc_get_product( $id ) ) {
+					$args['items'][ $key ]->set_name( $product->get_name() );
+				}
+			}
+		}
+
+		return $args;
 	}
 
 	public static function register_provider_filters() {
