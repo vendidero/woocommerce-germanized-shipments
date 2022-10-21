@@ -1453,7 +1453,7 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @return boolean
 	 */
-	public function send_to_external_pickup( $types ) {
+	public function send_to_external_pickup( $types = array() ) {
 		$types = is_array( $types ) ? $types : array( $types );
 
 		/**
@@ -1461,7 +1461,7 @@ abstract class Shipment extends WC_Data {
 		 * e.g. packstation.
 		 *
 		 * @param boolean                                  $external True if the Shipment goes to a pickup location.
-		 * @param array                                    $types Array containing the types to be checked agains.
+		 * @param array                                    $types Array containing the types to be checked against, or empty.
 		 * @param Shipment $this The shipment object.
 		 *
 		 * @since 3.0.0
