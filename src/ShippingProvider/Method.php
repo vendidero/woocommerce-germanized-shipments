@@ -109,7 +109,7 @@ class Method {
 		if ( $this->is_placeholder() ) {
 			return false;
 		} else {
-			$supports_settings = ( $this->method->supports( 'instance-settings' ) && $this->method->supports( 'instance-settings-modal' ) ) ? true : false;
+			$supports_settings = ( $this->method->supports( 'instance-settings' ) ) ? true : false;
 
 			return apply_filters( 'woocommerce_gzd_shipping_provider_method_supports_instance_settings', $supports_settings, $this );
 		}
