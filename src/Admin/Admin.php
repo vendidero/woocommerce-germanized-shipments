@@ -973,7 +973,7 @@ class Admin {
 		}
 
 		// Shipping zone methods
-		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] && isset( $_GET['zone_id'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] && ( isset( $_GET['zone_id'] ) || isset( $_GET['instance_id'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			wp_enqueue_style( 'woocommerce_gzd_shipments_admin' );
 		}
 	}

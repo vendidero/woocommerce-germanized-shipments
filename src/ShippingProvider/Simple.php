@@ -1094,12 +1094,13 @@ class Simple extends WC_Data implements ShippingProvider {
 				$setting = wp_parse_args(
 					$setting,
 					array(
-						'allow_override' => ( $include_current_section && ! in_array( $setting['type'], array( 'title', 'sectionend' ), true ) ) ? true : false,
-						'type'           => '',
-						'id'             => '',
-						'value'          => '',
-						'title_method'   => '',
-						'title'          => '',
+						'allow_override'    => ( $include_current_section && ! in_array( $setting['type'], array( 'title', 'sectionend' ), true ) ) ? true : false,
+						'type'              => '',
+						'id'                => '',
+						'value'             => '',
+						'title_method'      => '',
+						'title'             => '',
+						'custom_attributes' => array(),
 					)
 				);
 
@@ -1116,10 +1117,23 @@ class Simple extends WC_Data implements ShippingProvider {
 				}
 
 				if ( $include ) {
-					$new_setting            = array();
-					$new_setting['id']      = $this->get_name() . '_' . $setting['id'];
-					$new_setting['type']    = str_replace( 'gzd_toggle', 'checkbox', $setting['type'] );
-					$new_setting['default'] = $setting['value'];
+					$new_setting                      = array();
+					$new_setting['id']                = $this->get_name() . '_' . $setting['id'];
+					$new_setting['type']              = str_replace( 'gzd_toggle', 'checkbox', $setting['type'] );
+					$new_setting['default']           = $setting['value'];
+					$new_setting['custom_attributes'] = array();
+
+					if ( ! empty( $setting['custom_attributes'] ) ) {
+						foreach ( $setting['custom_attributes'] as $attr => $val ) {
+							$new_attr = $attr;
+
+							if ( 'data-show_if_' === substr( $attr, 0, 13 ) ) {
+								$new_attr = 'data-show_if_' . $this->get_name() . '_' . substr( $attr, 13, strlen( $attr ) );
+							}
+
+							$new_setting['custom_attributes'][ $new_attr ] = $val;
+						}
+					}
 
 					if ( 'checkbox' === $new_setting['type'] ) {
 						$new_setting['label'] = $setting['desc'];

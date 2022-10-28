@@ -1,11 +1,14 @@
-.wc-modal-shipping-method-settings .form-table td .wc-gzd-additional-desc {
+.woocommerce_page_wc-settings .form-table td .wc-gzd-additional-desc {
   margin-top: 1em;
   line-height: 1.5em;
-  background: #efefef;
   padding: .5em;
+  background: #fff;
   font-style: normal;
-  font-size: 13px;
+  font-size: 14px;
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1); }
+
+.woocommerce_page_wc-settings .wc-modal-shipping-method-settings .form-table td .wc-gzd-additional-desc {
+  background: #efefef; }
 
 .wc-gzd-admin-settings-shipping_provider .wc-gzd-shipment-api-connection-status {
   padding: .2em .5em;
