@@ -323,8 +323,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'id'       => 'label_default_shipment_weight',
 				'css'      => 'max-width: 60px;',
 				'class'    => 'wc_input_decimal',
-				'default'  => $this->get_default_label_default_shipment_weight(),
-				'value'    => $this->get_setting( 'label_default_shipment_weight' ),
+				'default'  => wc_format_localized_decimal( $this->get_default_label_default_shipment_weight() ),
+				'value'    => wc_format_localized_decimal( $this->get_setting( 'label_default_shipment_weight' ) ),
 			),
 
 			array(
@@ -335,8 +335,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'id'       => 'label_minimum_shipment_weight',
 				'css'      => 'max-width: 60px;',
 				'class'    => 'wc_input_decimal',
-				'default'  => $this->get_default_label_minimum_shipment_weight(),
-				'value'    => $this->get_setting( 'label_minimum_shipment_weight' ),
+				'default'  => wc_format_localized_decimal( $this->get_default_label_minimum_shipment_weight() ),
+				'value'    => wc_format_localized_decimal( $this->get_setting( 'label_minimum_shipment_weight' ) ),
 			),
 
 			array(
