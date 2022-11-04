@@ -26,10 +26,14 @@ window.germanized.admin = window.germanized.admin || {};
                 .on( 'wc_backbone_modal_response', self.backbone.response );
         },
 
+        parseFieldId: function( fieldId ) {
+            return fieldId.replace( '[', '_' ).replace( ']', '' );
+        },
+
         onChangeField: function() {
             var self     = germanized.admin.shipment_label_backbone,
                 $wrapper = $( '.germanized-create-label' ),
-                fieldId  = $( this ).attr( 'id' ),
+                fieldId  = self.parseFieldId( $( this ).attr( 'id' ) ),
                 val      = $( this ).val();
 
             /**

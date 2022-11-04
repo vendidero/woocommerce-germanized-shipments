@@ -27,10 +27,14 @@ window.germanized.admin = window.germanized.admin || {};
             }
         },
 
+        parseFieldId: function( fieldId ) {
+            return fieldId.replace( '[', '_' ).replace( ']', '' );
+        },
+
         onChangeField: function() {
             var self     = germanized.admin.shipping_provider_method,
                 $wrapper = $( this ).parents( 'form' ),
-                fieldId  = $( this ).attr( 'id' ),
+                fieldId  = self.parseFieldId( $( this ).attr( 'id' ) ),
                 val      = $( this ).val(),
                 currentProvider = self.currentProvider;
 
