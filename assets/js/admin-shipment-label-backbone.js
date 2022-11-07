@@ -19,7 +19,7 @@ window.germanized.admin = window.germanized.admin || {};
                 .on( 'click', '.germanized-create-label .show-fewer-services', self.onHideServices )
                 .on( 'click', '.germanized-create-label .notice .notice-dismiss', self.onRemoveNotice )
                 .on( 'change', '.germanized-create-label #product_id', self.onChangeProductId )
-                .on( 'change', '.germanized-create-label :input:visible', self.onChangeField );
+                .on( 'change', '.germanized-create-label :input:visible[id]', self.onChangeField );
 
             $( document.body )
                 .on( 'wc_backbone_modal_loaded', self.backbone.init )
