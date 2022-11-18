@@ -57,6 +57,7 @@ class ShipmentQuery extends WC_Object_Query {
 			'tracking_id'    => '',
 			'order'          => 'DESC',
 			'orderby'        => 'date_created',
+			'shipping_provider' => '',
 			'return'         => 'objects',
 			'page'           => 1,
 			'offset'         => '',
@@ -152,9 +153,12 @@ class ShipmentQuery extends WC_Object_Query {
 	 * Parse the query before preparing it.
 	 */
 	protected function parse_query() {
-
 		if ( isset( $this->args['order_id'] ) ) {
 			$this->args['order_id'] = absint( $this->args['order_id'] );
+		}
+
+		if ( isset( $this->args['shipping_provider'] ) ) {
+			$this->args['shipping_provider'] = wc_clean( $this->args['shipping_provider'] );
 		}
 
 		if ( isset( $this->args['parent_id'] ) ) {
@@ -252,6 +256,11 @@ class ShipmentQuery extends WC_Object_Query {
 		// order id
 		if ( isset( $this->args['order_id'] ) ) {
 			$this->query_where .= $wpdb->prepare( ' AND shipment_order_id = %d', $this->args['order_id'] );
+		}
+
+		// order id
+		if ( isset( $this->args['shipping_provider'] ) ) {
+			$this->query_where .= $wpdb->prepare( ' AND shipment_shipping_provider = %s', $this->args['shipping_provider'] );
 		}
 
 		// tracking id

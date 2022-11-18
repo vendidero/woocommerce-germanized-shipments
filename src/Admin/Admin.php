@@ -994,7 +994,6 @@ class Admin {
 
 		// Orders.
 		if ( in_array( str_replace( 'edit-', '', $screen_id ), wc_get_order_types( 'order-meta-boxes' ), true ) ) {
-
 			wp_enqueue_script( 'wc-gzd-admin-shipments' );
 			wp_enqueue_script( 'wc-gzd-admin-shipment' );
 
@@ -1038,6 +1037,7 @@ class Admin {
 				array(
 					'ajax_url'            => admin_url( 'admin-ajax.php' ),
 					'search_orders_nonce' => wp_create_nonce( 'search-orders' ),
+					'search_shipping_provider_nonce' => wp_create_nonce( 'search-shipping-provider' ),
 					'bulk_actions'        => $bulk_actions,
 				)
 			);

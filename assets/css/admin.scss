@@ -246,9 +246,12 @@ table.wc-gzd-shipping-providers {
       overflow: visible;
     }
 
+    .wc-gzd-order-search, .wc-gzd-shipping-provider-search {
+      width: 240px;
+    }
+
     .select2-container {
       float: left;
-      width: 240px!important;
       font-size: 14px;
       vertical-align: middle;
       margin: 1px 6px 4px 1px;

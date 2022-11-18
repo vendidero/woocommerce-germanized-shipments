@@ -315,6 +315,10 @@ class Table extends WP_List_Table {
 			$args['order_id'] = absint( $_REQUEST['order_id'] ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		}
 
+		if ( isset( $_REQUEST['shipping_provider'] ) && ! empty( $_REQUEST['shipping_provider'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$args['shipping_provider'] = wc_clean( wp_unslash( $_REQUEST['shipping_provider'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		}
+
 		if ( isset( $_REQUEST['m'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$m    = wc_clean( wp_unslash( $_REQUEST['m'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$year = substr( $m, 0, 4 );
@@ -627,6 +631,7 @@ class Table extends WP_List_Table {
 
 				$this->months_dropdown( 'shipment' );
 				$this->order_filter();
+				$this->shipping_provider_filter();
 
 				/**
 				 * Action that fires after outputting Shipments table view filters.
@@ -657,6 +662,24 @@ class Table extends WP_List_Table {
 		<?php
 		do_action( 'manage_posts_extra_tablenav', $which );
 	}
+
+    protected function shipping_provider_filter() {
+	    $shipping_provider = '';
+        $provider_string = '';
+
+	    if ( ! empty( $_GET['shipping_provider'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		    $shipping_provider = wc_clean( wp_unslash( $_GET['shipping_provider'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+            if ( $provider = wc_gzd_get_shipping_provider( $shipping_provider ) ) {
+                $provider_string = $provider->get_title();
+            }
+	    }
+	    ?>
+        <select class="wc-gzd-shipping-provider-search" name="shipping_provider" data-placeholder="<?php echo esc_attr_x( 'Filter by shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>" data-allow_clear="true">
+            <option value="<?php echo esc_attr( $shipping_provider ); ?>" selected="selected"><?php echo htmlspecialchars( wp_kses_post( $provider_string ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?><option>
+        </select>
+        <?php
+    }
 
 	protected function order_filter() {
 		$order_id     = '';

@@ -163,9 +163,11 @@ table.wc-gzd-shipping-providers {
 .woocommerce_page_wc-gzd-shipments .tablenav .actions, .woocommerce_page_wc-gzd-return-shipments .tablenav .actions {
   overflow: visible; }
 
+.woocommerce_page_wc-gzd-shipments .tablenav .wc-gzd-order-search, .woocommerce_page_wc-gzd-shipments .tablenav .wc-gzd-shipping-provider-search, .woocommerce_page_wc-gzd-return-shipments .tablenav .wc-gzd-order-search, .woocommerce_page_wc-gzd-return-shipments .tablenav .wc-gzd-shipping-provider-search {
+  width: 240px; }
+
 .woocommerce_page_wc-gzd-shipments .tablenav .select2-container, .woocommerce_page_wc-gzd-return-shipments .tablenav .select2-container {
   float: left;
-  width: 240px !important;
   font-size: 14px;
   vertical-align: middle;
   margin: 1px 6px 4px 1px; }

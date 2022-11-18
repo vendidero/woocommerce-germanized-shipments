@@ -38,6 +38,7 @@ class Ajax {
 			'sync_shipment_items',
 			'validate_shipment_item_quantities',
 			'json_search_orders',
+			'json_search_shipping_provider',
 			'update_shipment_status',
 			'shipments_bulk_action_handle',
 			'remove_shipping_provider',
@@ -807,6 +808,48 @@ class Ajax {
 
 		self::send_json_success( $response, $order_shipment, $shipment );
 	}
+
+    public static function json_search_shipping_provider() {
+	    ob_start();
+
+	    check_ajax_referer( 'search-shipping-provider', 'security' );
+
+	    if ( ! current_user_can( 'edit_shop_orders' ) ) {
+		    wp_die( -1 );
+	    }
+
+	    $term            = isset( $_GET['term'] ) ? (string) wc_clean( wp_unslash( $_GET['term'] ) ) : '';
+        $found_providers = array();
+
+	    if ( empty( $term ) ) {
+		    wp_die();
+	    }
+
+        global $wpdb;
+
+	    $names = $wpdb->get_col(
+		    $wpdb->prepare(
+			    "SELECT DISTINCT p1.shipping_provider_name FROM {$wpdb->gzd_shipping_provider} p1 WHERE p1.shipping_provider_title LIKE %s AND p1.shipping_provider_activated = 1", // @codingStandardsIgnoreLine
+			    $wpdb->esc_like( wc_clean( $term ) ) . '%'
+		    )
+	    );
+
+	    foreach ( $names as $name ) {
+		    if ( $shipping_provider = wc_gzd_get_shipping_provider( $name ) ) {
+			    $found_providers[ $name ] = esc_html( $shipping_provider->get_title() );
+		    }
+	    }
+
+	    /**
+	     * Filter to adjust found shipping providers to filter Shipments.
+	     *
+	     * @param array $result The shipping provider search result.
+	     *
+	     * @since 3.0.0
+	     * @package Vendidero/Germanized/Shipments
+	     */
+	    wp_send_json( apply_filters( 'woocommerce_gzd_json_search_found_shipment_shipping_providers', $found_providers ) );
+    }
 
 	public static function json_search_orders() {
 		ob_start();
