@@ -475,6 +475,10 @@ table.wc-gzd-shipping-providers {
           content: "\f147";
         }
 
+        &.email::after {
+          content: "\f465";
+        }
+
         &.generate::after {
           content: "\f502";
         }
