@@ -2765,14 +2765,27 @@ abstract class Shipment extends WC_Data {
 			$this->reset_content_data();
 
 		} catch ( Exception $e ) {
-			$logger = wc_get_logger();
-			$logger->error(
-				sprintf( 'Error saving shipment #%d', $this->get_id() ),
-				array(
-					'shipment' => $this,
-					'error'    => $e,
-				)
-			);
+			/**
+			 * This is a tweak to prevent the WooCommerce PayPal Payments Plugin compatibility script
+			 * from breaking our code in case an error occurs while transmitting tracking data to PayPal.
+			 * This tweak should only be included as long as the bug persists.
+			 * @TODO Check whether the issue persists in next release cycles
+			 *
+			 * @see https://github.com/woocommerce/woocommerce-paypal-payments/issues/1020
+			 */
+			if ( is_a( $e, 'WooCommerce\PayPalCommerce\ApiClient\Exception\PayPalApiException' ) || is_a( $e, 'WooCommerce\PayPalCommerce\ApiClient\Exception\RuntimeException' ) ) {
+				$this->status_transition();
+				$this->reset_content_data();
+			} else {
+				$logger = wc_get_logger();
+				$logger->error(
+					sprintf( 'Error saving shipment #%d', $this->get_id() ),
+					array(
+						'shipment' => $this,
+						'error'    => $e,
+					)
+				);
+			}
 		}
 
 		return $this->get_id();
