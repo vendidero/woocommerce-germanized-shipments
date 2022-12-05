@@ -48,22 +48,22 @@ class ShipmentQuery extends WC_Object_Query {
 	 */
 	protected function get_default_query_vars() {
 		return array(
-			'status'         => array_keys( wc_gzd_get_shipment_statuses() ),
-			'limit'          => 10,
-			'order_id'       => '',
-			'parent_id'      => '',
-			'type'           => 'simple',
-			'country'        => '',
-			'tracking_id'    => '',
-			'order'          => 'DESC',
-			'orderby'        => 'date_created',
+			'status'            => array_keys( wc_gzd_get_shipment_statuses() ),
+			'limit'             => 10,
+			'order_id'          => '',
+			'parent_id'         => '',
+			'type'              => 'simple',
+			'country'           => '',
+			'tracking_id'       => '',
+			'order'             => 'DESC',
+			'orderby'           => 'date_created',
 			'shipping_provider' => '',
-			'return'         => 'objects',
-			'page'           => 1,
-			'offset'         => '',
-			'paginate'       => false,
-			'search'         => '',
-			'search_columns' => array(),
+			'return'            => 'objects',
+			'page'              => 1,
+			'offset'            => '',
+			'paginate'          => false,
+			'search'            => '',
+			'search_columns'    => array(),
 		);
 	}
 

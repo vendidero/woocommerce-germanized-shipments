@@ -1035,10 +1035,10 @@ class Admin {
 				'wc-gzd-admin-shipments-table',
 				'wc_gzd_admin_shipments_table_params',
 				array(
-					'ajax_url'            => admin_url( 'admin-ajax.php' ),
-					'search_orders_nonce' => wp_create_nonce( 'search-orders' ),
+					'ajax_url'                       => admin_url( 'admin-ajax.php' ),
+					'search_orders_nonce'            => wp_create_nonce( 'search-orders' ),
 					'search_shipping_provider_nonce' => wp_create_nonce( 'search-shipping-provider' ),
-					'bulk_actions'        => $bulk_actions,
+					'bulk_actions'                   => $bulk_actions,
 				)
 			);
 		}

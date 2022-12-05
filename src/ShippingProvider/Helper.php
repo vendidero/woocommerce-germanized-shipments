@@ -156,7 +156,7 @@ class Helper {
 		$shipping_providers   = WC_Data_Store::load( 'shipping-provider' )->get_shipping_providers();
 		$registered_providers = $this->get_shipping_provider_class_names();
 
-		foreach( $registered_providers as $k => $provider ) {
+		foreach ( $registered_providers as $k => $provider ) {
 			if ( ! array_key_exists( $k, $shipping_providers ) ) {
 				$shipping_providers[ $k ] = $provider;
 			}

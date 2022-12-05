@@ -427,23 +427,23 @@ class Ajax {
 		}
 
 		$order       = wc_clean( wp_unslash( $_POST['order'] ) );
-        $order_count = 0;
+		$order_count = 0;
 		$helper      = Helper::instance();
 		$response    = array(
-			'success'  => true,
-			'message'  => '',
+			'success' => true,
+			'message' => '',
 		);
 
 		$helper->load_shipping_providers();
 
-        foreach( $order as $shipping_provider_name ) {
-	        if ( $shipping_provider = $helper->get_shipping_provider( $shipping_provider_name ) ) {
-                $shipping_provider->set_order( ++$order_count );
-                $shipping_provider->save();
-	        }
-        }
+		foreach ( $order as $shipping_provider_name ) {
+			if ( $shipping_provider = $helper->get_shipping_provider( $shipping_provider_name ) ) {
+				$shipping_provider->set_order( ++$order_count );
+				$shipping_provider->save();
+			}
+		}
 
-        wp_send_json( $response );
+		wp_send_json( $response );
 	}
 
 	public static function shipments_bulk_action_handle() {
@@ -836,47 +836,47 @@ class Ajax {
 		self::send_json_success( $response, $order_shipment, $shipment );
 	}
 
-    public static function json_search_shipping_provider() {
-	    ob_start();
+	public static function json_search_shipping_provider() {
+		ob_start();
 
-	    check_ajax_referer( 'search-shipping-provider', 'security' );
+		check_ajax_referer( 'search-shipping-provider', 'security' );
 
-	    if ( ! current_user_can( 'edit_shop_orders' ) ) {
-		    wp_die( -1 );
-	    }
+		if ( ! current_user_can( 'edit_shop_orders' ) ) {
+			wp_die( -1 );
+		}
 
-	    $term            = isset( $_GET['term'] ) ? (string) wc_clean( wp_unslash( $_GET['term'] ) ) : '';
-        $found_providers = array();
+		$term            = isset( $_GET['term'] ) ? (string) wc_clean( wp_unslash( $_GET['term'] ) ) : '';
+		$found_providers = array();
 
-	    if ( empty( $term ) ) {
-		    wp_die();
-	    }
+		if ( empty( $term ) ) {
+			wp_die();
+		}
 
-        global $wpdb;
+		global $wpdb;
 
-	    $names = $wpdb->get_col(
-		    $wpdb->prepare(
+		$names = $wpdb->get_col(
+			$wpdb->prepare(
 			    "SELECT DISTINCT p1.shipping_provider_name FROM {$wpdb->gzd_shipping_provider} p1 WHERE p1.shipping_provider_title LIKE %s AND p1.shipping_provider_activated = 1", // @codingStandardsIgnoreLine
-			    $wpdb->esc_like( wc_clean( $term ) ) . '%'
-		    )
-	    );
+				$wpdb->esc_like( wc_clean( $term ) ) . '%'
+			)
+		);
 
-	    foreach ( $names as $name ) {
-		    if ( $shipping_provider = wc_gzd_get_shipping_provider( $name ) ) {
-			    $found_providers[ $name ] = esc_html( $shipping_provider->get_title() );
-		    }
-	    }
+		foreach ( $names as $name ) {
+			if ( $shipping_provider = wc_gzd_get_shipping_provider( $name ) ) {
+				$found_providers[ $name ] = esc_html( $shipping_provider->get_title() );
+			}
+		}
 
-	    /**
-	     * Filter to adjust found shipping providers to filter Shipments.
-	     *
-	     * @param array $result The shipping provider search result.
-	     *
-	     * @since 3.0.0
-	     * @package Vendidero/Germanized/Shipments
-	     */
-	    wp_send_json( apply_filters( 'woocommerce_gzd_json_search_found_shipment_shipping_providers', $found_providers ) );
-    }
+		/**
+		 * Filter to adjust found shipping providers to filter Shipments.
+		 *
+		 * @param array $result The shipping provider search result.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		wp_send_json( apply_filters( 'woocommerce_gzd_json_search_found_shipment_shipping_providers', $found_providers ) );
+	}
 
 	public static function json_search_orders() {
 		ob_start();
