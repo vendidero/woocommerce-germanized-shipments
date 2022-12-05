@@ -19,6 +19,49 @@ window.germanized.admin = window.germanized.admin || {};
             $( document )
                 .on( 'click', '.wc-gzd-shipping-provider-delete', self.onRemoveProvider )
                 .on( 'change', '.wc-gzd-shipping-providers input.wc-gzd-shipping-provider-activated-checkbox', this.onChangeProviderStatus );
+
+            // Use load event to prevent firing during initial (after ready) phase
+            $( window ).on( "load", function() {
+                $( document ).on( 'updateMoveButtons', 'table.wc-gzd-shipping-providers', self.onChangeSort );
+            });
+
+            // Sorting
+            $( 'table.wc-gzd-shipping-providers tbody' ).sortable({
+                items: 'tr',
+                cursor: 'move',
+                axis: 'y',
+                handle: 'td.sort',
+                scrollSensitivity: 40,
+                helper: function ( event, ui ) {
+                    ui.children().each( function () {
+                        $( this ).width( $( this ).width() );
+                    } );
+                    ui.css( 'left', '0' );
+                    return ui;
+                },
+                start: function ( event, ui ) {
+                    ui.item.css( 'background-color', '#f6f6f6' );
+                },
+                stop: function ( event, ui ) {
+                    ui.item.removeAttr( 'style' );
+                    ui.item.trigger( 'updateMoveButtons' );
+                },
+            } );
+        },
+
+        onChangeSort: function() {
+            var sort = $( this ).find( 'input[name="provider_order[]"]' ).map( function () {
+                return $( this ).val();
+            }).get();
+
+            var self = germanized.admin.shipping_providers,
+                params = {
+                    'action'  : 'woocommerce_gzd_sort_shipping_provider',
+                    'order'   : sort,
+                    'security': self.getParams().sort_shipping_provider_nonce
+                };
+
+            self.doAjax( params );
         },
 
         onChangeProviderStatus: function() {

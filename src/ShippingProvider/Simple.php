@@ -53,6 +53,7 @@ class Simple extends WC_Data implements ShippingProvider {
 		'title'                      => '',
 		'name'                       => '',
 		'description'                => '',
+		'order'                      => 0,
 		'supports_customer_returns'  => false,
 		'supports_guest_returns'     => false,
 		'return_manual_confirmation' => true,
@@ -194,6 +195,17 @@ class Simple extends WC_Data implements ShippingProvider {
 	 */
 	public function get_title( $context = 'view' ) {
 		return $this->get_prop( 'title', $context );
+	}
+
+	/**
+	 * Returns the provider order.
+	 *
+	 * @param string $context
+	 *
+	 * @return int
+	 */
+	public function get_order( $context = 'view' ) {
+		return $this->get_prop( 'order', $context );
 	}
 
 	/**
@@ -602,6 +614,15 @@ class Simple extends WC_Data implements ShippingProvider {
 	 */
 	public function set_title( $title ) {
 		$this->set_prop( 'title', $title );
+	}
+
+	/**
+	 * Set the order of the current shipping provider.
+	 *
+	 * @param int $order
+	 */
+	public function set_order( $order ) {
+		$this->set_prop( 'order', absint( $order ) );
 	}
 
 	/**

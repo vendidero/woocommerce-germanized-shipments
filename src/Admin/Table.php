@@ -813,7 +813,7 @@ class Table extends WP_List_Table {
 	 * @param Shipment $shipment The current shipment object.
 	 */
 	public function column_title( $shipment ) {
-		$title = sprintf( _x( '%1$s #%2$s', 'shipment title', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label_title( $shipment->get_type() ), $shipment->get_id() );
+		$title = sprintf( _x( '%1$s #%2$s', 'shipment title', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label_title( $shipment->get_type() ), $shipment->get_shipment_number() );
 
 		if ( $order = $shipment->get_order() ) {
 			echo '<a href="' . esc_url( $shipment->get_edit_shipment_url() ) . '">' . wp_kses_post( $title ) . '</a> ';

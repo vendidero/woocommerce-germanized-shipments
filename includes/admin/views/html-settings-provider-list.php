@@ -8,6 +8,7 @@ defined( 'ABSPATH' ) || exit;
 <table class="wc-gzd-shipping-providers widefat">
 	<thead>
 	<tr>
+        <th class="sort"></th>
 		<th class="wc-gzd-shipping-provider-title"><?php echo esc_html_x( 'Title', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
 		<th class="wc-gzd-shipping-provider-desc"><?php echo esc_html_x( 'Description', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
 		<th class="wc-gzd-shipping-provider-activated"><?php echo esc_html_x( 'Activated', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
@@ -17,6 +18,13 @@ defined( 'ABSPATH' ) || exit;
 	<tbody class="wc-gzd-setting-tab-rows">
 	<?php foreach ( $providers as $provider_name => $provider ) : ?>
 		<tr data-shipping-provider="<?php echo esc_attr( $provider->get_name() ); ?>">
+            <td class="sort" id="wc-gzd-shipping-provider-sort-<?php echo esc_attr( $provider->get_name() ); ?>">
+                <div class="wc-item-reorder-nav wc-gzd-shipping-provider-reorder-nav">
+                    <button type="button" class="wc-move-up" tabindex="0" aria-hidden="false" aria-label="<?php /* Translators: %s Payment gateway name. */ echo esc_attr( sprintf( _x( 'Move the "%s" provider up', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( $provider->get_title() ) ) ); ?>"><?php echo esc_html_x( 'Move up', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
+                    <button type="button" class="wc-move-down" tabindex="0" aria-hidden="false" aria-label="<?php /* Translators: %s Payment gateway name. */ echo esc_attr( sprintf( _x( 'Move the "%s" provider down', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( $provider->get_title() ) ) ); ?>"><?php echo esc_html_x( 'Move down', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
+                    <input type="hidden" name="provider_order[]" value="<?php echo esc_attr( $provider->get_name() ); ?>" />
+                </div>
+            </td>
 			<td class="wc-gzd-shipping-provider-title" id="wc-gzd-shipping-provider-title-<?php echo esc_attr( $provider->get_name() ); ?>">
 				<a href="<?php echo esc_url( $provider->get_edit_link() ); ?>" class="wc-gzd-shipping-provider-edit-link"><?php echo wp_kses_post( $provider->get_title() ); ?></a>
 				<div class="row-actions">

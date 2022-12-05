@@ -23,7 +23,6 @@ class Ajax {
 	 * Hook in methods - uses WordPress ajax handlers (admin-ajax).
 	 */
 	public static function add_ajax_events() {
-
 		$ajax_events = array(
 			'get_available_shipment_items',
 			'get_available_return_shipment_items',
@@ -42,6 +41,7 @@ class Ajax {
 			'update_shipment_status',
 			'shipments_bulk_action_handle',
 			'remove_shipping_provider',
+			'sort_shipping_provider',
 			'edit_shipping_provider_status',
 			'create_shipment_label_form',
 			'create_shipment_label',
@@ -417,6 +417,33 @@ class Ajax {
 		} else {
 			wp_send_json( $response_error );
 		}
+	}
+
+	public static function sort_shipping_provider() {
+		check_ajax_referer( 'sort-shipping-provider', 'security' );
+
+		if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['order'] ) ) {
+			wp_die( -1 );
+		}
+
+		$order       = wc_clean( wp_unslash( $_POST['order'] ) );
+        $order_count = 0;
+		$helper      = Helper::instance();
+		$response    = array(
+			'success'  => true,
+			'message'  => '',
+		);
+
+		$helper->load_shipping_providers();
+
+        foreach( $order as $shipping_provider_name ) {
+	        if ( $shipping_provider = $helper->get_shipping_provider( $shipping_provider_name ) ) {
+                $shipping_provider->set_order( ++$order_count );
+                $shipping_provider->save();
+	        }
+        }
+
+        wp_send_json( $response );
 	}
 
 	public static function shipments_bulk_action_handle() {

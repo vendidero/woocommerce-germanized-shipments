@@ -43,6 +43,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		'activated',
 		'title',
 		'name',
+		'order'
 	);
 
 	/*
@@ -61,10 +62,22 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 
 		$provider->set_name( $this->get_unqiue_name( $provider ) );
 
+		if ( 0 === $provider->get_order( 'edit' ) ) {
+			$max_order     = 1;
+			$max_order_col = $wpdb->get_col( "SELECT MAX(shipping_provider_order) FROM {$wpdb->gzd_shipping_provider}" );
+
+			if ( ! empty( $max_order_col ) ) {
+				$max_order = absint( $max_order_col[0] ) + 1;
+			}
+
+			$provider->set_order( $max_order );
+		}
+
 		$data = array(
 			'shipping_provider_activated' => $provider->is_activated() ? 1 : 0,
 			'shipping_provider_name'      => $provider->get_name( 'edit' ),
 			'shipping_provider_title'     => $provider->get_title( 'edit' ),
+			'shipping_provider_order'     => $provider->get_order( 'edit' ),
 		);
 
 		$wpdb->insert(
@@ -254,6 +267,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 					'name'      => $data->shipping_provider_name,
 					'title'     => $data->shipping_provider_title,
 					'activated' => $data->shipping_provider_activated,
+					'order'     => $data->shipping_provider_order,
 				)
 			);
 
@@ -462,7 +476,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	public function get_shipping_providers() {
 		global $wpdb;
 
-		$providers          = $wpdb->get_results( "SELECT * FROM $wpdb->gzd_shipping_provider" );
+		$providers          = $wpdb->get_results( "SELECT * FROM $wpdb->gzd_shipping_provider ORDER BY shipping_provider_order ASC" );
 		$shipping_providers = array();
 
 		foreach ( $providers as $provider ) {

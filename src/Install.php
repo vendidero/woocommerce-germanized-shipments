@@ -302,6 +302,7 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_packagingmeta (
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_provider (
   shipping_provider_id BIGINT UNSIGNED NOT NULL auto_increment,
   shipping_provider_activated TINYINT(1) NOT NULL default 1,
+  shipping_provider_order smallint(10) NOT NULL DEFAULT 0,
   shipping_provider_title varchar(200) NOT NULL DEFAULT '',
   shipping_provider_name varchar(191) NOT NULL DEFAULT '',
   PRIMARY KEY  (shipping_provider_id),

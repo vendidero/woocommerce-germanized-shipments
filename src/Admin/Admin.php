@@ -285,7 +285,7 @@ class Admin {
 			 * @since 3.1.3
 			 * @package Vendidero/Germanized/Shipments
 			 */
-			if ( apply_filters( 'woocommerce_gzd_shipments_include_requested_return_count_in_menu', true ) && current_user_can( 'manage_woocommerce' ) ) {
+			if ( apply_filters( 'woocommerce_gzd_shipments_include_requested_return_count_in_menu', true ) && current_user_can( 'edit_others_shop_orders' ) ) {
 				$return_count = wc_gzd_get_shipment_count( 'requested', 'return' );
 
 				if ( $return_count ) {
@@ -794,8 +794,8 @@ class Admin {
 	}
 
 	public static function shipments_menu() {
-		add_submenu_page( 'woocommerce', _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ), _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ), 'manage_woocommerce', 'wc-gzd-shipments', array( __CLASS__, 'shipments_page' ) );
-		add_submenu_page( 'woocommerce', _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ), _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ), 'manage_woocommerce', 'wc-gzd-return-shipments', array( __CLASS__, 'returns_page' ) );
+		add_submenu_page( 'woocommerce', _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ), _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ), 'edit_others_shop_orders', 'wc-gzd-shipments', array( __CLASS__, 'shipments_page' ) );
+		add_submenu_page( 'woocommerce', _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ), _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ), 'edit_others_shop_orders', 'wc-gzd-return-shipments', array( __CLASS__, 'returns_page' ) );
 	}
 
 	/**
@@ -989,7 +989,7 @@ class Admin {
 		wp_register_script( 'wc-gzd-admin-shipment', Package::get_assets_url() . '/js/admin-shipment' . $suffix . '.js', array( 'wc-gzd-admin-shipment-label-backbone' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_register_script( 'wc-gzd-admin-shipments', Package::get_assets_url() . '/js/admin-shipments' . $suffix . '.js', array( 'wc-admin-order-meta-boxes', 'wc-gzd-admin-shipment' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_register_script( 'wc-gzd-admin-shipments-table', Package::get_assets_url() . '/js/admin-shipments-table' . $suffix . '.js', array( 'woocommerce_admin', 'wc-gzd-admin-shipment-label-backbone' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_register_script( 'wc-gzd-admin-shipping-providers', Package::get_assets_url() . '/js/admin-shipping-providers' . $suffix . '.js', array( 'jquery' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-admin-shipping-providers', Package::get_assets_url() . '/js/admin-shipping-providers' . $suffix . '.js', array( 'jquery', 'jquery-ui-sortable' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_register_script( 'wc-gzd-admin-shipping-provider-method', Package::get_assets_url() . '/js/admin-shipping-provider-method' . $suffix . '.js', array( 'jquery' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 
 		// Orders.
@@ -1064,6 +1064,7 @@ class Admin {
 					'ajax_url'                             => admin_url( 'admin-ajax.php' ),
 					'edit_shipping_providers_nonce'        => wp_create_nonce( 'edit-shipping-providers' ),
 					'remove_shipping_provider_nonce'       => wp_create_nonce( 'remove-shipping-provider' ),
+					'sort_shipping_provider_nonce'         => wp_create_nonce( 'sort-shipping-provider' ),
 					'i18n_remove_shipping_provider_notice' => _x( 'Do you really want to delete the shipping provider? Some of your existing shipments might be linked to that provider and might need adjustments.', 'shipments', 'woocommerce-germanized-shipments' ),
 				)
 			);
