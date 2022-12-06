@@ -190,15 +190,17 @@ class Order {
 
 	/**
 	 * @param Shipment $shipment
+	 *
+	 * @return float
 	 */
 	public function calculate_shipment_additional_total( $shipment ) {
-		$fees_total = 0;
+		$fees_total = 0.0;
 
 		foreach ( $this->get_order()->get_fees() as $item ) {
 			$fees_total += ( (float) $item->get_total() + (float) $item->get_total_tax() );
 		}
 
-		$additional_total = $fees_total + $this->get_order()->get_shipping_total() + $this->get_order()->get_shipping_tax();
+		$additional_total = $fees_total + (float) $this->get_order()->get_shipping_total() + (float) $this->get_order()->get_shipping_tax();
 
 		foreach ( $this->get_simple_shipments() as $simple_shipment ) {
 			if ( $shipment->get_id() === $simple_shipment->get_id() ) {
@@ -210,8 +212,8 @@ class Order {
 
 		$additional_total = wc_format_decimal( $additional_total, '' );
 
-		if ( $additional_total < 0 ) {
-			$additional_total = 0;
+		if ( (float) $additional_total < 0.0 ) {
+			$additional_total = 0.0;
 		}
 
 		return $additional_total;
