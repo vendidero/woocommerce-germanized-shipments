@@ -125,10 +125,12 @@ class BulkLabel extends BulkActionHandler {
 	}
 
 	protected function add_file( $path ) {
-		$files   = $this->get_files();
-		$files[] = $path;
+		$files = $this->get_files();
 
-		update_user_meta( get_current_user_id(), $this->get_files_option_name(), $files );
+		if ( ! in_array( $path, $files, true ) ) {
+			$files[] = $path;
+			update_user_meta( get_current_user_id(), $this->get_files_option_name(), $files );
+		}
 	}
 
 	public function handle() {
