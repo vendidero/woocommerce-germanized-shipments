@@ -102,7 +102,7 @@ class ReportQueue {
 			if ( ! empty( $results ) ) {
 				$action    = array_values( $results )[0];
 				$args      = $action->get_args();
-				$processed = isset( $args['args']['shipments_processed'] ) ? (int) $args['args']['shipments_processed'] : 0;
+				$processed = isset( $args['args']['processed'] ) ? (int) $args['args']['processed'] : 0;
 
 				$details['shipment_count'] = absint( $processed );
 				$details['has_action']     = true;

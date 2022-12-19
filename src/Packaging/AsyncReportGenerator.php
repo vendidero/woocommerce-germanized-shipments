@@ -26,7 +26,7 @@ class AsyncReportGenerator {
 				'limit'     => ReportQueue::get_batch_size(),
 				'status'    => ReportQueue::get_shipment_statuses(),
 				'offset'    => 0,
-				'type'      => array( 'simple', 'return' ),
+				'type'      => apply_filters( 'woocommerce_gzd_shipments_packaging_report_default_shipment_types', array( 'simple' ) ),
 				'processed' => 0,
 			)
 		);
@@ -91,6 +91,7 @@ class AsyncReportGenerator {
 			foreach ( $shipments as $shipment ) {
 				$packaging_weight = $shipment->get_packaging_weight();
 				$packaging        = $shipment->get_packaging();
+				$country          = $shipment->get_country();
 				$packaging_id     = 'other';
 
 				if ( ! $shipment->get_packaging_weight() ) {
@@ -102,15 +103,15 @@ class AsyncReportGenerator {
 					$packaging_id = $packaging->get_id();
 				}
 
-				if ( ! isset( $packaging_data[ "$packaging_id" ] ) ) {
-					$packaging_data[ "$packaging_id" ] = array(
+				if ( ! isset( $packaging_data[ $country ][ "$packaging_id" ] ) ) {
+					$packaging_data[ $country ][ "$packaging_id" ] = array(
 						'count'        => 0,
 						'weight_in_kg' => 0.0,
 					);
 				}
 
-				$packaging_data[ "$packaging_id" ]['count']        += 1;
-				$packaging_data[ "$packaging_id" ]['weight_in_kg'] += wc_add_number_precision( (float) wc_get_weight( $packaging_weight, 'kg', $shipment->get_weight_unit() ), false );
+				$packaging_data[ $country ][ "$packaging_id" ]['count']        += 1;
+				$packaging_data[ $country ][ "$packaging_id" ]['weight_in_kg'] += wc_add_number_precision( (float) wc_get_weight( $packaging_weight, 'kg', $shipment->get_weight_unit() ), false );
 
 				$shipments_processed++;
 			}
@@ -135,13 +136,43 @@ class AsyncReportGenerator {
 		$report       = new Report( $this->get_id() );
 		$count_total  = 0;
 		$weight_total = 0.0;
+		$packaging_totals = array();
 
-		foreach ( $tmp_result as $packaging_id => $totals ) {
-			$count_total  += (int) $totals['count'];
-			$weight_total += (float) $totals['weight_in_kg'];
+		foreach ( $tmp_result as $country => $packaging_ids ) {
+			$country_count_total  = 0;
+			$country_weight_total = 0.0;
 
-			$report->set_packaging_count( $packaging_id, (int) $totals['count'] );
-			$report->set_packaging_weight( $packaging_id, (float) wc_remove_number_precision( $totals['weight_in_kg'] ) );
+			foreach( $packaging_ids as $packaging_id => $totals ) {
+				$count_total          += (int) $totals['count'];
+				$weight_total         += (float) $totals['weight_in_kg'];
+				$country_count_total  += (int) $totals['count'];
+				$country_weight_total += (float) $totals['weight_in_kg'];
+
+				if ( ! isset( $packaging_totals[ "$packaging_id" ] ) ) {
+					$packaging_totals[ "$packaging_id" ] = array(
+						'count'        => 0,
+						'weight_in_kg' => 0.0,
+					);
+				}
+
+				$packaging_totals[ "$packaging_id" ]['count'] += (int) $totals['count'];
+				$packaging_totals[ "$packaging_id" ]['weight_in_kg'] += (float) $totals['weight_in_kg'];
+
+				$report->set_packaging_count_by_country( $country, $packaging_id, (int) $totals['count'] );
+				$report->set_packaging_weight_by_country( $country, $packaging_id, (float) wc_remove_number_precision( $totals['weight_in_kg'] ) );
+			}
+
+			$country_weight_total = (float) wc_remove_number_precision( $country_weight_total );
+
+			$report->set_total_packaging_count_by_country( $country, $country_count_total );
+			$report->set_total_packaging_weight_by_country( $country, $country_weight_total );
+		}
+
+		foreach( $packaging_totals as $packaging_id => $totals ) {
+			$packaging_weight_total = (float) wc_remove_number_precision( $totals['weight_in_kg'] );
+
+			$report->set_packaging_count( $packaging_id, $totals['count'] );
+			$report->set_packaging_weight( $packaging_id, $packaging_weight_total );
 		}
 
 		$weight_total = (float) wc_remove_number_precision( $weight_total );
