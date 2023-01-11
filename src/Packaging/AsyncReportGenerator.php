@@ -132,17 +132,17 @@ class AsyncReportGenerator {
 	public function complete() {
 		Package::log( sprintf( 'Completed called' ) );
 
-		$tmp_result   = $this->get_temporary_result();
-		$report       = new Report( $this->get_id() );
-		$count_total  = 0;
-		$weight_total = 0.0;
+		$tmp_result       = $this->get_temporary_result();
+		$report           = new Report( $this->get_id() );
+		$count_total      = 0;
+		$weight_total     = 0.0;
 		$packaging_totals = array();
 
 		foreach ( $tmp_result as $country => $packaging_ids ) {
 			$country_count_total  = 0;
 			$country_weight_total = 0.0;
 
-			foreach( $packaging_ids as $packaging_id => $totals ) {
+			foreach ( $packaging_ids as $packaging_id => $totals ) {
 				$count_total          += (int) $totals['count'];
 				$weight_total         += (float) $totals['weight_in_kg'];
 				$country_count_total  += (int) $totals['count'];
@@ -155,7 +155,7 @@ class AsyncReportGenerator {
 					);
 				}
 
-				$packaging_totals[ "$packaging_id" ]['count'] += (int) $totals['count'];
+				$packaging_totals[ "$packaging_id" ]['count']        += (int) $totals['count'];
 				$packaging_totals[ "$packaging_id" ]['weight_in_kg'] += (float) $totals['weight_in_kg'];
 
 				$report->set_packaging_count_by_country( $country, $packaging_id, (int) $totals['count'] );
@@ -168,7 +168,7 @@ class AsyncReportGenerator {
 			$report->set_total_packaging_weight_by_country( $country, $country_weight_total );
 		}
 
-		foreach( $packaging_totals as $packaging_id => $totals ) {
+		foreach ( $packaging_totals as $packaging_id => $totals ) {
 			$packaging_weight_total = (float) wc_remove_number_precision( $totals['weight_in_kg'] );
 
 			$report->set_packaging_count( $packaging_id, $totals['count'] );

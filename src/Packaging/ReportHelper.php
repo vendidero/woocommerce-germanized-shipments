@@ -95,8 +95,8 @@ class ReportHelper {
 				'count'     => _x( 'Count', 'shipments', 'woocommerce-germanized-shipments' ),
 			);
 
-			$actions   = self::get_report_actions( $report );
-            $countries = WC()->countries->get_countries();
+			$actions       = self::get_report_actions( $report );
+			$countries     = WC()->countries->get_countries();
 			$packaging_ids = $report->get_packaging_ids();
 			?>
 			<div class="wrap wc-gzd-shipments-packaging-report packaging-report-<?php echo esc_attr( $report->get_id() ); ?>">
@@ -114,56 +114,57 @@ class ReportHelper {
 					<p class="summary"><?php echo esc_html( $report->get_date_start()->date_i18n( wc_date_format() ) ); ?> &ndash; <?php echo esc_html( $report->get_date_end()->date_i18n( wc_date_format() ) ); ?>: <?php echo esc_html( wc_gzd_format_shipment_weight( $report->get_total_weight(), wc_gzd_get_packaging_weight_unit() ) ); ?> (<?php echo esc_html( sprintf( _x( '%d units', 'shipments-packaging-report', 'woocommerce-germanized-shipments' ), $report->get_total_count() ) ); ?>)</p>
 					<hr class="wp-header-end" />
 
-                    <?php if ( ! empty( $packaging_ids ) ) : ?>
-                        <table class="wp-list-table widefat fixed striped posts wc-gzd-shipments-packaging-report-details" cellspacing="0">
-                            <thead>
-                            <tr>
-                                <?php foreach ( $columns as $key => $column ) : ?>
-                                    <th class="wc-gzd-shipments-packaging-report-table-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $column ); ?></th>
-                                <?php endforeach; ?>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <?php
-                            foreach ( $packaging_ids as $packaging_id ) :
-                                $packaging = is_numeric( $packaging_id ) ? wc_gzd_get_packaging( $packaging_id ) : false;
-                                ?>
-                                <tr>
-                                    <td class="wc-gzd-shipments-packaging-report-table-packaging"><?php echo esc_html( ( $packaging && $packaging->get_id() > 0 ? $packaging->get_description() : _x( 'Unknown', 'shipments-packaging-title', 'woocommerce-germanized-shipments' ) ) ); ?></td>
-                                    <td class="wc-gzd-shipments-packaging-report-table-weight"><?php echo esc_html( wc_gzd_format_shipment_weight( $report->get_packaging_weight( $packaging_id ), wc_gzd_get_packaging_weight_unit() ) ); ?></td>
-                                    <td class="wc-gzd-shipments-packaging-report-table-count"><?php echo esc_html( $report->get_packaging_count( $packaging_id ) ); ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    <?php endif; ?>
+					<?php if ( ! empty( $packaging_ids ) ) : ?>
+						<table class="wp-list-table widefat fixed striped posts wc-gzd-shipments-packaging-report-details" cellspacing="0">
+							<thead>
+							<tr>
+								<?php foreach ( $columns as $key => $column ) : ?>
+									<th class="wc-gzd-shipments-packaging-report-table-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $column ); ?></th>
+								<?php endforeach; ?>
+							</tr>
+							</thead>
+							<tbody>
+							<?php
+							foreach ( $packaging_ids as $packaging_id ) :
+								$packaging = is_numeric( $packaging_id ) ? wc_gzd_get_packaging( $packaging_id ) : false;
+								?>
+								<tr>
+									<td class="wc-gzd-shipments-packaging-report-table-packaging"><?php echo esc_html( ( $packaging && $packaging->get_id() > 0 ? $packaging->get_description() : _x( 'Unknown', 'shipments-packaging-title', 'woocommerce-germanized-shipments' ) ) ); ?></td>
+									<td class="wc-gzd-shipments-packaging-report-table-weight"><?php echo esc_html( wc_gzd_format_shipment_weight( $report->get_packaging_weight( $packaging_id ), wc_gzd_get_packaging_weight_unit() ) ); ?></td>
+									<td class="wc-gzd-shipments-packaging-report-table-count"><?php echo esc_html( $report->get_packaging_count( $packaging_id ) ); ?></td>
+								</tr>
+							<?php endforeach; ?>
+							</tbody>
+						</table>
+					<?php endif; ?>
 
-                    <?php foreach( $report->get_countries() as $country ) :
-                        ?>
-                        <h4><?php echo esc_html( isset( $countries[ $country ] ) ? $countries[ $country ] : $country ); ?></h4>
-                        <p class="summary"><?php echo esc_html( wc_gzd_format_shipment_weight( $report->get_total_packaging_weight_by_country( $country ), wc_gzd_get_packaging_weight_unit() ) ); ?> (<?php echo esc_html( sprintf( _x( '%d units', 'shipments-packaging-report', 'woocommerce-germanized-shipments' ), $report->get_total_packaging_count_by_country( $country ) ) ); ?>)</p>
-                        <table class="wp-list-table widefat fixed striped posts wc-gzd-shipments-packaging-report-details" cellspacing="0">
-                            <thead>
-                            <tr>
-                                <?php foreach ( $columns as $key => $column ) : ?>
-                                    <th class="wc-gzd-shipments-packaging-report-table-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $column ); ?></th>
-                                <?php endforeach; ?>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <?php
-                            foreach ( $report->get_packaging_ids_by_country( $country ) as $packaging_id ) :
-                                $packaging = is_numeric( $packaging_id ) ? wc_gzd_get_packaging( $packaging_id ) : false;
-                                ?>
-                                <tr>
-                                    <td class="wc-gzd-shipments-packaging-report-table-packaging"><?php echo esc_html( ( $packaging && $packaging->get_id() > 0 ? $packaging->get_description() : _x( 'Unknown', 'shipments-packaging-title', 'woocommerce-germanized-shipments' ) ) ); ?></td>
-                                    <td class="wc-gzd-shipments-packaging-report-table-weight"><?php echo esc_html( wc_gzd_format_shipment_weight( $report->get_packaging_weight( $packaging_id, $country ), wc_gzd_get_packaging_weight_unit() ) ); ?></td>
-                                    <td class="wc-gzd-shipments-packaging-report-table-count"><?php echo esc_html( $report->get_packaging_count( $packaging_id, $country ) ); ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    <?php endforeach; ?>
+					<?php
+					foreach ( $report->get_countries() as $country ) :
+						?>
+						<h4><?php echo esc_html( isset( $countries[ $country ] ) ? $countries[ $country ] : $country ); ?></h4>
+						<p class="summary"><?php echo esc_html( wc_gzd_format_shipment_weight( $report->get_total_packaging_weight_by_country( $country ), wc_gzd_get_packaging_weight_unit() ) ); ?> (<?php echo esc_html( sprintf( _x( '%d units', 'shipments-packaging-report', 'woocommerce-germanized-shipments' ), $report->get_total_packaging_count_by_country( $country ) ) ); ?>)</p>
+						<table class="wp-list-table widefat fixed striped posts wc-gzd-shipments-packaging-report-details" cellspacing="0">
+							<thead>
+							<tr>
+								<?php foreach ( $columns as $key => $column ) : ?>
+									<th class="wc-gzd-shipments-packaging-report-table-<?php echo esc_attr( $key ); ?>"><?php echo esc_html( $column ); ?></th>
+								<?php endforeach; ?>
+							</tr>
+							</thead>
+							<tbody>
+							<?php
+							foreach ( $report->get_packaging_ids_by_country( $country ) as $packaging_id ) :
+								$packaging = is_numeric( $packaging_id ) ? wc_gzd_get_packaging( $packaging_id ) : false;
+								?>
+								<tr>
+									<td class="wc-gzd-shipments-packaging-report-table-packaging"><?php echo esc_html( ( $packaging && $packaging->get_id() > 0 ? $packaging->get_description() : _x( 'Unknown', 'shipments-packaging-title', 'woocommerce-germanized-shipments' ) ) ); ?></td>
+									<td class="wc-gzd-shipments-packaging-report-table-weight"><?php echo esc_html( wc_gzd_format_shipment_weight( $report->get_packaging_weight( $packaging_id, $country ), wc_gzd_get_packaging_weight_unit() ) ); ?></td>
+									<td class="wc-gzd-shipments-packaging-report-table-count"><?php echo esc_html( $report->get_packaging_count( $packaging_id, $country ) ); ?></td>
+								</tr>
+							<?php endforeach; ?>
+							</tbody>
+						</table>
+					<?php endforeach; ?>
 					<?php
 				else :
 					$details = ReportQueue::get_queue_details( $report_id );
