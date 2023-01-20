@@ -11,7 +11,7 @@
  * the readme will list any important changes.
  *
  * @package Vendidero/Germanized/Shipments/Templates
- * @version 1.0.1
+ * @version 1.0.2
  */
 defined( 'ABSPATH' ) || exit;
 ?>
@@ -32,7 +32,7 @@ defined( 'ABSPATH' ) || exit;
 <?php endif; ?>
 
 <?php if ( wc_gzd_order_is_customer_returnable( $order ) ) : ?>
-	<p class="shipments-add-return"><a class="add-return-shipment woocommerce-button button" href="<?php echo esc_url( wc_gzd_get_order_customer_add_return_url( $order ) ); ?>"><?php echo esc_html_x( 'Add return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
+	<p class="shipments-add-return"><a class="add-return-shipment woocommerce-button button<?php echo esc_attr( wc_gzd_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_gzd_wp_theme_get_element_class_name( 'button' ) : '' ); ?>" href="<?php echo esc_url( wc_gzd_get_order_customer_add_return_url( $order ) ); ?>"><?php echo esc_html_x( 'Add return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></p>
 <?php elseif ( wc_gzd_order_is_customer_returnable( $order, false ) ) : ?>
 	<p class="shipments-return-not-available"><?php echo esc_html_x( 'Adding return requests to this order is no longer available. You may contact us for further information.', 'shipments', 'woocommerce-germanized-shipments' ); ?></p>
 <?php endif; ?>

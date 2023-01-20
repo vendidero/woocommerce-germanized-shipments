@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Vendidero/Germanized/Shipments/Templates
- * @version 1.0.1
+ * @version 1.0.2
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
@@ -41,7 +41,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 	<p class="form-row">
 		<?php wp_nonce_field( 'woocommerce-gzd-return-request', 'woocommerce-gzd-return-request-nonce' ); ?>
-		<button type="submit" class="woocommerce-button button woocommerce-form-return_request__submit" name="return_request" value="<?php echo esc_attr_x( 'Submit', 'shipments', 'woocommerce-germanized-shipments' ); ?>"><?php echo esc_attr_x( 'Submit', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
+		<button type="submit" class="woocommerce-button button woocommerce-form-return_request__submit<?php echo esc_attr( wc_gzd_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_gzd_wp_theme_get_element_class_name( 'button' ) : '' ); ?>" name="return_request" value="<?php echo esc_attr_x( 'Submit', 'shipments', 'woocommerce-germanized-shipments' ); ?>"><?php echo esc_attr_x( 'Submit', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
 	</p>
 
 	<div class="clear"></div>

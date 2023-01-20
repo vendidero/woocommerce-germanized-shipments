@@ -11,7 +11,7 @@
  * the readme will list any important changes.
  *
  * @package Vendidero/Germanized/Shipments/Templates
- * @version 1.0.1
+ * @version 1.0.2
  */
 defined( 'ABSPATH' ) || exit;
 ?>
@@ -76,7 +76,7 @@ defined( 'ABSPATH' ) || exit;
 
 	<p>
 		<?php wp_nonce_field( 'add_return_shipment', 'add-return-shipment-nonce' ); ?>
-		<button type="submit" class="woocommerce-Button button" name="add_return_shipment" value="<?php echo esc_attr_x( 'Send request', 'shipments', 'woocommerce-germanized-shipments' ); ?>"><?php echo esc_attr_x( 'Send request', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
+		<button type="submit" class="woocommerce-Button button<?php echo esc_attr( wc_gzd_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_gzd_wp_theme_get_element_class_name( 'button' ) : '' ); ?>" name="add_return_shipment" value="<?php echo esc_attr_x( 'Send request', 'shipments', 'woocommerce-germanized-shipments' ); ?>"><?php echo esc_attr_x( 'Send request', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
 
 		<input type="hidden" name="action" value="gzd_add_return_shipment" />
 		<input type="hidden" name="key" value="<?php echo esc_attr( wc_gzd_get_customer_order_return_request_key() ); ?>" />

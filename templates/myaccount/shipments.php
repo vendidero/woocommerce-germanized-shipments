@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/Shipments/Templates/Emails/Plain
- * @version 1.1.2
+ * @version 1.1.3
  */
 use Vendidero\Germanized\Shipments\Shipment;
 
@@ -86,7 +86,7 @@ do_action( 'woocommerce_gzd_before_account_shipments', $shipments, $order ); ?>
 
 						if ( ! empty( $actions ) ) {
 							foreach ( $actions as $key => $action ) { // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
-								echo '<a href="' . esc_url( $action['url'] ) . '" class="woocommerce-button button ' . sanitize_html_class( $key ) . '">' . esc_html( $action['name'] ) . '</a>';
+								echo '<a href="' . esc_url( $action['url'] ) . '" class="woocommerce-button button ' . sanitize_html_class( $key ) . esc_attr( wc_gzd_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_gzd_wp_theme_get_element_class_name( 'button' ) : '' ) . '">' . esc_html( $action['name'] ) . '</a>';
 							}
 						}
 						?>
