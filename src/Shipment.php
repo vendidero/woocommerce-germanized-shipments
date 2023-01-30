@@ -1890,7 +1890,7 @@ abstract class Shipment extends WC_Data {
 	}
 
 	public function sync_packaging() {
-		$available_packaging = $this->get_available_packaging();
+		$available_packaging = $this->get_selectable_packaging();
 		$default_packaging   = $this->get_default_packaging();
 		$packaging_id        = $this->get_packaging_id( 'edit' );
 
@@ -2286,10 +2286,24 @@ abstract class Shipment extends WC_Data {
 		return $this->packaging;
 	}
 
+	/**
+	 * Returns a list of available (fitting) packaging options for the current shipment
+	 *
+	 * @return Packaging[]
+	 */
 	public function get_available_packaging() {
 		$packaging_store = \WC_Data_Store::load( 'packaging' );
 
 		return apply_filters( "{$this->get_hook_prefix()}available_packaging", $packaging_store->find_available_packaging_for_shipment( $this ), $this );
+	}
+
+	/**
+	 * Returns a list of user-selectable packaging options for the current shipment.
+	 *
+	 * @return Packaging[]
+	 */
+	public function get_selectable_packaging() {
+		return apply_filters( "{$this->get_hook_prefix()}selectable_packaging", $this->get_available_packaging(), $this );
 	}
 
 	public function get_default_packaging() {

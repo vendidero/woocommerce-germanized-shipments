@@ -606,7 +606,9 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			}
 		}
 
-		return apply_filters( 'woocommerce_gzd_find_available_packaging_for_shipment', $this->sort_packaging_list( $packaging_available ), $shipment );
+		$packaging_list = apply_filters( 'woocommerce_gzd_find_available_packaging_for_shipment', $packaging_available, $shipment );
+
+		return $this->sort_packaging_list( $packaging_list );
 	}
 
 	protected function sort_packaging_list( $packaging ) {

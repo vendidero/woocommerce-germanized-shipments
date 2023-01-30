@@ -456,7 +456,6 @@ function wc_gzd_create_return_shipment( $order_shipment, $args = array() ) {
  */
 function wc_gzd_create_shipment( $order_shipment, $args = array() ) {
 	try {
-
 		if ( ! $order_shipment || ! is_a( $order_shipment, 'Vendidero\Germanized\Shipments\Order' ) ) {
 			throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}

@@ -114,7 +114,6 @@ class SimpleShipment extends Shipment {
 	 */
 	public function sync( $args = array() ) {
 		try {
-
 			if ( ! $order_shipment = $this->get_order_shipment() ) {
 				throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
 			}
@@ -215,7 +214,6 @@ class SimpleShipment extends Shipment {
 			 * @package Vendidero/Germanized/Shipments
 			 */
 			do_action( 'woocommerce_gzd_shipment_synced', $this, $order_shipment, $args );
-
 		} catch ( Exception $e ) {
 			return false;
 		}
@@ -233,7 +231,6 @@ class SimpleShipment extends Shipment {
 	 */
 	public function sync_items( $args = array() ) {
 		try {
-
 			if ( ! $order_shipment = $this->get_order_shipment() ) {
 				throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
 			}
