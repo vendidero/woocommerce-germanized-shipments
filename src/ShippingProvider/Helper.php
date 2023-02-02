@@ -151,6 +151,11 @@ class Helper {
 	 * @return ShippingProvider[]
 	 */
 	public function load_shipping_providers() {
+		if ( ! did_action( 'plugins_loaded' ) || doing_action( 'plugins_loaded' ) ) {
+			wc_doing_it_wrong( __FUNCTION__, _x( 'Loading shipping providers should only be triggered after the plugins_loaded action has fully been executed', 'shipments', 'woocommerce-germanized-shipments' ), '2.2.3' );
+			return array();
+		}
+
 		$this->shipping_providers = array();
 
 		$shipping_providers   = WC_Data_Store::load( 'shipping-provider' )->get_shipping_providers();
@@ -190,6 +195,10 @@ class Helper {
 	public function get_shipping_providers() {
 		if ( is_null( $this->shipping_providers ) ) {
 			$this->load_shipping_providers();
+		}
+
+		if ( is_null( $this->shipping_providers ) ) {
+			return array();
 		}
 
 		return $this->shipping_providers;
