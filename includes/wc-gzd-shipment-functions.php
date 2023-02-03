@@ -1482,3 +1482,20 @@ if ( ! function_exists( 'wc_gzd_wp_theme_get_element_class_name' ) ) {
 		return '';
 	}
 }
+
+/**
+ * Forces a WP_Error object to be converted to a ShipmentError.
+ *
+ * @param $error
+ *
+ * @return mixed|\Vendidero\Germanized\Shipments\ShipmentError
+ */
+function wc_gzd_get_shipment_error( $error ) {
+	if ( ! is_wp_error( $error ) ) {
+		return $error;
+	} elseif ( is_a( $error, 'Vendidero\Germanized\Shipments\ShipmentError' ) ) {
+		return $error;
+	} else {
+		return \Vendidero\Germanized\Shipments\ShipmentError::from_wp_error( $error );
+	}
+ }

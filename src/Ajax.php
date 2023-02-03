@@ -283,12 +283,15 @@ class Ajax {
 		}
 
 		if ( is_wp_error( $result ) ) {
+			$result = wc_gzd_get_shipment_error( $result );
+		}
+
+		if ( is_wp_error( $result ) && ! $result->is_soft_error() ) {
 			$response = array(
 				'success'  => false,
-				'messages' => $result->get_error_messages(),
+				'messages' => $result->get_error_messages_by_type(),
 			);
 		} elseif ( $label = $shipment->get_label() ) {
-
 			$order_shipment    = wc_gzd_get_shipment_order( $shipment->get_order() );
 			$order_status_html = $order_shipment ? self::get_global_order_status_html( $order_shipment->get_order() ) : array();
 
@@ -296,6 +299,7 @@ class Ajax {
 				'success'       => true,
 				'label_id'      => $label->get_id(),
 				'shipment_id'   => $shipment_id,
+                'messages'      => is_wp_error( $result ) ? $result->get_error_messages_by_type() : array(),
 				'needs_refresh' => true,
 				'fragments'     => array(
 					'div#shipment-' . $shipment_id         => self::get_shipment_html( $shipment ),

@@ -1048,6 +1048,7 @@ class Admin {
 			'wc_gzd_admin_shipment_label_backbone_params',
 			array(
 				'ajax_url'                => admin_url( 'admin-ajax.php' ),
+                'i18n_modal_close'        => _x( 'Close', 'shipments-close-modal', 'woocommerce-germanized-shipments' ),
 				'create_label_form_nonce' => wp_create_nonce( 'create-shipment-label-form' ),
 				'create_label_nonce'      => wp_create_nonce( 'create-shipment-label' ),
 			)

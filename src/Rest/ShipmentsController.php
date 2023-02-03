@@ -1067,6 +1067,10 @@ class ShipmentsController extends \WC_REST_Controller {
 		$result = $shipment->create_label( $args );
 
 		if ( is_wp_error( $result ) ) {
+			$result = wc_gzd_get_shipment_error( $result );
+		}
+
+		if ( is_wp_error( $result ) && ! $result->is_soft_error() ) {
 			$message = implode( ' | ', $result->get_error_messages() );
 
 			return new WP_Error( 'woocommerce_gzd_rest_shipment_label_create', $message, array( 'status' => 500 ) );

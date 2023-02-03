@@ -5,6 +5,7 @@ namespace Vendidero\Germanized\Shipments\Labels;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Germanized\Shipments\ShipmentError;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
@@ -500,10 +501,10 @@ class Label extends WC_Data implements ShipmentLabel {
 	}
 
 	/**
-	 * @return \WP_Error|true
+	 * @return ShipmentError|true
 	 */
 	public function fetch() {
-		$result = new \WP_Error( 'label-fetch-error', _x( 'This label misses the API implementation', 'shipments', 'woocommerce-germanized-shipments' ) );
+		$result = new ShipmentError( 'label-fetch-error', _x( 'This label misses the API implementation', 'shipments', 'woocommerce-germanized-shipments' ) );
 
 		return $result;
 	}

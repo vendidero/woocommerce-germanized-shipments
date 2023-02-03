@@ -574,11 +574,12 @@ class Table extends WP_List_Table {
 			</div>
 			<?php
 			if ( $finished && ( $handler = Admin::get_bulk_action_handler( $bulk_action ) ) ) :
-				$notices = $handler->get_notices( 'error' );
+				$errors  = $handler->get_notices( 'error' );
+				$info    = $handler->get_notices( 'info' );
 				$success = $handler->get_notices( 'success' );
 				?>
-				<?php if ( ! empty( $notices ) ) : ?>
-					<?php foreach ( $notices as $notice ) : ?>
+				<?php if ( ! empty( $errors ) ) : ?>
+					<?php foreach ( $errors as $notice ) : ?>
 						<div class="error">
 							<p><?php echo wp_kses_post( $notice ); ?></p>
 						</div>
@@ -586,6 +587,14 @@ class Table extends WP_List_Table {
 
 					<?php $handler->admin_after_error(); ?>
 				<?php elseif ( $success ) : ?>
+                    <?php if ( ! empty( $info ) ) : ?>
+                        <?php foreach ( $info as $notice ) : ?>
+                            <div class="notice">
+                                <p><?php echo wp_kses_post( $notice ); ?></p>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+
 					<div class="updated">
 						<p><?php echo wp_kses_post( $handler->get_success_message() ); ?></p>
 					</div>

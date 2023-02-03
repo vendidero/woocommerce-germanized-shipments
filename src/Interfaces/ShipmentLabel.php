@@ -1,6 +1,8 @@
 <?php
 namespace Vendidero\Germanized\Shipments\Interfaces;
 
+use Vendidero\Germanized\Shipments\ShipmentError;
+
 /**
  * Shipment Label Interface
  *
@@ -91,7 +93,7 @@ interface ShipmentLabel {
 	/**
 	 * Get the label from the API and store it locally
 	 *
-	 * @return \WP_Error|true
+	 * @return ShipmentError|true
 	 */
 	public function fetch();
 }

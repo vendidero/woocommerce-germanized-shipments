@@ -10,6 +10,7 @@ use Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto;
 use Vendidero\Germanized\Shipments\Labels\Factory;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Germanized\Shipments\ShipmentError;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -413,7 +414,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @param Shipment $shipment
 	 * @param $props
 	 *
-	 * @return \WP_Error|mixed
+	 * @return ShipmentError|mixed
 	 */
 	protected function validate_label_request( $shipment, $props ) {
 		return $props;
@@ -443,6 +444,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	/**
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 * @param mixed $props
+	 *
+	 * @return ShipmentError|true
 	 */
 	public function create_label( $shipment, $props = false ) {
 		/**
@@ -532,15 +535,20 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			$result = $label->fetch();
 
 			if ( is_wp_error( $result ) ) {
-				return $result;
-			} else {
-				do_action( "{$this->get_general_hook_prefix()}created_label", $label, $this );
+				$result = wc_gzd_get_shipment_error( $result );
 
-				return $label->save();
+				if ( ! $result->is_soft_error() ) {
+					return $result;
+				}
 			}
+
+			do_action( "{$this->get_general_hook_prefix()}created_label", $label, $this );
+			$label_id = $label->save();
+
+			return is_wp_error( $result ) && $result->is_soft_error() ? $result : $label_id;
 		}
 
-		return new \WP_Error( 'label-error', _x( 'Error while creating the label.', 'shipments', 'woocommerce-germanized-shipments' ) );
+		return new ShipmentError( 'label-error', _x( 'Error while creating the label.', 'shipments', 'woocommerce-germanized-shipments' ) );
 	}
 
 	/**

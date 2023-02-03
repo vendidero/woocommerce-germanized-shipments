@@ -146,8 +146,22 @@ class BulkLabel extends BulkActionHandler {
 							$result = $shipment->create_label();
 
 							if ( is_wp_error( $result ) ) {
-								$this->add_notice( sprintf( _x( 'Error while creating label for %1$s: %2$s', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . esc_url( $shipment->get_edit_shipment_url() ) . '" target="_blank">' . sprintf( _x( 'shipment #%d', 'shipments', 'woocommerce-germanized-shipments' ), $shipment_id ) . '</a>', $result->get_error_message() ), 'error' );
-							} else {
+								$result = wc_gzd_get_shipment_error( $result );
+							}
+
+							if ( is_wp_error( $result ) ) {
+								foreach( $result->get_error_messages_by_type() as $type => $messages ) {
+									foreach( $messages as $message ) {
+										if ( 'soft' === $type ) {
+											$this->add_notice( sprintf( _x( 'Notice while creating label for %1$s: %2$s', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . esc_url( $shipment->get_edit_shipment_url() ) . '" target="_blank">' . sprintf( _x( 'shipment #%d', 'shipments', 'woocommerce-germanized-shipments' ), $shipment_id ) . '</a>', $message ), 'info' );
+										} else {
+											$this->add_notice( sprintf( _x( 'Error while creating label for %1$s: %2$s', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . esc_url( $shipment->get_edit_shipment_url() ) . '" target="_blank">' . sprintf( _x( 'shipment #%d', 'shipments', 'woocommerce-germanized-shipments' ), $shipment_id ) . '</a>', $message ), 'error' );
+										}
+									}
+								}
+							}
+
+							if ( $shipment->has_label() ) {
 								$label = $shipment->get_label();
 							}
 						} else {

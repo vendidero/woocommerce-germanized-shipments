@@ -11,6 +11,7 @@ use Vendidero\Germanized\Shipments\Admin\Settings;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
 use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Germanized\Shipments\ShipmentError;
 use WC_Data;
 use WC_Data_Store;
 
@@ -1223,7 +1224,7 @@ class Simple extends WC_Data implements ShippingProvider {
 	 * @param mixed $props
 	 */
 	public function create_label( $shipment, $props = false ) {
-		$result = new \WP_Error( 'shipping-provider', _x( 'This shipping provider does not support creating labels.', 'shipments', 'woocommerce-germanized-shipments' ) );
+		$result = new ShipmentError( 'shipping-provider', _x( 'This shipping provider does not support creating labels.', 'shipments', 'woocommerce-germanized-shipments' ) );
 
 		return $result;
 	}

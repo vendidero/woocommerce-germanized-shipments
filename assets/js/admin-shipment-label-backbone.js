@@ -191,9 +191,7 @@ window.germanized.admin = window.germanized.admin || {};
                             $wrapper.unblock();
                             cError.apply( $content, [ data ] );
 
-                            $.each( data.messages, function( i, message ) {
-                                self.addNotice( message, 'error', $content );
-                            });
+                            self.printNotices( $content, data.messages );
 
                             // ScrollTo top of modal
                             $content.animate({
@@ -255,12 +253,29 @@ window.germanized.admin = window.germanized.admin || {};
                 return data;
             },
 
+            printNotices: function( $wrapper, messages ) {
+                var self = germanized.admin.shipment_label_backbone.backbone;
+
+                $.each( messages, function ( type, typeMessages ) {
+                    $.each( typeMessages, function ( i, message ) {
+                        self.addNotice( message, ( 'soft' === type ? 'warning' : type ), $wrapper );
+                    });
+                });
+            },
+
             onSubmitSuccess: function( data ) {
                 var self       = germanized.admin.shipment_label_backbone.backbone,
                     $modal     = $( this ).parents( '.wc-backbone-modal-content' ),
-                    shipmentId = data['shipment_id'];
+                    shipmentId = data['shipment_id'],
+                    $content   = $modal.find( '.germanized-create-label' )
 
-                $modal.find( '.modal-close' ).trigger( 'click' );
+                if ( data.messages ) {
+                    self.printNotices( $content, data.messages );
+
+                    $modal.find( 'footer' ).find( '#btn-ok' ).addClass( 'modal-close' ).attr( 'id', 'btn-close' ).text( germanized.admin.shipment_label_backbone.params.i18n_modal_close );
+                } else {
+                    $modal.find( '.modal-close' ).trigger( 'click' );
+                }
 
                 if ( $( 'div#shipment-' + shipmentId ).length > 0 ) {
                     germanized.admin.shipments.initShipment( shipmentId );

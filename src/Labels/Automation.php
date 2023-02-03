@@ -106,7 +106,15 @@ class Automation {
 			$result = $shipment->create_label();
 
 			if ( is_wp_error( $result ) ) {
-				Package::log( sprintf( 'Error while automatically creating label for %1$s: %2$s', $shipment->get_shipment_number(), wc_print_r( $result->get_error_messages(), true ) ) );
+				$result = wc_gzd_get_shipment_error( $result );
+			}
+
+			if ( is_wp_error( $result ) ) {
+				if ( $result->is_soft_error() ) {
+					Package::log( sprintf( 'Info while automatically creating label for %1$s: %2$s', $shipment->get_shipment_number(), wc_print_r( $result->get_error_messages(), true ) ) );
+				} else {
+					Package::log( sprintf( 'Error while automatically creating label for %1$s: %2$s', $shipment->get_shipment_number(), wc_print_r( $result->get_error_messages(), true ) ) );
+				}
 			}
 		}
 	}
