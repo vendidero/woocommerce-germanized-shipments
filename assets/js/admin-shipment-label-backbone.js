@@ -269,9 +269,8 @@ window.germanized.admin = window.germanized.admin || {};
                     shipmentId = data['shipment_id'],
                     $content   = $modal.find( '.germanized-create-label' )
 
-                if ( data.messages ) {
+                if ( data.messages.hasOwnProperty( 'error' ) || data.messages.hasOwnProperty( 'soft' ) ) {
                     self.printNotices( $content, data.messages );
-
                     $modal.find( 'footer' ).find( '#btn-ok' ).addClass( 'modal-close' ).attr( 'id', 'btn-close' ).text( germanized.admin.shipment_label_backbone.params.i18n_modal_close );
                 } else {
                     $modal.find( '.modal-close' ).trigger( 'click' );
