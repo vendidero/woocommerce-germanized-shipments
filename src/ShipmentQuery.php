@@ -123,7 +123,35 @@ class ShipmentQuery extends WC_Object_Query {
 		$this->results = null;
 
 		if ( null === $this->results ) {
-			$this->request = "SELECT $this->query_fields $this->query_from $this->query_where $this->query_orderby $this->query_limit";
+			$clauses = [
+				'fields'  => $this->query_fields,
+				'from'    => $this->query_from,
+				'where'   => $this->query_where,
+				'orderby' => $this->query_orderby,
+				'limits'  => $this->query_limit,
+			];
+
+			/**
+			 * Filters all query clauses at once, for convenience.
+			 *
+			 * Covers the WHERE, GROUP BY, JOIN, ORDER BY, DISTINCT,
+			 * fields (SELECT), and LIMITS clauses.
+			 *
+			 * @param string[] $clauses Associative array of the clauses for the query.
+			 * @param ShipmentQuery $query The ShipmentQuery instance.
+			 */
+			$clauses = (array) apply_filters( 'woocommerce_gzd_shipment_query_clauses', $clauses, $this );
+
+			$distinct = isset( $clauses['distinct'] ) ? $clauses['distinct'] : '';
+			$fields   = isset( $clauses['fields'] ) ? $clauses['fields'] : '';
+			$from     = isset( $clauses['from'] ) ? $clauses['from'] : '';
+			$where    = isset( $clauses['where'] ) ? $clauses['where'] : '';
+			$join     = isset( $clauses['join'] ) ? $clauses['join'] : '';
+			$groupby  = isset( $clauses['groupby'] ) ? $clauses['groupby'] : '';
+			$orderby  = isset( $clauses['orderby'] ) ? $clauses['orderby'] : '';
+			$limits   = isset( $clauses['limits'] ) ? $clauses['limits'] : '';
+
+			$this->request = "SELECT $distinct $fields $from $join $where $groupby $orderby $limits";
 
 			if ( is_array( $qv['fields'] ) || 'objects' === $qv['fields'] ) {
 				$this->results = $wpdb->get_results( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
