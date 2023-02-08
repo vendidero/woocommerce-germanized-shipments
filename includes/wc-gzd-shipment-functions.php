@@ -156,25 +156,40 @@ function wc_gzd_get_shipment_order_return_statuses() {
  */
 function wc_gzd_get_shipping_provider_method( $instance_id ) {
 	$original_id = $instance_id;
+	$method      = false;
+	$method_id   = '';
 
 	if ( is_a( $original_id, 'WC_Shipping_Rate' ) ) {
 		$instance_id = $original_id->get_instance_id();
+		$method_id   = $original_id->get_method_id();
 	} elseif ( is_a( $original_id, 'WC_Shipping_Method' ) ) {
 		$instance_id = $original_id->get_instance_id();
+		$method_id   = $original_id->id;
 	} elseif ( ! is_numeric( $instance_id ) && is_string( $instance_id ) ) {
 		if ( strpos( $instance_id, ':' ) !== false ) {
 			$expl        = explode( ':', $instance_id );
 			$instance_id = ( ( ! empty( $expl ) && count( $expl ) > 1 ) ? (int) $expl[1] : 0 );
+			$method_id   = ( ! empty( $expl ) ) ? $expl[0] : $instance_id;
 		} else {
 			/**
 			 * Plugins like Flexible Shipping use underscores to separate instance ids.
-			 * Example: flexible_shipping_4_1. In this case, 4 ist the instance id. Let's find out.
+			 * Example: flexible_shipping_4_1. In this case, 4 ist the instance id.
+			 * method_id: flexible_shipping
+			 * instance_id: 4
+			 *
+			 * On the other hand legacy shipping methods may be string only, e.g. an instance id might not exist.
+			 * Example: local_pickup_plus
+			 * method: local_pickup_plus
+			 * instance_id: 0
 			 */
-			$expl    = explode( '_', $instance_id );
-			$numbers = array_values( array_filter( $expl, 'is_numeric' ) );
+			$expl      = explode( '_', $instance_id );
+			$numbers   = array_values( array_filter( $expl, 'is_numeric' ) );
+			$method_id = rtrim( preg_replace( '/[0-9]+/', '', $instance_id ), '_' );
 
 			if ( ! empty( $numbers ) ) {
 				$instance_id = absint( $numbers[0] );
+			} else {
+				$instance_id = 0;
 			}
 		}
 	}
@@ -202,22 +217,33 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 		} else {
 			$method = WC_Shipping_Zones::get_shipping_method( $instance_id );
 		}
+	}
 
-		if ( $method ) {
-			/**
-			 * Filter to adjust the classname used to construct the shipping provider method
-			 * which contains additional provider related settings useful for shipments.
-			 *
-			 * @param string             $classname The classname.
-			 * @param WC_Shipping_Method $method The shipping method instance.
-			 *
-			 * @since 3.0.6
-			 * @package Vendidero/Germanized/Shipments
-			 */
-			$classname = apply_filters( 'woocommerce_gzd_shipping_provider_method_classname', 'Vendidero\Germanized\Shipments\ShippingProvider\Method', $method );
+	/**
+	 * Fallback for legacy shipping methods that do not support instance ids.
+	 */
+	if ( ! $method && empty( $instance_id ) && ! empty( $method_id ) ) {
+		$shipping_methods = WC()->shipping()->get_shipping_methods();
 
-			return new $classname( $method );
+		if ( array_key_exists( $method_id, $shipping_methods ) ) {
+			$method = $shipping_methods[ $method_id ];
 		}
+	}
+
+	if ( $method ) {
+		/**
+		 * Filter to adjust the classname used to construct the shipping provider method
+		 * which contains additional provider related settings useful for shipments.
+		 *
+		 * @param string             $classname The classname.
+		 * @param WC_Shipping_Method $method The shipping method instance.
+		 *
+		 * @since 3.0.6
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		$classname = apply_filters( 'woocommerce_gzd_shipping_provider_method_classname', 'Vendidero\Germanized\Shipments\ShippingProvider\Method', $method );
+
+		return new $classname( $method );
 	}
 
 	// Load placeholder
@@ -1498,4 +1524,4 @@ function wc_gzd_get_shipment_error( $error ) {
 	} else {
 		return \Vendidero\Germanized\Shipments\ShipmentError::from_wp_error( $error );
 	}
- }
+}

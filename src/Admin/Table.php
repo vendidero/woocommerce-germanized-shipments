@@ -587,13 +587,13 @@ class Table extends WP_List_Table {
 
 					<?php $handler->admin_after_error(); ?>
 				<?php elseif ( $success ) : ?>
-                    <?php if ( ! empty( $info ) ) : ?>
-                        <?php foreach ( $info as $notice ) : ?>
-                            <div class="notice">
-                                <p><?php echo wp_kses_post( $notice ); ?></p>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+					<?php if ( ! empty( $info ) ) : ?>
+						<?php foreach ( $info as $notice ) : ?>
+							<div class="notice">
+								<p><?php echo wp_kses_post( $notice ); ?></p>
+							</div>
+						<?php endforeach; ?>
+					<?php endif; ?>
 
 					<div class="updated">
 						<p><?php echo wp_kses_post( $handler->get_success_message() ); ?></p>

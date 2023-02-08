@@ -284,7 +284,6 @@ class Method {
 
 			if ( ! empty( $provider_slug ) ) {
 				if ( $provider = wc_gzd_get_shipping_provider( $provider_slug ) ) {
-
 					if ( ! $provider->is_activated() ) {
 						$provider_slug = '';
 					}

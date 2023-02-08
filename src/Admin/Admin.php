@@ -1048,7 +1048,7 @@ class Admin {
 			'wc_gzd_admin_shipment_label_backbone_params',
 			array(
 				'ajax_url'                => admin_url( 'admin-ajax.php' ),
-                'i18n_modal_close'        => _x( 'Close', 'shipments-close-modal', 'woocommerce-germanized-shipments' ),
+				'i18n_modal_close'        => _x( 'Close', 'shipments-close-modal', 'woocommerce-germanized-shipments' ),
 				'create_label_form_nonce' => wp_create_nonce( 'create-shipment-label-form' ),
 				'create_label_nonce'      => wp_create_nonce( 'create-shipment-label' ),
 			)
@@ -1072,17 +1072,23 @@ class Admin {
 		}
 
 		// Shipping provider method
-		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] && ( isset( $_GET['zone_id'] ) || isset( $_GET['instance_id'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			wp_enqueue_script( 'wc-gzd-admin-shipping-provider-method' );
-			$providers = array_filter( array_keys( wc_gzd_get_shipping_provider_select() ) );
+		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			/**
+			 * Older third-party shipping methods may not support instance-settings and will have their settings
+			 * output in a separate section under Settings > Shipping.
+			 */
+			if ( ( isset( $_GET['zone_id'] ) || isset( $_GET['instance_id'] ) ) || ( isset( $_GET['section'] ) && 'classes' !== $_GET['section'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				wp_enqueue_script( 'wc-gzd-admin-shipping-provider-method' );
+				$providers = array_filter( array_keys( wc_gzd_get_shipping_provider_select() ) );
 
-			wp_localize_script(
-				'wc-gzd-admin-shipping-provider-method',
-				'wc_gzd_admin_shipping_provider_method_params',
-				array(
-					'shipping_providers' => $providers,
-				)
-			);
+				wp_localize_script(
+					'wc-gzd-admin-shipping-provider-method',
+					'wc_gzd_admin_shipping_provider_method_params',
+					array(
+						'shipping_providers' => $providers,
+					)
+				);
+			}
 		}
 	}
 

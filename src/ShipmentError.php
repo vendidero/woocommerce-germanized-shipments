@@ -67,7 +67,7 @@ class ShipmentError extends \WP_Error {
 	protected function set_is_soft_error() {
 		$is_soft_error = true;
 
-		foreach( $this->get_error_codes() as $code ) {
+		foreach ( $this->get_error_codes() as $code ) {
 			$error_data = $this->get_error_data( $code );
 
 			if ( ! is_string( $error_data ) || 'soft' !== $error_data ) {

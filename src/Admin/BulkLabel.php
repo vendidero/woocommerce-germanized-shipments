@@ -150,8 +150,8 @@ class BulkLabel extends BulkActionHandler {
 							}
 
 							if ( is_wp_error( $result ) ) {
-								foreach( $result->get_error_messages_by_type() as $type => $messages ) {
-									foreach( $messages as $message ) {
+								foreach ( $result->get_error_messages_by_type() as $type => $messages ) {
+									foreach ( $messages as $message ) {
 										if ( 'soft' === $type ) {
 											$this->add_notice( sprintf( _x( 'Notice while creating label for %1$s: %2$s', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . esc_url( $shipment->get_edit_shipment_url() ) . '" target="_blank">' . sprintf( _x( 'shipment #%d', 'shipments', 'woocommerce-germanized-shipments' ), $shipment_id ) . '</a>', $message ), 'info' );
 										} else {

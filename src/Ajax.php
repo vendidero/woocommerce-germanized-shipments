@@ -299,7 +299,7 @@ class Ajax {
 				'success'       => true,
 				'label_id'      => $label->get_id(),
 				'shipment_id'   => $shipment_id,
-                'messages'      => is_wp_error( $result ) ? $result->get_error_messages_by_type() : array(),
+				'messages'      => is_wp_error( $result ) ? $result->get_error_messages_by_type() : array(),
 				'needs_refresh' => true,
 				'fragments'     => array(
 					'div#shipment-' . $shipment_id         => self::get_shipment_html( $shipment ),
