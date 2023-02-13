@@ -898,22 +898,22 @@ class Ajax {
 			wp_die();
 		}
 
-        if ( Package::is_hpos_enabled() ) {
-	        $ids = wc_get_orders( array( 's' => $term ) );
-        } else {
-	        if ( ! is_numeric( $term ) ) {
-		        $ids = wc_get_orders( array( 's' => $term ) );
-	        } else {
-		        global $wpdb;
+		if ( Package::is_hpos_enabled() ) {
+			$ids = wc_get_orders( array( 's' => $term ) );
+		} else {
+			if ( ! is_numeric( $term ) ) {
+				$ids = wc_get_orders( array( 's' => $term ) );
+			} else {
+				global $wpdb;
 
-		        $ids = $wpdb->get_col(
-			        $wpdb->prepare(
+				$ids = $wpdb->get_col(
+					$wpdb->prepare(
 				        "SELECT DISTINCT p1.ID FROM {$wpdb->posts} p1 WHERE p1.ID LIKE %s AND post_type = 'shop_order'", // @codingStandardsIgnoreLine
-				        $wpdb->esc_like( wc_clean( $term ) ) . '%'
-			        )
-		        );
-	        }
-        }
+						$wpdb->esc_like( wc_clean( $term ) ) . '%'
+					)
+				);
+			}
+		}
 
 		$excluded = array();
 
@@ -922,16 +922,16 @@ class Ajax {
 		}
 
 		foreach ( $ids as $id ) {
-            if ( $order = wc_get_order( $id ) ) {
-	            if ( in_array( absint( $order->get_id() ), $excluded, true ) ) {
-		            continue;
-	            }
+			if ( $order = wc_get_order( $id ) ) {
+				if ( in_array( absint( $order->get_id() ), $excluded, true ) ) {
+					continue;
+				}
 
-	            $found_orders[ $order->get_id() ] = sprintf(
-		            esc_html_x( 'Order #%s', 'shipments', 'woocommerce-germanized' ),
-		            $order->get_order_number()
-	            );
-            }
+				$found_orders[ $order->get_id() ] = sprintf(
+					esc_html_x( 'Order #%s', 'shipments', 'woocommerce-germanized' ),
+					$order->get_order_number()
+				);
+			}
 		}
 
 		/**

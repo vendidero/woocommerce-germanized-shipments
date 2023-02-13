@@ -126,7 +126,7 @@ class MetaBox {
 
 	protected static function init_order_object( $post ) {
 		if ( is_callable( array( '\Automattic\WooCommerce\Utilities\OrderUtil', 'init_theorder_object' ) ) ) {
-			return \Automattic\WooCommerce\Utilities\OrderUtil::init_theorder_object( $post );
+			\Automattic\WooCommerce\Utilities\OrderUtil::init_theorder_object( $post );
 		} else {
 			global $post, $thepostid, $theorder;
 
