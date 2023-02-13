@@ -219,6 +219,14 @@ class Package {
 		}
 	}
 
+	public static function is_hpos_enabled() {
+		if ( ! is_callable( array( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' ) ) ) {
+			return false;
+		}
+
+		return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+	}
+
 	public static function inject_endpoints() {
 		if ( function_exists( 'WC' ) && WC()->query ) {
 			foreach ( self::get_endpoints() as $endpoint ) {

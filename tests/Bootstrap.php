@@ -48,7 +48,7 @@ class Bootstrap {
 	/**
 	 * Prevent unserializing.
 	 */
-	private function __wakeup() {}
+	public function __wakeup() {}
 
 	/**
 	 * Directory path to WP core tests.

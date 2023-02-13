@@ -26,7 +26,6 @@ class FormHandler {
 	}
 
 	protected static function get_return_request_success_message( $needs_manual_confirmation = false ) {
-
 		if ( $needs_manual_confirmation ) {
 			$default_message = _x( 'Your return request was submitted successfully. We will now review your request and get in contact with you as soon as possible.', 'shipments', 'woocommerce-germanized-shipments' );
 		} else {
@@ -81,55 +80,9 @@ class FormHandler {
 
 		if ( isset( $_POST['return_request'], $_POST['email'], $_POST['order_id'] ) && wp_verify_nonce( $nonce_value, 'woocommerce-gzd-return-request' ) ) {
 			try {
-				$email           = sanitize_email( wp_unslash( $_POST['email'] ) );
-				$order_id        = wc_clean( wp_unslash( $_POST['order_id'] ) );
-				$order_id_parsed = self::get_order_id_from_string( $order_id );
-				$db_order_id     = false;
-				$orders          = wc_get_orders(
-					apply_filters(
-						'woocommerce_gzd_return_request_order_query_args',
-						array(
-							'billing_email' => $email,
-							'post__in'      => array( $order_id_parsed ),
-							'limit'         => 1,
-							'return'        => 'ids',
-						)
-					)
-				);
-
-				// Now lets try to find the order by a custom order number
-				if ( empty( $orders ) ) {
-					$orders = new WP_Query(
-						apply_filters(
-							'woocommerce_gzd_return_request_order_query_args',
-							array(
-								'post_type'   => 'shop_order',
-								'post_status' => 'any',
-								'limit'       => 1,
-								'fields'      => 'ids',
-								'meta_query'  => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-									'relation' => 'AND',
-									array(
-										'key'     => '_billing_email',
-										'value'   => $email,
-										'compare' => '=',
-									),
-									array(
-										'key'     => apply_filters( 'woocommerce_gzd_return_request_customer_order_number_meta_key', '_order_number' ),
-										'value'   => $order_id,
-										'compare' => '=',
-									),
-								),
-							)
-						)
-					);
-
-					if ( ! empty( $orders->posts ) ) {
-						$db_order_id = $orders->posts[0];
-					}
-				} else {
-					$db_order_id = $orders[0];
-				}
+				$email       = sanitize_email( wp_unslash( $_POST['email'] ) );
+				$order_id    = wc_clean( wp_unslash( $_POST['order_id'] ) );
+				$db_order_id = self::find_order( $order_id, $email );
 
 				if ( ! $db_order_id || ( ! $order = wc_get_order( $db_order_id ) ) ) {
 					throw new Exception( '<strong>' . _x( 'Error:', 'shipments', 'woocommerce-germanized-shipments' ) . '</strong> ' . _x( 'We were not able to find a matching order.', 'shipments', 'woocommerce-germanized-shipments' ) );
@@ -156,6 +109,67 @@ class FormHandler {
 				do_action( 'woocommerce_gzd_return_request_failed' );
 			}
 		}
+	}
+
+	/**
+	 * @param $order_id
+	 * @param $email
+	 *
+	 * @return false|integer
+	 */
+	public static function find_order( $order_id, $email ) {
+		$order_id_parsed = self::get_order_id_from_string( $order_id );
+		$db_order_id     = false;
+		$orders          = wc_get_orders(
+			apply_filters(
+				'woocommerce_gzd_return_request_order_query_args',
+				array(
+					'billing_email' => $email,
+					'post__in'      => array( $order_id_parsed ),
+					'limit'         => 1,
+					'return'        => 'ids',
+				)
+			)
+		);
+
+		// Now lets try to find the order by a custom order number field
+		if ( empty( $orders ) ) {
+			add_filter( 'woocommerce_order_data_store_cpt_get_orders_query', array( __CLASS__, 'filter_query_by_order_number' ), 10, 2 );
+
+			$orders = wc_get_orders(
+				apply_filters(
+					'woocommerce_gzd_return_request_alternate_order_query_args',
+					array(
+						'billing_email' => $email,
+						'order_number'  => $order_id,
+						'limit'         => 1,
+						'return'        => 'ids',
+					)
+				)
+			);
+
+			remove_filter( 'woocommerce_order_data_store_cpt_get_orders_query', array( __CLASS__, 'filter_query_by_order_number' ), 10 );
+		}
+
+		if ( ! empty( $orders ) ) {
+			$db_order_id = $orders[0];
+		}
+
+		return apply_filters( 'woocommerce_gzd_shipments_valid_order_for_return_request', $db_order_id, $order_id, $email );
+	}
+
+	public static function filter_query_by_order_number( $query, $query_vars ) {
+		$meta_field_name = apply_filters( 'woocommerce_gzd_return_request_customer_order_number_meta_key', '_order_number' );
+
+		if ( ! empty( $query_vars['order_number'] ) ) {
+			$query['meta_query'][] = array(
+				'key'     => $meta_field_name,
+				'value'   => esc_attr( wc_clean( $query_vars['order_number'] ) ),
+				'compare' => '=',
+			);
+		}
+
+		return $query;
 	}
 
 	/**

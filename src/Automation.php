@@ -99,7 +99,7 @@ class Automation {
 	}
 
 	private static function is_admin_edit_order_request() {
-		return ( isset( $_POST['action'] ) && 'editpost' === $_POST['action'] && isset( $_POST['post_type'] ) && 'shop_order' === $_POST['post_type'] ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		return ( isset( $_POST['action'] ) && ( ( 'editpost' === $_POST['action'] && isset( $_POST['post_type'] ) && 'shop_order' === $_POST['post_type'] ) || 'edit_order' === $_POST['action'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 	}
 
 	public static function mark_shipments_shipped( $order_id ) {

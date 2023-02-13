@@ -36,9 +36,6 @@ class Admin {
 
 		add_filter( 'woocommerce_screen_ids', array( __CLASS__, 'add_table_view' ), 10 );
 
-		add_filter( 'handle_bulk_actions-edit-shop_order', array( __CLASS__, 'handle_order_bulk_actions' ), 10, 3 );
-		add_filter( 'bulk_actions-edit-shop_order', array( __CLASS__, 'define_order_bulk_actions' ), 10, 1 );
-
 		// Template check
 		add_filter( 'woocommerce_gzd_template_check', array( __CLASS__, 'add_template_check' ), 10, 1 );
 
@@ -68,9 +65,14 @@ class Admin {
 		// Observe base country setting
 		add_action( 'woocommerce_settings_save_general', array( __CLASS__, 'observe_base_country_setting' ), 100 );
 
-		// Order shipping status
-		add_filter( 'manage_shop_order_posts_columns', array( __CLASS__, 'register_order_shipping_status_column' ), 20 );
-		add_action( 'manage_shop_order_posts_custom_column', array( __CLASS__, 'render_order_columns' ), 20, 2 );
+		add_action( 'admin_init', function() {
+			// Order shipping status
+			add_filter( 'manage_' . ( 'shop_order' === self::get_order_screen_id() ? 'shop_order_posts' : self::get_order_screen_id() ) . '_columns', array( __CLASS__, 'register_order_shipping_status_column' ), 20 );
+			add_action( 'manage_' . ( 'shop_order' === self::get_order_screen_id() ? 'shop_order_posts' : self::get_order_screen_id() ) . '_custom_column', array( __CLASS__, 'render_order_columns' ), 20, 2 );
+
+			add_filter( 'handle_bulk_actions-' . ( 'shop_order' === self::get_order_screen_id() ? 'edit-shop_order' : self::get_order_screen_id() ), array( __CLASS__, 'handle_order_bulk_actions' ), 10, 3 );
+			add_filter( 'bulk_actions-' . ( 'shop_order' === self::get_order_screen_id() ? 'edit-shop_order' : self::get_order_screen_id() ), array( __CLASS__, 'define_order_bulk_actions' ), 10, 1 );
+		} );
 	}
 
 	public static function render_order_columns( $column, $post_id ) {
@@ -749,7 +751,6 @@ class Admin {
 		$report_action = '';
 
 		if ( 'gzd_create_shipments' === $action ) {
-
 			foreach ( $ids as $id ) {
 				$order         = wc_get_order( $id );
 				$report_action = 'gzd_created_shipments';
@@ -762,13 +763,20 @@ class Admin {
 		}
 
 		if ( $changed ) {
+            $redirect_query_args = array(
+	            'post_type'   => 'shop_order',
+	            'bulk_action' => $report_action,
+	            'changed'     => $changed,
+	            'ids'         => join( ',', $ids ),
+            );
+
+            if ( Package::is_hpos_enabled() ) {
+                unset( $redirect_query_args['post_type'] );
+	            $redirect_query_args['page'] = 'wc-orders';
+            }
+
 			$redirect_to = add_query_arg(
-				array(
-					'post_type'   => 'shop_order',
-					'bulk_action' => $report_action,
-					'changed'     => $changed,
-					'ids'         => join( ',', $ids ),
-				),
+				$redirect_query_args,
 				$redirect_to
 			);
 
@@ -946,10 +954,11 @@ class Admin {
 	}
 
 	public static function add_meta_boxes() {
+		$order_type_screen_ids = array_merge( wc_get_order_types( 'order-meta-boxes' ), array( self::get_order_screen_id() ) );
 
 		// Orders.
-		foreach ( wc_get_order_types( 'order-meta-boxes' ) as $type ) {
-			add_meta_box( 'woocommerce-gzd-order-shipments', _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' ), array( MetaBox::class, 'output' ), $type, 'normal', 'high' );
+		foreach ( $order_type_screen_ids as $type ) {
+			add_meta_box( 'woocommerce-gzd-order-shipments', _x( 'Shipments', 'shipments', 'woocommerce-germanized' ), array( MetaBox::class, 'output' ), $type, 'normal', 'high' );
 		}
 	}
 
@@ -979,11 +988,17 @@ class Admin {
 	}
 
 	public static function admin_scripts() {
-		global $post;
+		global $post, $theorder;
 
 		$screen    = get_current_screen();
 		$screen_id = $screen ? $screen->id : '';
 		$suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
+		$post_id   = isset( $post->ID ) ? $post->ID : '';
+		$order_or_post_object = $post;
+
+		if ( ( $theorder instanceof \WC_Order ) && self::is_order_meta_box_screen( $screen_id ) ) {
+			$order_or_post_object = $theorder;
+		}
 
 		wp_register_script( 'wc-gzd-admin-shipment-label-backbone', Package::get_assets_url() . '/js/admin-shipment-label-backbone' . $suffix . '.js', array( 'jquery', 'woocommerce_admin', 'wc-backbone-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_register_script( 'wc-gzd-admin-shipment', Package::get_assets_url() . '/js/admin-shipment' . $suffix . '.js', array( 'wc-gzd-admin-shipment-label-backbone' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
@@ -993,7 +1008,7 @@ class Admin {
 		wp_register_script( 'wc-gzd-admin-shipping-provider-method', Package::get_assets_url() . '/js/admin-shipping-provider-method' . $suffix . '.js', array( 'jquery' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 
 		// Orders.
-		if ( in_array( str_replace( 'edit-', '', $screen_id ), wc_get_order_types( 'order-meta-boxes' ), true ) ) {
+		if ( self::is_order_meta_box_screen( $screen_id ) ) {
 			wp_enqueue_script( 'wc-gzd-admin-shipments' );
 			wp_enqueue_script( 'wc-gzd-admin-shipment' );
 
@@ -1003,7 +1018,7 @@ class Admin {
 				array(
 					'ajax_url'                        => admin_url( 'admin-ajax.php' ),
 					'edit_shipments_nonce'            => wp_create_nonce( 'edit-shipments' ),
-					'order_id'                        => isset( $post->ID ) ? $post->ID : '',
+					'order_id'                        => self::is_order_meta_box_screen( $screen_id ) && isset( $order_or_post_object ) ? \Automattic\WooCommerce\Utilities\OrderUtil::get_post_or_order_id( $order_or_post_object ) : $post_id,
 					'shipment_locked_excluded_fields' => array( 'status' ),
 					'i18n_remove_shipment_notice'     => _x( 'Do you really want to delete the shipment?', 'shipments', 'woocommerce-germanized-shipments' ),
 					'remove_label_nonce'              => wp_create_nonce( 'remove-shipment-label' ),
@@ -1097,7 +1112,6 @@ class Admin {
 	 */
 	public static function get_bulk_action_handlers() {
 		if ( is_null( self::$bulk_handlers ) ) {
-
 			self::$bulk_handlers = array();
 
 			/**
@@ -1129,18 +1143,40 @@ class Admin {
 		return array_key_exists( $action, $handlers ) ? $handlers[ $action ] : false;
 	}
 
-	public static function get_screen_ids() {
+	/**
+	 * Helper function to determine whether the current screen is an order edit screen.
+	 *
+	 * @param string $screen_id Screen ID.
+	 *
+	 * @return bool Whether the current screen is an order edit screen.
+	 */
+	protected static function is_order_meta_box_screen( $screen_id ) {
+		return in_array( str_replace( 'edit-', '', $screen_id ), self::get_order_screen_ids(), true );
+	}
 
-		$screen_ids = array(
-			'woocommerce_page_wc-gzd-shipments',
-			'woocommerce_page_wc-gzd-return-shipments',
-		);
+	public static function get_order_screen_id() {
+		return function_exists( 'wc_get_page_screen_id' ) ? wc_get_page_screen_id( 'shop-order' ) : 'shop_order';
+	}
+
+	protected static function get_order_screen_ids() {
+		$screen_ids = array();
 
 		foreach ( wc_get_order_types() as $type ) {
 			$screen_ids[] = $type;
 			$screen_ids[] = 'edit-' . $type;
 		}
 
-		return $screen_ids;
+		$screen_ids[] = self::get_order_screen_id();
+
+		return array_filter( $screen_ids );
+	}
+
+	public static function get_screen_ids() {
+		$screen_ids = array(
+			'woocommerce_page_wc-gzd-shipments',
+			'woocommerce_page_wc-gzd-return-shipments',
+		);
+
+		return array_merge( $screen_ids, self::get_order_screen_ids() );
 	}
 }

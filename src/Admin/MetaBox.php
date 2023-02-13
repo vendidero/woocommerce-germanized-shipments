@@ -17,9 +17,7 @@ class MetaBox {
 	 * @param Order $order
 	 */
 	public static function refresh_shipments( &$order ) {
-
 		foreach ( $order->get_shipments() as $shipment ) {
-
 			$id    = $shipment->get_id();
 			$props = array();
 
@@ -114,9 +112,7 @@ class MetaBox {
 	 * @param Order $order
 	 */
 	public static function refresh_status( &$order ) {
-
 		foreach ( $order->get_shipments() as $shipment ) {
-
 			$id     = $shipment->get_id();
 			$status = isset( $_POST['shipment_status'][ $id ] ) ? wc_clean( wp_unslash( $_POST['shipment_status'][ $id ] ) ) : 'draft'; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
@@ -128,21 +124,31 @@ class MetaBox {
 		}
 	}
 
+	protected static function init_order_object( $post ) {
+		if ( is_callable( array( '\Automattic\WooCommerce\Utilities\OrderUtil', 'init_theorder_object' ) ) ) {
+			return \Automattic\WooCommerce\Utilities\OrderUtil::init_theorder_object( $post );
+		} else {
+			global $post, $thepostid, $theorder;
+
+			if ( ! is_int( $thepostid ) ) {
+				$thepostid = $post->ID;
+			}
+
+			if ( ! is_object( $theorder ) ) {
+				$theorder = wc_get_order( $thepostid );
+			}
+		}
+	}
+
 	/**
 	 * Output the metabox.
 	 *
-	 * @param WP_Post $post
+	 * @param \WP_Post $post
 	 */
 	public static function output( $post ) {
-		global $post, $thepostid, $theorder;
+		global $theorder;
 
-		if ( ! is_int( $thepostid ) ) {
-			$thepostid = $post->ID;
-		}
-
-		if ( ! is_object( $theorder ) ) {
-			$theorder = wc_get_order( $thepostid );
-		}
+		self::init_order_object( $post );
 
 		$order           = $theorder;
 		$order_shipment  = wc_gzd_get_shipment_order( $order );

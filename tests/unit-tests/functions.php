@@ -142,6 +142,29 @@ class Functions extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTest
 		$this->assertEquals( '45671', \Vendidero\Germanized\Shipments\FormHandler::get_order_id_from_string( '45671-2/3/2021-S' ) );
 	}
 
+	function test_wc_gzd_find_order_valid_for_return() {
+		$shipment = ShipmentHelper::create_simple_shipment();
+		$order = wc_get_order( $shipment->get_order_id() );
+
+		$id = \Vendidero\Germanized\Shipments\FormHandler::find_order( $order->get_id(), $order->get_billing_email() );
+		$this->assertEquals( $order->get_id(), $id );
+
+		$id = \Vendidero\Germanized\Shipments\FormHandler::find_order( 1234, $order->get_billing_email() );
+		$this->assertEquals( false, $id );
+
+		$order->update_meta_data( '_order_number', '12345' );
+		$order->save();
+
+		$id = \Vendidero\Germanized\Shipments\FormHandler::find_order( '12345', $order->get_billing_email() );
+		$this->assertEquals( $order->get_id(), $id );
+
+		$order->update_meta_data( '_order_number', 'test_132' );
+		$order->save();
+
+		$id = \Vendidero\Germanized\Shipments\FormHandler::find_order( 'test_132', $order->get_billing_email() );
+		$this->assertEquals( $order->get_id(), $id );
+	}
+
 	function test_wc_gzd_split_shipment_street() {
 		$this->assertEquals( array(
 			'street'     => 'Mia van IJperenplein',
