@@ -52,6 +52,7 @@ class ShipmentQuery extends WC_Object_Query {
 			'limit'             => 10,
 			'order_id'          => '',
 			'parent_id'         => '',
+			'product_ids'       => '',
 			'type'              => 'simple',
 			'country'           => '',
 			'tracking_id'       => '',
@@ -165,6 +166,11 @@ class ShipmentQuery extends WC_Object_Query {
 			$this->args['parent_id'] = absint( $this->args['parent_id'] );
 		}
 
+		if ( isset( $this->args['product_ids'] ) ) {
+			$this->args['product_ids'] = (array) $this->args['product_ids'];
+			$this->args['product_ids'] = array_map('absint', $this->args['product_ids'] );
+		}
+
 		if ( isset( $this->args['tracking_id'] ) ) {
 			$this->args['tracking_id'] = sanitize_key( $this->args['tracking_id'] );
 		}
@@ -271,6 +277,14 @@ class ShipmentQuery extends WC_Object_Query {
 		// parent id
 		if ( isset( $this->args['parent_id'] ) ) {
 			$this->query_where .= $wpdb->prepare( ' AND shipment_parent_id = %d', $this->args['parent_id'] );
+		}
+
+		// product ids
+		if ( isset( $this->args['product_ids'] ) ) {
+			$product_ids_placeholders  = implode( ', ', array_fill( 0, count( $this->args['product_ids'] ), '%d' ) );
+
+			$this->query_from  .= " JOIN {$wpdb->prefix}woocommerce_gzd_shipment_items as shipment_items ON ( shipment_items.shipment_id = {$wpdb->prefix}woocommerce_gzd_shipments.shipment_id ) ";
+			$this->query_where .= $wpdb->prepare( " AND shipment_items.shipment_item_product_id IN ({$product_ids_placeholders})", $this->args['product_ids'] );
 		}
 
 		// country
