@@ -500,9 +500,9 @@ class ShipmentQuery extends WC_Object_Query {
 
 		foreach ( $cols as $col ) {
 			if ( 'ID' === $col ) {
-				$searches[] = $wpdb->prepare( "$col = %s", $string ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$searches[] = $wpdb->prepare( "$wpdb->gzd_shipments.$col = %s", $string ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			} else {
-				$searches[] = $wpdb->prepare( "$col LIKE %s", $like ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$searches[] = $wpdb->prepare( "$wpdb->gzd_shipments.$col LIKE %s", $like ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			}
 		}
 
