@@ -1015,13 +1015,19 @@ class Admin {
 			wp_enqueue_script( 'wc-gzd-admin-shipments' );
 			wp_enqueue_script( 'wc-gzd-admin-shipment' );
 
+			$order_order_post_id = $post_id;
+
+			if ( self::is_order_meta_box_screen( $screen_id ) && isset( $order_or_post_object ) && is_callable( array( '\Automattic\WooCommerce\Utilities\OrderUtil', 'get_post_or_order_id' ) ) ) {
+				$order_order_post_id = \Automattic\WooCommerce\Utilities\OrderUtil::get_post_or_order_id( $order_or_post_object );
+			}
+
 			wp_localize_script(
 				'wc-gzd-admin-shipments',
 				'wc_gzd_admin_shipments_params',
 				array(
 					'ajax_url'                        => admin_url( 'admin-ajax.php' ),
 					'edit_shipments_nonce'            => wp_create_nonce( 'edit-shipments' ),
-					'order_id'                        => self::is_order_meta_box_screen( $screen_id ) && isset( $order_or_post_object ) ? \Automattic\WooCommerce\Utilities\OrderUtil::get_post_or_order_id( $order_or_post_object ) : $post_id,
+					'order_id'                        => $order_order_post_id,
 					'shipment_locked_excluded_fields' => array( 'status' ),
 					'i18n_remove_shipment_notice'     => _x( 'Do you really want to delete the shipment?', 'shipments', 'woocommerce-germanized-shipments' ),
 					'remove_label_nonce'              => wp_create_nonce( 'remove-shipment-label' ),
