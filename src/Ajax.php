@@ -928,7 +928,7 @@ class Ajax {
 				}
 
 				$found_orders[ $order->get_id() ] = sprintf(
-					esc_html_x( 'Order #%s', 'shipments', 'woocommerce-germanized' ),
+					esc_html_x( 'Order #%s', 'shipments', 'woocommerce-germanized-shipments' ),
 					$order->get_order_number()
 				);
 			}

@@ -168,7 +168,7 @@ class ShipmentQuery extends WC_Object_Query {
 
 		if ( isset( $this->args['product_ids'] ) ) {
 			$this->args['product_ids'] = (array) $this->args['product_ids'];
-			$this->args['product_ids'] = array_map('absint', $this->args['product_ids'] );
+			$this->args['product_ids'] = array_map( 'absint', $this->args['product_ids'] );
 		}
 
 		if ( isset( $this->args['tracking_id'] ) ) {
@@ -281,10 +281,10 @@ class ShipmentQuery extends WC_Object_Query {
 
 		// product ids
 		if ( isset( $this->args['product_ids'] ) ) {
-			$product_ids_placeholders  = implode( ', ', array_fill( 0, count( $this->args['product_ids'] ), '%d' ) );
+			$product_ids_placeholders = implode( ', ', array_fill( 0, count( $this->args['product_ids'] ), '%d' ) );
 
 			$this->query_from  .= " JOIN {$wpdb->prefix}woocommerce_gzd_shipment_items as shipment_items ON ( shipment_items.shipment_id = {$wpdb->prefix}woocommerce_gzd_shipments.shipment_id ) ";
-			$this->query_where .= $wpdb->prepare( " AND shipment_items.shipment_item_product_id IN ({$product_ids_placeholders})", $this->args['product_ids'] );
+			$this->query_where .= $wpdb->prepare( " AND shipment_items.shipment_item_product_id IN ({$product_ids_placeholders})", $this->args['product_ids'] ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 		}
 
 		// country
