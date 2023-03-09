@@ -127,8 +127,16 @@ class Package {
 		WPMLHelper::init( $compatibility );
 	}
 
+	public static function get_excluded_methods() {
+		return apply_filters( 'woocommerce_gzd_shipments_get_methods_excluded_from_provider_settings', array( 'pr_dhl_paket', 'flexible_shipping_info' ) );
+	}
+
 	public static function set_method_filters( $methods ) {
 		foreach ( $methods as $method => $class ) {
+			if ( in_array( $method, self::get_excluded_methods(), true ) ) {
+				continue;
+			}
+
 			add_filter( 'woocommerce_shipping_instance_form_fields_' . $method, array( __CLASS__, 'add_method_settings' ), 10, 1 );
 			/**
 			 * Use this filter as a backup to support plugins like Flexible Shipping which may override methods
@@ -215,6 +223,10 @@ class Package {
 		$shipping = WC_Shipping::instance();
 
 		foreach ( $shipping->shipping_methods as $key => $method ) {
+			if ( in_array( $key, self::get_excluded_methods(), true ) ) {
+				continue;
+			}
+
 			$shipping_provider_method = new Method( $method );
 		}
 	}

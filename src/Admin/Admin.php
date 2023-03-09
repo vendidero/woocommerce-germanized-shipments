@@ -1097,11 +1097,13 @@ class Admin {
 
 		// Shipping provider method
 		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$excluded_sections = array( 'classes' ) + Package::get_excluded_methods();
+
 			/**
 			 * Older third-party shipping methods may not support instance-settings and will have their settings
 			 * output in a separate section under Settings > Shipping.
 			 */
-			if ( ( isset( $_GET['zone_id'] ) || isset( $_GET['instance_id'] ) ) || ( isset( $_GET['section'] ) && 'classes' !== $_GET['section'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			if ( ( isset( $_GET['zone_id'] ) || isset( $_GET['instance_id'] ) ) || ( isset( $_GET['section'] ) && ! in_array( $_GET['section'], $excluded_sections, true ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				wp_enqueue_script( 'wc-gzd-admin-shipping-provider-method' );
 				$providers = array_filter( array_keys( wc_gzd_get_shipping_provider_select() ) );
 
