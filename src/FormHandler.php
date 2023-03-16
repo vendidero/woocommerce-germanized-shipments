@@ -102,7 +102,7 @@ class FormHandler {
 
 				WC()->mailer()->emails['WC_GZD_Email_Customer_Guest_Return_Shipment_Request']->trigger( $order );
 
-				do_action( 'woocommerce_gzd_return_request_successfull', $order );
+				do_action( 'woocommerce_gzd_return_request_successful', $order );
 
 			} catch ( Exception $e ) {
 				wc_add_notice( $e->getMessage(), 'error' );
@@ -211,9 +211,7 @@ class FormHandler {
 		$shipment_order = wc_gzd_get_shipment_order( $order );
 
 		foreach ( $items as $order_item_id ) {
-
 			if ( $item = $shipment_order->get_simple_shipment_item( $order_item_id ) ) {
-
 				$quantity            = isset( $item_data[ $order_item_id ]['quantity'] ) ? absint( $item_data[ $order_item_id ]['quantity'] ) : 0;
 				$quantity_returnable = $shipment_order->get_item_quantity_left_for_returning( $order_item_id );
 				$reason              = isset( $item_data[ $order_item_id ]['reason'] ) ? wc_clean( $item_data[ $order_item_id ]['reason'] ) : '';
