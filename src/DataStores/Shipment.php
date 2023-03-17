@@ -209,7 +209,6 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 		}
 
 		foreach ( $changed_props as $prop ) {
-
 			if ( ! in_array( $prop, $core_props, true ) ) {
 				continue;
 			}
@@ -222,8 +221,8 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 				case 'date_sent':
 				case 'est_delivery_date':
 					if ( is_callable( array( $shipment, 'get_' . $prop ) ) ) {
-						$shipment_data[ 'shipment_' . $prop ]          = gmdate( 'Y-m-d H:i:s', $shipment->{'get_' . $prop}( 'edit' )->getOffsetTimestamp() );
-						$shipment_data[ 'shipment_' . $prop . '_gmt' ] = gmdate( 'Y-m-d H:i:s', $shipment->{'get_' . $prop}( 'edit' )->getTimestamp() );
+						$shipment_data[ 'shipment_' . $prop ]          = $shipment->{'get_' . $prop}( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $shipment->{'get_' . $prop}( 'edit' )->getOffsetTimestamp() ) : null;
+						$shipment_data[ 'shipment_' . $prop . '_gmt' ] = $shipment->{'get_' . $prop}( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $shipment->{'get_' . $prop}( 'edit' )->getTimestamp() ) : null;
 					}
 					break;
 				default:

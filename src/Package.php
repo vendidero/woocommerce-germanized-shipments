@@ -19,7 +19,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '2.2.5';
+	const VERSION = '2.3.0';
 
 	public static $upload_dir_suffix = '';
 
@@ -63,6 +63,7 @@ class Package {
 		// Guest returns
 		add_filter( 'wc_get_template', array( __CLASS__, 'add_return_shipment_guest_endpoints' ), 10, 2 );
 		add_action( 'init', array( __CLASS__, 'register_shortcodes' ) );
+		add_action( 'init', array( __CLASS__, 'check_version' ), 10 );
 
 		add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
 	}
@@ -432,6 +433,18 @@ class Package {
 			update_option( 'woocommerce_gzd_shipments_upload_dir_suffix', self::$upload_dir_suffix );
 		} else {
 			self::$upload_dir_suffix = get_option( 'woocommerce_gzd_shipments_upload_dir_suffix' );
+		}
+	}
+
+	public static function is_feature_plugin() {
+		return defined( 'WC_GZD_SHIPMENTS_IS_FEATURE_PLUGIN' ) && WC_GZD_SHIPMENTS_IS_FEATURE_PLUGIN;
+	}
+
+	public static function check_version() {
+		if ( self::is_feature_plugin() && self::has_dependencies() && ! defined( 'IFRAME_REQUEST' ) && ( get_option( 'woocommerce_gzd_shipments_version' ) !== self::get_version() ) ) {
+			Install::install();
+
+			do_action( 'woocommerce_gzd_shipments_updated' );
 		}
 	}
 

@@ -66,8 +66,8 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			'packaging_width'              => $packaging->get_width(),
 			'packaging_height'             => $packaging->get_height(),
 			'packaging_order'              => $packaging->get_order(),
-			'packaging_date_created'       => gmdate( 'Y-m-d H:i:s', $packaging->get_date_created( 'edit' )->getOffsetTimestamp() ),
-			'packaging_date_created_gmt'   => gmdate( 'Y-m-d H:i:s', $packaging->get_date_created( 'edit' )->getTimestamp() ),
+			'packaging_date_created'       => $packaging->get_date_created( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $packaging->get_date_created( 'edit' )->getOffsetTimestamp() ) : null,
+			'packaging_date_created_gmt'   => $packaging->get_date_created( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $packaging->get_date_created( 'edit' )->getTimestamp() ) : null,
 		);
 
 		$wpdb->insert(
@@ -218,7 +218,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 					'width'              => $data->packaging_width,
 					'height'             => $data->packaging_height,
 					'order'              => $data->packaging_order,
-					'date_created'       => '0000-00-00 00:00:00' !== $data->packaging_date_created_gmt ? wc_string_to_timestamp( $data->packaging_date_created_gmt ) : null,
+					'date_created'       => $this->is_valid_timestamp( $data->packaging_date_created_gmt ) ? wc_string_to_timestamp( $data->packaging_date_created_gmt ) : null,
 				)
 			);
 
@@ -239,6 +239,10 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		} else {
 			throw new Exception( _x( 'Invalid packaging.', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
+	}
+
+	protected function is_valid_timestamp( $mysql_date ) {
+		return ( '0000-00-00 00:00:00' === $mysql_date || null === $mysql_date ) ? false : true;
 	}
 
 	/**
