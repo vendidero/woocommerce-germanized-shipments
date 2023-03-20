@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments\DataStores;
 
+use Vendidero\Germanized\Shipments\Package;
 use WC_Data_Store_WP;
 use WC_Object_Data_Store_Interface;
 use Exception;
@@ -150,8 +151,8 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 
 			switch ( $prop ) {
 				case 'date_created':
-					$label_data[ 'label' . $prop ]           = gmdate( 'Y-m-d H:i:s', $label->{'get_' . $prop}( 'edit' )->getOffsetTimestamp() );
-					$label_data[ 'label_' . $prop . '_gmt' ] = gmdate( 'Y-m-d H:i:s', $label->{'get_' . $prop}( 'edit' )->getTimestamp() );
+					$label_data[ 'label' . $prop ]           = $label->{'get_' . $prop}( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $label->{'get_' . $prop}( 'edit' )->getOffsetTimestamp() ) : null;
+					$label_data[ 'label_' . $prop . '_gmt' ] = $label->{'get_' . $prop}( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $label->{'get_' . $prop}( 'edit' )->getTimestamp() ) : null;
 					break;
 				default:
 					if ( is_callable( array( $label, 'get_' . $prop ) ) ) {
@@ -272,7 +273,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 					'parent_id'         => $data->label_parent_id,
 					'shipping_provider' => $data->label_shipping_provider,
 					'product_id'        => $data->label_product_id,
-					'date_created'      => '0000-00-00 00:00:00' !== $data->label_date_created_gmt ? wc_string_to_timestamp( $data->label_date_created_gmt ) : null,
+					'date_created'      => Package::is_valid_mysql_date( $data->label_date_created_gmt ) ? wc_string_to_timestamp( $data->label_date_created_gmt ) : null,
 				)
 			);
 

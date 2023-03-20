@@ -114,7 +114,6 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		$packaging_data = array();
 
 		foreach ( $changed_props as $prop ) {
-
 			if ( ! in_array( $prop, $core_props, true ) ) {
 				continue;
 			}
@@ -122,8 +121,8 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			switch ( $prop ) {
 				case 'date_created':
 					if ( is_callable( array( $packaging, 'get_' . $prop ) ) ) {
-						$packaging_data[ 'packaging_' . $prop ]          = gmdate( 'Y-m-d H:i:s', $packaging->{'get_' . $prop}( 'edit' )->getOffsetTimestamp() );
-						$packaging_data[ 'packaging_' . $prop . '_gmt' ] = gmdate( 'Y-m-d H:i:s', $packaging->{'get_' . $prop}( 'edit' )->getTimestamp() );
+						$packaging_data[ 'packaging_' . $prop ]          = $packaging->{'get_' . $prop}( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $packaging->{'get_' . $prop}( 'edit' )->getOffsetTimestamp() ) : null;
+						$packaging_data[ 'packaging_' . $prop . '_gmt' ] = $packaging->{'get_' . $prop}( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $packaging->{'get_' . $prop}( 'edit' )->getTimestamp() ) : null;
 					}
 					break;
 				default:
@@ -218,7 +217,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 					'width'              => $data->packaging_width,
 					'height'             => $data->packaging_height,
 					'order'              => $data->packaging_order,
-					'date_created'       => $this->is_valid_timestamp( $data->packaging_date_created_gmt ) ? wc_string_to_timestamp( $data->packaging_date_created_gmt ) : null,
+					'date_created'       => Package::is_valid_mysql_date( $data->packaging_date_created_gmt ) ? wc_string_to_timestamp( $data->packaging_date_created_gmt ) : null,
 				)
 			);
 
@@ -239,10 +238,6 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		} else {
 			throw new Exception( _x( 'Invalid packaging.', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
-	}
-
-	protected function is_valid_timestamp( $mysql_date ) {
-		return ( '0000-00-00 00:00:00' === $mysql_date || null === $mysql_date ) ? false : true;
 	}
 
 	/**
@@ -317,7 +312,6 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		$props_to_update = $this->get_props_to_update( $packaging, $meta_key_to_props, $this->meta_type );
 
 		foreach ( $props_to_update as $meta_key => $prop ) {
-
 			if ( ! is_callable( array( $packaging, "get_$prop" ) ) ) {
 				continue;
 			}

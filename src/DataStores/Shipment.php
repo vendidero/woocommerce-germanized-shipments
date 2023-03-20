@@ -329,9 +329,9 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 					'shipping_provider' => $data->shipment_shipping_provider,
 					'shipping_method'   => $data->shipment_shipping_method,
 					'packaging_id'      => $data->shipment_packaging_id,
-					'date_created'      => $this->is_valid_timestamp( $data->shipment_date_created_gmt ) ? wc_string_to_timestamp( $data->shipment_date_created_gmt ) : null,
-					'date_sent'         => $this->is_valid_timestamp( $data->shipment_date_sent_gmt ) ? wc_string_to_timestamp( $data->shipment_date_sent_gmt ) : null,
-					'est_delivery_date' => $this->is_valid_timestamp( $data->shipment_est_delivery_date_gmt ) ? wc_string_to_timestamp( $data->shipment_est_delivery_date_gmt ) : null,
+					'date_created'      => Package::is_valid_mysql_date( $data->shipment_date_created_gmt ) ? wc_string_to_timestamp( $data->shipment_date_created_gmt ) : null,
+					'date_sent'         => Package::is_valid_mysql_date( $data->shipment_date_sent_gmt ) ? wc_string_to_timestamp( $data->shipment_date_sent_gmt ) : null,
+					'est_delivery_date' => Package::is_valid_mysql_date( $data->shipment_est_delivery_date_gmt ) ? wc_string_to_timestamp( $data->shipment_est_delivery_date_gmt ) : null,
 					'status'            => $data->shipment_status,
 					'version'           => $data->shipment_version,
 				)
@@ -359,10 +359,6 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 		} else {
 			throw new Exception( _x( 'Invalid shipment.', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
-	}
-
-	protected function is_valid_timestamp( $mysql_date ) {
-		return ( '0000-00-00 00:00:00' === $mysql_date || null === $mysql_date ) ? false : true;
 	}
 
 	/**
@@ -461,7 +457,6 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 		$props_to_update = $this->get_props_to_update( $shipment, $meta_key_to_props, 'gzd_shipment' );
 
 		foreach ( $props_to_update as $meta_key => $prop ) {
-
 			if ( ! is_callable( array( $shipment, "get_$prop" ) ) ) {
 				continue;
 			}
@@ -477,7 +472,6 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 
 			// Force updating props that are dependent on inner content data (weight, dimensions)
 			if ( in_array( $prop, array( 'weight', 'width', 'length', 'height' ), true ) && ! $shipment->is_editable() ) {
-
 				// Get weight in view context to maybe allow calculating inner content props.
 				$value   = $shipment->{"get_$prop"}( 'view' );
 				$updated = update_metadata( 'gzd_shipment', $shipment->get_id(), $meta_key, $value );
@@ -633,7 +627,6 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 
 		foreach ( $date_queries as $db_key ) {
 			if ( isset( $query_vars[ $db_key ] ) && '' !== $query_vars[ $db_key ] ) {
-
 				// Remove any existing meta queries for the same keys to prevent conflicts.
 				$existing_queries = wp_list_pluck( $wp_query_args['meta_query'], 'key', true );
 				$meta_query_index = array_search( $db_key, $existing_queries, true );

@@ -501,7 +501,6 @@ class Package {
 	}
 
 	public static function get_upload_dir() {
-
 		self::set_upload_dir_filter();
 		$upload_dir = wp_upload_dir();
 		self::unset_upload_dir_filter();
@@ -519,7 +518,6 @@ class Package {
 	}
 
 	public static function get_relative_upload_dir( $path ) {
-
 		self::set_upload_dir_filter();
 		$path = _wp_relative_upload_path( $path );
 		self::unset_upload_dir_filter();
@@ -734,5 +732,9 @@ class Package {
 		}
 
 		return true;
+	}
+
+	public static function is_valid_mysql_date( $mysql_date ) {
+		return ( '0000-00-00 00:00:00' === $mysql_date || null === $mysql_date ) ? false : true;
 	}
 }
