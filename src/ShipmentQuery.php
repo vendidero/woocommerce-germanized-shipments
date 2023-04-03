@@ -123,8 +123,17 @@ class ShipmentQuery extends WC_Object_Query {
 
 		$this->results = null;
 
+		$clauses = [
+			'fields'	=> $this->query_fields,
+			'from'		=> $this->query_from,
+			'where'		=> $this->query_where,
+			'orderby'	=> $this->query_orderby,
+			'limit'		=> $this->query_limit,
+		];
+		$clauses = apply_filters( 'woocommerce_gzd_shipment_query_clauses', $clauses, $query_args, $this );
+
 		if ( null === $this->results ) {
-			$this->request = "SELECT $this->query_fields $this->query_from $this->query_where $this->query_orderby $this->query_limit";
+			$this->request = "SELECT " . implode( ' ', $clauses );
 
 			if ( is_array( $qv['fields'] ) || 'objects' === $qv['fields'] ) {
 				$this->results = $wpdb->get_results( $this->request ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
