@@ -925,7 +925,7 @@ class Simple extends WC_Data implements ShippingProvider {
 			$value = $this->get_meta( $clean_key, true, $context );
 		}
 
-		if ( strstr( $key, 'password' ) ) {
+		if ( strstr( $key, 'password' ) && ! is_null( $value ) ) {
 			if ( class_exists( 'WC_GZD_Secret_Box_Helper' ) ) {
 				$result = \WC_GZD_Secret_Box_Helper::decrypt( $value );
 
@@ -941,7 +941,7 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	protected function retrieve_password( $value ) {
-		return stripslashes( $value );
+		return is_null( $value ) ? $value : stripslashes( $value );
 	}
 
 	protected function unprefix_setting_key( $key ) {
