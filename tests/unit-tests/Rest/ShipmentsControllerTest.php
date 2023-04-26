@@ -92,6 +92,62 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 	}
 
 	/**
+	 * Tests create a shipment via rest api
+	 */
+	public function test_create_shipment() {
+		wp_set_current_user( $this->user );
+
+		$shipment_initial = ShipmentHelper::create_simple_shipment();
+		$order_id = $shipment_initial->get_order_id();
+		$shipment_initial->delete( true );
+
+		$request = new WP_REST_Request( 'POST', '/wc/v3/shipments' );
+		$request->set_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( array(
+			'status'   => 'processing',
+			'order_id' => "$order_id",
+		) ) );
+
+		$response        = $this->server->dispatch( $request );
+		$create_response = $response->get_data();
+
+		$this->assertEquals( 201, $response->get_status() );
+		$this->assertEquals( 'processing', $create_response['status'] );
+	}
+
+	public function test_create_shipment_custom_items() {
+		wp_set_current_user( $this->user );
+
+		$shipment_initial = ShipmentHelper::create_simple_shipment();
+		$order_id = $shipment_initial->get_order_id();
+		$shipment_initial->delete( true );
+
+		$order = wc_gzd_get_shipment_order( $order_id );
+		$shipment_items = $order->get_available_items_for_shipment();
+		$order_item_id = array_keys( $shipment_items )[0];
+
+		$request = new WP_REST_Request( 'POST', '/wc/v3/shipments' );
+		$request->set_header( 'content-type', 'application/json' );
+		$request->set_body( json_encode( array(
+			'status'   => 'processing',
+			'order_id' => "$order_id",
+			"items"    => array(
+				array(
+					'quantity' => 2,
+					'order_item_id' => $order_item_id
+				)
+			),
+		) ) );
+
+		$response        = $this->server->dispatch( $request );
+		$create_response = $response->get_data();
+
+		$this->assertEquals( 201, $response->get_status() );
+		$this->assertEquals( 'processing', $create_response['status'] );
+		$this->assertEquals( 2, $create_response['items'][0]['quantity'] );
+	}
+
+	/**
 	 * Tests deleting one shipment via rest api
 	 */
 	public function test_delete_shipment() {
