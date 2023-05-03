@@ -108,8 +108,18 @@ defined( 'ABSPATH' ) || exit;
 		<div class="column col-12 column-shipment-documents">
 			<div class="columns">
 				<div class="column col-6">
-					<div class="columns">
+					<div class="columns columns-auto">
 						<?php
+						/**
+						 * Action that fires before outputting the label section of a Shipment's meta box admin view.
+						 *
+						 * @param Shipment $shipment The shipment object.
+						 *
+						 * @since 3.0.0
+						 * @package Vendidero/Germanized/Shipments
+						 */
+						do_action( 'woocommerce_gzd_shipments_meta_box_shipment_before_label', $shipment );
+
 						if ( $shipment->supports_label() && ( ( $label = $shipment->get_label() ) || $shipment->needs_label() ) ) :
 							include 'label/html-shipment-label.php';
 						endif;

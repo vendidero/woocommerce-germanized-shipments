@@ -776,13 +776,13 @@ table.wc-gzd-shipping-providers {
         }
       }
 
-      .wc-gzd-shipment-label {
+      .wc-gzd-shipment-action-wrapper {
         h4 {
           margin-top: 0;
         }
 
-        .shipment-label-actions {
-          .shipment-label-actions-wrapper {
+        .shipment-inner-actions {
+          .shipment-inner-actions-wrapper {
             display: flex;
             flex-wrap: wrap;
             justify-content: flex-start;

@@ -7,7 +7,6 @@ window.germanized.admin = window.germanized.admin || {};
      * Core
      */
     admin.shipments = {
-
         params: {},
         shipments: {},
         $wrapper: false,
@@ -38,14 +37,16 @@ window.germanized.admin = window.germanized.admin || {};
 
             $( document.body )
                 .on( 'wc_backbone_modal_loaded', self.backbone.init )
-                .on( 'wc_backbone_modal_response', self.backbone.response );
+                .on( 'wc_backbone_modal_response', self.backbone.response )
+                .on( 'init_tooltips', self.initTiptip )
+
+            self.initTiptip();
         },
 
         onAjaxComplete: function( e, jqXHR, settings ) {
             var self = germanized.admin.shipments;
 
             if ( jqXHR != null ) {
-
                 if ( settings.hasOwnProperty( 'data' ) ) {
                     var search = settings.data;
                     var data   = false;
@@ -250,7 +251,6 @@ window.germanized.admin = window.germanized.admin || {};
                         var shipmentData = data.hasOwnProperty( 'shipments' ) ? data.shipments : {};
 
                         $.each( self.getShipments(), function( shipmentId, shipment ) {
-
                             if ( shipmentData.hasOwnProperty( shipmentId ) ) {
                                 shipment.setIsEditable( shipmentData[ shipmentId ].is_editable );
                                 shipment.setNeedsItems( shipmentData[ shipmentId ].needs_items );
@@ -280,6 +280,8 @@ window.germanized.admin = window.germanized.admin || {};
                                 }
                             }
                         }
+
+                        self.initTiptip();
                     } else {
                         cError.apply( $wrapper, [ data ] );
                         self.unblock();
@@ -291,11 +293,15 @@ window.germanized.admin = window.germanized.admin || {};
                                 self.addNotice( message, 'error' );
                             });
                         }
+
+                        self.initTiptip();
                     }
                 },
                 error: function( data ) {
                     cError.apply( $wrapper, [ data ] );
+
                     self.unblock();
+                    self.initTiptip();
                 },
                 dataType: 'json'
             });
@@ -664,9 +670,6 @@ window.germanized.admin = window.germanized.admin || {};
         initTiptip: function() {
             var self = germanized.admin.shipments;
 
-            // Tooltips
-            $( document.body ).trigger( 'init_tooltips' );
-
             self.$wrapper.find( '.woocommerce-help-tip' ).tipTip({
                 'attribute': 'data-tip',
                 'fadeIn': 50,
@@ -674,11 +677,13 @@ window.germanized.admin = window.germanized.admin || {};
                 'delay': 200
             });
 
-            self.$wrapper.find( '.create-shipment-label' ).tipTip( {
+            self.$wrapper.find( '.tip' ).tipTip( {
                 'fadeIn': 50,
                 'fadeOut': 50,
                 'delay': 200
             } );
+
+            $( document.body ).trigger( 'shipments_init_tooltips' );
         },
 
         backbone: {

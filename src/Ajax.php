@@ -178,6 +178,7 @@ class Ajax {
 		}
 
 		$shipment_id    = absint( $_POST['shipment_id'] );
+        $html           = '';
 		$response       = array();
 		$response_error = array(
 			'success'  => false,

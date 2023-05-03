@@ -495,15 +495,15 @@ table.wc-gzd-shipping-providers {
     height: auto; }
     .germanized-shipments #panel-order-shipments .order-shipment .handlediv .toggle-indicator::before {
       content: "\f140"; }
-  .germanized-shipments #panel-order-shipments .order-shipment .wc-gzd-shipment-label h4 {
+  .germanized-shipments #panel-order-shipments .order-shipment .wc-gzd-shipment-action-wrapper h4 {
     margin-top: 0; }
-  .germanized-shipments #panel-order-shipments .order-shipment .wc-gzd-shipment-label .shipment-label-actions .shipment-label-actions-wrapper {
+  .germanized-shipments #panel-order-shipments .order-shipment .wc-gzd-shipment-action-wrapper .shipment-inner-actions .shipment-inner-actions-wrapper {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
     margin-bottom: 1em;
     align-items: center; }
-    .germanized-shipments #panel-order-shipments .order-shipment .wc-gzd-shipment-label .shipment-label-actions .shipment-label-actions-wrapper a {
+    .germanized-shipments #panel-order-shipments .order-shipment .wc-gzd-shipment-action-wrapper .shipment-inner-actions .shipment-inner-actions-wrapper a {
       margin-right: 1em; }
   .germanized-shipments #panel-order-shipments .order-shipment .show-if {
     display: none; }
