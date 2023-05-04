@@ -1186,6 +1186,7 @@ class ShipmentsController extends \WC_REST_Controller {
 			'packaging_id'          => $shipment->get_packaging_id( $context ),
 			'packaging_weight'      => $shipment->get_packaging_weight( $context ),
 			'status'                => $shipment->get_status( $context ),
+			'type'                  => $shipment->get_type(),
 			'tracking_id'           => $shipment->get_tracking_id( $context ),
 			'tracking_url'          => $shipment->get_tracking_url(),
 			'shipping_provider'     => $shipment->get_shipping_provider( $context ),
