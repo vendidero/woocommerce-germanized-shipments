@@ -564,15 +564,15 @@ class Settings {
 				$hide_default = isset( $setting['hide_default'] ) ? wc_string_to_bool( $setting['hide_default'] ) : false;
 				$missing_div_closes++;
 				?>
-				<p class="show-services-trigger">
-					<a href="#" class="show-further-services <?php echo ( ! $hide_default ? 'hide-default' : '' ); ?>">
+				<p class="show-services-trigger show-more-trigger">
+					<a href="#" class="show-more show-further-services <?php echo ( ! $hide_default ? 'hide-default' : '' ); ?>">
 						<span class="dashicons dashicons-plus"></span> <?php echo esc_html_x( 'More services', 'shipments', 'woocommerce-germanized-shipments' ); ?>
 					</a>
-					<a class="show-fewer-services <?php echo ( $hide_default ? 'hide-default' : '' ); ?>" href="#">
+					<a class="show-fewer show-fewer-services <?php echo ( $hide_default ? 'hide-default' : '' ); ?>" href="#">
 						<span class="dashicons dashicons-minus"></span> <?php echo esc_html_x( 'Fewer services', 'shipments', 'woocommerce-germanized-shipments' ); ?>
 					</a>
 				</p>
-				<div class="<?php echo ( $hide_default ? 'hide-default' : '' ); ?> show-if-further-services">
+				<div class="<?php echo ( $hide_default ? 'hide-default' : '' ); ?> show-more-wrapper show-if-further-services">
 				<?php
 			} elseif ( 'columns' === $setting['type'] ) {
 				$missing_div_closes++;

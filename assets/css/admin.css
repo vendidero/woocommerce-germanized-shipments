@@ -23,54 +23,59 @@
     border-color: #5b841b;
     color: #5b841b; }
 
-.germanized-create-label .notice-wrapper .notice {
-  margin: 0;
-  margin-bottom: 1em; }
-  .germanized-create-label .notice-wrapper .notice p {
-    margin: 0.5em 0 !important;
-    padding: 2px !important;
-    font-size: 13px;
-    line-height: 1.5; }
+.wc-gzd-admin-shipment-modal .wc-backbone-modal-content {
+  min-width: 600px; }
 
-.germanized-create-label p.form-field {
+.wc-gzd-admin-shipment-modal .notice-wrapper {
+  max-width: 100%; }
+  .wc-gzd-admin-shipment-modal .notice-wrapper .notice {
+    margin: 0;
+    margin-bottom: 1em; }
+    .wc-gzd-admin-shipment-modal .notice-wrapper .notice p {
+      margin: 0.5em 0 !important;
+      padding: 2px !important;
+      font-size: 13px;
+      line-height: 1.5; }
+
+.wc-gzd-admin-shipment-modal p.form-field {
   margin-bottom: 5px !important;
   margin-top: 5px !important; }
-  .germanized-create-label p.form-field:first-child, .germanized-create-label p.form-field:last-child {
+  .wc-gzd-admin-shipment-modal p.form-field:first-child, .wc-gzd-admin-shipment-modal p.form-field:last-child {
     margin-bottom: 5px !important;
     margin-top: 5px !important; }
-  .germanized-create-label p.form-field:not(.column) {
+  .wc-gzd-admin-shipment-modal p.form-field:not(.column) {
     display: inline-block;
     width: 100%; }
 
-.germanized-create-label .columns {
+.wc-gzd-admin-shipment-modal .columns {
   margin-left: -.5rem !important;
   margin-right: -.5rem !important; }
 
-.germanized-create-label .column {
+.wc-gzd-admin-shipment-modal .column {
   padding-left: .5rem !important;
   padding-right: .5rem !important; }
 
-.germanized-create-label .show-if, .germanized-create-label .hide-default {
+.wc-gzd-admin-shipment-modal .show-if, .wc-gzd-admin-shipment-modal .hide-default {
   display: none; }
 
-.germanized-create-label .show-if label {
+.wc-gzd-admin-shipment-modal .show-if label {
   color: #777; }
 
-.germanized-create-label p.form-field {
+.wc-gzd-admin-shipment-modal p.form-field {
   display: flex;
   flex-wrap: wrap; }
-  .germanized-create-label p.form-field label {
+  .wc-gzd-admin-shipment-modal p.form-field label {
     margin-bottom: 5px;
     font-weight: bold;
     display: inline-flex; }
-  .germanized-create-label p.form-field .woocommerce-help-tip {
+  .wc-gzd-admin-shipment-modal p.form-field .woocommerce-help-tip {
     display: inline-flex;
     margin-bottom: 5px; }
-  .germanized-create-label p.form-field select, .germanized-create-label p.form-field input[type=text], .germanized-create-label p.form-field input[type=email], .germanized-create-label p.form-field input[type=date] {
+  .wc-gzd-admin-shipment-modal p.form-field select, .wc-gzd-admin-shipment-modal p.form-field input[type=text], .wc-gzd-admin-shipment-modal p.form-field input[type=email], .wc-gzd-admin-shipment-modal p.form-field input[type=date] {
     width: 100%;
     flex: 0 0 100%;
     max-width: 100%; }
-  .germanized-create-label p.form-field.form-field-checkbox {
+  .wc-gzd-admin-shipment-modal p.form-field.form-field-checkbox {
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
@@ -78,18 +83,18 @@
     margin-top: 10px !important;
     margin-bottom: 10px !important;
     align-items: center; }
-    .germanized-create-label p.form-field.form-field-checkbox label {
+    .wc-gzd-admin-shipment-modal p.form-field.form-field-checkbox label {
       width: auto;
       margin-left: .5em;
       font-weight: normal;
       order: 2;
       margin-bottom: 0; }
-    .germanized-create-label p.form-field.form-field-checkbox input[type=checkbox] {
+    .wc-gzd-admin-shipment-modal p.form-field.form-field-checkbox input[type=checkbox] {
       order: 1; }
-    .germanized-create-label p.form-field.form-field-checkbox .woocommerce-help-tip {
+    .wc-gzd-admin-shipment-modal p.form-field.form-field-checkbox .woocommerce-help-tip {
       order: 3;
       margin-left: 3px; }
-    .germanized-create-label p.form-field.form-field-checkbox .description {
+    .wc-gzd-admin-shipment-modal p.form-field.form-field-checkbox .description {
       width: 100%;
       margin-top: 5px;
       color: #777;

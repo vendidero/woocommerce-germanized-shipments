@@ -7,7 +7,6 @@ window.germanized.admin = window.germanized.admin || {};
      * Core
      */
     admin.shipments_table = {
-
         params: {},
 
         init: function() {
@@ -16,26 +15,15 @@ window.germanized.admin = window.germanized.admin || {};
 
             self.initEnhanced();
 
-            $( document )
-                .on( 'click', '#doaction, #doaction2', self.onBulkSubmit )
-                .on( 'click', '.wc-gzd-shipment-action-button-generate-label', self.onCreateLabel );
+            $( document ).on( 'click', '#doaction, #doaction2', self.onBulkSubmit );
+
+            $( '.wc-gzd-shipment-action-button-generate-label' ).wc_gzd_admin_shipment_modal();
 
             $( document.body ).on( 'init_tooltips', function() {
                 self.initTipTip();
             });
 
             self.initTipTip();
-        },
-
-        onCreateLabel: function() {
-            var self       = germanized.admin.shipments_table,
-                shipmentId = $( this ).parents( 'tr' ).find( 'th.check-column input' ).val();
-
-            $( this ).parents( 'td' ).WCBackboneModal({
-                template: 'wc-gzd-modal-create-shipment-label-' + shipmentId
-            });
-
-            return false;
         },
 
         onBulkSubmit: function() {

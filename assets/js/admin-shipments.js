@@ -30,15 +30,17 @@ window.germanized.admin = window.germanized.admin || {};
                 .on( 'click', '#order-shipments-list .shipment-header', self.onToggleShipment )
                 .on( 'change', '#order-shipments-list :input:visible', self.setNeedsSaving )
                 .on( 'click', '#panel-order-shipments #order-shipment-add', self.onAddShipment )
-                .on( 'click', '#panel-order-shipments #order-return-shipment-add', self.onAddReturn )
                 .on( 'click', '#panel-order-shipments .remove-shipment', self.onRemoveShipment )
                 .on( 'click', '#panel-order-shipments button#order-shipments-save', self.onSave )
-                .on( 'click', '#panel-order-shipments .notice-dismiss', self.onRemoveNotice );
+                .on( 'click', '#panel-order-shipments .notice-dismiss', self.onRemoveNotice )
+                .on( 'change', '.germanized-create-label #product_id', self.onChangeLabelProductId );
 
-            $( document.body )
-                .on( 'wc_backbone_modal_loaded', self.backbone.init )
-                .on( 'wc_backbone_modal_response', self.backbone.response )
-                .on( 'init_tooltips', self.initTiptip )
+            $( document )
+                .on( 'wc_gzd_admin_shipment_modal_after_submit_success', 'a#order-return-shipment-add', self.onAddReturnSuccess );
+
+            $( '#panel-order-shipments #order-return-shipment-add' ).wc_gzd_admin_shipment_modal();
+
+            $( document.body ).on( 'init_tooltips', self.initTiptip )
 
             self.initTiptip();
         },
@@ -327,6 +329,33 @@ window.germanized.admin = window.germanized.admin || {};
             self.$wrapper.find( '.notice-wrapper' ).append( '<div class="notice is-dismissible notice-' + noticeType +'"><p>' + message + '</p><button type="button" class="notice-dismiss"></button></div>' );
         },
 
+        onChangeLabelProductId: function() {
+            var self = germanized.admin.shipments;
+
+            self.showOrHideByLabelProduct( $( this ).val() );
+        },
+
+        showOrHideByLabelProduct: function( productId ) {
+            var $wrapper  = $( '.germanized-create-label' ),
+                $fields   = $wrapper.find( 'p.form-field :input[data-products-supported]' );
+
+            $fields.each( function() {
+                var $field    = $( this ),
+                    isHidden  = true,
+                    supported = $field.data( 'products-supported' ).split( ',' );
+
+                if ( $.inArray( productId, supported ) !== -1 ) {
+                    isHidden = false;
+                }
+
+                if ( isHidden ) {
+                    $field.parents( '.form-field' ).hide();
+                } else {
+                    $field.parents( '.form-field' ).show();
+                }
+            } );
+        },
+
         getParams: function() {
             var self = germanized.admin.shipments;
 
@@ -448,39 +477,10 @@ window.germanized.admin = window.germanized.admin || {};
 
         },
 
-        onAddReturn: function() {
-
-            $( this ).WCBackboneModal({
-                template: 'wc-gzd-modal-add-shipment-return'
-            });
-
-            return false;
-        },
-
-        addReturn: function( items ) {
-            var self = germanized.admin.shipments;
-
-            self.block();
-
-            var params = {
-                'action' : 'woocommerce_gzd_add_return_shipment'
-            };
-
-            $.extend( params, items );
-
-            self.doAjax( params, self.onAddReturnSuccess, self.onAddReturnError );
-        },
-
-        onAddReturnSuccess: function( data ) {
+        onAddReturnSuccess: function( e, data ) {
             var self = germanized.admin.shipments;
 
             self.onAddShipmentSuccess( data );
-        },
-
-        onAddReturnError: function( data ) {
-            var self = germanized.admin.shipments;
-
-            self.onAddShipmentError( data );
         },
 
         setNeedsSaving: function( needsSaving ) {
@@ -684,55 +684,6 @@ window.germanized.admin = window.germanized.admin || {};
             } );
 
             $( document.body ).trigger( 'shipments_init_tooltips' );
-        },
-
-        backbone: {
-
-            onAddReturnSuccess: function( data ) {
-                $( '#wc-gzd-return-shipment-items' ).html( data.html );
-                $( '.wc-backbone-modal-content article' ).unblock();
-
-                $( document.body ).on( 'change', 'input.wc-gzd-shipment-add-return-item-quantity', function() {
-                    var $select  = $( this ),
-                        quantity = $select.val();
-
-                    if ( $select.attr( 'max' ) ) {
-                        var maxQuantity = $select.attr( 'max' );
-
-                        if ( quantity > maxQuantity ) {
-                            $select.val( maxQuantity );
-                        }
-                    }
-                });
-            },
-
-            init: function ( e, target ) {
-                var self = germanized.admin.shipments;
-
-                if( ( 'wc-gzd-modal-add-shipment-return' ) === target ) {
-                    $( '.wc-backbone-modal-content article' ).block({
-                        message: null,
-                        overlayCSS: {
-                            background: '#fff',
-                            opacity: 0.6
-                        }
-                    });
-
-                    self.doAjax( {
-                        'action' : 'woocommerce_gzd_get_available_return_shipment_items'
-                    }, self.backbone.onAddReturnSuccess );
-
-                    return false;
-                }
-            },
-
-            response: function ( e, target, data ) {
-                var self = germanized.admin.shipments;
-
-                if( ( 'wc-gzd-modal-add-shipment-return' ) === target ) {
-                    self.addReturn( data );
-                }
-            }
         }
     };
 

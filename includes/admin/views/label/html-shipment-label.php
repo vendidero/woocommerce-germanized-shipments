@@ -39,7 +39,7 @@ use Vendidero\Germanized\Shipments\Shipment;
 				</div>
 			<?php else : ?>
 				<div class="shipment-label-actions-wrapper shipment-inner-actions-wrapper shipment-label-actions-create">
-					<a class="button button-secondary create-shipment-label tip" href="#" title="<?php echo esc_html_x( 'Create new label', 'shipments', 'woocommerce-germanized-shipments' ); ?>"><?php echo esc_html_x( 'Create label', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+					<a class="button button-secondary create-shipment-label tip" id="wc-gzd-modal-create-shipment-label-<?php echo esc_attr( $shipment->get_id() ); ?>" data-reference="<?php echo esc_attr( $shipment->get_id() ); ?>" data-id="wc-gzd-modal-create-shipment-label" data-load-async="true" href="#" title="<?php echo esc_html_x( 'Create new label', 'shipments', 'woocommerce-germanized-shipments' ); ?>"><?php echo esc_html_x( 'Create label', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 
 					<?php include 'html-shipment-label-backbone.php'; ?>
 				</div>

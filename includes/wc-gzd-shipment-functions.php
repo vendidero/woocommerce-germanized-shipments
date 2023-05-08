@@ -930,12 +930,33 @@ function wc_gzd_render_shipment_action_buttons( $actions ) {
 	$actions_html = '';
 
 	foreach ( $actions as $action ) {
-		if ( isset( $action['group'] ) ) {
-			$actions_html .= '<div class="wc-gzd-shipment-action-button-group"><label>' . $action['group'] . '</label> <span class="wc-gzd-shipment-action-button-group__items">' . wc_gzd_render_shipment_action_buttons( $action['actions'] ) . '</span></div>';
-		} elseif ( isset( $action['action'], $action['url'], $action['name'] ) ) {
-			$target = isset( $action['target'] ) ? $action['target'] : '_self';
+		$action = wp_parse_args(
+			$action,
+			array(
+				'url'               => '',
+				'group'             => '',
+				'action'            => '',
+				'target'            => '_self',
+				'name'              => '',
+				'custom_attributes' => array(),
+				'title'             => '',
+			)
+		);
 
-			$actions_html .= sprintf( '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-%1$s %1$s" href="%2$s" aria-label="%3$s" title="%3$s" target="%4$s">%5$s</a>', esc_attr( $action['action'] ), esc_url( $action['url'] ), esc_attr( isset( $action['title'] ) ? $action['title'] : $action['name'] ), $target, esc_html( $action['name'] ) );
+		if ( ! empty( $action['group'] ) ) {
+			$actions_html .= '<div class="wc-gzd-shipment-action-button-group"><label>' . esc_html( $action['group'] ) . '</label> <span class="wc-gzd-shipment-action-button-group__items">' . wc_gzd_render_shipment_action_buttons( $action['actions'] ) . '</span></div>';
+		} elseif ( isset( $action['action'], $action['url'], $action['name'] ) ) {
+			if ( empty( $action['title'] ) ) {
+				$action['title'] = $action['name'];
+			}
+
+			$custom_attributes = '';
+
+			foreach ( $action['custom_attributes'] as $attribute => $val ) {
+				$custom_attributes .= ' ' . esc_attr( $attribute ) . '="' . esc_attr( $val ) . '"';
+			}
+
+			$actions_html .= sprintf( '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-%1$s %1$s" href="%2$s" aria-label="%3$s" title="%3$s" target="%4$s" %5$s>%6$s</a>', esc_attr( $action['action'] ), esc_url( $action['url'] ), esc_attr( $action['title'] ), esc_attr( $action['target'] ), $custom_attributes, esc_html( $action['name'] ) );
 		}
 	}
 

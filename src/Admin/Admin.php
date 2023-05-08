@@ -1003,10 +1003,11 @@ class Admin {
 			$order_or_post_object = $theorder;
 		}
 
-		wp_register_script( 'wc-gzd-admin-shipment-label-backbone', Package::get_assets_url() . '/js/admin-shipment-label-backbone' . $suffix . '.js', array( 'jquery', 'woocommerce_admin', 'wc-backbone-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_register_script( 'wc-gzd-admin-shipment', Package::get_assets_url() . '/js/admin-shipment' . $suffix . '.js', array( 'wc-gzd-admin-shipment-label-backbone' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-admin-shipment-modal', Package::get_assets_url() . '/js/admin-shipment-modal' . $suffix . '.js', array( 'jquery', 'woocommerce_admin', 'wc-backbone-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-admin-shipment', Package::get_assets_url() . '/js/admin-shipment' . $suffix . '.js', array( 'wc-gzd-admin-shipment-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+
 		wp_register_script( 'wc-gzd-admin-shipments', Package::get_assets_url() . '/js/admin-shipments' . $suffix . '.js', array( 'wc-admin-order-meta-boxes', 'wc-gzd-admin-shipment' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_register_script( 'wc-gzd-admin-shipments-table', Package::get_assets_url() . '/js/admin-shipments-table' . $suffix . '.js', array( 'woocommerce_admin', 'wc-gzd-admin-shipment-label-backbone' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-admin-shipments-table', Package::get_assets_url() . '/js/admin-shipments-table' . $suffix . '.js', array( 'woocommerce_admin', 'wc-gzd-admin-shipment-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_register_script( 'wc-gzd-admin-shipping-providers', Package::get_assets_url() . '/js/admin-shipping-providers' . $suffix . '.js', array( 'jquery', 'jquery-ui-sortable' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_register_script( 'wc-gzd-admin-shipping-provider-method', Package::get_assets_url() . '/js/admin-shipping-provider-method' . $suffix . '.js', array( 'jquery' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 
@@ -1025,19 +1026,25 @@ class Admin {
 				'wc-gzd-admin-shipments',
 				'wc_gzd_admin_shipments_params',
 				array(
-					'ajax_url'                        => admin_url( 'admin-ajax.php' ),
-					'edit_shipments_nonce'            => wp_create_nonce( 'edit-shipments' ),
-					'order_id'                        => $order_order_post_id,
-					'shipment_locked_excluded_fields' => array( 'status' ),
-					'i18n_remove_shipment_notice'     => _x( 'Do you really want to delete the shipment?', 'shipments', 'woocommerce-germanized-shipments' ),
-					'remove_label_nonce'              => wp_create_nonce( 'remove-shipment-label' ),
-					'edit_label_nonce'                => wp_create_nonce( 'edit-shipment-label' ),
-					'send_return_notification_nonce'  => wp_create_nonce( 'send-return-shipment-notification' ),
-					'refresh_packaging_nonce'         => wp_create_nonce( 'refresh-shipment-packaging' ),
-					'confirm_return_request_nonce'    => wp_create_nonce( 'confirm-return-request' ),
-					'i18n_remove_label_notice'        => _x( 'Do you really want to delete the label?', 'shipments', 'woocommerce-germanized-shipments' ),
-					'i18n_create_label_enabled'       => _x( 'Create new label', 'shipments', 'woocommerce-germanized-shipments' ),
-					'i18n_create_label_disabled'      => _x( 'Please save the shipment before creating a new label', 'shipments', 'woocommerce-germanized-shipments' ),
+					'ajax_url'                           => admin_url( 'admin-ajax.php' ),
+					'edit_shipments_nonce'               => wp_create_nonce( 'edit-shipments' ),
+					'order_id'                           => $order_order_post_id,
+					'shipment_locked_excluded_fields'    => array( 'status' ),
+					'i18n_remove_shipment_notice'        => _x( 'Do you really want to delete the shipment?', 'shipments', 'woocommerce-germanized-shipments' ),
+					'remove_label_nonce'                 => wp_create_nonce( 'remove-shipment-label' ),
+					'edit_label_nonce'                   => wp_create_nonce( 'edit-shipment-label' ),
+					'send_return_notification_nonce'     => wp_create_nonce( 'send-return-shipment-notification' ),
+					'refresh_packaging_nonce'            => wp_create_nonce( 'refresh-shipment-packaging' ),
+					'confirm_return_request_nonce'       => wp_create_nonce( 'confirm-return-request' ),
+					'add_return_shipment_load_nonce'     => wp_create_nonce( 'add-return-shipment-load' ),
+					'add_return_shipment_submit_nonce'   => wp_create_nonce( 'add-return-shipment-submit' ),
+					'add_shipment_item_load_nonce'       => wp_create_nonce( 'add-shipment-item-load' ),
+					'add_shipment_item_submit_nonce'     => wp_create_nonce( 'add-shipment-item-submit' ),
+					'create_shipment_label_load_nonce'   => wp_create_nonce( 'create-shipment-label-load' ),
+					'create_shipment_label_submit_nonce' => wp_create_nonce( 'create-shipment-label-submit' ),
+					'i18n_remove_label_notice'           => _x( 'Do you really want to delete the label?', 'shipments', 'woocommerce-germanized-shipments' ),
+					'i18n_create_label_enabled'          => _x( 'Create new label', 'shipments', 'woocommerce-germanized-shipments' ),
+					'i18n_create_label_disabled'         => _x( 'Please save the shipment before creating a new label', 'shipments', 'woocommerce-germanized-shipments' ),
 				)
 			);
 		}
@@ -1059,22 +1066,24 @@ class Admin {
 				'wc-gzd-admin-shipments-table',
 				'wc_gzd_admin_shipments_table_params',
 				array(
-					'ajax_url'                       => admin_url( 'admin-ajax.php' ),
-					'search_orders_nonce'            => wp_create_nonce( 'search-orders' ),
-					'search_shipping_provider_nonce' => wp_create_nonce( 'search-shipping-provider' ),
-					'bulk_actions'                   => $bulk_actions,
+					'ajax_url'                           => admin_url( 'admin-ajax.php' ),
+					'search_orders_nonce'                => wp_create_nonce( 'search-orders' ),
+					'search_shipping_provider_nonce'     => wp_create_nonce( 'search-shipping-provider' ),
+					'bulk_actions'                       => $bulk_actions,
+					'create_shipment_label_load_nonce'   => wp_create_nonce( 'create-shipment-label-load' ),
+					'create_shipment_label_submit_nonce' => wp_create_nonce( 'create-shipment-label-submit' ),
 				)
 			);
 		}
 
 		wp_localize_script(
-			'wc-gzd-admin-shipment-label-backbone',
-			'wc_gzd_admin_shipment_label_backbone_params',
+			'wc-gzd-admin-shipment-modal',
+			'wc_gzd_admin_shipment_modal_params',
 			array(
-				'ajax_url'                => admin_url( 'admin-ajax.php' ),
-				'i18n_modal_close'        => _x( 'Close', 'shipments-close-modal', 'woocommerce-germanized-shipments' ),
-				'create_label_form_nonce' => wp_create_nonce( 'create-shipment-label-form' ),
-				'create_label_nonce'      => wp_create_nonce( 'create-shipment-label' ),
+				'ajax_url'         => admin_url( 'admin-ajax.php' ),
+				'i18n_modal_close' => _x( 'Close', 'shipments-close-modal', 'woocommerce-germanized-shipments' ),
+				'load_nonce'       => wp_create_nonce( 'load-modal' ),
+				'submit_nonce'     => wp_create_nonce( 'submit-modal' ),
 			)
 		);
 

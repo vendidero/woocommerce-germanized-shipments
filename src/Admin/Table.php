@@ -901,22 +901,25 @@ class Table extends WP_List_Table {
 		}
 
 		if ( $shipment->supports_label() ) {
-
 			if ( $label = $shipment->get_label() ) {
-
 				$actions['download_label'] = array(
 					'url'    => $label->get_download_url(),
 					'name'   => _x( 'Download label', 'shipments', 'woocommerce-germanized-shipments' ),
 					'action' => 'download-label download',
 					'target' => '_blank',
 				);
-
 			} elseif ( $shipment->needs_label() ) {
-
 				$actions['generate_label'] = array(
-					'url'    => '#',
-					'name'   => _x( 'Generate label', 'shipments', 'woocommerce-germanized-shipments' ),
-					'action' => 'generate-label generate',
+					'url'               => '#',
+					'name'              => _x( 'Generate label', 'shipments', 'woocommerce-germanized-shipments' ),
+					'action'            => 'generate-label generate',
+					'custom_attributes' => array(
+						'id'                => 'wc-gzd-create-label-' . $shipment->get_id(),
+						'data-id'           => 'wc-gzd-modal-create-shipment-label',
+						'data-load-async'   => true,
+						'data-reference'    => $shipment->get_id(),
+						'data-nonce-params' => 'wc_gzd_admin_shipments_table_params',
+					),
 				);
 
 				include Package::get_path() . '/includes/admin/views/label/html-shipment-label-backbone.php';

@@ -166,7 +166,46 @@ defined( 'ABSPATH' ) || exit;
 
 				<div class="shipment-item-actions">
 					<div class="add-items">
-						<a class="add-shipment-item" href="#"><?php echo esc_html_x( 'Add item', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+						<a class="add-shipment-item" id="wc-gzd-modal-add-shipment-item-<?php echo esc_attr( $shipment->get_id() ); ?>" data-load-async="true" data-reference="<?php echo esc_attr( $shipment->get_id() ); ?>" data-id="wc-gzd-modal-add-shipment-item" href="#"><?php echo esc_html_x( 'Add item', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+
+						<script type="text/template" id="tmpl-wc-gzd-modal-add-shipment-item-<?php echo esc_attr( $shipment->get_id() ); ?>">
+							<div class="wc-backbone-modal wc-gzd-admin-shipment-modal wc-gzd-modal-add-shipment-item">
+								<div class="wc-backbone-modal-content">
+									<section class="wc-backbone-modal-main" role="main">
+										<header class="wc-backbone-modal-header">
+											<h1><?php echo esc_html_x( 'Add Item', 'shipments', 'woocommerce-germanized-shipments' ); ?></h1>
+											<button class="modal-close modal-close-link dashicons dashicons-no-alt">
+												<span class="screen-reader-text">Close modal panel</span>
+											</button>
+										</header>
+										<article>
+											<form action="" method="post">
+												<table class="widefat">
+													<thead>
+													<tr>
+														<th><?php echo esc_html_x( 'Item', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+														<th><?php echo esc_html_x( 'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+													</tr>
+													</thead>
+													<tbody class="wc-gzd-shipment-add-items-table" data-row="">
+													<tr>
+														<td><select id="wc-gzd-shipment-add-items-select" name="item_id"></select></td>
+														<td><input id="wc-gzd-shipment-add-items-quantity" type="number" step="1" min="0" max="9999" autocomplete="off" name="item_qty" placeholder="1" size="4" class="quantity" /></td>
+													</tr>
+													</tbody>
+												</table>
+											</form>
+										</article>
+										<footer>
+											<div class="inner">
+												<button id="btn-ok" class="button button-primary button-large"><?php echo esc_html_x( 'Add', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
+											</div>
+										</footer>
+									</section>
+								</div>
+							</div>
+							<div class="wc-backbone-modal-backdrop modal-close"></div>
+						</script>
 					</div>
 
 					<div class="sync-items">
@@ -186,48 +225,6 @@ defined( 'ABSPATH' ) || exit;
 					?>
 				</div>
 			</div>
-			<script type="text/template" id="tmpl-wc-gzd-modal-add-shipment-item-<?php echo esc_attr( $shipment->get_id() ); ?>">
-				<div class="wc-backbone-modal">
-					<div class="wc-backbone-modal-content">
-						<section class="wc-backbone-modal-main" role="main">
-							<header class="wc-backbone-modal-header">
-								<h1><?php echo esc_html_x( 'Add Item', 'shipments', 'woocommerce-germanized-shipments' ); ?></h1>
-								<button class="modal-close modal-close-link dashicons dashicons-no-alt">
-									<span class="screen-reader-text">Close modal panel</span>
-								</button>
-							</header>
-							<article>
-								<form action="" method="post">
-									<table class="widefat">
-										<thead>
-										<tr>
-											<th><?php echo esc_html_x( 'Item', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
-											<th><?php echo esc_html_x( 'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
-										</tr>
-										</thead>
-										<?php
-										$row = '
-									        <td><select id="wc-gzd-shipment-add-items-select" name="item_id"></select></td>
-									        <td><input id="wc-gzd-shipment-add-items-quantity" type="number" step="1" min="0" max="9999" autocomplete="off" name="item_qty" placeholder="1" size="4" class="quantity" /></td>';
-										?>
-										<tbody data-row="<?php echo esc_attr( $row ); ?>">
-										<tr>
-											<?php echo $row; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-										</tr>
-										</tbody>
-									</table>
-								</form>
-							</article>
-							<footer>
-								<div class="inner">
-									<button id="btn-ok" class="button button-primary button-large"><?php echo esc_html_x( 'Add', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
-								</div>
-							</footer>
-						</section>
-					</div>
-				</div>
-				<div class="wc-backbone-modal-backdrop modal-close"></div>
-			</script>
 		</div>
 
 		<?php
@@ -245,7 +242,10 @@ defined( 'ABSPATH' ) || exit;
 		<div class="column col-12 shipment-footer" id="shipment-footer-<?php echo esc_attr( $shipment->get_id() ); ?>">
 			<div class="shipment-footer-inner">
 				<?php if ( 'return' === $shipment->get_type() && $shipment->has_status( 'processing' ) ) : ?>
-					<a class="shipment-footer-action send-return-shipment-notification email" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo wc_help_tip( _x( 'Send return instructions to your customer via email including return label as attachment (if available).', 'shipments', 'woocommerce-germanized-shipments' ) ); ?><?php echo ( $shipment->is_customer_requested() ? esc_html_x( 'Resend notification', 'shipments', 'woocommerce-germanized-shipments' ) : esc_html_x( 'Notify customer', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></a>
+					<a class="shipment-footer-action send-return-shipment-notification email" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>">
+						<?php echo wc_help_tip( _x( 'Send return instructions to your customer via email including return label as attachment (if available).', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>
+						<?php echo ( $shipment->is_customer_requested() ? esc_html_x( 'Resend notification', 'shipments', 'woocommerce-germanized-shipments' ) : esc_html_x( 'Notify customer', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>
+					</a>
 				<?php elseif ( 'return' === $shipment->get_type() && $shipment->has_status( 'requested' ) ) : ?>
 					<a class="shipment-footer-action confirm-return-shipment" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo wc_help_tip( _x( 'Confirm the return request to the customer. The customer receives an email notification possibly containing return instructions.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?><?php echo esc_html_x( 'Confirm return request', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 				<?php endif; ?>

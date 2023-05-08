@@ -6,7 +6,7 @@ defined( 'ABSPATH' ) || exit;
 ?>
 
 <script type="text/template" id="tmpl-wc-gzd-modal-create-shipment-label-<?php echo esc_attr( $shipment->get_id() ); ?>" class="wc-gzd-shipment-label-<?php echo esc_attr( $shipment->get_type() ); ?>">
-	<div class="wc-backbone-modal">
+	<div class="wc-backbone-modal wc-gzd-admin-shipment-modal wc-gzd-modal-create-shipment-label">
 		<div class="wc-backbone-modal-content">
 			<section class="wc-backbone-modal-main" role="main">
 				<header class="wc-backbone-modal-header">

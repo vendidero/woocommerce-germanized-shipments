@@ -11,6 +11,9 @@ defined( 'ABSPATH' ) || exit;
 		.wc-backbone-modal-content footer {
 			display: none !important;
 		}
+		.wc-backbone-modal-main {
+			padding-bottom: 0;
+		}
 	</style>
 	<div class="notice-wrapper">
 		<?php foreach ( $error->get_error_messages() as $message ) : ?>

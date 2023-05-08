@@ -36,8 +36,14 @@ $layout-spacing: 1rem;
   }
 }
 
-.germanized-create-label {
+.wc-gzd-admin-shipment-modal {
+  .wc-backbone-modal-content {
+    min-width: 600px;
+  }
+
   .notice-wrapper {
+    max-width: 100%;
+
     .notice {
       margin: 0;
       margin-bottom: 1em;
@@ -726,7 +732,7 @@ table.wc-gzd-shipping-providers {
     #order-shipment-add, #order-return-shipment-add {
       display: none;
     }
-    
+
     &.needs-shipments {
       .panel-footer {
         display: block;
@@ -804,7 +810,7 @@ table.wc-gzd-shipping-providers {
         > .shipment-content-wrapper {
           display: block;
         }
-        
+
         > .shipment-header > .right > .handlediv .toggle-indicator {
           &::before {
             content: "\f142";
@@ -860,7 +866,7 @@ table.wc-gzd-shipping-providers {
       &.active > .shipment-header, .shipment-header:hover {
         background: darken(#f8f8f8, 2%);
       }
-      
+
       .shipment-content-wrapper {
         display: none;
       }
