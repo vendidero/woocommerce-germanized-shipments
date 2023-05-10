@@ -12,7 +12,7 @@ window.germanized.admin = window.germanized.admin || {};
         self.setup();
 
         $( document )
-            .on( 'click.gzd-' + self.modalId, '#' + self.$modalTrigger.attr( 'id' ), { adminShipmentModal: self }, self.onClick );
+            .on( 'click.gzd-' + self.modalId, '#' + self.$modalTrigger.attr( 'id' ) + ':not(.disabled)', { adminShipmentModal: self }, self.onClick );
 
         $( document.body )
             .on( 'wc_backbone_modal_loaded.gzd-' + self.modalId, { adminShipmentModal: self }, self.onOpen )
@@ -96,8 +96,8 @@ window.germanized.admin = window.germanized.admin || {};
         return false;
     };
 
-    AdminShipmentModal.prototype.onChangeField = function( event, instance ) {
-        var self     = event.data.hasOwnProperty( 'adminShipmentModal' ) ? event.data.adminShipmentModal : instance,
+    AdminShipmentModal.prototype.onChangeField = function( event ) {
+        var self     = event.data.adminShipmentModal,
             $wrapper = self.$modal,
             fieldId  = self.parseFieldId( $( this ).attr( 'id' ) ),
             val      = $( this ).val();
@@ -202,7 +202,7 @@ window.germanized.admin = window.germanized.admin || {};
         cSuccess = cSuccess || self.onAjaxSuccess;
         cError   = cError || self.onAjaxError;
 
-        if ( ! params.hasOwnProperty( 'shipment_id' ) ) {
+        if ( ! params.hasOwnProperty( 'reference_id' ) ) {
             params['reference_id'] = self.referenceId;
         }
 
@@ -232,6 +232,13 @@ window.germanized.admin = window.germanized.admin || {};
                     cSuccess.apply( self, [ data, self ] );
 
                     self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_ajax_success', [data, self] );
+
+                    /**
+                     * Init JS form field types.
+                     */
+                    if ( data.fragments ) {
+                        self.afterRefresh();
+                    }
                 } else {
                     self.$modal.find( '.wc-backbone-modal-content' ).unblock();
                     cError.apply( self, [ data, self ] );
@@ -251,11 +258,8 @@ window.germanized.admin = window.germanized.admin || {};
         });
     };
 
-    AdminShipmentModal.prototype.initData = function() {
+    AdminShipmentModal.prototype.afterRefresh = function() {
         var self = this;
-
-        self.$modal = $( '.' + self.modalClass );
-        self.$modal.data( 'self', self );
 
         if ( self.$modal.find( '.notice-wrapper' ).length === 0 ) {
             self.getModalMainContent().prepend( '<div class="notice-wrapper"></div>' );
@@ -264,6 +268,15 @@ window.germanized.admin = window.germanized.admin || {};
         $( document.body ).trigger( 'wc-enhanced-select-init' );
         $( document.body ).trigger( 'wc-init-datepickers' );
         $( document.body ).trigger( 'init_tooltips' );
+    };
+
+    AdminShipmentModal.prototype.initData = function() {
+        var self = this;
+
+        self.$modal = $( '.' + self.modalClass );
+        self.$modal.data( 'self', self );
+
+        self.afterRefresh();
 
         self.$modal.on( 'click.gzd-' + self.modalId, '#btn-ok', { adminShipmentModal: self }, self.onSubmit );
         self.$modal.on( 'touchstart.gzd-' + self.modalId, '#btn-ok', { adminShipmentModal: self }, self.onSubmit );
@@ -274,9 +287,9 @@ window.germanized.admin = window.germanized.admin || {};
         self.$modal.on( 'click.gzd-' + self.modalId, '.show-more', { adminShipmentModal: self }, self.onExpandMore );
         self.$modal.on( 'click.gzd-' + self.modalId, '.show-fewer', { adminShipmentModal: self }, self.onHideMore );
 
-        self.$modal.find( ':input:visible' ).trigger( 'change', [self] );
-
         self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_after_init_data', [self] );
+
+        self.$modal.find( ':input:visible' ).trigger( "change", [self] );
     };
 
     AdminShipmentModal.prototype.printNotices = function( $wrapper, data ) {

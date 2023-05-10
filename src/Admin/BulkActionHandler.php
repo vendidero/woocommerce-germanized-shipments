@@ -67,7 +67,7 @@ abstract class BulkActionHandler {
 	}
 
 	public function set_step( $step ) {
-		$this->step = $step;
+		$this->step = (int) $step;
 	}
 
 	public function get_notices( $type = 'error' ) {
