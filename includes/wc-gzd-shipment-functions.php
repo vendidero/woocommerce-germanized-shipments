@@ -933,10 +933,11 @@ function wc_gzd_render_shipment_action_buttons( $actions ) {
 		$action = wp_parse_args(
 			$action,
 			array(
-				'url'               => '',
+				'url'               => '#',
 				'group'             => '',
 				'action'            => '',
 				'target'            => '_self',
+				'classes'           => '',
 				'name'              => '',
 				'custom_attributes' => array(),
 				'title'             => '',
@@ -946,6 +947,8 @@ function wc_gzd_render_shipment_action_buttons( $actions ) {
 		if ( ! empty( $action['group'] ) ) {
 			$actions_html .= '<div class="wc-gzd-shipment-action-button-group"><label>' . esc_html( $action['group'] ) . '</label> <span class="wc-gzd-shipment-action-button-group__items">' . wc_gzd_render_shipment_action_buttons( $action['actions'] ) . '</span></div>';
 		} elseif ( isset( $action['action'], $action['url'], $action['name'] ) ) {
+			$classes = 'button wc-gzd-shipment-action-button tip wc-gzd-shipment-action-button-' . $action['action'] . ' ' . $action['action'] . ' ' . $action['classes'];
+
 			if ( empty( $action['title'] ) ) {
 				$action['title'] = $action['name'];
 			}
@@ -956,7 +959,7 @@ function wc_gzd_render_shipment_action_buttons( $actions ) {
 				$custom_attributes .= ' ' . esc_attr( $attribute ) . '="' . esc_attr( $val ) . '"';
 			}
 
-			$actions_html .= sprintf( '<a class="button wc-gzd-shipment-action-button wc-gzd-shipment-action-button-%1$s %1$s" href="%2$s" aria-label="%3$s" title="%3$s" target="%4$s" %5$s>%6$s</a>', esc_attr( $action['action'] ), esc_url( $action['url'] ), esc_attr( $action['title'] ), esc_attr( $action['target'] ), $custom_attributes, esc_html( $action['name'] ) );
+			$actions_html .= sprintf( '<a class="%1$s" href="%2$s" aria-label="%3$s" title="%3$s" target="%4$s" %5$s>%6$s</a>', esc_attr( $classes ), esc_url( $action['url'] ), esc_attr( $action['title'] ), esc_attr( $action['target'] ), $custom_attributes, esc_html( $action['name'] ) );
 		}
 	}
 

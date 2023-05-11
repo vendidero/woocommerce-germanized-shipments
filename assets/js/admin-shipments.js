@@ -192,6 +192,51 @@ window.germanized.admin = window.germanized.admin || {};
             return data;
         },
 
+        refresh: function( data ) {
+            var self = germanized.admin.shipments;
+
+            if ( data.hasOwnProperty( 'order_needs_new_shipments' ) ) {
+                self.setNeedsShipments( data.order_needs_new_shipments );
+            }
+
+            if ( data.hasOwnProperty( 'order_needs_new_returns' ) ) {
+                self.setNeedsReturns( data.order_needs_new_returns );
+            }
+
+            var shipmentData = data.hasOwnProperty( 'shipments' ) ? data.shipments : {};
+
+            $.each( self.getShipments(), function( shipmentId, shipment ) {
+                if ( shipmentData.hasOwnProperty( shipmentId ) ) {
+                    shipment.setIsEditable( shipmentData[ shipmentId ].is_editable );
+                    shipment.setNeedsItems( shipmentData[ shipmentId ].needs_items );
+                    shipment.setWeight( shipmentData[ shipmentId ].weight );
+                    shipment.setLength( shipmentData[ shipmentId ].length );
+                    shipment.setWidth( shipmentData[ shipmentId ].width );
+                    shipment.setHeight( shipmentData[ shipmentId ].height );
+                    shipment.setTotalWeight( shipmentData[ shipmentId ].total_weight );
+
+                    self.initShipment( shipmentId );
+                }
+            });
+
+            if ( ( data.hasOwnProperty( 'needs_refresh' ) || data.hasOwnProperty( 'needs_packaging_refresh' ) ) && data.hasOwnProperty( 'shipment_id' ) ) {
+                self.initShipment( data.shipment_id );
+
+                if ( data.hasOwnProperty( 'needs_packaging_refresh' ) ) {
+                    active = self.getShipment( self.getActiveShipmentId() );
+
+                    if ( active ) {
+                        // Refresh dimensions in case the packaging has changed
+                        new_packaging_id = active.getShipment().find( '.shipment-packaging-select' ).val();
+
+                        if ( new_packaging_id !== current_packaging_id ) {
+                            self.getShipment( data.shipment_id ).refreshDimensions();
+                        }
+                    }
+                }
+            }
+        },
+
         doAjax: function( params, cSuccess, cError ) {
             var self             = germanized.admin.shipments,
                 url              = self.params.ajax_url,
@@ -223,7 +268,6 @@ window.germanized.admin = window.germanized.admin || {};
                 data: params,
                 success: function( data ) {
                     if ( data.success ) {
-
                         active               = self.getShipment( self.getActiveShipmentId() );
                         current_packaging_id = false;
 
@@ -242,47 +286,7 @@ window.germanized.admin = window.germanized.admin || {};
 
                         cSuccess.apply( $wrapper, [ data ] );
 
-                        if ( data.hasOwnProperty( 'order_needs_new_shipments' ) ) {
-                            self.setNeedsShipments( data.order_needs_new_shipments );
-                        }
-
-                        if ( data.hasOwnProperty( 'order_needs_new_returns' ) ) {
-                            self.setNeedsReturns( data.order_needs_new_returns );
-                        }
-
-                        var shipmentData = data.hasOwnProperty( 'shipments' ) ? data.shipments : {};
-
-                        $.each( self.getShipments(), function( shipmentId, shipment ) {
-                            if ( shipmentData.hasOwnProperty( shipmentId ) ) {
-                                shipment.setIsEditable( shipmentData[ shipmentId ].is_editable );
-                                shipment.setNeedsItems( shipmentData[ shipmentId ].needs_items );
-                                shipment.setWeight( shipmentData[ shipmentId ].weight );
-                                shipment.setLength( shipmentData[ shipmentId ].length );
-                                shipment.setWidth( shipmentData[ shipmentId ].width );
-                                shipment.setHeight( shipmentData[ shipmentId ].height );
-                                shipment.setTotalWeight( shipmentData[ shipmentId ].total_weight );
-
-                                self.initShipment( shipmentId );
-                            }
-                        });
-
-                        if ( ( data.hasOwnProperty( 'needs_refresh' ) || data.hasOwnProperty( 'needs_packaging_refresh' ) ) && data.hasOwnProperty( 'shipment_id' ) ) {
-                            self.initShipment( data.shipment_id );
-
-                            if ( data.hasOwnProperty( 'needs_packaging_refresh' ) ) {
-                                active = self.getShipment( self.getActiveShipmentId() );
-
-                                if ( active ) {
-                                    // Refresh dimensions in case the packaging has changed
-                                    new_packaging_id = active.getShipment().find( '.shipment-packaging-select' ).val();
-
-                                    if ( new_packaging_id !== current_packaging_id ) {
-                                        self.getShipment( data.shipment_id ).refreshDimensions();
-                                    }
-                                }
-                            }
-                        }
-
+                        self.refresh( data );
                         self.initTiptip();
                     } else {
                         cError.apply( $wrapper, [ data ] );
@@ -502,9 +506,9 @@ window.germanized.admin = window.germanized.admin || {};
 
             if ( $shipment ) {
                 if ( self.needsSaving ) {
-                    self.disableCreateLabel( $shipment );
+                    self.disableCreateButtons( $shipment );
                 } else {
-                    self.enableCreateLabel( $shipment );
+                    self.enableCreateButtons( $shipment );
                 }
             }
 
@@ -515,23 +519,32 @@ window.germanized.admin = window.germanized.admin || {};
             self.initTiptip();
         },
 
-        disableCreateLabel: function( $shipment ) {
-            var self    = germanized.admin.shipments,
-                $button = $shipment.find( '.create-shipment-label' );
+        disableCreateButtons: function( $shipment ) {
+            var self     = germanized.admin.shipments,
+                $buttons = $shipment.find( '.column-shipment-documents a.wc-gzd-shipment-action-button.create, .column-shipment-documents a.wc-gzd-shipment-action-button.refresh' );
 
-            if ( $button.length > 0 ) {
-                $button.addClass( 'disabled button-disabled' );
-                $button.prop( 'title', self.params.i18n_create_label_disabled );
+            if ( $buttons.length > 0 ) {
+                $buttons.addClass( 'disabled button-disabled' );
+
+                $buttons.each( function() {
+                    $( this ).data( 'org-title', $( this ).prop( 'title' ) );
+                    $( this ).prop( 'title', self.params.i18n_save_before_create );
+                } );
             }
         },
 
-        enableCreateLabel: function( $shipment ) {
-            var self    = germanized.admin.shipments,
-                $button = $shipment.find( '.create-shipment-label' );
+        enableCreateButtons: function( $shipment ) {
+            var self     = germanized.admin.shipments,
+                $buttons = $shipment.find( '.column-shipment-documents a.wc-gzd-shipment-action-button.create, .column-shipment-documents a.wc-gzd-shipment-action-button.refresh' );
 
-            if ( $button.length > 0 ) {
-                $button.removeClass( 'disabled button-disabled' );
-                $button.prop( 'title', self.params.i18n_create_label_enabled );
+            if ( $buttons.length > 0 ) {
+                $buttons.removeClass( 'disabled button-disabled' );
+
+                $buttons.each( function() {
+                    if ( $( this ).data( 'org-title' ) ) {
+                        $( this ).prop( 'title', $( this ).data( 'org-title' ) );
+                    }
+                } );
             }
         },
 
@@ -647,18 +660,6 @@ window.germanized.admin = window.germanized.admin || {};
             }
 
             return false;
-        },
-
-        refresh: function( shipment_id ) {
-
-        },
-
-        refreshItems: function( shipment_id ) {
-
-        },
-
-        addItem: function() {
-
         },
 
         initTiptip: function() {

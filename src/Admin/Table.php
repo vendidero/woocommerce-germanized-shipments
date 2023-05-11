@@ -912,7 +912,7 @@ class Table extends WP_List_Table {
 				$actions['generate_label'] = array(
 					'url'               => '#',
 					'name'              => _x( 'Generate label', 'shipments', 'woocommerce-germanized-shipments' ),
-					'action'            => 'generate-label generate',
+					'action'            => 'generate-label has-shipment-modal generate',
 					'custom_attributes' => array(
 						'id'                => 'wc-gzd-create-label-' . $shipment->get_id(),
 						'data-id'           => 'wc-gzd-modal-create-shipment-label',

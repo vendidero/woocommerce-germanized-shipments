@@ -45,6 +45,7 @@ class Api {
 
 		if ( $shipments_product = wc_gzd_shipments_get_product( $product ) ) {
 			$data['hs_code']             = $shipments_product->get_hs_code( $context );
+			$data['customs_description'] = $shipments_product->get_customs_description( $context );
 			$data['manufacture_country'] = $shipments_product->get_manufacture_country( $context );
 		}
 
@@ -59,6 +60,10 @@ class Api {
 	 */
 	public static function update_product( $product, $request ) {
 		if ( $shipments_product = wc_gzd_shipments_get_product( $product ) ) {
+			if ( isset( $request['customs_description'] ) ) {
+				$shipments_product->set_customs_description( wc_clean( wp_unslash( $request['customs_description'] ) ) );
+			}
+
 			if ( isset( $request['hs_code'] ) ) {
 				$shipments_product->set_hs_code( wc_clean( wp_unslash( $request['hs_code'] ) ) );
 			}
@@ -112,15 +117,22 @@ class Api {
 	 * @return array
 	 */
 	public static function product_variation_schema( $schema_properties ) {
+		$schema_properties['customs_description'] = array(
+			'description' => _x( 'Customs description', 'shipments', 'woocommerce-germanized-shipments' ),
+			'type'        => 'string',
+			'context'     => array( 'view', 'edit' ),
+			'readonly'    => true,
+		);
+
 		$schema_properties['hs_code'] = array(
-			'description' => _x( 'HS-Code (Customs)', 'shipments', 'woocommerce-germanized-shipments' ),
+			'description' => _x( 'HS-Code', 'shipments', 'woocommerce-germanized-shipments' ),
 			'type'        => 'string',
 			'context'     => array( 'view', 'edit' ),
 			'readonly'    => true,
 		);
 
 		$schema_properties['manufacture_country'] = array(
-			'description' => _x( 'Country of manufacture (Customs)', 'shipments', 'woocommerce-germanized-shipments' ),
+			'description' => _x( 'Country of manufacture', 'shipments', 'woocommerce-germanized-shipments' ),
 			'type'        => 'string',
 			'context'     => array( 'view', 'edit' ),
 			'readonly'    => true,
@@ -139,6 +151,12 @@ class Api {
 	 * @return array
 	 */
 	public static function product_schema( $schema_properties ) {
+		$schema_properties['customs_description'] = array(
+			'description' => _x( 'Customs description', 'shipments', 'woocommerce-germanized-shipments' ),
+			'type'        => 'string',
+			'context'     => array( 'view', 'edit' ),
+		);
+
 		$schema_properties['hs_code'] = array(
 			'description' => _x( 'HS-Code (Customs)', 'shipments', 'woocommerce-germanized-shipments' ),
 			'type'        => 'string',

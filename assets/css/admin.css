@@ -220,6 +220,55 @@ table.wc-gzd-shipping-providers {
     background: #f8dda7;
     color: #94660c; }
 
+a.button.wc-gzd-shipment-action-button {
+  display: inline-flex;
+  text-indent: 9999px;
+  margin: 2px 0 2px 4px;
+  position: relative;
+  padding: 0;
+  height: 2em;
+  width: 2em;
+  overflow: hidden;
+  vertical-align: middle; }
+  a.button.wc-gzd-shipment-action-button::after {
+    font-family: Dashicons;
+    margin: 0;
+    margin-top: 2px;
+    speak: none;
+    font-weight: 400;
+    font-variant: normal;
+    text-transform: none;
+    text-indent: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    line-height: 1.85; }
+  a.button.wc-gzd-shipment-action-button.processing::after {
+    font-family: WooCommerce;
+    content: "\e00f"; }
+  a.button.wc-gzd-shipment-action-button.shipped::after {
+    content: "\f147"; }
+  a.button.wc-gzd-shipment-action-button.delivered::after {
+    content: "\f147"; }
+  a.button.wc-gzd-shipment-action-button.confirm::after {
+    content: "\f147"; }
+  a.button.wc-gzd-shipment-action-button.email::after {
+    content: "\f465"; }
+  a.button.wc-gzd-shipment-action-button.generate::after, a.button.wc-gzd-shipment-action-button.create::after {
+    content: "\f502"; }
+  a.button.wc-gzd-shipment-action-button.refresh::after {
+    content: "\f515"; }
+  a.button.wc-gzd-shipment-action-button.delete {
+    border-color: #a00;
+    color: #a00; }
+    a.button.wc-gzd-shipment-action-button.delete::after {
+      content: "\f182"; }
+  a.button.wc-gzd-shipment-action-button.download::after {
+    content: "\f103"; }
+
 .woocommerce_page_wc-gzd-shipments .tablenav .actions, .woocommerce_page_wc-gzd-return-shipments .tablenav .actions {
   overflow: visible; }
 
@@ -335,6 +384,8 @@ table.wc-gzd-shipping-providers {
     width: 20ch; }
   .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions {
     width: 10ch; }
+    .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions p, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions p {
+      margin: 0; }
   .woocommerce_page_wc-gzd-shipments .wp-list-table .column-order, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-order {
     width: 10ch; }
   .woocommerce_page_wc-gzd-shipments .wp-list-table .column-address a, .woocommerce_page_wc-gzd-shipments .wp-list-table .column-sender a, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-address a, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-sender a {
@@ -343,47 +394,6 @@ table.wc-gzd-shipping-providers {
     font-size: 1em; }
   .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions {
     text-align: right; }
-    .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button {
-      text-indent: 9999px;
-      margin: 2px 0 2px 4px;
-      position: relative;
-      display: inline-block;
-      padding: 0;
-      height: 2em;
-      width: 2em;
-      overflow: hidden;
-      vertical-align: middle; }
-      .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button::after {
-        font-family: Dashicons;
-        margin: 0;
-        margin-top: 2px;
-        speak: none;
-        font-weight: 400;
-        font-variant: normal;
-        text-transform: none;
-        text-indent: 0;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        text-align: center;
-        line-height: 1.85; }
-      .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.processing::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.processing::after {
-        font-family: WooCommerce;
-        content: "\e00f"; }
-      .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.shipped::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.shipped::after {
-        content: "\f147"; }
-      .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.delivered::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.delivered::after {
-        content: "\f147"; }
-      .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.confirm::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.confirm::after {
-        content: "\f147"; }
-      .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.email::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.email::after {
-        content: "\f465"; }
-      .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.generate::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.generate::after {
-        content: "\f502"; }
-      .woocommerce_page_wc-gzd-shipments .wp-list-table .column-actions a.button.download::after, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-actions a.button.download::after {
-        content: "\f103"; }
   .woocommerce_page_wc-gzd-shipments .wp-list-table .column-address, .woocommerce_page_wc-gzd-shipments .wp-list-table .column-sender, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-address, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-sender {
     width: 20ch; }
   .woocommerce_page_wc-gzd-shipments .wp-list-table .column-items, .woocommerce_page_wc-gzd-return-shipments .wp-list-table .column-items {
@@ -486,11 +496,6 @@ table.wc-gzd-shipping-providers {
     display: block; }
   .germanized-shipments #panel-order-shipments #order-shipments-list {
     margin-bottom: 1.5em; }
-  .germanized-shipments #panel-order-shipments .delete {
-    color: #a00; }
-    .germanized-shipments #panel-order-shipments .delete:hover {
-      color: #dc3232;
-      border: none; }
   .germanized-shipments #panel-order-shipments .order-shipment a .woocommerce-help-tip {
     margin-right: 3px; }
   .germanized-shipments #panel-order-shipments .order-shipment .handlediv {
@@ -500,16 +505,16 @@ table.wc-gzd-shipping-providers {
     height: auto; }
     .germanized-shipments #panel-order-shipments .order-shipment .handlediv .toggle-indicator::before {
       content: "\f140"; }
-  .germanized-shipments #panel-order-shipments .order-shipment .wc-gzd-shipment-action-wrapper h4 {
-    margin-top: 0; }
-  .germanized-shipments #panel-order-shipments .order-shipment .wc-gzd-shipment-action-wrapper .shipment-inner-actions .shipment-inner-actions-wrapper {
+  .germanized-shipments #panel-order-shipments .order-shipment .shipment-inner-actions .shipment-inner-actions-wrapper {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
     margin-bottom: 1em;
     align-items: center; }
-    .germanized-shipments #panel-order-shipments .order-shipment .wc-gzd-shipment-action-wrapper .shipment-inner-actions .shipment-inner-actions-wrapper a {
-      margin-right: 1em; }
+  .germanized-shipments #panel-order-shipments .order-shipment .shipment-inner-actions a.wc-gzd-shipment-action-button {
+    margin: 2px 7px 2px 0; }
+  .germanized-shipments #panel-order-shipments .order-shipment .wc-gzd-shipment-action-wrapper h4 {
+    margin-top: 0; }
   .germanized-shipments #panel-order-shipments .order-shipment .show-if {
     display: none; }
   .germanized-shipments #panel-order-shipments .order-shipment.active > .shipment-content-wrapper {
@@ -529,6 +534,8 @@ table.wc-gzd-shipping-providers {
         margin-right: 1em; }
         .germanized-shipments #panel-order-shipments .order-shipment .shipment-footer .shipment-footer-inner a.shipment-footer-action:last-child {
           margin-right: 0; }
+        .germanized-shipments #panel-order-shipments .order-shipment .shipment-footer .shipment-footer-inner a.shipment-footer-action.delete {
+          color: #a00; }
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-header {
     color: #999;
     background: #f8f8f8;
@@ -605,11 +612,11 @@ table.wc-gzd-shipping-providers {
     flex-wrap: nowrap;
     justify-content: flex-end;
     border-top: 1px solid #dfdfdf; }
-    .germanized-shipments #panel-order-shipments .order-shipment .shipment-item-actions .add-items {
-      margin-right: 1em; }
+    .germanized-shipments #panel-order-shipments .order-shipment .shipment-item-actions a.wc-gzd-shipment-action-button {
+      margin: 2px 0 2px 7px; }
     .germanized-shipments #panel-order-shipments .order-shipment .shipment-item-actions .woocommerce-help-tip {
       margin-left: 0; }
-  .germanized-shipments #panel-order-shipments .order-shipment .add-items {
+  .germanized-shipments #panel-order-shipments .order-shipment a.add_item {
     display: none; }
   .germanized-shipments #panel-order-shipments .order-shipment .shipment-returns {
     margin-top: .5em; }
@@ -622,8 +629,8 @@ table.wc-gzd-shipping-providers {
         font-size: 1.1em; }
     .germanized-shipments #panel-order-shipments .order-shipment .shipment-returns .shipment-return .shipment-content {
       padding: 1em 0; }
-  .germanized-shipments #panel-order-shipments .order-shipment.needs-items .add-items {
-    display: block; }
+  .germanized-shipments #panel-order-shipments .order-shipment.needs-items a.add_item {
+    display: inline-flex; }
   .germanized-shipments #panel-order-shipments .form-row .input-inner-wrap {
     clear: left;
     margin: 0;

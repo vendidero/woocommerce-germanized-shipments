@@ -41,6 +41,7 @@ class ShipmentItem extends WC_Data {
 		'total'               => 0,
 		'subtotal'            => 0,
 		'hs_code'             => '',
+		'customs_description' => '',
 		'manufacture_country' => '',
 		'attributes'          => array(),
 	);
@@ -259,6 +260,16 @@ class ShipmentItem extends WC_Data {
 		return $name;
 	}
 
+	public function get_customs_description( $context = 'view' ) {
+		$customs_description = $this->get_prop( 'customs_description', $context );
+
+		if ( 'view' === $context && empty( $customs_description ) ) {
+			$customs_description = $this->get_name( $context );
+		}
+
+		return $customs_description;
+	}
+
 	public function get_hs_code( $context = 'view' ) {
 		$legacy = $this->get_meta( '_dhl_hs_code', $context );
 		$prop   = $this->get_prop( 'hs_code', $context );
@@ -402,6 +413,7 @@ class ShipmentItem extends WC_Data {
 					'width'               => $product ? wc_get_dimension( $product->get_width(), $shipment->get_dimension_unit() ) : '',
 					'height'              => $product ? wc_get_dimension( $product->get_height(), $shipment->get_dimension_unit() ) : '',
 					'hs_code'             => $s_product ? $s_product->get_hs_code() : '',
+					'customs_description' => $s_product ? $s_product->get_customs_description() : '',
 					'manufacture_country' => $s_product ? $s_product->get_manufacture_country() : '',
 					'attributes'          => $attributes,
 				)
@@ -582,6 +594,10 @@ class ShipmentItem extends WC_Data {
 
 	public function set_hs_code( $code ) {
 		$this->set_prop( 'hs_code', $code );
+	}
+
+	public function set_customs_description( $description ) {
+		$this->set_prop( 'customs_description', $description );
 	}
 
 	public function set_manufacture_country( $country ) {

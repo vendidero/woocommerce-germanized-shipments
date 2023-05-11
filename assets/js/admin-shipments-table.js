@@ -17,7 +17,7 @@ window.germanized.admin = window.germanized.admin || {};
 
             $( document ).on( 'click', '#doaction, #doaction2', self.onBulkSubmit );
 
-            $( '.wc-gzd-shipment-action-button-generate-label' ).wc_gzd_admin_shipment_modal();
+            $( '.has-shipment-modal' ).wc_gzd_admin_shipment_modal();
 
             $( document.body ).on( 'init_tooltips', function() {
                 self.initTipTip();

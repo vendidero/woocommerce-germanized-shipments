@@ -34,8 +34,7 @@ window.germanized.admin = window.germanized.admin || {};
 
             this.refreshDom();
 
-            $( '#shipment-' + this.vars.id + ' #shipment-items-' + this.vars.id + ' a.add-shipment-item' ).wc_gzd_admin_shipment_modal();
-            $( '#shipment-' + this.vars.id + ' .wc-gzd-shipment-label .create-shipment-label:not(.disabled)' ).wc_gzd_admin_shipment_modal();
+            $( '#shipment-' + this.vars.id + ' a.has-shipment-modal' ).wc_gzd_admin_shipment_modal();
         };
 
         this.refreshDom = function() {
@@ -45,20 +44,10 @@ window.germanized.admin = window.germanized.admin || {};
             this.setIsEditable( this.vars.$shipment.hasClass( 'is-editable' ) );
             this.onChangeProvider();
 
-            /*
-            if ( this.vars.addItemModal ) {
-                this.vars.addItemModal.destroy();
-            }
-
-            var $modal = $( '#shipment-' + this.vars.id + ' #shipment-items-' + this.vars.id + ' a.add-shipment-item' ).wc_gzd_admin_shipment_modal();
-            this.vars.addItemModal = $modal.data( 'modalInstance' );
-            */
-
             $( '#shipment-' + this.vars.id + ' #shipment-items-' + this.vars.id ).off();
             $( '#shipment-' + this.vars.id + ' #shipment-footer-' + this.vars.id ).off();
             $( '#shipment-' + this.vars.id + ' #shipment-shipping-provider-' + this.vars.id ).off();
             $( '#shipment-' + this.vars.id + ' #shipment-packaging-' + this.vars.id ).off();
-            $( '#shipment-' + this.vars.id + ' .wc-gzd-shipment-label' ).off();
 
             $( '#shipment-' + this.vars.id + ' #shipment-shipping-provider-' + this.vars.id ).on( 'change', this.onChangeProvider.bind( this ) );
             $( '#shipment-' + this.vars.id + ' #shipment-packaging-' + this.vars.id ).on( 'change', this.refreshDimensions.bind( this ) );
@@ -74,9 +63,7 @@ window.germanized.admin = window.germanized.admin || {};
                 .on( 'click', '.send-return-shipment-notification', this.onSendReturnNotification.bind( this ) )
                 .on( 'click', '.confirm-return-shipment', this.onConfirmReturnRequest.bind( this ) );
 
-            $( '#shipment-' + this.vars.id + ' .wc-gzd-shipment-label' )
-                //.on( 'click', '.create-shipment-label:not(.disabled)', this.onCreateLabel.bind( this ) )
-                .on( 'click', '.remove-shipment-label', this.onRemoveLabel.bind( this ) );
+            $( '#shipment-' + this.vars.id + ' .wc-gzd-shipment-label' ).on( 'click', '.remove-shipment-label', this.onRemoveLabel.bind( this ) );
         };
 
         this.refreshDimensions = function() {

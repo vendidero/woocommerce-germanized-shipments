@@ -776,17 +776,19 @@ class Label extends WC_Data implements ShipmentLabel {
 		$use_subtotal = apply_filters( 'woocommerce_gzd_shipments_customs_use_subtotal', $use_subtotal, $this );
 
 		foreach ( $shipment->get_items() as $key => $item ) {
-			$item_description .= ! empty( $item_description ) ? ', ' : '';
-			$item_description .= $item->get_name();
-
-			// Use total before discounts for customs
-			$product_total = floatval( (float) ( $use_subtotal ? $item->get_subtotal() : $item->get_total() ) / $item->get_quantity() );
-			$dhl_product   = false;
-			$product       = $item->get_product();
+			$product = $item->get_product();
 
 			if ( $product ) {
 				$shipment_product = wc_gzd_shipments_get_product( $product );
 			}
+
+			$single_item_description = $shipment_product ? $shipment_product->get_hs_code() : $item->get_name();
+
+			$item_description .= ! empty( $item_description ) ? ', ' : '';
+			$item_description .= $single_item_description;
+
+			// Use total before discounts for customs
+			$product_total = floatval( (float) ( $use_subtotal ? $item->get_subtotal() : $item->get_total() ) / $item->get_quantity() );
 
 			if ( $product_total < 0.01 ) {
 				// Use the order item data as fallback
@@ -807,7 +809,7 @@ class Label extends WC_Data implements ShipmentLabel {
 			$customs_items[ $key ] = apply_filters(
 				"{$this->get_general_hook_prefix()}customs_item",
 				array(
-					'description'               => apply_filters( "{$this->get_general_hook_prefix()}item_description", wc_clean( mb_substr( $item->get_name(), 0, $max_desc_length ) ), $item, $this, $shipment ),
+					'description'               => apply_filters( "{$this->get_general_hook_prefix()}item_description", wc_clean( mb_substr( $single_item_description, 0, $max_desc_length ) ), $item, $this, $shipment ),
 					'category'                  => apply_filters( "{$this->get_general_hook_prefix()}item_category", $category, $item, $this, $shipment ),
 					'origin_code'               => ( $shipment_product && $shipment_product->get_manufacture_country() ) ? $shipment_product->get_manufacture_country() : Package::get_base_country(),
 					'tariff_number'             => $shipment_product ? $shipment_product->get_hs_code() : '',

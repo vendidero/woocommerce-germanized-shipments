@@ -164,9 +164,30 @@ defined( 'ABSPATH' ) || exit;
 					</div>
 				</div>
 
-				<div class="shipment-item-actions">
-					<div class="add-items">
-						<a class="add-shipment-item" id="wc-gzd-modal-add-shipment-item-<?php echo esc_attr( $shipment->get_id() ); ?>" data-load-async="true" data-reference="<?php echo esc_attr( $shipment->get_id() ); ?>" data-id="wc-gzd-modal-add-shipment-item" href="#"><?php echo esc_html_x( 'Add item', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+				<div class="shipment-item-actions shipment-inner-actions">
+					<?php
+						$actions = array(
+							'add_item'   => array(
+								'action'            => 'add_item',
+								'name'              => _x( 'Add item', 'shipments', 'woocommerce-germanized-shipments' ),
+								'classes'           => 'add-shipment-item has-shipment-modal create',
+								'custom_attributes' => array(
+									'id'              => 'wc-gzd-modal-add-shipment-item-' . $shipment->get_id(),
+									'data-load-async' => true,
+									'data-reference'  => $shipment->get_id(),
+									'data-id'         => 'wc-gzd-modal-add-shipment-item',
+								),
+							),
+							'sync_items' => array(
+								'action'  => 'sync_items',
+								'name'    => _x( 'Sync items', 'shipments', 'woocommerce-germanized-shipments' ),
+								'title'   => _x( 'Automatically adjust items and quantities based on order item data.', 'shipments', 'woocommerce-germanized-shipments' ),
+								'classes' => 'sync-shipment-items refresh',
+							),
+						);
+						?>
+					<div class="shipment-inner-actions-wrapper">
+						<?php echo wc_gzd_render_shipment_action_buttons( $actions ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 
 						<script type="text/template" id="tmpl-wc-gzd-modal-add-shipment-item-<?php echo esc_attr( $shipment->get_id() ); ?>">
 							<div class="wc-backbone-modal wc-gzd-admin-shipment-modal wc-gzd-modal-add-shipment-item">
@@ -206,10 +227,6 @@ defined( 'ABSPATH' ) || exit;
 							</div>
 							<div class="wc-backbone-modal-backdrop modal-close"></div>
 						</script>
-					</div>
-
-					<div class="sync-items">
-						<a class="sync-shipment-items" href="#"><?php echo wc_help_tip( _x( 'Automatically adjust items and quantities based on order item data.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?><?php echo esc_html_x( 'Sync items', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 					</div>
 
 					<?php

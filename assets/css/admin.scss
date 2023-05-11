@@ -323,6 +323,78 @@ table.wc-gzd-shipping-providers {
   }
 }
 
+a.button.wc-gzd-shipment-action-button {
+  display: inline-flex;
+  text-indent: 9999px;
+  margin: 2px 0 2px 4px;
+  position: relative;
+  padding: 0;
+  height: 2em;
+  width: 2em;
+  overflow: hidden;
+  vertical-align: middle;
+
+  &::after {
+    font-family: Dashicons;
+    margin: 0;
+    margin-top: 2px;
+    speak: none;
+    font-weight: 400;
+    font-variant: normal;
+    text-transform: none;
+    text-indent: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    line-height: 1.85;
+  }
+
+  &.processing::after {
+    font-family: WooCommerce;
+    content: "\e00f";
+  }
+
+  &.shipped::after {
+    content: "\f147";
+  }
+
+  &.delivered::after {
+    content: "\f147";
+  }
+
+  &.confirm::after {
+    content: "\f147";
+  }
+
+  &.email::after {
+    content: "\f465";
+  }
+
+  &.generate::after, &.create::after {
+    content: "\f502";
+  }
+
+  &.refresh::after {
+    content: "\f515";
+  }
+
+  &.delete {
+    border-color: #a00;
+    color: #a00;
+
+    &::after {
+      content: "\f182";
+    }
+  }
+
+  &.download::after {
+    content: "\f103";
+  }
+}
+
 .woocommerce_page_wc-gzd-shipments, .woocommerce_page_wc-gzd-return-shipments {
   .tablenav {
     .actions {
@@ -493,6 +565,10 @@ table.wc-gzd-shipping-providers {
 
     .column-actions {
       width: 10ch;
+
+      p {
+        margin: 0;
+      }
     }
 
     .column-order {
@@ -511,65 +587,6 @@ table.wc-gzd-shipping-providers {
 
     .column-actions {
       text-align: right;
-
-      a.button {
-        text-indent: 9999px;
-        margin: 2px 0 2px 4px;
-        position: relative;
-        display: inline-block;
-        padding: 0;
-        height: 2em;
-        width: 2em;
-        overflow: hidden;
-        vertical-align: middle;
-
-        &::after {
-          font-family: Dashicons;
-          margin: 0;
-          margin-top: 2px;
-          speak: none;
-          font-weight: 400;
-          font-variant: normal;
-          text-transform: none;
-          text-indent: 0;
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          text-align: center;
-          line-height: 1.85;
-        }
-
-        &.processing::after {
-          font-family: WooCommerce;
-          content: "\e00f";
-        }
-
-        &.shipped::after {
-          content: "\f147";
-        }
-
-        &.delivered::after {
-          content: "\f147";
-        }
-
-        &.confirm::after {
-          content: "\f147";
-        }
-
-        &.email::after {
-          content: "\f465";
-        }
-
-        &.generate::after {
-          content: "\f502";
-        }
-
-        &.download::after {
-          content: "\f103";
-        }
-      }
     }
 
     .column-address, .column-sender {
@@ -755,15 +772,6 @@ table.wc-gzd-shipping-providers {
       margin-bottom: 1.5em;
     }
 
-    .delete {
-      color: #a00;
-
-      &:hover {
-        color: #dc3232;
-        border: none;
-      }
-    }
-
     .order-shipment {
       a {
         .woocommerce-help-tip {
@@ -782,23 +790,23 @@ table.wc-gzd-shipping-providers {
         }
       }
 
+      .shipment-inner-actions {
+        .shipment-inner-actions-wrapper {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: flex-start;
+          margin-bottom: 1em;
+          align-items: center;
+        }
+
+        a.wc-gzd-shipment-action-button {
+          margin: 2px 7px 2px 0;
+        }
+      }
+
       .wc-gzd-shipment-action-wrapper {
         h4 {
           margin-top: 0;
-        }
-
-        .shipment-inner-actions {
-          .shipment-inner-actions-wrapper {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: flex-start;
-            margin-bottom: 1em;
-            align-items: center;
-
-            a {
-              margin-right: 1em;
-            }
-          }
         }
       }
 
@@ -836,6 +844,10 @@ table.wc-gzd-shipping-providers {
 
             &:last-child {
               margin-right: 0;
+            }
+
+            &.delete {
+              color: #a00;
             }
           }
         }
@@ -990,8 +1002,8 @@ table.wc-gzd-shipping-providers {
         justify-content: flex-end;
         border-top: 1px solid #dfdfdf;
 
-        .add-items {
-          margin-right: 1em;
+        a.wc-gzd-shipment-action-button {
+          margin: 2px 0 2px 7px;
         }
 
         .woocommerce-help-tip {
@@ -999,7 +1011,7 @@ table.wc-gzd-shipping-providers {
         }
       }
 
-      .add-items {
+      a.add_item {
         display: none;
       }
 
@@ -1025,8 +1037,8 @@ table.wc-gzd-shipping-providers {
       }
 
       &.needs-items {
-        .add-items {
-          display: block;
+        a.add_item {
+          display: inline-flex;
         }
       }
     }

@@ -1341,7 +1341,6 @@ class Ajax {
 	 * @param integer $quantity
 	 */
 	private static function add_shipment_order_item( $order_shipment, $shipment, $order_item_id, $quantity ) {
-
 		$response_error = array(
 			'success' => false,
 			'message' => _x( 'There was an error processing the shipment', 'shipments', 'woocommerce-germanized-shipments' ),

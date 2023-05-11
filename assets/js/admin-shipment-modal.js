@@ -231,6 +231,13 @@ window.germanized.admin = window.germanized.admin || {};
                     self.$modal.find( '.wc-backbone-modal-content' ).unblock();
                     cSuccess.apply( self, [ data, self ] );
 
+                    /**
+                     * Refresh shipments data, if available
+                     */
+                    if ( germanized.admin.shipments ) {
+                        germanized.admin.shipments.refresh( data );
+                    }
+
                     self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_ajax_success', [data, self] );
 
                     /**
@@ -299,9 +306,13 @@ window.germanized.admin = window.germanized.admin || {};
             self.addNotice( data.message, 'error', $wrapper );
         } else if ( data.hasOwnProperty( 'messages' ) ) {
             $.each( data.messages, function ( type, typeMessages ) {
-                $.each( typeMessages, function ( i, message ) {
-                    self.addNotice( message, ( 'soft' === type ? 'warning' : type ), $wrapper );
-                });
+                if ( typeof typeMessages === 'string' || typeMessages instanceof String ) {
+                    self.addNotice( typeMessages, 'error', $wrapper );
+                } else {
+                    $.each( typeMessages, function ( i, message ) {
+                        self.addNotice( message, ( 'soft' === type ? 'warning' : type ), $wrapper );
+                    });
+                }
             });
         }
     };

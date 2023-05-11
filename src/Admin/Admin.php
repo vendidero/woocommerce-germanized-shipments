@@ -152,11 +152,28 @@ class Admin {
 
 		$countries = WC()->countries->get_countries();
 		$countries = array_merge( array( '0' => _x( 'Select a country', 'shipments', 'woocommerce-germanized-shipments' ) ), $countries );
+		?>
+		<p class="wc-gzd-product-settings-subtitle">
+			<?php echo esc_html_x( 'Customs', 'shipments', 'woocommerce-germanized-shipments' ); ?>
+			<?php if ( $help_link = apply_filters( 'woocommerce_gzd_shipments_product_customs_settings_help_link', '' ) ) : ?>
+				<a class="page-title-action" href="<?php echo esc_url( $help_link ); ?>"><?php echo esc_html_x( 'Help', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+			<?php endif; ?>
+		</p>
+		<?php
+		woocommerce_wp_text_input(
+			array(
+				'id'          => '_customs_description',
+				'label'       => _x( 'Description', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc_tip'    => true,
+				'description' => _x( 'Choose a description to be used for customs documents, e.g. CN23 form.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'value'       => $shipments_product->get_customs_description( 'edit' ),
+			)
+		);
 
 		woocommerce_wp_text_input(
 			array(
 				'id'          => '_hs_code',
-				'label'       => _x( 'HS-Code (Customs)', 'shipments', 'woocommerce-germanized-shipments' ),
+				'label'       => _x( 'HS-Code', 'shipments', 'woocommerce-germanized-shipments' ),
 				'desc_tip'    => true,
 				'description' => _x( 'The HS Code is a number assigned to every possible commodity that can be imported or exported from any country.', 'shipments', 'woocommerce-germanized-shipments' ),
 				'value'       => $shipments_product->get_hs_code( 'edit' ),
@@ -167,7 +184,7 @@ class Admin {
 			array(
 				'options'     => $countries,
 				'id'          => '_manufacture_country',
-				'label'       => _x( 'Country of manufacture (Customs)', 'shipments', 'woocommerce-germanized-shipments' ),
+				'label'       => _x( 'Country of manufacture', 'shipments', 'woocommerce-germanized-shipments' ),
 				'desc_tip'    => true,
 				'description' => _x( 'The country of manufacture is needed for customs of international shipping.', 'shipments', 'woocommerce-germanized-shipments' ),
 				'value'       => $shipments_product->get_manufacture_country( 'edit' ),
@@ -181,11 +198,13 @@ class Admin {
 	 * @param \WC_Product $product
 	 */
 	public static function save_product( $product ) {
-		$hs_code = isset( $_POST['_hs_code'] ) ? wc_clean( wp_unslash( $_POST['_hs_code'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$country = isset( $_POST['_manufacture_country'] ) ? wc_clean( wp_unslash( $_POST['_manufacture_country'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$customs_description = isset( $_POST['_customs_description'] ) ? wc_clean( wp_unslash( $_POST['_customs_description'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$hs_code             = isset( $_POST['_hs_code'] ) ? wc_clean( wp_unslash( $_POST['_hs_code'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$country             = isset( $_POST['_manufacture_country'] ) ? wc_clean( wp_unslash( $_POST['_manufacture_country'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
 		$shipments_product = wc_gzd_shipments_get_product( $product );
 		$shipments_product->set_hs_code( $hs_code );
+		$shipments_product->set_customs_description( $customs_description );
 		$shipments_product->set_manufacture_country( $country );
 
 		/**
@@ -1043,8 +1062,7 @@ class Admin {
 					'create_shipment_label_load_nonce'   => wp_create_nonce( 'create-shipment-label-load' ),
 					'create_shipment_label_submit_nonce' => wp_create_nonce( 'create-shipment-label-submit' ),
 					'i18n_remove_label_notice'           => _x( 'Do you really want to delete the label?', 'shipments', 'woocommerce-germanized-shipments' ),
-					'i18n_create_label_enabled'          => _x( 'Create new label', 'shipments', 'woocommerce-germanized-shipments' ),
-					'i18n_create_label_disabled'         => _x( 'Please save the shipment before creating a new label', 'shipments', 'woocommerce-germanized-shipments' ),
+					'i18n_save_before_create'            => _x( 'Please save the shipment first', 'shipments', 'woocommerce-germanized-shipments' ),
 				)
 			);
 		}

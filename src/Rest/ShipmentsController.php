@@ -685,6 +685,7 @@ class ShipmentsController extends \WC_REST_Controller {
 			'subtotal',
 			'weight',
 			'hs_code',
+			'customs_description',
 			'manufacture_country',
 			'return_reason_code',
 		);
@@ -1160,6 +1161,7 @@ class ShipmentsController extends \WC_REST_Controller {
 					'height' => wc_format_decimal( $item->get_height( $context ), $dp ),
 				),
 				'hs_code'             => $item->get_hs_code( $context ),
+				'customs_description' => $item->get_customs_description( $context ),
 				'manufacture_country' => $item->get_manufacture_country( $context ),
 				'attributes'          => $item->get_attributes( $context ),
 				'meta_data'           => $item->get_meta_data(),
@@ -1780,7 +1782,12 @@ class ShipmentsController extends \WC_REST_Controller {
 								'context'     => array( 'view', 'edit' ),
 							),
 							'hs_code'             => array(
-								'description' => _x( 'Item HS Code (customs).', 'shipments', 'woocommerce-germanized-shipments' ),
+								'description' => _x( 'Item HS Code.', 'shipments', 'woocommerce-germanized-shipments' ),
+								'type'        => 'string',
+								'context'     => array( 'view', 'edit' ),
+							),
+							'customs_description' => array(
+								'description' => _x( 'Item customs description.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit' ),
 							),
