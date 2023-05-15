@@ -665,7 +665,7 @@ class Label extends WC_Data implements ShipmentLabel {
 		$item_count        = count( $item_weights );
 
 		/**
-		 * Discrepancies detected between item weights an total shipment weight.
+		 * Discrepancies detected between item weights and total shipment weight.
 		 * Try to distribute the mismatch between items.
 		 */
 		if ( $item_total_weight != $total_weight ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
@@ -818,7 +818,6 @@ class Label extends WC_Data implements ShipmentLabel {
 					'single_weight_in_kg'       => $this->round_customs_item_weight( wc_remove_number_precision( $item_weights[ $key ] / $item->get_quantity() ), 2 ),
 					'weight_in_kg_raw'          => $item_weights[ $key ],
 					'gross_weight_in_kg'        => wc_remove_number_precision( $item_gross_weights[ $key ] ),
-					'single_gross_weight_in_kg' => $this->round_customs_item_weight( wc_remove_number_precision( $item_gross_weights[ $key ] / $item->get_quantity() ), 2 ),
 					'gross_weight_in_kg_raw'    => $item_gross_weights[ $key ],
 					'single_value'              => $product_value,
 					'value'                     => wc_format_decimal( $product_value * $item->get_quantity(), 2 ),
@@ -840,7 +839,6 @@ class Label extends WC_Data implements ShipmentLabel {
 			array(
 				'shipment_id'                   => $shipment->get_id(),
 				'additional_fee'                => wc_format_decimal( $shipment->get_additional_total(), 2 ),
-				'export_type_description'       => $item_description,
 				'place_of_commital'             => $shipment->get_sender_city(),
 				// e.g. EORI number
 				'sender_customs_ref_number'     => $shipment->get_sender_customs_reference_number(),
@@ -853,11 +851,16 @@ class Label extends WC_Data implements ShipmentLabel {
 				'item_total_value'              => $total_value,
 				'currency'                      => $order ? $order->get_currency() : get_woocommerce_currency(),
 				'invoice_number'                => '',
+				'incoterms'                     => '',
+				'export_type'                   => '',
+				'export_reason_description'     => $item_description,
+				'export_type_description'       => $item_description,
+				'export_reason'                 => '',
 			),
 			$this,
 			$shipment
 		);
 
-		return $customs_data;
+		return apply_filters( 'woocommerce_gzd_shipments_label_customs_data', $customs_data, $this, $shipment, $max_desc_length );
 	}
 }

@@ -772,6 +772,15 @@ abstract class Shipment extends WC_Data {
 		return $this->get_prop( 'additional_total', $context );
 	}
 
+	/**
+	 * Default shipment incoterms, e.g. DAP.
+	 *
+	 * @return string
+	 */
+	public function get_incoterms() {
+		return wc_strtoupper( apply_filters( "{$this->get_hook_prefix()}incoterms", "", $this ) );
+	}
+
 	public function has_tracking() {
 		$has_tracking = true;
 
