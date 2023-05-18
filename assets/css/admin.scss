@@ -772,6 +772,10 @@ a.button.wc-gzd-shipment-action-button {
       margin-bottom: 1.5em;
     }
 
+    a.delete:not(.wc-gzd-shipment-action-button) {
+      color: #a00;
+    }
+
     .order-shipment {
       a {
         .woocommerce-help-tip {

@@ -9,20 +9,20 @@ window.germanized.admin = window.germanized.admin || {};
         self.params        = wc_gzd_admin_shipment_modal_params;
         self.$modalTrigger = $modalTrigger;
 
+        self.destroy();
         self.setup();
 
-        $( document )
-            .on( 'click.gzd-' + self.modalId, '#' + self.$modalTrigger.attr( 'id' ) + ':not(.disabled)', { adminShipmentModal: self }, self.onClick );
+        self.$modalTrigger.on( 'click.gzd-modal-' + self.modalId, { adminShipmentModal: self }, self.onClick )
 
         $( document.body )
-            .on( 'wc_backbone_modal_loaded.gzd-' + self.modalId, { adminShipmentModal: self }, self.onOpen )
-            .on( 'wc_backbone_modal_response.gzd-' + self.modalId, { adminShipmentModal: self }, self.response );
+            .on( 'wc_backbone_modal_loaded.gzd-modal-' + self.modalId, { adminShipmentModal: self }, self.onOpen )
+            .on( 'wc_backbone_modal_response.gzd-modal-' + self.modalId, { adminShipmentModal: self }, self.response )
+            .on( 'wc_backbone_modal_before_remove.gzd-modal-' + self.modalId, { adminShipmentModal: self }, self.onClose );
     };
 
     AdminShipmentModal.prototype.setup = function() {
         var self = this;
 
-        self.$modalTrigger = $( '#' + self.$modalTrigger.attr( 'id' ) );
         self.referenceId   = self.$modalTrigger.data( 'reference' ) ? self.$modalTrigger.data( 'reference' ) : 0;
         self.modalClass    = self.$modalTrigger.data( 'id' );
         self.modalId       = self.modalClass + '-' + self.referenceId;
@@ -30,15 +30,16 @@ window.germanized.admin = window.germanized.admin || {};
         self.nonceParams   = self.$modalTrigger.data( 'nonce-params' ) ? self.$modalTrigger.data( 'nonce-params' ) : 'wc_gzd_admin_shipments_params';
         self.$modal        = false;
 
-        self.$modalTrigger.data( 'self', [this] );
+        self.$modalTrigger.data( 'self', this );
     };
 
     AdminShipmentModal.prototype.destroy = function() {
-        this.$modalTrigger.off( 'click.gzd-' + this.modalId );
+        var self = this;
 
-        $( document.body )
-            .off( 'wc_backbone_modal_loaded.gzd-' + this.modalId )
-            .off( 'wc_backbone_modal_response.gzd-' + this.modalId );
+        self.$modalTrigger.off( '.gzd-modal-' + self.modalId );
+
+        $( document ).off( '.gzd-modal-' + self.modalId );
+        $( document.body ).off( '.gzd-modal-' + self.modalId );
     };
 
     AdminShipmentModal.prototype.getShipment = function( id ) {
@@ -148,6 +149,16 @@ window.germanized.admin = window.germanized.admin || {};
                 }
             } else {
                 $wrapper.find( ':input[data-show-if-' + fieldId + '*="' + val + '"]' ).parents( '.form-field' ).show();
+            }
+        }
+    };
+
+    AdminShipmentModal.prototype.onClose = function( event, target ) {
+        var self = event.data.adminShipmentModal;
+
+        if ( target.indexOf( self.modalId ) !== -1 ) {
+            if ( self.$modal && self.$modal.length > 0 ) {
+                self.$modal.off( 'click.gzd-modal-' + self.modalId );
             }
         }
     };
@@ -285,14 +296,14 @@ window.germanized.admin = window.germanized.admin || {};
 
         self.afterRefresh();
 
-        self.$modal.on( 'click.gzd-' + self.modalId, '#btn-ok', { adminShipmentModal: self }, self.onSubmit );
-        self.$modal.on( 'touchstart.gzd-' + self.modalId, '#btn-ok', { adminShipmentModal: self }, self.onSubmit );
-        self.$modal.on( 'keydown.gzd-' + self.modalId, { adminShipmentModal: self }, self.onKeyDown );
+        self.$modal.on( 'click.gzd-modal-' + self.modalId, '#btn-ok', { adminShipmentModal: self }, self.onSubmit );
+        self.$modal.on( 'touchstart.gzd-modal-' + self.modalId, '#btn-ok', { adminShipmentModal: self }, self.onSubmit );
+        self.$modal.on( 'keydown.gzd-modal-' + self.modalId, { adminShipmentModal: self }, self.onKeyDown );
 
-        self.$modal.on( 'click.gzd-' + self.modalId, '.notice .notice-dismiss', { adminShipmentModal: self }, self.onRemoveNotice );
-        self.$modal.on( 'change.gzd-' + self.modalId, ':input:visible[id]', { adminShipmentModal: self }, self.onChangeField );
-        self.$modal.on( 'click.gzd-' + self.modalId, '.show-more', { adminShipmentModal: self }, self.onExpandMore );
-        self.$modal.on( 'click.gzd-' + self.modalId, '.show-fewer', { adminShipmentModal: self }, self.onHideMore );
+        self.$modal.on( 'click.gzd-modal-' + self.modalId, '.notice .notice-dismiss', { adminShipmentModal: self }, self.onRemoveNotice );
+        self.$modal.on( 'change.gzd-modal-' + self.modalId, ':input:visible[id]', { adminShipmentModal: self }, self.onChangeField );
+        self.$modal.on( 'click.gzd-modal-' + self.modalId, '.show-more', { adminShipmentModal: self }, self.onExpandMore );
+        self.$modal.on( 'click.gzd-modal-' + self.modalId, '.show-fewer', { adminShipmentModal: self }, self.onHideMore );
 
         self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_after_init_data', [self] );
 

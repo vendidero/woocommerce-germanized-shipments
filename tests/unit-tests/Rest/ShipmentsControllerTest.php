@@ -113,6 +113,7 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 
 		$this->assertEquals( 201, $response->get_status() );
 		$this->assertEquals( 'processing', $create_response['status'] );
+		$this->assertEquals( 1, count( $create_response['items'] ) );
 	}
 
 	public function test_create_shipment_custom_items() {

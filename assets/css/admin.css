@@ -496,6 +496,8 @@ a.button.wc-gzd-shipment-action-button {
     display: block; }
   .germanized-shipments #panel-order-shipments #order-shipments-list {
     margin-bottom: 1.5em; }
+  .germanized-shipments #panel-order-shipments a.delete:not(.wc-gzd-shipment-action-button) {
+    color: #a00; }
   .germanized-shipments #panel-order-shipments .order-shipment a .woocommerce-help-tip {
     margin-right: 3px; }
   .germanized-shipments #panel-order-shipments .order-shipment .handlediv {

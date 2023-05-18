@@ -16,6 +16,7 @@ window.germanized.admin = window.germanized.admin || {};
             isEditable   : true,
             needsItems   : true,
             addItemModal : false,
+            modals       : [],
         };
 
         /*
@@ -33,38 +34,49 @@ window.germanized.admin = window.germanized.admin || {};
             this.vars.params    = germanized.admin.shipments.getParams();
 
             this.refreshDom();
-
-            $( '#shipment-' + this.vars.id + ' a.has-shipment-modal' ).wc_gzd_admin_shipment_modal();
         };
 
         this.refreshDom = function() {
-            this.vars.$shipment  = $( '#order-shipments-list' ).find( '#shipment-' + this.getId() );
+            var self = this;
 
-            this.setNeedsItems( this.vars.$shipment.hasClass( 'needs-items' ) );
-            this.setIsEditable( this.vars.$shipment.hasClass( 'is-editable' ) );
-            this.onChangeProvider();
+            self.vars.$shipment  = $( '#order-shipments-list' ).find( '#shipment-' + self.getId() );
 
-            $( '#shipment-' + this.vars.id + ' #shipment-items-' + this.vars.id ).off( '.gzd-shipment' );
-            $( '#shipment-' + this.vars.id + ' #shipment-footer-' + this.vars.id ).off( '.gzd-shipment' );
-            $( '#shipment-' + this.vars.id + ' #shipment-shipping-provider-' + this.vars.id ).off( '.gzd-shipment' );
-            $( '#shipment-' + this.vars.id + ' #shipment-packaging-' + this.vars.id ).off( '.gzd-shipment' );
-            $( '#shipment-' + this.vars.id + ' .wc-gzd-shipment-label' ).off( '.gzd-shipment' );
+            self.setNeedsItems( self.vars.$shipment.hasClass( 'needs-items' ) );
+            self.setIsEditable( self.vars.$shipment.hasClass( 'is-editable' ) );
+            self.onChangeProvider();
 
-            $( '#shipment-' + this.vars.id + ' #shipment-shipping-provider-' + this.vars.id ).on( 'change', this.onChangeProvider.bind( this ) );
-            $( '#shipment-' + this.vars.id + ' #shipment-packaging-' + this.vars.id ).on( 'change', this.refreshDimensions.bind( this ) );
+            $.each( self.vars.modals, function( i, modal ) {
+                modal.destroy();
+            } );
 
-            $( '#shipment-' + this.vars.id + ' #shipment-items-' + this.vars.id )
-                .on( 'change.gzd-shipment', '.item-quantity', this.onChangeQuantity.bind( this ) )
-                .on( 'click.gzd-shipment', 'a.remove-shipment-item', this.onRemoveItem.bind( this ) )
-                .on( 'wc_gzd_admin_shipment_modal_after_load_success.gzd-shipment', 'a.add-shipment-item', this.onLoadedItemsSuccess.bind( this ) )
-                .on( 'wc_gzd_admin_shipment_modal_after_submit_success.gzd-shipment', 'a.add-shipment-item', this.onAddedItem.bind( this ) )
-                .on( 'click.gzd-shipment', 'a.sync-shipment-items', this.onSyncItems.bind( this ) );
+            self.vars.modals = [];
+            $modals = $( '#shipment-' + self.vars.id + ' a.has-shipment-modal' ).wc_gzd_admin_shipment_modal();
 
-            $( '#shipment-' + this.vars.id + ' #shipment-footer-' + this.vars.id )
-                .on( 'click.gzd-shipment', '.send-return-shipment-notification', this.onSendReturnNotification.bind( this ) )
-                .on( 'click.gzd-shipment', '.confirm-return-shipment', this.onConfirmReturnRequest.bind( this ) );
+            $modals.each( function() {
+                self.vars.modals.push( $( this ).data( 'self' ) );
+            } );
 
-            $( '#shipment-' + this.vars.id + ' .wc-gzd-shipment-label' ).on( 'click.gzd-shipment', '.remove-shipment-label', this.onRemoveLabel.bind( this ) );
+            $( '#shipment-' + self.vars.id + ' #shipment-items-' + self.vars.id ).off( '.gzd-shipment' );
+            $( '#shipment-' + self.vars.id + ' #shipment-footer-' + self.vars.id ).off( '.gzd-shipment' );
+            $( '#shipment-' + self.vars.id + ' #shipment-shipping-provider-' + self.vars.id ).off( '.gzd-shipment' );
+            $( '#shipment-' + self.vars.id + ' #shipment-packaging-' + self.vars.id ).off( '.gzd-shipment' );
+            $( '#shipment-' + self.vars.id + ' .wc-gzd-shipment-label' ).off( '.gzd-shipment' );
+
+            $( '#shipment-' + self.vars.id + ' #shipment-shipping-provider-' + self.vars.id ).on( 'change', self.onChangeProvider.bind( self ) );
+            $( '#shipment-' + self.vars.id + ' #shipment-packaging-' + self.vars.id ).on( 'change', self.refreshDimensions.bind( self ) );
+
+            $( '#shipment-' + self.vars.id + ' #shipment-items-' + self.vars.id )
+                .on( 'change.gzd-shipment', '.item-quantity', self.onChangeQuantity.bind( self ) )
+                .on( 'click.gzd-shipment', 'a.remove-shipment-item', self.onRemoveItem.bind( self ) )
+                .on( 'wc_gzd_admin_shipment_modal_after_load_success.gzd-shipment', 'a.add-shipment-item', self.onLoadedItemsSuccess.bind( self ) )
+                .on( 'wc_gzd_admin_shipment_modal_after_submit_success.gzd-shipment', 'a.add-shipment-item', self.onAddedItem.bind( self ) )
+                .on( 'click.gzd-shipment', 'a.sync-shipment-items', self.onSyncItems.bind( self ) );
+
+            $( '#shipment-' + self.vars.id + ' #shipment-footer-' + self.vars.id )
+                .on( 'click.gzd-shipment', '.send-return-shipment-notification', self.onSendReturnNotification.bind( self ) )
+                .on( 'click.gzd-shipment', '.confirm-return-shipment', self.onConfirmReturnRequest.bind( self ) );
+
+            $( '#shipment-' + self.vars.id + ' .wc-gzd-shipment-label' ).on( 'click.gzd-shipment', '.remove-shipment-label', self.onRemoveLabel.bind( self ) );
         };
 
         this.refreshDimensions = function() {
