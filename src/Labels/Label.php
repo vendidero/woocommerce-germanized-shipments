@@ -782,7 +782,7 @@ class Label extends WC_Data implements ShipmentLabel {
 				$shipment_product = wc_gzd_shipments_get_product( $product );
 			}
 
-			$single_item_description = $shipment_product ? $shipment_product->get_hs_code() : $item->get_name();
+			$single_item_description = $item->get_customs_description();
 
 			$item_description .= ! empty( $item_description ) ? ', ' : '';
 			$item_description .= $single_item_description;

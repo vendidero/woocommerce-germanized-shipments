@@ -25,6 +25,8 @@ class Package {
 
 	protected static $method_settings = null;
 
+	protected static $iso = null;
+
 	/**
 	 * Init the package - load the REST API Server class.
 	 */
@@ -249,6 +251,36 @@ class Package {
 				}
 			}
 		}
+	}
+
+	public static function get_country_iso_alpha3( $country_code ) {
+		$country_code = strtoupper( $country_code );
+		$iso          = self::get_countries_iso_alpha3();
+
+		if ( isset( $iso[ $country_code ] ) ) {
+			return $iso[ $country_code ];
+		}
+
+		return $country_code;
+	}
+
+	protected static function get_countries_iso_alpha3() {
+		if ( is_null( self::$iso ) ) {
+			self::$iso = include self::get_path() . '/i18n/iso-3.php';
+		}
+
+		return (array) self::$iso;
+	}
+
+	public static function get_country_iso_alpha2( $country_code ) {
+		$country_code = strtoupper( $country_code );
+		$iso          = self::get_countries_iso_alpha3();
+
+		if ( in_array( $country_code, $iso, true ) ) {
+			return array_search( $country_code, $iso, true );
+		}
+
+		return $country_code;
 	}
 
 	public static function get_base_country() {
