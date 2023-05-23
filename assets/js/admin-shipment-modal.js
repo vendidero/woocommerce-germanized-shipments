@@ -138,7 +138,7 @@ window.germanized.admin = window.germanized.admin || {};
                     $show.hide();
                 }
 
-                self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_show_if', [self] );
+                $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_show_if', [self] );
             }
         } else {
             $wrapper.find( ':input[data-show-if-' + fieldId + ']' ).parents( '.form-field' ).hide();
@@ -184,14 +184,14 @@ window.germanized.admin = window.germanized.admin || {};
                 self.initData();
             }
 
-            self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_open', [self] );
+            $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_open', [self] );
         }
     };
 
     AdminShipmentModal.prototype.onLoadSuccess = function( data, self ) {
         self.initData();
 
-        self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_after_load_success', [data, self] );
+        $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_after_load_success', [data, self] );
     };
 
     AdminShipmentModal.prototype.onAjaxSuccess = function( data, self ) {
@@ -249,7 +249,7 @@ window.germanized.admin = window.germanized.admin || {};
                         germanized.admin.shipments.refresh( data );
                     }
 
-                    self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_ajax_success', [data, self] );
+                    $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_ajax_success', [data, self] );
 
                     /**
                      * Init JS form field types.
@@ -268,7 +268,7 @@ window.germanized.admin = window.germanized.admin || {};
                         scrollTop: 0
                     }, 500 );
 
-                    self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_ajax_error', [data, self] );
+                    $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_ajax_error', [data, self] );
                 }
             },
             error: function( data ) {},
@@ -305,7 +305,7 @@ window.germanized.admin = window.germanized.admin || {};
         self.$modal.on( 'click.gzd-modal-' + self.modalId, '.show-more', { adminShipmentModal: self }, self.onExpandMore );
         self.$modal.on( 'click.gzd-modal-' + self.modalId, '.show-fewer', { adminShipmentModal: self }, self.onHideMore );
 
-        self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_after_init_data', [self] );
+        $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_after_init_data', [self] );
 
         self.$modal.find( ':input:visible' ).trigger( "change", [self] );
     };
@@ -343,7 +343,7 @@ window.germanized.admin = window.germanized.admin || {};
             germanized.admin.shipments.initShipment( data['shipment_id'] );
         }
 
-        self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_after_submit_success', [data, self] );
+        $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_after_submit_success', [data, self] );
     };
 
     AdminShipmentModal.prototype.getCleanId = function( removePrefix = false ) {
@@ -434,7 +434,7 @@ window.germanized.admin = window.germanized.admin || {};
         var self = event.data.adminShipmentModal;
 
         if ( target.indexOf( self.modalId ) !== -1 ) {
-            self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_response', [self, data] );
+            $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_response', [self, data] );
         }
     };
 
