@@ -139,6 +139,7 @@ window.germanized.admin = window.germanized.admin || {};
                 }
 
                 $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_show_if', [self] );
+                self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_show_if', [self] );
             }
         } else {
             $wrapper.find( ':input[data-show-if-' + fieldId + ']' ).parents( '.form-field' ).hide();
@@ -185,6 +186,7 @@ window.germanized.admin = window.germanized.admin || {};
             }
 
             $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_open', [self] );
+            self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_open', [self] );
         }
     };
 
@@ -192,6 +194,7 @@ window.germanized.admin = window.germanized.admin || {};
         self.initData();
 
         $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_after_load_success', [data, self] );
+        self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_after_load_success', [data, self] );
     };
 
     AdminShipmentModal.prototype.onAjaxSuccess = function( data, self ) {
@@ -250,6 +253,7 @@ window.germanized.admin = window.germanized.admin || {};
                     }
 
                     $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_ajax_success', [data, self] );
+                    self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_ajax_success', [data, self] );
 
                     /**
                      * Init JS form field types.
@@ -269,6 +273,7 @@ window.germanized.admin = window.germanized.admin || {};
                     }, 500 );
 
                     $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_ajax_error', [data, self] );
+                    self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_ajax_error', [data, self] );
                 }
             },
             error: function( data ) {},
@@ -306,6 +311,7 @@ window.germanized.admin = window.germanized.admin || {};
         self.$modal.on( 'click.gzd-modal-' + self.modalId, '.show-fewer', { adminShipmentModal: self }, self.onHideMore );
 
         $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_after_init_data', [self] );
+        self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_after_init_data', [self] );
 
         self.$modal.find( ':input:visible' ).trigger( "change", [self] );
     };
@@ -344,6 +350,7 @@ window.germanized.admin = window.germanized.admin || {};
         }
 
         $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_after_submit_success', [data, self] );
+        self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_after_submit_success', [data, self] );
     };
 
     AdminShipmentModal.prototype.getCleanId = function( removePrefix = false ) {
@@ -435,6 +442,7 @@ window.germanized.admin = window.germanized.admin || {};
 
         if ( target.indexOf( self.modalId ) !== -1 ) {
             $( document.body ).trigger( 'wc_gzd_admin_shipment_modal_response', [self, data] );
+            self.$modalTrigger.trigger( 'wc_gzd_admin_shipment_modal_response', [self, data] );
         }
     };
 

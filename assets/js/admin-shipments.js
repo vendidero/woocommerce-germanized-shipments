@@ -193,7 +193,13 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         refresh: function( data ) {
-            var self = germanized.admin.shipments;
+            var self = germanized.admin.shipments,
+            active               = self.getShipment( self.getActiveShipmentId() );
+            current_packaging_id = false;
+
+            if ( active ) {
+                current_packaging_id = active.getShipment().find( '.shipment-packaging-select' ).val();
+            }
 
             if ( data.hasOwnProperty( 'order_needs_new_shipments' ) ) {
                 self.setNeedsShipments( data.order_needs_new_shipments );
@@ -268,13 +274,6 @@ window.germanized.admin = window.germanized.admin || {};
                 data: params,
                 success: function( data ) {
                     if ( data.success ) {
-                        active               = self.getShipment( self.getActiveShipmentId() );
-                        current_packaging_id = false;
-
-                        if ( active ) {
-                            current_packaging_id = active.getShipment().find( '.shipment-packaging-select' ).val();
-                        }
-
                         if ( refreshFragments ) {
                             if ( data.fragments ) {
                                 $.each( data.fragments, function ( key, value ) {
