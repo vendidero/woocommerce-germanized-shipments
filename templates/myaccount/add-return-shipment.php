@@ -11,7 +11,7 @@
  * the readme will list any important changes.
  *
  * @package Vendidero/Germanized/Shipments/Templates
- * @version 1.0.2
+ * @version 1.0.3
  */
 defined( 'ABSPATH' ) || exit;
 ?>
@@ -49,7 +49,6 @@ defined( 'ABSPATH' ) || exit;
 		do_action( 'woocommerce_gzd_add_return_shipment_details_before_shipment_table_items', $order );
 
 		foreach ( $shipment_order->get_available_items_for_return() as $order_item_id => $item_data ) {
-
 			wc_get_template(
 				'shipment/add-return-shipment-item.php',
 				array(
@@ -62,7 +61,7 @@ defined( 'ABSPATH' ) || exit;
 		}
 
 		/**
-		 * This action is executed after printing the add return shipment table on the customer account page.
+		 * This action is executed after printing the add return shipment table items on the customer account page.
 		 *
 		 * @param WC_Order $order The order instance.
 		 *
@@ -73,6 +72,18 @@ defined( 'ABSPATH' ) || exit;
 		?>
 		</tbody>
 	</table>
+
+	<?php
+	/**
+	 * This action is executed after printing the return shipment table on the customer account page.
+	 *
+	 * @param WC_Order $order The order instance.
+	 *
+	 * @since 3.13.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
+	do_action( 'woocommerce_gzd_add_return_shipment_details_after_shipment_table', $order );
+	?>
 
 	<p>
 		<?php wp_nonce_field( 'add_return_shipment', 'add-return-shipment-nonce' ); ?>

@@ -13,7 +13,6 @@ use Vendidero\Germanized\Shipments\Package;
 defined( 'ABSPATH' ) || exit;
 
 if ( Package::get_setting( 'customer_account_enable' ) === 'yes' ) {
-
 	// Customer Panel
 	add_action( 'woocommerce_view_order', 'woocommerce_gzd_shipments_template_view_shipments', 10, 1 );
 	add_action( 'woocommerce_account_view-shipment_endpoint', 'woocommerce_gzd_shipments_template_view_shipment' );
@@ -26,3 +25,5 @@ if ( Package::get_setting( 'customer_account_enable' ) === 'yes' ) {
 	// View shipment details
 	add_action( 'woocommerce_gzd_view_shipment', 'woocommerce_gzd_shipment_details_table', 10 );
 }
+
+add_action( 'woocommerce_gzd_add_return_shipment_details_after_shipment_table', 'woocommerce_gzd_shipments_template_non_returnable_items_note', 10 );

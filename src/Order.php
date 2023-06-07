@@ -456,8 +456,19 @@ class Order {
 		return $quantity;
 	}
 
-	public function get_non_returnable_items() {
+	public function order_item_is_non_returnable( $order_item_id ) {
+		$is_non_returnable = false;
+		$order_item        = is_a( $order_item_id, 'WC_Order_Item' ) ? $order_item_id : $this->get_order()->get_item( $order_item_id );
 
+		if ( $order_item ) {
+			if ( is_callable( array( $order_item, 'get_product' ) ) ) {
+				if ( $product = $order_item->get_product() ) {
+					$is_non_returnable = wc_gzd_shipments_get_product( $product )->is_non_returnable();
+				}
+			}
+		}
+
+		return apply_filters( 'woocommerce_gzd_shipment_order_item_is_non_returnable', $is_non_returnable, $order_item_id, $this );
 	}
 
 	/**
@@ -473,18 +484,9 @@ class Order {
 			)
 		);
 
-		$quantity_left     = $this->get_item_quantity_sent_by_order_item_id( $order_item_id );
-		$is_non_returnable = false;
+		$quantity_left = $this->get_item_quantity_sent_by_order_item_id( $order_item_id );
 
-		if ( $order_item = $this->get_order()->get_item( $order_item_id ) ) {
-			if ( is_callable( array( $order_item, 'get_product' ) ) ) {
-				if ( $product = $order_item->get_product() ) {
-					$is_non_returnable = wc_gzd_shipments_get_product( $product )->is_non_returnable();
-				}
-			}
-		}
-
-		if ( apply_filters( 'woocommerce_gzd_shipment_order_item_is_non_returnable', $is_non_returnable, $order_item_id, $this ) ) {
+		if ( $this->order_item_is_non_returnable( $order_item_id ) ) {
 			$quantity_left = 0;
 		}
 
@@ -620,6 +622,23 @@ class Order {
 		}
 
 		return false;
+	}
+
+	public function get_non_returnable_items() {
+		$items = array();
+
+		foreach ( $this->get_returnable_items() as $item ) {
+			if ( $this->order_item_is_non_returnable( $item->get_order_item_id() ) ) {
+				$sku = $item->get_sku();
+
+				$items[ $item->get_order_item_id() ] = array(
+					'name'         => $item->get_name() . ( ! empty( $sku ) ? ' (' . esc_html( $sku ) . ')' : '' ),
+					'max_quantity' => 0,
+				);
+			}
+		}
+
+		return $items;
 	}
 
 	/**
@@ -786,7 +805,6 @@ class Order {
 		$items = array();
 
 		foreach ( $this->get_simple_shipments() as $shipment ) {
-
 			if ( ! $shipment->is_shipped() ) {
 				continue;
 			}

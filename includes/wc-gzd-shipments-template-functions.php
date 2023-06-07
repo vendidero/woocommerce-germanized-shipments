@@ -202,3 +202,24 @@ if ( ! function_exists( 'woocommerce_gzd_return_shipments_template_instructions'
 		}
 	}
 }
+
+if ( ! function_exists( 'woocommerce_gzd_shipments_template_non_returnable_items_note' ) ) {
+
+	function woocommerce_gzd_shipments_template_non_returnable_items_note( $order ) {
+		if ( $shipment_order = wc_gzd_get_shipment_order( $order ) ) {
+			$non_returnable_items = $shipment_order->get_non_returnable_items();
+
+			if ( ! empty( $non_returnable_items ) ) {
+				$product_names = array();
+
+				foreach ( $non_returnable_items as $non_returnable_item ) {
+					$product_names[] = $non_returnable_item['name'];
+				}
+
+				if ( ! empty( $product_names ) ) {
+					echo '<p class="woocommerce-add-return-non-returnable-list"><small>' . sprintf( esc_html_x( 'The following products cannot be returned due to their nature: %1$s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( implode( ', ', $product_names ) ) ) . '</small></p>';
+				}
+			}
+		}
+	}
+}
