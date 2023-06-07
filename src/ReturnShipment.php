@@ -157,7 +157,6 @@ class ReturnShipment extends Shipment {
 	 * @return int
 	 */
 	public function get_shippable_item_count() {
-
 		if ( $order_shipment = $this->get_order_shipment() ) {
 			return $order_shipment->get_returnable_item_count();
 		}

@@ -28,7 +28,7 @@ class Automation {
 			 * The issue with the woocommerce_new_order hook is that this hook is getting executed before order items
 			 * has been stored. This will lead to items not being available.
 			 *
-			 * Workaround: Hook into the woocommerce_after_order_object_save instead after an order has been created as a workaround.
+			 * Workaround: Hook into the woocommerce_after_order_object_save instead after an order has been created.
 			 */
 			add_action(
 				'woocommerce_new_order',
@@ -250,7 +250,7 @@ class Automation {
 	}
 
 	public static function maybe_create_subscription_shipments( $renewal_order ) {
-		self::create_shipments( $renewal_order->get_id() );
+		self::maybe_create_shipments( $renewal_order->get_id() );
 
 		return $renewal_order;
 	}

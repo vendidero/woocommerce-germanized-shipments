@@ -810,6 +810,9 @@ class Order {
 			}
 
 			foreach ( $shipment->get_items() as $item ) {
+				if ( $this->order_item_is_non_returnable( $item->get_order_item_id() ) ) {
+					continue;
+				}
 
 				if ( ! isset( $items[ $item->get_order_item_id() ] ) ) {
 					$new_item                            = clone $item;
