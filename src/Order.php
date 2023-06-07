@@ -456,12 +456,15 @@ class Order {
 		return $quantity;
 	}
 
+	public function get_non_returnable_items() {
+
+	}
+
 	/**
 	 * @param ShipmentItem $item
 	 */
 	public function get_item_quantity_left_for_returning( $order_item_id, $args = array() ) {
-		$quantity_left = 0;
-		$args          = wp_parse_args(
+		$args = wp_parse_args(
 			$args,
 			array(
 				'delivered_only'           => false,
@@ -470,10 +473,22 @@ class Order {
 			)
 		);
 
-		$quantity_left = $this->get_item_quantity_sent_by_order_item_id( $order_item_id );
+		$quantity_left     = $this->get_item_quantity_sent_by_order_item_id( $order_item_id );
+		$is_non_returnable = false;
+
+		if ( $order_item = $this->get_order()->get_item( $order_item_id ) ) {
+			if ( is_callable( array( $order_item, 'get_product' ) ) ) {
+				if ( $product = $order_item->get_product() ) {
+					$is_non_returnable = wc_gzd_shipments_get_product( $product )->is_non_returnable();
+				}
+			}
+		}
+
+		if ( apply_filters( 'woocommerce_gzd_shipment_order_item_is_non_returnable', $is_non_returnable, $order_item_id, $this ) ) {
+			$quantity_left = 0;
+		}
 
 		foreach ( $this->get_return_shipments() as $shipment ) {
-
 			if ( $args['delivered_only'] && ! $shipment->has_status( 'delivered' ) ) {
 				continue;
 			}
@@ -957,7 +972,6 @@ class Order {
 		$needs_return = false;
 
 		foreach ( $items as $item ) {
-
 			if ( $this->item_needs_return( $item, $args ) ) {
 				$needs_return = true;
 				break;

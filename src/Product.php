@@ -64,6 +64,12 @@ class Product {
 		return $data;
 	}
 
+	public function is_non_returnable( $context = 'view' ) {
+		$is_non_returnable = wc_string_to_bool( $this->get_forced_parent_product()->get_meta( '_is_non_returnable', true, $context ) );
+
+		return $is_non_returnable;
+	}
+
 	public function get_hs_code( $context = 'view' ) {
 		$legacy_data = $this->get_forced_parent_product()->get_meta( '_dhl_hs_code', true, $context );
 		$data        = $this->get_forced_parent_product()->get_meta( '_hs_code', true, $context );
@@ -120,6 +126,10 @@ class Product {
 
 	public function set_customs_description( $description ) {
 		$this->product->update_meta_data( '_customs_description', $description );
+	}
+
+	public function set_is_non_returnable( $is_non_returnable ) {
+		$this->product->update_meta_data( '_is_non_returnable', wc_bool_to_string( $is_non_returnable ) );
 	}
 
 	/**

@@ -152,6 +152,15 @@ class Admin {
 
 		$countries = WC()->countries->get_countries();
 		$countries = array_merge( array( '0' => _x( 'Select a country', 'shipments', 'woocommerce-germanized-shipments' ) ), $countries );
+
+		woocommerce_wp_checkbox(
+			array(
+				'id'          => '_is_non_returnable',
+				'label'       => _x( 'Non returnable', 'shipments', 'woocommerce-germanized-shipments' ),
+				'description' => _x( 'Exclude product from returns, e.g. pet food.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'value'       => $shipments_product->is_non_returnable( 'edit' ) ? 'yes' : 'no',
+			)
+		);
 		?>
 		<p class="wc-gzd-product-settings-subtitle">
 			<?php echo esc_html_x( 'Customs', 'shipments', 'woocommerce-germanized-shipments' ); ?>
@@ -201,11 +210,13 @@ class Admin {
 		$customs_description = isset( $_POST['_customs_description'] ) ? wc_clean( wp_unslash( $_POST['_customs_description'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$hs_code             = isset( $_POST['_hs_code'] ) ? wc_clean( wp_unslash( $_POST['_hs_code'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$country             = isset( $_POST['_manufacture_country'] ) ? wc_clean( wp_unslash( $_POST['_manufacture_country'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$is_non_returnable   = isset( $_POST['_is_non_returnable'] ) ? wc_clean( wp_unslash( $_POST['_is_non_returnable'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
 		$shipments_product = wc_gzd_shipments_get_product( $product );
 		$shipments_product->set_hs_code( $hs_code );
 		$shipments_product->set_customs_description( $customs_description );
 		$shipments_product->set_manufacture_country( $country );
+		$shipments_product->set_is_non_returnable( $is_non_returnable );
 
 		/**
 		 * Remove legacy data upon saving in case it is not transmitted (e.g. DHL standalone plugin).
