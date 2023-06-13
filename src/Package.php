@@ -4,6 +4,8 @@ namespace Vendidero\Germanized\Shipments;
 
 use Exception;
 use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
+use Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod;
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use Vendidero\Germanized\Shipments\ShippingProvider\Method;
 use WC_Shipping;
 use WC_Shipping_Method;
@@ -58,9 +60,9 @@ class Package {
 			self::inject_endpoints();
 		}
 
-		add_action( 'woocommerce_load_shipping_methods', array( __CLASS__, 'load_shipping_methods' ), 5, 1 );
+		//add_action( 'woocommerce_load_shipping_methods', array( __CLASS__, 'load_shipping_methods' ), 5, 1 );
 		// Use a high priority here to make sure we are hooking even after plugins such as flexible shipping
-		add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'set_method_filters' ), 5000, 1 );
+		//add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'set_method_filters' ), 5000, 1 );
 
 		// Guest returns
 		add_filter( 'wc_get_template', array( __CLASS__, 'add_return_shipment_guest_endpoints' ), 10, 2 );
@@ -68,6 +70,14 @@ class Package {
 		add_action( 'init', array( __CLASS__, 'check_version' ), 10 );
 
 		add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
+
+		add_filter( 'woocommerce_shipping_methods', function( $methods ) {
+			foreach( Helper::instance()->get_shipping_providers() as $provider ) {
+				$methods['shipping_provider_' . $provider->get_name()] = new ShippingMethod( 0, $provider );
+			}
+
+			return $methods;
+		} );
 	}
 
 	public static function add_return_shipment_guest_endpoints( $template, $template_name ) {
