@@ -149,6 +149,93 @@ $layout-spacing: 1rem;
   }
 }
 
+table.wc-gzd-shipments-shipping-rules {
+  thead th {
+    font-weight: 600;
+  }
+
+  th, td {
+    vertical-align: middle;
+    line-height: 24px;
+    padding: 1em !important;
+    font-size: 14px;
+    background: #fff;
+    display: table-cell !important;
+
+    &.conditions {
+      width: 35%;
+    }
+  }
+
+  tbody {
+    td {
+      &.sort {
+        cursor: move;
+        font-size: 15px;
+        text-align: center;
+
+        &::before {
+          content: "\f333";
+          font-family: Dashicons;
+          text-align: center;
+          color: #999;
+          display: block;
+          width: 17px;
+          float: left;
+          height: 100%;
+          line-height: 24px;
+        }
+      }
+
+      &.conditions {
+        .conditions-columns {
+          display: flex;
+          flex-wrap: wrap;
+
+          .shipping-rules-type-container {
+            input {
+              max-width: 80px;
+            }
+          }
+
+          .conditions-column {
+            margin-right: .5em;
+
+            &.conditions-when {
+              width: 30%;
+
+              select {
+                width: 100%;
+              }
+            }
+          }
+        }
+      }
+
+      &.costs {
+        p.form-field input {
+          max-width: 110px;
+        }
+      }
+
+      p.form-field {
+        label {
+          display: block;
+          font-size: 11px;
+        }
+      }
+    }
+
+    tr:nth-child(even) td {
+      background: #f9f9f9;
+    }
+
+    tr.current td {
+      background-color: #fefbcc;
+    }
+  }
+}
+
 table.wc-gzd-shipping-providers {
   margin-top: 1.5em;
 

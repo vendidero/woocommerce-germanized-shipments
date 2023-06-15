@@ -23,7 +23,11 @@ class Helper {
 		}
 
 		if ( $id ) {
-			return array_key_exists( $id, self::$packaging ) ? self::$packaging[ $id ] : false;
+			if ( is_array( $id ) ) {
+				return array_intersect_key( self::$packaging, array_flip( $id ) );
+			} else {
+				return array_key_exists( $id, self::$packaging ) ? self::$packaging[ $id ] : false;
+			}
 		}
 
 		return self::$packaging;

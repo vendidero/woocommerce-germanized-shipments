@@ -63,6 +63,11 @@
                     this.unblock();
 
                     if ( _.size( rules ) ) {
+                        // Sort classes
+                        rules = _.sortBy( rules, function( rule ) {
+                            return rule.packaging;
+                        } );
+
                         // Populate $tbody with the current classes
                         $.each( rules, function( id, rowData ) {
                             view.renderRow( rowData );
@@ -92,8 +97,26 @@
 
                     $tr.find( '.shipping-rules-type' ).on( 'change', { view: this }, this.onChangeRuleType );
                     $tr.find( '.shipping-rules-delete' ).on( 'click', { view: this }, this.onDeleteRow );
+                    $tr.find( '.shipping-packaging' ).on( 'change', { view: this }, this.onChangePackaging );
 
                     $tr.find( '.shipping-rules-type' ).trigger( 'change' );
+                },
+                onChangePackaging: function( event ) {
+                    var view = event.data.view,
+                        model = view.model,
+                        $tr   = $( this ).closest('tr'),
+                        packaging = $(this).val();
+
+                    $lastTr = $tbody.find( '.shipping-packaging:has(option[value="' + packaging + '"]:selected)' ).not( this ).last().parents( 'tr ');
+
+                    if ( $lastTr.length > 0 ) {
+                        $tr.insertAfter( $lastTr );
+                        $tr.find( '.shipping-packaging' ).focus();
+                    } else {
+                        $tr.insertAfter($tbody.find('tr:last'));
+                    }
+
+                    $tr.addClass('packaging-' + packaging);
                 },
                 onChangeRuleType: function( event ) {
                     var view    = event.data.view,
@@ -211,5 +234,88 @@
                 ui.item.trigger( 'updateMoveButtons' );
             },
         } );
+
+        var controlled = false;
+        var shifted = false;
+        var hasFocus = false;
+
+        $( document.body ).on( 'keyup keydown', function ( e ) {
+            shifted = e.shiftKey;
+            controlled = e.ctrlKey || e.metaKey;
+        } );
+
+        $tbody
+            .on( 'focus click', ':input:visible', function ( e ) {
+                var $this_table = $( this ).closest( 'table, tbody' );
+                var $this_row = $( this ).closest( 'tr' );
+
+                if (
+                    ( e.type === 'focus' && hasFocus !== $this_row.index() ) ||
+                    ( e.type === 'click' && $( this ).is( ':focus' ) )
+                ) {
+                    hasFocus = $this_row.index();
+
+                    if ( ! shifted && ! controlled ) {
+                        $( 'tr', $this_table )
+                            .removeClass( 'current' )
+                            .removeClass( 'last_selected' );
+                        $this_row
+                            .addClass( 'current' )
+                            .addClass( 'last_selected' );
+                    } else if ( shifted ) {
+                        $( 'tr', $this_table ).removeClass( 'current' );
+                        $this_row
+                            .addClass( 'selected_now' )
+                            .addClass( 'current' );
+
+                        if ( $( 'tr.last_selected', $this_table ).length > 0 ) {
+                            if (
+                                $this_row.index() >
+                                $( 'tr.last_selected', $this_table ).index()
+                            ) {
+                                $( 'tr', $this_table )
+                                    .slice(
+                                        $(
+                                            'tr.last_selected',
+                                            $this_table
+                                        ).index(),
+                                        $this_row.index()
+                                    )
+                                    .addClass( 'current' );
+                            } else {
+                                $( 'tr', $this_table )
+                                    .slice(
+                                        $this_row.index(),
+                                        $(
+                                            'tr.last_selected',
+                                            $this_table
+                                        ).index() + 1
+                                    )
+                                    .addClass( 'current' );
+                            }
+                        }
+
+                        $( 'tr', $this_table ).removeClass( 'last_selected' );
+                        $this_row.addClass( 'last_selected' );
+                    } else {
+                        $( 'tr', $this_table ).removeClass( 'last_selected' );
+                        if (
+                            controlled &&
+                            $( this ).closest( 'tr' ).is( '.current' )
+                        ) {
+                            $this_row.removeClass( 'current' );
+                        } else {
+                            $this_row
+                                .addClass( 'current' )
+                                .addClass( 'last_selected' );
+                        }
+                    }
+
+                    $( 'tr', $this_table ).removeClass( 'selected_now' );
+                }
+            } )
+            .on( 'blur', ':input:visible', function () {
+                hasFocus = false;
+            } );
     });
 })( jQuery, wc_gzd_admin_shipping_rules_params, wp, ajaxurl );

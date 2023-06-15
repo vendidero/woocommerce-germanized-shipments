@@ -2,8 +2,10 @@
 
 namespace Vendidero\Germanized\Shipments;
 
+use DVDoug\BoxPacker\ItemList;
 use Exception;
 use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
+use Vendidero\Germanized\Shipments\Packing\CartItem;
 use Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use Vendidero\Germanized\Shipments\ShippingProvider\Method;
@@ -71,6 +73,7 @@ class Package {
 
 		add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
 
+		add_filter( 'woocommerce_cart_shipping_packages', array( __CLASS__, 'add_cart_packaging' ) );
 		add_filter( 'woocommerce_shipping_methods', function( $methods ) {
 			foreach( Helper::instance()->get_shipping_providers() as $provider ) {
 				$methods['shipping_provider_' . $provider->get_name()] = new ShippingMethod( 0, $provider );
@@ -78,6 +81,19 @@ class Package {
 
 			return $methods;
 		} );
+	}
+
+	public static function add_cart_packaging( $cart_contents ) {
+		foreach( $cart_contents as $index => $content ) {
+			foreach( $cart_contents[ $index ]['contents'] as $content_key => $data ) {
+				$items = new ItemList();
+				$items->insert( new CartItem( $data ), $data['quantity'] );
+
+				$cart_contents[ $index ]['contents'][ $content_key ]['package'] = $items;
+			}
+		}
+
+		return $cart_contents;
 	}
 
 	public static function add_return_shipment_guest_endpoints( $template, $template_name ) {
