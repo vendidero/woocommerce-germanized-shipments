@@ -76,7 +76,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 		    'wc-gzd-admin-shipping-rules',
 		    'wc_gzd_admin_shipping_rules_params',
 		    array(
-			    'rules'                     => $this->get_all_shipping_rules(),
+			    'rules'                     => $this->get_option( 'shipping_rules', array() ),
 			    'default_shipping_rule'    => array(
 				    'rule_id'     => 0,
 				    'type'        => 'always',
@@ -170,15 +170,25 @@ class ShippingMethod extends \WC_Shipping_Method {
 
     }
 
-    public function get_cache() {
+    public function get_cache( $property = null, $default = null ) {
 	    $cache = wp_parse_args( $this->get_option( 'cache', array() ), array(
             'packaging_ids' => array()
         ) );
+
+        if ( ! is_null( $property ) ) {
+            if ( array_key_exists( $property, $cache ) ) {
+                return $cache[ $property ];
+            } else {
+                return $default;
+            }
+        }
 
         return $cache;
     }
 
     public function calculate_shipping( $package = array() ) {
+        return;
+
         $cache  = $this->get_cache();
         $items  = array();
         $boxes  = BoxList::fromArray( Helper::get_available_packaging( $cache['packaging_ids'] ) );
@@ -275,7 +285,7 @@ class ShippingMethod extends \WC_Shipping_Method {
                 $rules[ $packaging ] = array();
             }
 
-	        $rules[ $packaging ][] = $rule;
+	        $rules[ $packaging ][ $rule_id ] = $rule;
         }
 
         return $rules;
@@ -305,12 +315,20 @@ class ShippingMethod extends \WC_Shipping_Method {
                     </th>
 				</tr>
 			</thead>
-			<tbody class="wc-gzd-shipments-shipping-rules-rows">
-			</tbody>
+			<?php foreach( wc_gzd_get_packaging_list() as $packaging ) : ?>
+                <tbody class="wc-gzd-shipments-shipping-rules-rows" data-packaging="<?php echo esc_attr( $packaging->get_id() ); ?>" id="wc-gzd-shipments-shipping-rules-packaging-<?php echo esc_attr( $packaging->get_id() ); ?>">
+                </tbody>
+			<?php endforeach; ?>
 			<tfoot>
 				<tr>
 					<th colspan="7">
-                        <button class="button button-primary wc-gzd-shipments-shipping-rule-add"><?php echo esc_html_x( 'Add new', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
+                        <select class="wc-enhanced-select new-shipping-packaging">
+							<?php foreach( wc_gzd_get_packaging_list() as $packaging ) : ?>
+                                <option value="<?php echo esc_attr( $packaging->get_id() ); ?>"><?php echo esc_html( $packaging->get_title() ); ?></option>
+							<?php endforeach; ?>
+                        </select>
+                        <a class="button button-primary wc-gzd-shipments-shipping-rule-add" href="#"><?php echo esc_html_x( 'Add new', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+                        <a class="button button-secondary wc-gzd-shipments-shipping-rule-remove disabled" href="#"><?php echo esc_html_x( 'Remove selected', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 					</th>
 				</tr>
 			</tfoot>
@@ -321,18 +339,18 @@ class ShippingMethod extends \WC_Shipping_Method {
             </tr>
         </script>
         <script type="text/html" id="tmpl-wc-gzd-shipments-shipping-rules-row">
-            <tr data-id="{{ data.rule_id }}" class="packaging-{{data.packaging}}">
+            <tr data-id="{{ data.rule_id }}" class="">
                 <td class="sort ui-sortable-handle">
                     <div class="wc-item-reorder-nav wc-gzd-shipping-rules-reorder-nav">
                     </div>
                 </td>
                 <td class="cb">
-                    <input name="<?php echo esc_attr( $field_key ); ?>[cb][{{ data.rule_id }}]" type="checkbox" value="{{ data.rule_id }}" data-attribute="cb" />
+                    <input class="cb" name="<?php echo esc_attr( $field_key ); ?>[cb][{{ data.rule_id }}]" type="checkbox" value="{{ data.rule_id }}" data-attribute="cb" />
                 </td>
                 <td class="packaging">
                     <select class="wc-enhanced-select shipping-packaging" name="<?php echo esc_attr( $field_key ); ?>[packaging][{{ data.rule_id }}]" data-attribute="packaging">
-                        <?php foreach( wc_gzd_get_packaging_select() as $option => $value ) : ?>
-                            <option value="<?php echo esc_attr( $option ); ?>"><?php echo esc_html( $value ); ?></option>
+                        <?php foreach( wc_gzd_get_packaging_list() as $packaging ) : ?>
+                            <option value="<?php echo esc_attr( $packaging->get_id() ); ?>"><?php echo esc_html( $packaging->get_title() ); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </td>

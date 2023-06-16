@@ -1,47 +1,40 @@
 /* global wc_gzd_admin_shipping_rules_params, ajaxurl */
 ( function( $, data, wp, ajaxurl ) {
     $( function() {
-        var $tbody          = $( '.wc-gzd-shipments-shipping-rules-rows' ),
-            $save_button    = $( '.wc-gzd-shipments-shipping-rules-save' ),
-            $row_template   = wp.template( 'wc-gzd-shipments-shipping-rules-row' ),
-            $blank_template = wp.template( 'wc-gzd-shipments-shipping-rules-row-blank' ),
+        var $tbody            = $( '.wc-gzd-shipments-shipping-rules-rows' ),
+            $table            = $( '.wc-gzd-shipments-shipping-rules' ),
+            $save_button      = $( '.wc-gzd-shipments-shipping-rules-save' ),
+            $row_template     = wp.template( 'wc-gzd-shipments-shipping-rules-row' ),
+            $blank_template   = wp.template( 'wc-gzd-shipments-shipping-rules-row-blank' ),
+            $action_template  = wp.template( 'wc-gzd-shipments-shipping-rules-row-actions' ),
+            shippingRuleViews = {},
 
             // Backbone model
-            ShippingRule       = Backbone.Model.extend({
-                changes: {},
-                logChanges: function( changedRows ) {
-                    var changes = this.changes || {};
-
-                    _.each( changedRows, function( row, id ) {
-                        changes[ id ] = _.extend( changes[ id ] || { rule_id : id }, row );
-                    } );
-
-                    this.changes = changes;
-
-                    this.trigger( 'change:rules' );
-                },
-                discardChanges: function( id ) {
-                    var changes      = this.changes || {};
-
-                    // Delete all changes
-                    delete changes[ id ];
-
-                    // No changes? Disable save button.
-                    if ( 0 === _.size( this.changes ) ) {
-                        shippingRuleView.clearUnloadConfirmation();
+            ShippingRule = Backbone.Model.extend({
+                updateRules: function(rules, packaging) {
+                    if ( 0 === Object.keys(rules).length ) {
+                        rules = {};
                     }
+
+                    var currentRules = {...this.get('rules')};
+                    currentRules[parseInt(packaging)] = rules;
+
+                    this.set('rules', currentRules);
+                },
+                getRulesByPackaging: function( packaging ) {
+                    var rules = {...this.get('rules')};
+
+                    return rules.hasOwnProperty(packaging) ? rules[parseInt(packaging)] : [];
                 }
             } ),
 
             // Backbone view
             ShippingRuleView = Backbone.View.extend({
                 rowTemplate: $row_template,
+                packaging: '',
                 initialize: function() {
-                    this.listenTo( this.model, 'change:rules', this.setUnloadConfirmation );
-                    $tbody.on( 'change', { view: this }, this.updateModelOnChange );
-                    $( window ).on( 'beforeunload', { view: this }, this.unloadConfirmation );
-                    $save_button.on( 'click', { view: this }, this.onSubmit );
-                    $( document.body ).on( 'click', '.wc-gzd-shipments-shipping-rule-add', { view: this }, this.onAddNewRow );
+                    this.packaging = $( this.el ).data('packaging');
+                    $( this.el ).on( 'change', { view: this }, this.updateModelOnChange );
                 },
                 block: function() {
                     $( this.el ).block({
@@ -55,25 +48,21 @@
                 unblock: function() {
                     $( this.el ).unblock();
                 },
+                getRules: function() {
+                    return this.model.getRulesByPackaging( this.packaging );
+                },
                 render: function() {
-                    var rules       = _.indexBy( this.model.get( 'rules' ), 'rule_id' ),
+                    var rules       = this.getRules(),
                         view        = this;
 
                     this.$el.empty();
                     this.unblock();
 
                     if ( _.size( rules ) ) {
-                        // Sort classes
-                        rules = _.sortBy( rules, function( rule ) {
-                            return rule.packaging;
-                        } );
-
                         // Populate $tbody with the current classes
                         $.each( rules, function( id, rowData ) {
                             view.renderRow( rowData );
                         } );
-                    } else {
-                        view.$el.append( $blank_template );
                     }
                 },
                 renderRow: function( rowData ) {
@@ -96,32 +85,12 @@
                     $tr.find( '.conditions-column:not(.conditions-when)' ).hide();
 
                     $tr.find( '.shipping-rules-type' ).on( 'change', { view: this }, this.onChangeRuleType );
-                    $tr.find( '.shipping-rules-delete' ).on( 'click', { view: this }, this.onDeleteRow );
-                    $tr.find( '.shipping-packaging' ).on( 'change', { view: this }, this.onChangePackaging );
-
                     $tr.find( '.shipping-rules-type' ).trigger( 'change' );
-                },
-                onChangePackaging: function( event ) {
-                    var view = event.data.view,
-                        model = view.model,
-                        $tr   = $( this ).closest('tr'),
-                        packaging = $(this).val();
 
-                    $lastTr = $tbody.find( '.shipping-packaging:has(option[value="' + packaging + '"]:selected)' ).not( this ).last().parents( 'tr ');
-
-                    if ( $lastTr.length > 0 ) {
-                        $tr.insertAfter( $lastTr );
-                        $tr.find( '.shipping-packaging' ).focus();
-                    } else {
-                        $tr.insertAfter($tbody.find('tr:last'));
-                    }
-
-                    $tr.addClass('packaging-' + packaging);
+                    $( document.body ).trigger( 'wc-enhanced-select-init' );
                 },
                 onChangeRuleType: function( event ) {
-                    var view    = event.data.view,
-                        model   = view.model,
-                        $tr     = $( this ).closest('tr'),
+                    var $tr     = $( this ).closest('tr'),
                         rule    = $(this).val();
 
                     $tr.find( '.shipping-rules-type-container' ).hide();
@@ -134,17 +103,15 @@
 
                     var view    = event.data.view,
                         model   = view.model,
-                        rules   = _.indexBy( model.get( 'rules' ), 'rule_id' ),
-                        changes = {},
+                        rules   = view.getRules(),
                         size    = _.size( rules ),
                         newRow  = _.extend( {}, data.default_shipping_rule, {
                             rule_id: 'new-' + size + '-' + Date.now(),
                             newRow : true
                         } );
 
-                    changes[ newRow.rule_id ] = newRow;
-
-                    model.logChanges( changes );
+                    rules[ newRow.rule_id ] = newRow;
+                    model.updateRules(rules, view.packaging);
                     view.renderRow( newRow );
                     $( '.wc-gzd-shipments-shipping-rules-blank-state' ).remove();
                 },
@@ -152,170 +119,144 @@
                     var view    = event.data.view,
                         model   = view.model,
                         rules   = _.indexBy( model.get( 'rules' ), 'rule_id' ),
-                        changes = {},
                         rule_id = $( this ).closest('tr').data('id');
 
                     event.preventDefault();
 
                     if ( rules[ rule_id ] ) {
                         delete rules[ rule_id ];
-                        changes[ rule_id ] = _.extend( changes[ rule_id ] || {}, { deleted : 'deleted' } );
                         model.set( 'rules', rules );
-                        model.logChanges( changes );
                     }
 
                     view.render();
                 },
-                setUnloadConfirmation: function() {
-                    this.needsUnloadConfirm = true;
-                    $save_button.prop( 'disabled', false );
-                },
-                clearUnloadConfirmation: function() {
-                    this.needsUnloadConfirm = false;
-                    $save_button.attr( 'disabled', 'disabled' );
-                },
-                unloadConfirmation: function( event ) {
-                    if ( event.data.view.needsUnloadConfirm ) {
-                        event.returnValue = data.strings.unload_confirmation_msg;
-                        window.event.returnValue = data.strings.unload_confirmation_msg;
-                        return data.strings.unload_confirmation_msg;
-                    }
-                },
                 updateModelOnChange: function( event ) {
-                    var model     = event.data.view.model,
+                    var view      = event.data.view,
+                        model     = view.model,
                         $target   = $( event.target ),
                         rule_id   = $target.closest( 'tr' ).data( 'id' ),
                         attribute = $target.data( 'attribute' ),
                         value     = $target.val(),
-                        rules     = _.indexBy( model.get( 'rules' ), 'rule_id' ),
-                        changes   = {};
+                        rules     = view.getRules();
 
                     if ( $target.is(':checkbox') ) {
                         value = $target.is(':checked') ? value : '';
                     }
 
-                    if ( ! rules[ rule_id ] || rules[ rule_id ][ attribute ] !== value ) {
-                        changes[ rule_id ] = {};
-                        changes[ rule_id ][ attribute ] = value;
-                    }
+                    if ( ! rules[ rule_id ] || String(rules[ rule_id ][ attribute ]) !== String(value) ) {
+                        rules[ rule_id ][ attribute ] = value;
 
-                    model.logChanges( changes );
+                        if ( String(rules[ rule_id ]['packaging']) !== String(view.packaging) ) {
+                            var newPackaging = rules[ rule_id ]['packaging'],
+                                newView = shippingRuleViews[newPackaging],
+                                newRules = newView.getRules();
+
+                            newRules[rule_id] = {...rules[rule_id]};
+                            delete rules[rule_id];
+
+                            model.updateRules( rules, view.packaging );
+                            newView.model.updateRules(newRules, newPackaging);
+
+                            view.render();
+                            newView.render();
+                        } else {
+                            model.updateRules( rules, view.packaging );
+                        }
+                    }
                 }
             } ),
             shippingRule = new ShippingRule({
                 rules: data.rules
-            } ),
-            shippingRuleView = new ShippingRuleView({
+            } );
+
+        $tbody.each( function() {
+            var view = new ShippingRuleView({
                 model:    shippingRule,
-                el:       $tbody
+                el:       $( this )
             } );
 
-        shippingRuleView.render();
+            view.render();
+            shippingRuleViews[$( this ).data('packaging')] = view;
 
-        // Sorting
-        $tbody.sortable({
-            items: 'tr',
-            cursor: 'move',
-            axis: 'y',
-            handle: 'td.sort',
-            scrollSensitivity: 40,
-            helper: function ( event, ui ) {
-                ui.children().each( function () {
-                    $( this ).width( $( this ).width() );
+            // Sorting
+            $( this ).sortable({
+                items: 'tr',
+                cursor: 'move',
+                axis: 'y',
+                handle: 'td.sort',
+                scrollSensitivity: 40,
+                helper: function ( event, ui ) {
+                    ui.children().each( function () {
+                        $( this ).width( $( this ).width() );
+                    } );
+                    ui.css( 'left', '0' );
+                    return ui;
+                },
+                start: function ( event, ui ) {
+                    ui.item.css( 'background-color', '#f6f6f6' );
+                },
+                stop: function ( event, ui ) {
+                    ui.item.removeAttr( 'style' );
+                    ui.item.trigger( 'updateMoveButtons' );
+                },
+            } );
+        } );
+
+        $( document).on( 'click', '.wc-gzd-shipments-shipping-rule-add', function() {
+            var packagingId = $( '.new-shipping-packaging' ).val(),
+                view = shippingRuleViews[packagingId],
+                rules = view.model.getRulesByPackaging(packagingId),
+                newRow  = _.extend( {}, data.default_shipping_rule, {
+                    rule_id: 'new-' + _.size(rules) + '-' + Date.now(),
+                    packaging: packagingId,
+                    newRow : true
                 } );
-                ui.css( 'left', '0' );
-                return ui;
-            },
-            start: function ( event, ui ) {
-                ui.item.css( 'background-color', '#f6f6f6' );
-            },
-            stop: function ( event, ui ) {
-                ui.item.removeAttr( 'style' );
-                ui.item.trigger( 'updateMoveButtons' );
-            },
+
+            rules[ newRow.rule_id ] = newRow;
+            view.model.updateRules(rules, packagingId);
+
+            shippingRuleViews[packagingId].renderRow(newRow);
+
+            return false;
         } );
 
-        var controlled = false;
-        var shifted = false;
-        var hasFocus = false;
+        $( document).on( 'change', '.wc-gzd-shipments-shipping-rules-rows input.cb', function() {
+             $selected = $( this ).parents( 'table' ).find( 'input.cb:checked' );
 
-        $( document.body ).on( 'keyup keydown', function ( e ) {
-            shifted = e.shiftKey;
-            controlled = e.ctrlKey || e.metaKey;
-        } );
+             if ( $selected.length > 0 ) {
+                 $table.find( '.wc-gzd-shipments-shipping-rule-remove' ).removeClass( 'disabled' );
+             } else {
+                 $table.find( '.wc-gzd-shipments-shipping-rule-remove' ).addClass( 'disabled' );
+             }
+        });
 
-        $tbody
-            .on( 'focus click', ':input:visible', function ( e ) {
-                var $this_table = $( this ).closest( 'table, tbody' );
-                var $this_row = $( this ).closest( 'tr' );
+        $( document).on( 'click', '.wc-gzd-shipments-shipping-rule-remove', function() {
+            var rules = shippingRule.get('rules'),
+                $button = $(this),
+                $table = $button.parents( 'table' ),
+                packagingIds = [];
 
-                if (
-                    ( e.type === 'focus' && hasFocus !== $this_row.index() ) ||
-                    ( e.type === 'click' && $( this ).is( ':focus' ) )
-                ) {
-                    hasFocus = $this_row.index();
+            $table.find( 'input.cb:checked' ).each( function() {
+                var id = $( this ).val(),
+                    $tr = $( this ).parents('tr'),
+                    packagingId = $tr.find('.shipping-packaging').val();
 
-                    if ( ! shifted && ! controlled ) {
-                        $( 'tr', $this_table )
-                            .removeClass( 'current' )
-                            .removeClass( 'last_selected' );
-                        $this_row
-                            .addClass( 'current' )
-                            .addClass( 'last_selected' );
-                    } else if ( shifted ) {
-                        $( 'tr', $this_table ).removeClass( 'current' );
-                        $this_row
-                            .addClass( 'selected_now' )
-                            .addClass( 'current' );
-
-                        if ( $( 'tr.last_selected', $this_table ).length > 0 ) {
-                            if (
-                                $this_row.index() >
-                                $( 'tr.last_selected', $this_table ).index()
-                            ) {
-                                $( 'tr', $this_table )
-                                    .slice(
-                                        $(
-                                            'tr.last_selected',
-                                            $this_table
-                                        ).index(),
-                                        $this_row.index()
-                                    )
-                                    .addClass( 'current' );
-                            } else {
-                                $( 'tr', $this_table )
-                                    .slice(
-                                        $this_row.index(),
-                                        $(
-                                            'tr.last_selected',
-                                            $this_table
-                                        ).index() + 1
-                                    )
-                                    .addClass( 'current' );
-                            }
-                        }
-
-                        $( 'tr', $this_table ).removeClass( 'last_selected' );
-                        $this_row.addClass( 'last_selected' );
-                    } else {
-                        $( 'tr', $this_table ).removeClass( 'last_selected' );
-                        if (
-                            controlled &&
-                            $( this ).closest( 'tr' ).is( '.current' )
-                        ) {
-                            $this_row.removeClass( 'current' );
-                        } else {
-                            $this_row
-                                .addClass( 'current' )
-                                .addClass( 'last_selected' );
-                        }
-                    }
-
-                    $( 'tr', $this_table ).removeClass( 'selected_now' );
+                if ( ! packagingIds.includes(packagingId) ) {
+                    packagingIds.push(packagingId);
                 }
-            } )
-            .on( 'blur', ':input:visible', function () {
-                hasFocus = false;
-            } );
+
+                delete rules[packagingId][ id ];
+            });
+
+            shippingRule.set('rules', rules);
+
+            packagingIds.forEach(function (packagingId, index) {
+                shippingRuleViews[packagingId].render();
+            });
+
+            $button.addClass('disabled');
+
+            return false;
+        } );
     });
 })( jQuery, wc_gzd_admin_shipping_rules_params, wp, ajaxurl );
