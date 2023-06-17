@@ -67,8 +67,34 @@ class ShippingMethod extends \WC_Shipping_Method {
 		add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
 	}
 
+	/**
+	 * @return ShippingProvider
+	 */
+    public function get_shipping_provider() {
+        return $this->shipping_provider;
+    }
+
     public function get_all_shipping_rules() {
-        return array_merge( ...array_values( $this->get_option( 'shipping_rules', array() ) ) );
+        return array_merge( ...array_values( $this->get_shipping_rules() ) );
+    }
+
+    public function get_shipping_rules() {
+	    return $this->get_option( 'shipping_rules', array() );
+    }
+
+    public function get_shipping_rules_by_packaging( $packaging ) {
+        $shipping_rules  = $this->get_shipping_rules();
+        $packaging_rules = array();
+
+        if ( array_key_exists( $packaging, $shipping_rules ) ) {
+	        $packaging_rules = $shipping_rules[ $packaging ];
+        }
+
+        if ( array_key_exists( 'all', $shipping_rules ) ) {
+            $packaging_rules = array_merge( $packaging_rules, $shipping_rules['all'] );
+        }
+
+        return $packaging_rules;
     }
 
     public function admin_options() {
@@ -166,8 +192,25 @@ class ShippingMethod extends \WC_Shipping_Method {
         );
     }
 
-    public function get_available_packaging() {
+    public function get_rule_type( $type ) {
+        $rule_types = $this->get_rule_types();
+        $rule_type  = false;
 
+        if ( array_key_exists( $type, $rule_types ) ) {
+            return $rule_types[ $type ];
+        }
+
+        return $rule_type;
+    }
+
+    public function get_rate_label( $costs ) {
+        $label = $this->get_method_title();
+
+        if ( 0.0 === $costs ) {
+            $label = sprintf( _x( 'Free Shipping (via %1$s)', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_shipping_provider()->get_title() );
+        }
+
+        return $label;
     }
 
     public function get_cache( $property = null, $default = null ) {
@@ -187,11 +230,9 @@ class ShippingMethod extends \WC_Shipping_Method {
     }
 
     public function calculate_shipping( $package = array() ) {
-        return;
-
         $cache  = $this->get_cache();
         $items  = array();
-        $boxes  = BoxList::fromArray( Helper::get_available_packaging( $cache['packaging_ids'] ) );
+        $boxes  = \DVDoug\BoxPacker\BoxList::fromArray( Helper::get_available_packaging( $cache['packaging_ids'] ) );
 
 	    foreach ( $package['contents'] as $item_id => $values ) {
             if ( isset( $values['package'] ) ) {
@@ -204,35 +245,118 @@ class ShippingMethod extends \WC_Shipping_Method {
 	             * the first box as full as possible to make sure a smaller box can be used for a second box.
 	             */
 	            $packer->setMaxBoxesToBalanceWeight( 0 );
-	            $boxes = $packer->pack();
+	            $packed_boxes = $packer->pack();
 
 	            // Items that do not fit in any box
 	            $items_too_large = $packer->getUnpackedItems();
 
                 if ( 0 <= $items_too_large->count() ) {
-	                foreach ( $boxes as $box ) {
+	                foreach ( $packed_boxes as $box ) {
 		                $packaging = $box->getBox();
 		                $items     = $box->getItems();
 
-                        $total_weight = $items->getWeight();
-                        $volume       = $items->getVolume();
+                        $total_weight = wc_get_weight( $items->getWeight(), strtolower( get_option( 'woocommerce_weight_unit' ) ), 'g' );
+                        $volume       = wc_get_dimension( $items->getVolume(), strtolower( get_option( 'woocommerce_dimension_unit' ) ), 'mm' );
+                        $item_count   = $items->count();
                         $total        = 0;
                         $subtotal     = 0;
+                        $products     = array();
 
                         foreach( $items as $item ) {
                             $cart_item = $item->getItem();
                             $total    += $cart_item->getTotal();
 	                        $subtotal += $cart_item->getSubtotal();
+                            $product  =  $cart_item->get_product();
+
+                            if ( $product && ! array_key_exists( $product->get_id(), $products ) ) {
+                                $products[ $product->get_id() ] = $product;
+                            }
                         }
 
                         $total    = wc_remove_number_precision( $total );
 		                $subtotal = wc_remove_number_precision( $subtotal );
 
+                        $packaging_rules = $this->get_shipping_rules_by_packaging( $packaging->get_id() );
+                        $package_data    = array(
+                            'total'        => $total,
+                            'subtotal'     => $subtotal,
+                            'weight'       => $total_weight,
+                            'volume'       => $volume,
+                            'item_count'   => $item_count,
+                            'packaging_id' => $packaging->get_id(),
+                            'products'     => $products,
+                        );
 
+                        foreach( array_reverse( $packaging_rules ) as $rule ) {
+                            $rule         = $this->parse_rule( $rule );
+                            $rule_applies = $this->rule_applies( $rule, $package_data );
+
+                            if ( $rule_applies ) {
+                                $this->add_rate( array(
+                                    'cost'    => $rule['costs'],
+                                    'label'   => $this->get_rate_label( $rule['costs'] ),
+                                    'package' => $package,
+                                ) );
+
+                                break;
+                            }
+                        }
 	                }
                 }
             }
 	    }
+    }
+
+    protected function parse_rule( $rule ) {
+	    $rule = wp_parse_args( $rule, array(
+		    'rule_id'   => '',
+		    'packaging' => '',
+		    'type'      => 'always',
+		    'costs'     => 0.0,
+		    'meta'      => array(),
+	    ) );
+
+        $rule['costs'] = (float) wc_format_decimal( $rule['costs'] );
+
+        return $rule;
+    }
+
+    protected function rule_applies( $rule, $package_data ) {
+        $rule_applies = false;
+        $rule         = $this->parse_rule( $rule );
+        $package_data = wp_parse_args( $package_data, array(
+            'weight'    => 0.0,
+            'volume'    => 0.0,
+            'total'     => 0.0,
+            'subtotal'  => 0.0,
+            'products'  => array(),
+        ) );
+
+        if ( $rule_type = $this->get_rule_type( $rule['type'] ) ) {
+            $rule_type_name = sanitize_key( $rule['type'] );
+
+            if ( has_filter( "woocommerce_gzd_shipping_rule_{$rule_type_name}_applies" ) ) {
+                $rule_applies = apply_filters( "woocommerce_gzd_shipping_rule_{$rule_type_name}_applies", $package_data, $rule );
+            } elseif ( 'always' === $rule_type_name ) {
+                $rule_applies = true;
+            } elseif ( 'weight' === $rule_type_name ) {
+                $from = isset( $rule['weight_from'] ) && ! empty( $rule['weight_from'] ) ? (float) wc_format_decimal( $rule['weight_from'] ) : 0.0;
+	            $to   = isset( $rule['weight_to'] ) && ! empty( $rule['weight_to'] ) ? (float) wc_format_decimal( $rule['weight_to'] ) : 0.0;
+
+                if ( $package_data['weight'] >= $from && ( $package_data['weight'] < $to || 0.0 === $to ) ) {
+                    $rule_applies = true;
+                }
+            } elseif ( 'total' === $rule_type_name ) {
+	            $from = isset( $rule['total_from'] ) && ! empty( $rule['total_from'] ) ? (float) wc_format_decimal( $rule['total_from'] ) : 0.0;
+	            $to   = isset( $rule['total_to'] ) && ! empty( $rule['total_to'] ) ? (float) wc_format_decimal( $rule['total_to'] ) : 0.0;
+
+	            if ( $package_data['total'] >= $from && ( $package_data['total'] < $to || 0.0 === $to ) ) {
+		            $rule_applies = true;
+	            }
+            }
+        }
+
+        return $rule_applies;
     }
 
 	protected function validate_shipping_rules_field( $option_name, $option_value ) {
@@ -291,6 +415,32 @@ class ShippingMethod extends \WC_Shipping_Method {
         return $rules;
     }
 
+    protected function get_packaging_list( $add_all_option = true ) {
+        $packaging_select = array();
+
+        if ( $add_all_option ) {
+	        $packaging_select = array(
+		        'all' => _x( 'All packaging', 'shipments', 'woocommerce-germanized-shipments' )
+	        );
+        }
+
+        foreach( wc_gzd_get_packaging_list() as $packaging ) {
+            $packaging_select[ $packaging->get_id() ] = $packaging->get_title();
+        }
+
+        return $packaging_select;
+    }
+
+    protected function get_packaging_help_tip( $packaging ) {
+        $help_tip = '';
+
+        if ( 'all' === $packaging ) {
+            $help_tip = _x( 'Shipping rules will override any other rules from specific packaging.', 'shipments', 'woocommerce-germanized-shipments' );
+        }
+
+        return $help_tip;
+    }
+
 	protected function generate_shipping_rules_html( $option_name, $option ) {
         ob_start();
         $field_key = $this->get_field_key( 'shipping_rules' );
@@ -315,16 +465,16 @@ class ShippingMethod extends \WC_Shipping_Method {
                     </th>
 				</tr>
 			</thead>
-			<?php foreach( wc_gzd_get_packaging_list() as $packaging ) : ?>
-                <tbody class="wc-gzd-shipments-shipping-rules-rows" data-packaging="<?php echo esc_attr( $packaging->get_id() ); ?>" id="wc-gzd-shipments-shipping-rules-packaging-<?php echo esc_attr( $packaging->get_id() ); ?>">
+			<?php foreach( $this->get_packaging_list() as $name => $title ) : ?>
+                <tbody class="wc-gzd-shipments-shipping-rules-rows" data-title="<?php echo esc_html( $title ); ?>" data-help-tip="<?php echo esc_html( $this->get_packaging_help_tip( $name ) ); ?>" data-packaging="<?php echo esc_attr( $name ); ?>" id="wc-gzd-shipments-shipping-rules-packaging-<?php echo esc_attr( $name ); ?>">
                 </tbody>
 			<?php endforeach; ?>
 			<tfoot>
 				<tr>
 					<th colspan="7">
                         <select class="wc-enhanced-select new-shipping-packaging">
-							<?php foreach( wc_gzd_get_packaging_list() as $packaging ) : ?>
-                                <option value="<?php echo esc_attr( $packaging->get_id() ); ?>"><?php echo esc_html( $packaging->get_title() ); ?></option>
+							<?php foreach( $this->get_packaging_list() as $name => $title ) : ?>
+                                <option value="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $title ); ?></option>
 							<?php endforeach; ?>
                         </select>
                         <a class="button button-primary wc-gzd-shipments-shipping-rule-add" href="#"><?php echo esc_html_x( 'Add new', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
@@ -333,9 +483,9 @@ class ShippingMethod extends \WC_Shipping_Method {
 				</tr>
 			</tfoot>
 		</table>
-        <script type="text/html" id="tmpl-wc-gzd-shipments-shipping-rules-row-blank">
-            <tr>
-                <td colspan="6" class="wc-gzd-shipments-shipping-rules-blank-state"><?php echo esc_html_x( 'No rules yet', 'shipments', 'woocommerce-germanized-shipments' ); ?></td>
+        <script type="text/html" id="tmpl-wc-gzd-shipments-shipping-rules-packaging-info">
+            <tr class="wc-gzd-shipments-shipping-rules-packaging-info">
+                <td colspan="7"><p class="packaging-info"><span class="packaging-title"></span><span class="woocommerce-help-tip" tabindex="0" aria-label="" data-tip=""></span></p></td>
             </tr>
         </script>
         <script type="text/html" id="tmpl-wc-gzd-shipments-shipping-rules-row">
@@ -349,8 +499,8 @@ class ShippingMethod extends \WC_Shipping_Method {
                 </td>
                 <td class="packaging">
                     <select class="wc-enhanced-select shipping-packaging" name="<?php echo esc_attr( $field_key ); ?>[packaging][{{ data.rule_id }}]" data-attribute="packaging">
-                        <?php foreach( wc_gzd_get_packaging_list() as $packaging ) : ?>
-                            <option value="<?php echo esc_attr( $packaging->get_id() ); ?>"><?php echo esc_html( $packaging->get_title() ); ?></option>
+                        <?php foreach( $this->get_packaging_list() as $name => $title ) : ?>
+                            <option value="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( $title ); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </td>

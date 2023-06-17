@@ -3,10 +3,8 @@
     $( function() {
         var $tbody            = $( '.wc-gzd-shipments-shipping-rules-rows' ),
             $table            = $( '.wc-gzd-shipments-shipping-rules' ),
-            $save_button      = $( '.wc-gzd-shipments-shipping-rules-save' ),
             $row_template     = wp.template( 'wc-gzd-shipments-shipping-rules-row' ),
-            $blank_template   = wp.template( 'wc-gzd-shipments-shipping-rules-row-blank' ),
-            $action_template  = wp.template( 'wc-gzd-shipments-shipping-rules-row-actions' ),
+            $packaging_info   = wp.template( 'wc-gzd-shipments-shipping-rules-packaging-info' ),
             shippingRuleViews = {},
 
             // Backbone model
@@ -17,14 +15,14 @@
                     }
 
                     var currentRules = {...this.get('rules')};
-                    currentRules[parseInt(packaging)] = rules;
+                    currentRules[String(packaging)] = rules;
 
                     this.set('rules', currentRules);
                 },
                 getRulesByPackaging: function( packaging ) {
                     var rules = {...this.get('rules')};
 
-                    return rules.hasOwnProperty(packaging) ? rules[parseInt(packaging)] : [];
+                    return rules.hasOwnProperty(String(packaging)) ? rules[String(packaging)] : [];
                 }
             } ),
 
@@ -33,7 +31,7 @@
                 rowTemplate: $row_template,
                 packaging: '',
                 initialize: function() {
-                    this.packaging = $( this.el ).data('packaging');
+                    this.packaging = String($( this.el ).data('packaging'));
                     $( this.el ).on( 'change', { view: this }, this.updateModelOnChange );
                 },
                 block: function() {
@@ -71,8 +69,9 @@
                     view.initRow( rowData );
                 },
                 initRow: function( rowData ) {
-                    var view = this;
-                    var $tr = view.$el.find( 'tr[data-id="' + rowData.rule_id + '"]');
+                    var view = this,
+                        $tr = view.$el.find( 'tr[data-id="' + rowData.rule_id + '"]'),
+                        $tbody = $tr.parents( 'tbody' );
 
                     // Support select boxes
                     $tr.find( 'select' ).each( function() {
@@ -87,7 +86,21 @@
                     $tr.find( '.shipping-rules-type' ).on( 'change', { view: this }, this.onChangeRuleType );
                     $tr.find( '.shipping-rules-type' ).trigger( 'change' );
 
+                    if ( $tbody.find( 'tr.wc-gzd-shipments-shipping-rules-packaging-info' ).length <= 0 ) {
+                        $tbody.prepend( $packaging_info );
+                        var $packagingTr = $tbody.find( 'tr.wc-gzd-shipments-shipping-rules-packaging-info' );
+
+                        $packagingTr.find( '.packaging-title' ).html( $tbody.data( 'title' ) );
+
+                        if ( $tbody.data( 'help-tip' ) ) {
+                            $packagingTr.find( '.woocommerce-help-tip' ).attr( 'data-tip', $tbody.data( 'help-tip' ) );
+                        } else {
+                            $packagingTr.find( '.woocommerce-help-tip' ).remove();
+                        }
+                    }
+
                     $( document.body ).trigger( 'wc-enhanced-select-init' );
+                    $( document.body ).trigger( 'init_tooltips' );
                 },
                 onChangeRuleType: function( event ) {
                     var $tr     = $( this ).closest('tr'),

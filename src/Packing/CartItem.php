@@ -62,7 +62,7 @@ class CartItem implements Item {
 	/**
 	 * @return \WC_Product
 	 */
-	protected function get_product() {
+	public function get_product() {
 		return $this->product;
 	}
 

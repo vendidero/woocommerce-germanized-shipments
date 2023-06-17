@@ -172,6 +172,28 @@ table.wc-gzd-shipments-shipping-rules {
   }
 
   tbody {
+    tr.wc-gzd-shipments-shipping-rules-packaging-info {
+      td {
+        background: #f0f0f1;
+        padding: 0.2em 1em !important;
+        border-top: 1px solid #c3c4c7;
+        border-bottom: 1px solid #c3c4c7;
+
+        p {
+          margin: 0;
+
+          .packaging-title {
+            font-weight: 500;
+            font-size: 11px;
+          }
+
+          .woocommerce-help-tip {
+            margin-left: 5px;
+          }
+        }
+      }
+    }
+
     td {
       &.sort {
         cursor: move;
@@ -228,10 +250,6 @@ table.wc-gzd-shipments-shipping-rules {
           font-size: 11px;
         }
       }
-    }
-
-    tr:first-child td {
-      border-top: 1px solid #c3c4c7;
     }
 
     tr:nth-child(even) td {
