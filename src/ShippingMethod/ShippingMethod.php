@@ -4,6 +4,7 @@ namespace Vendidero\Germanized\Shipments\ShippingMethod;
 use DVDoug\BoxPacker\BoxList;
 use Vendidero\Germanized\Shipments\Admin\Settings;
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
+use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Packing\Helper;
 use Vendidero\Germanized\Shipments\SimpleShipment;
 
@@ -12,6 +13,8 @@ defined( 'ABSPATH' ) || exit;
 class ShippingMethod extends \WC_Shipping_Method {
 
 	protected $shipping_provider = null;
+
+    protected $zone = null;
 
 	/**
 	 * Constructor.
@@ -117,6 +120,66 @@ class ShippingMethod extends \WC_Shipping_Method {
 	    wp_enqueue_script( 'wc-gzd-admin-shipping-rules' );
 
 	    parent::admin_options();
+    }
+
+	/**
+	 * @return false|\WC_Shipping_Zone
+	 */
+    public function get_zone() {
+	    if ( $this->get_instance_id() > 0 ) {
+            if ( is_null( $this->zone ) ) {
+	            $this->zone = \WC_Shipping_Zones::get_zone_by( 'instance_id', $this->get_instance_id() );
+            }
+
+            return $this->zone;
+	    }
+
+        return false;
+    }
+
+    public function get_label_zones() {
+        $zones          = array();
+        $base_country   = Package::get_base_country();
+        $base_continent = WC()->countries->get_continent_code_for_country( $base_country );
+        $available_zones = array( 'international', 'eu', 'domestic' );
+
+	    if ( $zone = $this->get_zone() ) {
+            foreach( $zone->get_zone_locations() as $location ) {
+                if ( 'continent' === $location->type ) {
+	                $zones = array(
+		                'international',
+	                );
+
+                    if ( $base_continent === $location->code ) {
+                        $zones = array_merge( $zones, array( 'domestic' ) );
+                    }
+
+                    if ( 'EU' === $location->code ) {
+	                    $zones = array_merge( $zones, array( 'eu' ) );
+                    }
+                } elseif ( 'country' === $location->type || 'state' === $location->type ) {
+                    $location_data = wc_format_country_state_string( $location->code );
+
+                    if ( ! empty( $location_data['country'] ) ) {
+                        if ( Package::is_shipping_domestic( $location_data['country'] ) ) {
+	                        $zones = array_merge( $zones, array( 'domestic' ) );
+                        } elseif ( Package::is_shipping_inner_eu_country( $location_data['country'] ) ) {
+	                        $zones = array_merge( $zones, array( 'eu' ) );
+                        } else {
+	                        $zones = array_merge( $zones, array( 'international' ) );
+                        }
+                    }
+                }
+
+                $zones = array_unique( $zones );
+
+                if ( count( $available_zones ) === count( $zones ) ) {
+                    break;
+                }
+            }
+	    }
+
+        return $zones;
     }
 
 	public function init_form_fields() {
@@ -231,80 +294,104 @@ class ShippingMethod extends \WC_Shipping_Method {
 
     public function calculate_shipping( $package = array() ) {
         $cache  = $this->get_cache();
-        $items  = array();
         $boxes  = \DVDoug\BoxPacker\BoxList::fromArray( Helper::get_available_packaging( $cache['packaging_ids'] ) );
 
-	    foreach ( $package['contents'] as $item_id => $values ) {
-            if ( isset( $values['package'] ) ) {
-	            $packer = new \DVDoug\BoxPacker\InfalliblePacker();
-                $packer->setBoxes( $boxes );
-                $packer->setItems( $values['package'] );
+        if ( isset( $package['package_items'] ) ) {
+	        $total_cost    = 0.0;
+            $applied_rules = array();
+            $rule_ids = array();
+            $packaging_ids = array();
 
-	            /**
-	             * Make sure to not try to spread/balance weights. Instead try to pack
-	             * the first box as full as possible to make sure a smaller box can be used for a second box.
-	             */
-	            $packer->setMaxBoxesToBalanceWeight( 0 );
-	            $packed_boxes = $packer->pack();
+	        foreach( $package['package_items'] as $shipping_class => $items_to_pack ) {
+		        $packer = new \DVDoug\BoxPacker\InfalliblePacker();
+		        $packer->setBoxes( $boxes );
+		        $packer->setItems( $items_to_pack );
 
-	            // Items that do not fit in any box
-	            $items_too_large = $packer->getUnpackedItems();
+		        /**
+		         * Make sure to not try to spread/balance weights. Instead try to pack
+		         * the first box as full as possible to make sure a smaller box can be used for a second box.
+		         */
+		        $packer->setMaxBoxesToBalanceWeight( 0 );
+		        $packed_boxes = $packer->pack();
 
-                if ( 0 <= $items_too_large->count() ) {
-	                foreach ( $packed_boxes as $box ) {
-		                $packaging = $box->getBox();
-		                $items     = $box->getItems();
+		        // Items that do not fit in any box
+		        $items_too_large = $packer->getUnpackedItems();
 
-                        $total_weight = wc_get_weight( $items->getWeight(), strtolower( get_option( 'woocommerce_weight_unit' ) ), 'g' );
-                        $volume       = wc_get_dimension( $items->getVolume(), strtolower( get_option( 'woocommerce_dimension_unit' ) ), 'mm' );
-                        $item_count   = $items->count();
-                        $total        = 0;
-                        $subtotal     = 0;
-                        $products     = array();
+		        if ( 0 <= $items_too_large->count() ) {
+			        foreach ( $packed_boxes as $box ) {
+				        $packaging = $box->getBox();
+				        $items     = $box->getItems();
 
-                        foreach( $items as $item ) {
-                            $cart_item = $item->getItem();
-                            $total    += $cart_item->getTotal();
-	                        $subtotal += $cart_item->getSubtotal();
-                            $product  =  $cart_item->get_product();
+				        $total_weight = wc_get_weight( $items->getWeight(), strtolower( get_option( 'woocommerce_weight_unit' ) ), 'g' );
+				        $volume       = wc_get_dimension( $items->getVolume(), strtolower( get_option( 'woocommerce_dimension_unit' ) ), 'mm' );
+				        $item_count   = $items->count();
+				        $total        = 0;
+				        $subtotal     = 0;
+				        $products     = array();
 
-                            if ( $product && ! array_key_exists( $product->get_id(), $products ) ) {
-                                $products[ $product->get_id() ] = $product;
-                            }
+				        foreach( $items as $item ) {
+					        $cart_item = $item->getItem();
+					        $total    += $cart_item->getTotal();
+					        $subtotal += $cart_item->getSubtotal();
+					        $product  =  $cart_item->get_product();
+
+					        if ( $product && ! array_key_exists( $product->get_id(), $products ) ) {
+						        $products[ $product->get_id() ] = $product;
+					        }
+				        }
+
+				        $total    = wc_remove_number_precision( $total );
+				        $subtotal = wc_remove_number_precision( $subtotal );
+
+				        $packaging_rules = $this->get_shipping_rules_by_packaging( $packaging->get_id() );
+				        $package_data    = array(
+					        'total'        => $total,
+					        'subtotal'     => $subtotal,
+					        'weight'       => $total_weight,
+					        'volume'       => $volume,
+					        'item_count'   => $item_count,
+					        'packaging_id' => $packaging->get_id(),
+					        'products'     => $products,
+				        );
+
+                        $package_applied_rules = array();
+
+				        foreach( array_reverse( $packaging_rules ) as $rule ) {
+					        $rule         = $this->parse_rule( $rule );
+					        $rule_applies = $this->rule_applies( $rule, $package_data );
+
+					        if ( $rule_applies ) {
+						        $total_cost += $rule['costs'];
+						        $package_applied_rules[] = $rule['rule_id'];
+
+						        break;
+					        }
+				        }
+
+                        if ( ! empty( $package_applied_rules ) ) {
+	                        $applied_rules[] = array(
+		                        'packaging_id' => $packaging->get_id(),
+		                        'rules'        => $package_applied_rules
+	                        );
+
+                            $rule_ids = array_unique( array_merge( $rule_ids, $package_applied_rules ) );
+	                        $packaging_ids = array_unique( array_merge( $packaging_ids, array( $packaging->get_id() ) ) );
                         }
-
-                        $total    = wc_remove_number_precision( $total );
-		                $subtotal = wc_remove_number_precision( $subtotal );
-
-                        $packaging_rules = $this->get_shipping_rules_by_packaging( $packaging->get_id() );
-                        $package_data    = array(
-                            'total'        => $total,
-                            'subtotal'     => $subtotal,
-                            'weight'       => $total_weight,
-                            'volume'       => $volume,
-                            'item_count'   => $item_count,
-                            'packaging_id' => $packaging->get_id(),
-                            'products'     => $products,
-                        );
-
-                        foreach( array_reverse( $packaging_rules ) as $rule ) {
-                            $rule         = $this->parse_rule( $rule );
-                            $rule_applies = $this->rule_applies( $rule, $package_data );
-
-                            if ( $rule_applies ) {
-                                $this->add_rate( array(
-                                    'cost'    => $rule['costs'],
-                                    'label'   => $this->get_rate_label( $rule['costs'] ),
-                                    'package' => $package,
-                                ) );
-
-                                break;
-                            }
-                        }
-	                }
-                }
+			        }
+		        }
             }
-	    }
+
+	        if ( ! empty( $applied_rules ) ) {
+		        $this->add_rate( array(
+			        'cost'          => $total_cost,
+			        'label'         => $this->get_rate_label( $total_cost ),
+			        'package'       => $package,
+                    'packages'      => $applied_rules,
+                    'rule_ids'      => $rule_ids,
+                    'packaging_ids' => $packaging_ids,
+		        ) );
+	        }
+        }
     }
 
     protected function parse_rule( $rule ) {

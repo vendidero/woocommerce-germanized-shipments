@@ -41,6 +41,16 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		'order',
 	);
 
+	/**
+	 * Data stored in meta keys, but not considered "meta" for a packaging.
+	 *
+	 * @since 3.0.0
+	 * @var array
+	 */
+	protected $internal_meta_keys = array(
+		'_shipping_providers',
+	);
+
 	/*
 	|--------------------------------------------------------------------------
 	| CRUD Methods

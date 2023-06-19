@@ -7,6 +7,7 @@
  */
 namespace Vendidero\Germanized\Shipments;
 
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
@@ -59,6 +60,7 @@ class Packaging extends WC_Data {
 		'order'              => 0,
 		'type'               => '',
 		'description'        => '',
+		'shipping_providers' => array(),
 	);
 
 	/**
@@ -216,6 +218,22 @@ class Packaging extends WC_Data {
 		return $this->get_prop( 'height', $context );
 	}
 
+	/**
+	 * Returns the available shipping provider names.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return array
+	 */
+	public function get_shipping_providers( $context = 'view' ) {
+		$provider_names = $this->get_prop( 'shipping_providers', $context );
+
+		if ( 'view' === $context && empty( $provider_names ) ) {
+			$provider_names = array_keys( Helper::instance()->get_available_shipping_providers() );
+		}
+
+		return $provider_names;
+	}
+
 	public function has_dimensions() {
 		$width  = $this->get_width();
 		$length = $this->get_length();
@@ -308,6 +326,15 @@ class Packaging extends WC_Data {
 	 */
 	public function set_description( $description ) {
 		$this->set_prop( 'description', $description );
+	}
+
+	/**
+	 * Set packaging shipping providers
+	 *
+	 * @param array $provider_names The provider names
+	 */
+	public function set_shipping_providers( $provider_names ) {
+		$this->set_prop( 'shipping_providers', array_filter( (array) $provider_names ) );
 	}
 
 	/**

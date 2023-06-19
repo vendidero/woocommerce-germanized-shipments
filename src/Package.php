@@ -85,12 +85,24 @@ class Package {
 
 	public static function add_cart_packaging( $cart_contents ) {
 		foreach( $cart_contents as $index => $content ) {
-			foreach( $cart_contents[ $index ]['contents'] as $content_key => $data ) {
-				$items = new ItemList();
-				$items->insert( new CartItem( $data ), $data['quantity'] );
+			$items = array();
 
-				$cart_contents[ $index ]['contents'][ $content_key ]['package'] = $items;
+			foreach( $content['contents'] as $content_key => $data ) {
+				$cart_item      = new CartItem( $data );
+				$shipping_class = '';
+
+				if ( $cart_item->get_product() ) {
+					$shipping_class = $cart_item->get_product()->get_shipping_class();
+				}
+
+				if ( ! array_key_exists( $shipping_class, $items ) ) {
+					$items[ $shipping_class ] = new ItemList();
+				}
+
+				$items[ $shipping_class ]->insert( $cart_item, $data['quantity'] );
 			}
+
+			$cart_contents[ $index ]['package_items'] = $items;
 		}
 
 		return $cart_contents;

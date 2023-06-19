@@ -724,6 +724,10 @@ function wc_gzd_get_shipping_providers() {
 	return ShippingProvider\Helper::instance()->get_shipping_providers();
 }
 
+function wc_gzd_get_available_shipping_providers() {
+	return ShippingProvider\Helper::instance()->get_available_shipping_providers();
+}
+
 function wc_gzd_get_shipping_provider( $name ) {
 	return ShippingProvider\Helper::instance()->get_shipping_provider( $name );
 }

@@ -9,8 +9,10 @@ namespace Vendidero\Germanized\Shipments\ShippingProvider;
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto;
 use Vendidero\Germanized\Shipments\Labels\Factory;
 use Vendidero\Germanized\Shipments\Package;
+use Vendidero\Germanized\Shipments\Packaging;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ShipmentError;
+use Vendidero\Germanized\Shipments\SimpleShipment;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -549,6 +551,75 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		}
 
 		return new ShipmentError( 'label-error', _x( 'Error while creating the label.', 'shipments', 'woocommerce-germanized-shipments' ) );
+	}
+
+	public function get_available_label_zones() {
+		return array(
+			'dom',
+			'eu',
+			'int'
+		);
+	}
+
+	/**
+	 * @param Packaging $packaging
+	 *
+	 * @return array
+	 */
+	public function get_packaging_label_settings( $packaging ) {
+		$label_settings = array();
+		$provider_label_settings = $this->get_label_settings();
+		$product_setting_ids = array();
+		$product_settings = array();
+
+		foreach( $this->get_available_label_zones() as $zone ) {
+			$product_setting_ids[ $zone ] = 'label_default_product_' . $zone;
+		}
+
+		foreach( $provider_label_settings as $label_setting ) {
+			if ( isset( $label_setting['id'] ) ) {
+				$zone = array_search( $label_setting['id'], $product_setting_ids );
+
+				if ( false !== $zone ) {
+					$product_settings[ $zone ] = $label_setting;
+				}
+			}
+		}
+
+		foreach( $this->get_available_label_zones() as $zone ) {
+			if ( ! array_key_exists( $zone, $product_settings ) ) {
+				continue;
+			}
+
+			$label_settings = array_merge( $label_settings, array(
+				array(
+					'title' => $zone,
+					'type'  => 'title',
+					'id'    => 'packaging_label_settings_' . $zone,
+				),
+			) );
+
+			$label_settings = array_merge( $label_settings, array(
+				array(
+					'title'   => _x( 'Default Service', 'shipments', 'woocommerce-germanized-shipments' ),
+					'type'    => 'select',
+					'id'      => 'default_product_' . $zone,
+					'default' => $product_settings[ $zone ]['default'],
+					'value'   => '',
+					'options' => $product_settings[ $zone ]['options'],
+					'class'   => 'wc-enhanced-select',
+				),
+			) );
+
+			$label_settings = array_merge( $label_settings, array(
+				array(
+					'type'  => 'sectionend',
+					'id'    => 'packaging_label_settings_' . $zone,
+				),
+			) );
+		}
+
+		return $label_settings;
 	}
 
 	/**

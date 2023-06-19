@@ -65,6 +65,9 @@ class Admin {
 		// Observe base country setting
 		add_action( 'woocommerce_settings_save_general', array( __CLASS__, 'observe_base_country_setting' ), 100 );
 
+		add_action( 'admin_menu', array( __CLASS__, 'add_packaging_page' ), 25 );
+		add_action( 'admin_head', array( __CLASS__, 'hide_packaging_page_from_menu' ) );
+
 		add_action(
 			'admin_init',
 			function() {
@@ -76,6 +79,80 @@ class Admin {
 				add_filter( 'bulk_actions-' . ( 'shop_order' === self::get_order_screen_id() ? 'edit-shop_order' : self::get_order_screen_id() ), array( __CLASS__, 'define_order_bulk_actions' ), 10, 1 );
 			}
 		);
+	}
+
+    public static function add_packaging_page() {
+	    add_submenu_page( 'woocommerce', _x( 'Packaging', 'shipments', 'woocommerce-germanized-shipments' ), _x( 'Packaging', 'shipments', 'woocommerce-germanized-shipments' ), 'manage_woocommerce', 'shipment-packaging', array( __CLASS__, 'render_packaging_page' ) );
+    }
+
+    public static function get_packaging_admin_url( $packaging_id, $provider_name = '' ) {
+        $args = array( 'packaging' => absint( $packaging_id ) );
+
+        if ( ! empty( $provider_name ) ) {
+            $args['provider'] = $provider_name;
+        }
+
+        return esc_url_raw( add_query_arg( $args, admin_url( 'admin.php?page=shipment-packaging' ) ) );
+    }
+
+    public static function render_packaging_page() {
+	    if ( isset( $_GET['packaging'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		    $packaging_id = isset( $_GET['packaging'] ) ? absint( wp_unslash( $_GET['packaging'] ) ) : false; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		    if ( ! $packaging_id ) {
+			    return;
+		    }
+
+		    if ( ! $packaging = wc_gzd_get_packaging( $packaging_id ) ) {
+			    return;
+		    }
+
+            $auto_shipping_providers = array();
+            $current_provider_name = isset( $_GET['provider'] ) ? wc_clean( wp_unslash( $_GET['provider'] ) ) : false;
+
+		    foreach( $packaging->get_shipping_providers() as $provider_name ) {
+                if ( $provider = wc_gzd_get_shipping_provider( $provider_name ) ) {
+                    if ( $provider->is_activated() && ! $provider->is_manual_integration() ) {
+                        $auto_shipping_providers[ $provider_name ] = $provider;
+
+                        if ( false === $current_provider_name ) {
+	                        $current_provider_name = $provider_name;
+                        }
+                    }
+                }
+            }
+
+            if ( ! array_key_exists( $current_provider_name, $auto_shipping_providers ) ) {
+	            $current_provider_name = false;
+		    }
+
+            if ( ! $current_provider_name ) {
+                return;
+            }
+
+		    $current_provider = $auto_shipping_providers[ $current_provider_name ];
+            $settings         = $current_provider->get_packaging_label_settings( $packaging );
+		    ?>
+            <div class="wrap wc-gzd-shipments-packaging packaging-<?php echo esc_attr( $packaging->get_id() ); ?>">
+                <h1 class="wp-heading-inline"><?php echo esc_html( $packaging->get_title() ); ?></h1>
+                <hr class="wp-header-end" />
+
+                <form method="post" action="" enctype="multipart/form-data">
+                    <nav class="nav-tab-wrapper woo-nav-tab-wrapper">
+	                    <?php foreach( $auto_shipping_providers as $provider_name => $provider ) : ?>
+                            <a href="<?php echo esc_url( self::get_packaging_admin_url( $packaging->get_id(), $provider_name ) ); ?>" class="nav-tab <?php echo esc_attr( $provider_name === $current_provider_name ? 'nav-tab-active' : '' ); ?>"><?php echo esc_html( $provider->get_title() ); ?></a>
+	                    <?php endforeach; ?>
+                    </nav>
+
+                    <?php \WC_Admin_Settings::output_fields( $settings ); ?>
+                </form>
+            </div>
+		    <?php
+	    }
+    }
+
+	public static function hide_packaging_page_from_menu() {
+		remove_submenu_page( 'woocommerce', 'shipment-packaging' );
 	}
 
 	public static function render_order_columns( $column, $post_id ) {
