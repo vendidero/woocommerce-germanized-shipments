@@ -10,6 +10,48 @@
 .woocommerce_page_wc-settings .wc-modal-shipping-method-settings .form-table td .wc-gzd-additional-desc {
   background: #efefef; }
 
+.wc-gzd-shipments-packaging .nav-tab-wrapper {
+  margin: 1.5em 0 1em; }
+
+.wc-gzd-shipments-packaging ul.subsubsub {
+  display: block;
+  float: none; }
+
+.wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper .form-table {
+  opacity: .5;
+  pointer-events: none; }
+
+.wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper.zone-wrapper-has-override .form-table {
+  opacity: 1;
+  pointer-events: all; }
+
+.wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper fieldset.gzd-toggle-wrapper, .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper .forminp-gzd_toggle {
+  text-decoration: none; }
+  .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper fieldset.gzd-toggle-wrapper a.woocommerce-gzd-input-toggle-trigger, .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper .forminp-gzd_toggle a.woocommerce-gzd-input-toggle-trigger {
+    text-decoration: none;
+    box-shadow: none;
+    outline: 0;
+    cursor: pointer; }
+    .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper fieldset.gzd-toggle-wrapper a.woocommerce-gzd-input-toggle-trigger:focus, .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper .forminp-gzd_toggle a.woocommerce-gzd-input-toggle-trigger:focus {
+      box-shadow: none;
+      outline: 0; }
+  .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper fieldset.gzd-toggle-wrapper p.description, .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper .forminp-gzd_toggle p.description {
+    display: inline-block;
+    font-style: normal;
+    font-size: 14px;
+    margin-left: 5px;
+    margin-top: 0;
+    margin-bottom: 0; }
+
+.wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper .wc-gzd-packaging-zone-header {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 2em 0;
+  align-items: center; }
+  .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper .wc-gzd-packaging-zone-header h3 {
+    margin: 0;
+    margin-right: 2em; }
+
 .wc-gzd-admin-settings-shipping_provider .wc-gzd-shipment-api-connection-status {
   padding: .2em .5em;
   border-radius: 3px;

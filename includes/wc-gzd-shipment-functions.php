@@ -64,6 +64,14 @@ function wc_gzd_get_shipment_label_title( $type, $plural = false ) {
 	return ( ! $plural ? $type_data['labels']['singular'] : $type_data['labels']['plural'] );
 }
 
+function wc_gzd_get_shipping_label_zones() {
+	return apply_filters( 'woocommerce_gzd_shipments_shipping_label_zones', array(
+		'dom' => _x( 'Domestic', 'shipments', 'woocommerce-germanized-shipments' ),
+		'eu' => _x( 'EU', 'shipments', 'woocommerce-germanized-shipments' ),
+		'int' => _x( 'International', 'shipments', 'woocommerce-germanized-shipments' )
+	) );
+}
+
 function wc_gzd_get_shipment_types() {
 	return array_keys( wc_gzd_get_shipment_type_data( false ) );
 }

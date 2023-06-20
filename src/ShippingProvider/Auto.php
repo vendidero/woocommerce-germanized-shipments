@@ -553,7 +553,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return new ShipmentError( 'label-error', _x( 'Error while creating the label.', 'shipments', 'woocommerce-germanized-shipments' ) );
 	}
 
-	public function get_available_label_zones() {
+	public function get_available_label_zones( $shipment_type = 'simple' ) {
 		return array(
 			'dom',
 			'eu',
@@ -561,62 +561,114 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		);
 	}
 
+	public function get_services( $shipment = false ) {
+		return array();
+	}
+
+	public function get_product_services( $product, $shipment = false ) {
+		return array();
+	}
+
+	protected function override_setting_in_packaging( $option ) {
+		return false;
+	}
+
 	/**
-	 * @param Packaging $packaging
+	 * @param string $shipment_type
 	 *
 	 * @return array
 	 */
-	public function get_packaging_label_settings( $packaging ) {
-		$label_settings = array();
-		$provider_label_settings = $this->get_label_settings();
-		$product_setting_ids = array();
-		$product_settings = array();
+	public function get_packaging_label_settings( $shipment_type = 'simple' ) {
+		if ( ! $this->supports_labels( $shipment_type ) ) {
+			return array();
+		}
 
-		foreach( $this->get_available_label_zones() as $zone ) {
-			$product_setting_ids[ $zone ] = 'label_default_product_' . $zone;
+		$provider_label_settings = $this->get_label_settings();
+		$product_setting_ids     = array();
+		$label_settings          = array();
+		$setting_fields          = array(
+			'services'   => array(),
+			'additional' => array(),
+		);
+
+		foreach( $this->get_available_label_zones( $shipment_type ) as $zone ) {
+			$product_setting_ids[ $zone . '_product' ] = 'simple' === $shipment_type ? 'label_default_product_' . $zone : 'label_default_product_' . $shipment_type . '_' . $zone;
+
+			$label_settings[ $zone ] = array(
+				'product'    => array(),
+				'services'   => array(),
+				'additional' => array(),
+			);
 		}
 
 		foreach( $provider_label_settings as $label_setting ) {
 			if ( isset( $label_setting['id'] ) ) {
-				$zone = array_search( $label_setting['id'], $product_setting_ids );
+				$label_setting = wp_parse_args( $label_setting, array(
+					'group'             => '',
+					'zone'              => array(),
+					'custom_attributes' => array(),
+					'class'             => '',
+					'desc'              => '',
+				) );
 
-				if ( false !== $zone ) {
-					$product_settings[ $zone ] = $label_setting;
+				if ( 'label_service_' === substr( $label_setting['id'], 0, 14 ) ) {
+					$label_setting = wp_parse_args( $label_setting, array(
+						'service_name' => str_replace( 'label_service_', '', $label_setting['id'] ),
+					) );
+
+					$label_setting['custom_attributes'] = array( 'data-service' => $label_setting['service_name'] );
+					$label_setting['class'] .= ' service-check';
+					$label_setting['group'] = 'services';
+
+					$setting_fields['services'][] = $label_setting;
+				} elseif( $current_label_setting = $this->override_setting_in_packaging( $label_setting ) ) {
+					$current_label_setting = wp_parse_args( $current_label_setting, array(
+						'zone' => array(),
+					) );
+
+					$current_label_setting['group'] = 'additional';
+					$setting_fields['additional'][] = $current_label_setting;
+				} else {
+					$key = array_search( $label_setting['id'], $product_setting_ids );
+
+					if ( false !== $key ) {
+						$map_key = explode( '_', $key );
+						$zone = $map_key[0];
+						$data = $map_key[1];
+
+						foreach( $label_setting['options'] as $product_key => $product_title ) {
+							$label_setting['custom_attributes']['data-services-' . $product_key] = implode( ',', $this->get_product_services( $product_key ) );
+						}
+
+						$label_setting['class'] .= ' default-service';
+						$label_setting['desc']  = '';
+						$label_setting['group'] = 'product';
+
+						$label_settings[ $zone ][ $data ] = $label_setting;
+					}
 				}
 			}
 		}
 
-		foreach( $this->get_available_label_zones() as $zone ) {
-			if ( ! array_key_exists( $zone, $product_settings ) ) {
-				continue;
+		foreach( $label_settings as $zone_name => $zone ) {
+			if ( ! empty( $zone['product'] ) ) {
+				$label_settings[ $zone_name ]['product']['id'] .= "[{$zone_name}]";
+
+				foreach( $setting_fields as $field_type => $fields ) {
+					$label_settings[ $zone_name ][$field_type] = array();
+
+					foreach( $fields as $field ) {
+						if ( ! empty( $field['zone'] ) && ! in_array( $zone, $field['zone'] ) ) {
+							continue;
+						}
+
+						$field['id'] .= "[{$zone_name}]";
+						$label_settings[ $zone_name ][$field_type][] = $field;
+					}
+				}
+			} else {
+				unset( $label_settings[ $zone_name ] );
 			}
-
-			$label_settings = array_merge( $label_settings, array(
-				array(
-					'title' => $zone,
-					'type'  => 'title',
-					'id'    => 'packaging_label_settings_' . $zone,
-				),
-			) );
-
-			$label_settings = array_merge( $label_settings, array(
-				array(
-					'title'   => _x( 'Default Service', 'shipments', 'woocommerce-germanized-shipments' ),
-					'type'    => 'select',
-					'id'      => 'default_product_' . $zone,
-					'default' => $product_settings[ $zone ]['default'],
-					'value'   => '',
-					'options' => $product_settings[ $zone ]['options'],
-					'class'   => 'wc-enhanced-select',
-				),
-			) );
-
-			$label_settings = array_merge( $label_settings, array(
-				array(
-					'type'  => 'sectionend',
-					'id'    => 'packaging_label_settings_' . $zone,
-				),
-			) );
 		}
 
 		return $label_settings;
