@@ -24,18 +24,32 @@ $layout-spacing: 1rem;
   ul.subsubsub {
     display: block;
     float: none;
+
+    li {
+      &::after {
+        content: " |";
+      }
+
+      &:last-child::after {
+        content: "";
+      }
+    }
   }
 
   .wc-gzd-packaging-zone-wrapper {
-    .form-table {
+    .wc-gzd-packaging-zone-options {
       opacity: .5;
       pointer-events: none;
+      overflow: hidden;
+      max-height: 190px;
     }
 
     &.zone-wrapper-has-override {
-        .form-table {
+        .wc-gzd-packaging-zone-options {
           opacity: 1;
           pointer-events: all;
+          overflow: auto;
+          max-height: 100%;
         }
     }
 

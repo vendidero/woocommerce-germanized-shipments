@@ -7,6 +7,7 @@
  */
 namespace Vendidero\Germanized\Shipments;
 
+use Vendidero\Germanized\Shipments\ShippingProvider\ConfigurationSet;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use WC_Data;
 use WC_Data_Store;
@@ -61,6 +62,7 @@ class Packaging extends WC_Data {
 		'type'               => '',
 		'description'        => '',
 		'shipping_providers' => array(),
+		'configuration_sets' => array(),
 	);
 
 	/**
@@ -234,6 +236,30 @@ class Packaging extends WC_Data {
 		return $provider_names;
 	}
 
+	public function get_configuration_sets( $context = 'view' ) {
+		return $this->get_prop( 'configuration_sets', $context );
+	}
+
+	public function has_configuration_set( $shipping_provider_name, $shipment_type = 'simple', $zone = 'dom', $context = 'view' ) {
+		$configuration_sets = $this->get_configuration_sets( $context );
+
+		return array_key_exists( $shipping_provider_name, $configuration_sets ) && array_key_exists( $shipment_type, $configuration_sets[ $shipping_provider_name ] ) && array_key_exists( $zone, $configuration_sets[ $shipping_provider_name ][ $shipment_type ] );
+	}
+
+	public function get_configuration_set( $shipping_provider_name, $shipment_type = 'simple', $zone = 'dom', $context = 'view' ) {
+		$configuration_sets = $this->get_configuration_sets( $context );
+		$configuration_set  = false;
+
+		if ( $this->has_configuration_set( $shipping_provider_name, $shipment_type, $zone, $context ) ) {
+			$configuration_set = new ConfigurationSet( $configuration_sets[ $shipping_provider_name ][ $shipment_type ][ $zone ] );
+			$configuration_set->set_shipping_provider_name( $shipping_provider_name );
+			$configuration_set->set_shipment_type( $shipment_type );
+			$configuration_set->set_zone( $zone );
+		}
+
+		return $configuration_set;
+	}
+
 	public function has_dimensions() {
 		$width  = $this->get_width();
 		$length = $this->get_length();
@@ -335,6 +361,49 @@ class Packaging extends WC_Data {
 	 */
 	public function set_shipping_providers( $provider_names ) {
 		$this->set_prop( 'shipping_providers', array_filter( (array) $provider_names ) );
+	}
+
+	public function set_configuration_sets( $sets ) {
+		$this->set_prop( 'configuration_sets', array_filter( (array) $sets ) );
+	}
+
+	/**
+	 * @param ConfigurationSet $set
+	 *
+	 * @return void
+	 */
+	public function update_configuration_set( $set ) {
+		$configuration_sets = $this->get_configuration_sets( 'edit' );
+
+		if ( ! array_key_exists( $set->get_shipping_provider_name(), $configuration_sets ) ) {
+			$configuration_sets[ $set->get_shipping_provider_name() ] = array();
+		}
+
+		if ( ! array_key_exists( $set->get_shipment_type(), $configuration_sets[ $set->get_shipping_provider_name() ] ) ) {
+			$configuration_sets[ $set->get_shipping_provider_name() ][ $set->get_shipment_type() ] = array();
+		}
+
+		$configuration_sets[ $set->get_shipping_provider_name() ][ $set->get_shipment_type() ][ $set->get_zone() ] = $set->get_data();
+
+		$this->set_configuration_sets( $configuration_sets );
+	}
+
+	public function reset_configuration_sets( $shipping_provider_name, $shipment_type = '' ) {
+		$configuration_sets = $this->get_configuration_sets( 'edit' );
+
+		if ( array_key_exists( $shipping_provider_name, $configuration_sets ) ) {
+			if ( empty( $shipment_type ) ) {
+				unset( $configuration_sets[ $shipping_provider_name ] );
+			} elseif ( array_key_exists( $shipment_type, $configuration_sets[ $shipping_provider_name ] ) ) {
+				unset( $configuration_sets[ $shipping_provider_name ][ $shipment_type ] );
+
+				if ( empty( $configuration_sets[ $shipping_provider_name ] ) ) {
+					unset( $configuration_sets[ $shipping_provider_name ] );
+				}
+			}
+		}
+
+		$this->set_configuration_sets( $configuration_sets );
 	}
 
 	/**

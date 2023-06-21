@@ -569,106 +569,108 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return array();
 	}
 
-	protected function override_setting_in_packaging( $option ) {
+	protected function override_setting_in_packaging( $option, $shipment_type = 'simple', $zone = 'dom' ) {
 		return false;
 	}
 
 	/**
+	 * @param Packaging $packaging
 	 * @param string $shipment_type
+	 * @param string $zone
 	 *
 	 * @return array
 	 */
-	public function get_packaging_label_settings( $shipment_type = 'simple' ) {
+	public function get_packaging_label_settings( $packaging, $shipment_type = 'simple', $zone = 'dom' ) {
 		if ( ! $this->supports_labels( $shipment_type ) ) {
 			return array();
 		}
 
-		$provider_label_settings = $this->get_label_settings();
-		$product_setting_ids     = array();
-		$label_settings          = array();
-		$setting_fields          = array(
+		if ( ! in_array( $zone, $this->get_available_label_zones( $shipment_type ), true ) ) {
+			return array();
+		}
+
+		$provider_label_settings = $this->get_label_settings( true );
+		$label_settings          = array(
+			'product'    => array(),
 			'services'   => array(),
 			'additional' => array(),
 		);
-
-		foreach( $this->get_available_label_zones( $shipment_type ) as $zone ) {
-			$product_setting_ids[ $zone . '_product' ] = 'simple' === $shipment_type ? 'label_default_product_' . $zone : 'label_default_product_' . $shipment_type . '_' . $zone;
-
-			$label_settings[ $zone ] = array(
-				'product'    => array(),
-				'services'   => array(),
-				'additional' => array(),
-			);
-		}
+		$has_settings       = false;
+		$configuration_set  = $packaging->get_configuration_set( $this->get_name(), $shipment_type, $zone );
+		$service_identifier = 'simple' === $shipment_type ? 'label_service_' : $shipment_type . '_label_service_';
+		$product_identifier = 'simple' === $shipment_type ? 'label_default_product' : $shipment_type . 'label_default_product';
 
 		foreach( $provider_label_settings as $label_setting ) {
 			if ( isset( $label_setting['id'] ) ) {
+				$override_type = false;
 				$label_setting = wp_parse_args( $label_setting, array(
 					'group'             => '',
 					'zone'              => array(),
 					'custom_attributes' => array(),
 					'class'             => '',
 					'desc'              => '',
+					'is_service'        => false,
+					'is_product'        => false,
+					'shipment_type'     => 'simple',
 				) );
 
-				if ( 'label_service_' === substr( $label_setting['id'], 0, 14 ) ) {
+				if ( ! empty( $label_setting['zone'] ) && ! in_array( $zone, $label_setting['zone'], true ) ) {
+					continue;
+				}
+
+				if ( $service_identifier === substr( $label_setting['id'], 0, strlen( $service_identifier ) ) || ( true === $label_setting['is_service'] && $shipment_type === $label_setting['shipment_type'] ) ) {
 					$label_setting = wp_parse_args( $label_setting, array(
-						'service_name' => str_replace( 'label_service_', '', $label_setting['id'] ),
+						'service_name' => str_replace( $service_identifier, '', $label_setting['id'] ),
 					) );
 
+					$label_setting['is_service']        = true;
 					$label_setting['custom_attributes'] = array( 'data-service' => $label_setting['service_name'] );
-					$label_setting['class'] .= ' service-check';
-					$label_setting['group'] = 'services';
+					$label_setting['class']             .= ' service-check';
+					$label_setting['group']             = 'services';
 
-					$setting_fields['services'][] = $label_setting;
-				} elseif( $current_label_setting = $this->override_setting_in_packaging( $label_setting ) ) {
-					$current_label_setting = wp_parse_args( $current_label_setting, array(
-						'zone' => array(),
-					) );
+					$override_type = 'services';
+				} elseif ( $product_identifier === substr( $label_setting['id'], 0, strlen( $product_identifier ) ) || ( true === $label_setting['is_product'] && $shipment_type === $label_setting['shipment_type'] ) ) {
+					if ( empty( $label_setting['zone'] ) ) {
+						$maybe_setting_zone = str_replace( $product_identifier . '_', '', $label_setting['id'] );
+						$maybe_setting_zone = empty( $maybe_setting_zone ) ? 'dom' : $maybe_setting_zone;
 
-					$current_label_setting['group'] = 'additional';
-					$setting_fields['additional'][] = $current_label_setting;
-				} else {
-					$key = array_search( $label_setting['id'], $product_setting_ids );
-
-					if ( false !== $key ) {
-						$map_key = explode( '_', $key );
-						$zone = $map_key[0];
-						$data = $map_key[1];
-
-						foreach( $label_setting['options'] as $product_key => $product_title ) {
-							$label_setting['custom_attributes']['data-services-' . $product_key] = implode( ',', $this->get_product_services( $product_key ) );
+						if ( $zone !== $maybe_setting_zone ) {
+							continue;
 						}
-
-						$label_setting['class'] .= ' default-service';
-						$label_setting['desc']  = '';
-						$label_setting['group'] = 'product';
-
-						$label_settings[ $zone ][ $data ] = $label_setting;
 					}
+
+					foreach( $label_setting['options'] as $product_key => $product_title ) {
+						$label_setting['custom_attributes']['data-services-' . $product_key] = implode( ',', $this->get_product_services( $product_key ) );
+					}
+
+					$label_setting['desc']  = '';
+					$label_setting['group'] = 'product';
+					$label_setting['class'] .= ' default-product';
+					$label_setting['title'] = _x( 'Default Service', 'shipments', 'woocommerce-germanized-shipments' );
+ 					$label_setting['is_product'] = true;
+					$override_type = 'product';
+				} elseif ( $current_label_setting = $this->override_setting_in_packaging( $label_setting, $shipment_type, $zone ) ) {
+					$current_label_setting['group'] = 'additional';
+					$label_setting = $current_label_setting;
+					$override_type = 'additional';
+				}
+
+				if ( $override_type ) {
+					if ( $configuration_set && $configuration_set->get_setting( $label_setting['id'] ) ) {
+						$label_setting['value'] = $configuration_set->get_setting( $label_setting['id'] );
+					}
+
+					$label_setting['original_id'] = $label_setting['id'];
+					$label_setting['id'] .= "[{$zone}]";
+					$has_settings = true;
+
+					$label_settings[ $override_type ][] = $label_setting;
 				}
 			}
 		}
 
-		foreach( $label_settings as $zone_name => $zone ) {
-			if ( ! empty( $zone['product'] ) ) {
-				$label_settings[ $zone_name ]['product']['id'] .= "[{$zone_name}]";
-
-				foreach( $setting_fields as $field_type => $fields ) {
-					$label_settings[ $zone_name ][$field_type] = array();
-
-					foreach( $fields as $field ) {
-						if ( ! empty( $field['zone'] ) && ! in_array( $zone, $field['zone'] ) ) {
-							continue;
-						}
-
-						$field['id'] .= "[{$zone_name}]";
-						$label_settings[ $zone_name ][$field_type][] = $field;
-					}
-				}
-			} else {
-				unset( $label_settings[ $zone_name ] );
-			}
+		if ( ! $has_settings ) {
+			$label_settings = array();
 		}
 
 		return $label_settings;

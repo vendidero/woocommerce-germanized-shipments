@@ -10,12 +10,12 @@ window.germanized.admin = window.germanized.admin || {};
 
             $( document )
                 .on( 'change', 'input.gzd-override-toggle', self.onChangeOverride )
-                .on( 'change', 'select.default-service', self.onChangeDefaultService );
+                .on( 'change', 'select.default-product', self.onChangeDefaultProduct );
 
-            $( '.form-table select.default-service' ).trigger( 'change' );
+            $( '.form-table select.default-product' ).trigger( 'change' );
         },
 
-        onChangeDefaultService: function() {
+        onChangeDefaultProduct: function() {
             var $select = $( this ),
                 $wrapper = $select.parents( '.form-table' ),
                 val      = $select.val(),
