@@ -2,7 +2,7 @@
 /**
  * Email Order Shipment details
  *
- * This template can be overridden by copying it to yourtheme/woocommerce-germanized/emails/email-order-shipment-details.php.
+ * This template can be overridden by copying it to yourtheme/woocommerce-germanized/emails/email-order-shipments.php.
  *
  * HOWEVER, on occasion Germanized will need to update template files and you
  * (the theme developer) will need to copy the new files to your theme to
