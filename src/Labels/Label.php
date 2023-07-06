@@ -662,7 +662,6 @@ class Label extends WC_Data implements ShipmentLabel {
 
 	protected function get_per_item_weights( $total_weight, $item_weights, $shipment_items ) {
 		$item_total_weight = array_sum( $item_weights );
-		$item_count        = count( $item_weights );
 
 		/**
 		 * Discrepancies detected between item weights and total shipment weight.
@@ -673,58 +672,30 @@ class Label extends WC_Data implements ShipmentLabel {
 			$diff_abs = abs( $diff );
 
 			if ( $diff_abs > 0 ) {
-				$per_item_diff = $diff / $item_count;
-				// Round down to int
-				$per_item_diff_rounded = $this->round_customs_item_weight( $per_item_diff );
-				$diff_applied          = 0;
+				$diff_left          = $diff_abs;
+				$item_keys          = array_keys( $item_weights );
+				$current_item_index = 0;
 
-				if ( abs( $per_item_diff_rounded ) > 0 ) {
-					foreach ( $item_weights as $key => $weight ) {
-						$shipment_item   = $shipment_items[ $key ];
-						$item_min_weight = 1 * $shipment_item->get_quantity();
-
-						$item_weight_before = $item_weights[ $key ];
-						$new_item_weight    = $item_weights[ $key ] += $per_item_diff_rounded;
-						$item_diff_applied  = $per_item_diff_rounded;
-
-						/**
-						 * In case the diff is negative make sure we are not
-						 * subtracting more than available as min weight per item.
-						 */
-						if ( $new_item_weight <= $item_min_weight ) {
-							$new_item_weight   = $item_min_weight;
-							$item_diff_applied = $item_min_weight - $item_weight_before;
-						}
-
-						$item_weights[ $key ] = $new_item_weight;
-						$diff_applied        += $item_diff_applied;
+				/**
+				 * Loop over the diff (one step/g a time) and distribute
+				 * the diff evenly for the items included. Respect min weight (1g).
+				 */
+				for ( $i = 0; $i < $diff_left; $i ++ ) {
+					if ( ! isset( $item_keys[ $current_item_index ] ) ) {
+						$current_item_index = 0;
 					}
-				}
 
-				// Check rounding diff and apply the diff to one item
-				$diff_left = $diff - $diff_applied;
+					$current_item_key = $item_keys[ $current_item_index ];
+					$shipment_item    = $shipment_items[ $current_item_key ];
+					$item_min_weight  = 1 * $shipment_item->get_quantity();
+					$diff_to_apply    = $diff / $diff_abs; // apply diff in -1/+1 steps
+					$new_item_weight  = $item_weights[ $current_item_key ] + $diff_to_apply;
 
-				if ( abs( $diff_left ) > 0 ) {
-					foreach ( $item_weights as $key => $weight ) {
-						$shipment_item   = $shipment_items[ $key ];
-						$item_min_weight = 1 * $shipment_item->get_quantity();
-
-						if ( $diff_left > 0 ) {
-							/**
-							 * Add the diff left to the first item and stop.
-							 */
-							$item_weights[ $key ] += $diff_left;
-							break;
-						} else {
-							/**
-							 * Remove the diff left from the first item with a weight greater than 0.01 to prevent 0 weights.
-							 */
-							if ( $weight > $item_min_weight ) {
-								$item_weights[ $key ] += $diff_left;
-								break;
-							}
-						}
+					if ( $new_item_weight >= $item_min_weight ) {
+						$item_weights[ $current_item_key ] = $new_item_weight;
 					}
+
+					$current_item_index = ( $current_item_index >= count( $item_keys ) ) ? 0 : ( $current_item_index + 1 );
 				}
 			}
 		}
