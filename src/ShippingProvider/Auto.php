@@ -378,10 +378,43 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 */
 	public function get_label_fields( $shipment ) {
 		if ( 'return' === $shipment->get_type() ) {
-			return $this->get_return_label_fields( $shipment );
+			$label_fields = $this->get_return_label_fields( $shipment );
 		} else {
-			return $this->get_simple_label_fields( $shipment );
+			$label_fields = $this->get_simple_label_fields( $shipment );
 		}
+
+		if ( ! is_wp_error( $label_fields ) ) {
+			$label_fields = array_merge( $label_fields, $this->get_label_service_fields( $shipment ) );
+		}
+
+		return $label_fields;
+	}
+
+	public function get_label_service_fields( $shipment ) {
+		$service_fields = array();
+		$services       = $this->get_services( array( 'shipment' => $shipment ) );
+		$default_props  = $this->get_default_label_props( $shipment );
+
+		if ( ! empty( $services ) ) {
+			$service_settings    = array();
+			$has_default_service = ! empty( $default_props['services'] ) ? true : false;
+
+			foreach( $services as $service ) {
+				if ( $service->supports_location( 'label' ) ) {
+					$service_settings = array_merge( $service_settings, $this->get_service_label_fields( $service, $shipment, $default_props ) );
+				}
+			}
+
+			$service_fields[] = array(
+				'type'         => 'services_start',
+				'hide_default' => $has_default_service ? false : true,
+				'id'           => '',
+			);
+
+			$service_fields = array_merge( $service_fields, $service_settings );
+		}
+
+		return $service_fields;
 	}
 
 	/**
@@ -485,22 +518,44 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			 * Merge with default data. That needs to be done after manually
 			 * parsing checkboxes as missing data would be overridden with defaults.
 			 */
-			$props = wp_parse_args( $props, $this->get_default_label_props( $shipment ) );
+			$props               = wp_parse_args( $props, $this->get_default_label_props( $shipment ) );
+			$props               = wp_parse_args( $props, array(
+				'product_id' => '',
+				'services'   => array()
+			) );
+			$service_by_settings = array();
+
+			foreach( $this->get_services() as $service ) {
+				$service_by_settings[ $service->get_setting_id() ] = $service;
+			}
 
 			foreach ( $props as $key => $value ) {
-				if ( substr( $key, 0, strlen( 'service_' ) ) === 'service_' ) {
-					$new_key = substr( $key, ( strlen( 'service_' ) ) );
+				if ( array_key_exists( $key, $service_by_settings ) ) {
+					$service = $service_by_settings[ $key ];
 
-					if ( wc_string_to_bool( $value ) && in_array( $new_key, $this->get_available_label_services( $shipment ), true ) ) {
-						if ( ! in_array( $new_key, $props['services'], true ) ) {
-							$props['services'][] = $new_key;
-						}
+					if ( ! $service->supports( array( 'shipment' => $shipment, 'product' => $props['product_id'] ) ) ) {
+						$props['services'] = array_diff( $props['services'], array( $service->get_id() ) );
 						unset( $props[ $key ] );
-					} else {
-						if ( ( $service_key = array_search( $new_key, $props['services'], true ) ) !== false ) {
-							unset( $props['services'][ $service_key ] );
+						continue;
+					}
+
+					if ( 'checkbox' === $service->get_option_type() ) {
+						if ( wc_string_to_bool( $value ) ) {
+							if ( ! in_array( $service->get_id(), $props['services'], true ) ) {
+								$props['services'][] = $service->get_id();
+							}
 						}
+
 						unset( $props[ $key ] );
+					} elseif ( 'select' === $service->get_option_type() ) {
+						if ( ! empty( $value ) && array_key_exists( $value, $service->get_options() ) ) {
+							if ( ! in_array( $service->get_id(), $props['services'], true ) ) {
+								$props['services'][] = $service->get_id();
+							}
+						} else {
+							$props['services'] = array_diff( $props['services'], array( $service->get_id() ) );
+							unset( $props[ $key ] );
+						}
 					}
 				}
 			}
@@ -559,10 +614,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			'eu',
 			'int'
 		);
-	}
-
-	public function get_services( $shipment = false ) {
-		return array();
 	}
 
 	public function get_product_services( $product, $shipment = false ) {

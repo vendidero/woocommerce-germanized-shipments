@@ -44,6 +44,8 @@ class Simple extends WC_Data implements ShippingProvider {
 	 */
 	protected $cache_group = 'shipping_provider';
 
+	protected $services = null;
+
 	/**
 	 * Stores provider data.
 	 *
@@ -1089,6 +1091,32 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $settings;
 	}
 
+	protected function get_service_settings() {
+		$settings = array(
+			array(
+				'title' => '',
+				'type'  => 'title',
+				'id'    => 'shipping_provider_service_options',
+			),
+		);
+
+		foreach( $this->get_services() as $service ) {
+			$settings = array_merge( $settings, $this->get_service_setting_fields( $service ) );
+		}
+
+		$settings = array_merge(
+			$settings,
+			array(
+				array(
+					'type' => 'sectionend',
+					'id'   => 'shipping_provider_service_options',
+				),
+			)
+		);
+
+		return $settings;
+	}
+
 	protected function get_all_settings( $for_shipping_method = false ) {
 		$settings = array();
 		$sections = array_keys( $this->get_setting_sections() );
@@ -1227,5 +1255,87 @@ class Simple extends WC_Data implements ShippingProvider {
 		$result = new ShipmentError( 'shipping-provider', _x( 'This shipping provider does not support creating labels.', 'shipments', 'woocommerce-germanized-shipments' ) );
 
 		return $result;
+	}
+
+	/**
+	 * @param Service $service
+	 *
+	 * @return array
+	 */
+	protected function get_service_setting_fields( $service ) {
+		return array(
+			$service->get_setting_field()
+		);
+	}
+
+	/**
+	 * @param Service $service
+	 * @param Shipment $shipment
+	 * @param array $default_props
+	 *
+	 * @return array
+	 */
+	protected function get_service_label_fields( $service, $shipment, $default_props = array() ) {
+		return array(
+			$service->get_label_field( $shipment, $default_props )
+		);
+	}
+
+	/**
+	 * @return Service[]
+	 * @param array $filter_args
+	 */
+	public function get_services( $filter_args = array() ) {
+		if ( is_null( $this->services ) ) {
+			$this->services = array();
+			$this->register_services();
+		}
+
+		$services = $this->services;
+
+		if ( ! empty( $filter_args ) ) {
+			$services = array();
+
+			foreach( $this->services as $service_key => $service ) {
+				$include_service = $service->supports( $filter_args );
+
+				if ( $include_service ) {
+					$services[ $service_key ] = $service;
+				}
+			}
+		}
+
+		return $services;
+	}
+
+	/**
+	 * @param $id
+	 *
+	 * @return false|Service
+	 */
+	public function get_service( $id ) {
+		$services = $this->get_services();
+
+		return array_key_exists( $id, $services ) ? $services[ $id ] : false;
+	}
+
+	protected function register_services() {
+
+	}
+
+	protected function register_service( $id, $args ) {
+		$args['id'] = $id;
+
+		try {
+			if ( is_null( $this->services ) ) {
+				$this->services = array();
+			}
+
+			$this->services[ $id ] = new Service( $this, $args );
+
+			return true;
+		} catch( Exception $e ) {
+			return new \WP_Error( 'register-service', $e->getMessage() );
+		}
 	}
 }

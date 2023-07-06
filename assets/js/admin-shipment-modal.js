@@ -149,6 +149,10 @@ window.germanized.admin = window.germanized.admin || {};
                     $wrapper.find( ':input[data-show-if-' + fieldId + ']' ).parents( '.form-field' ).show();
                 }
             } else {
+                if ( '0' !== val && '' !== val ) {
+                    $wrapper.find( ':input[data-show-if-' + fieldId + '=""]' ).parents( '.form-field' ).show();
+                }
+
                 $wrapper.find( ':input[data-show-if-' + fieldId + '*="' + val + '"]' ).parents( '.form-field' ).show();
             }
         }

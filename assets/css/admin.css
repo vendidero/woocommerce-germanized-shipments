@@ -93,9 +93,6 @@
   .wc-gzd-admin-shipment-modal p.form-field:first-child, .wc-gzd-admin-shipment-modal p.form-field:last-child {
     margin-bottom: 5px !important;
     margin-top: 5px !important; }
-  .wc-gzd-admin-shipment-modal p.form-field:not(.column) {
-    display: inline-block;
-    width: 100%; }
 
 .wc-gzd-admin-shipment-modal .columns {
   margin-left: -.5rem !important;

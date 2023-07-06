@@ -245,6 +245,18 @@ abstract class Shipment extends WC_Data {
 		return "woocommerce_gzd_{$shipment_prefix}shipment_";
 	}
 
+	public function get_shipping_zone() {
+		$zone = 'int';
+
+		if ( $this->is_shipping_domestic() ) {
+			$zone = 'dom';
+		} elseif ( $this->is_shipping_inner_eu() ) {
+			$zone = 'eu';
+		}
+
+		return apply_filters( "{$this->get_general_hook_prefix()}shipping_zone", $zone, $this );
+	}
+
 	public function is_shipping_domestic() {
 		return Package::is_shipping_domestic(
 			$this->get_country(),
