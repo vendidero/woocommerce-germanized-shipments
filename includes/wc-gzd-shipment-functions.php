@@ -72,6 +72,13 @@ function wc_gzd_get_shipping_label_zones() {
 	) );
 }
 
+function wc_gzd_get_shipping_label_zone_title( $zone ) {
+	$zones = wc_gzd_get_shipping_label_zones();
+	$title = array_key_exists( $zone, $zones ) ? $zones[ $zone ] : '';
+
+	return apply_filters( 'woocommerce_gzd_shipments_shipping_label_zone_title', $title, $zone );
+}
+
 function wc_gzd_get_shipment_types() {
 	return array_keys( wc_gzd_get_shipment_type_data( false ) );
 }

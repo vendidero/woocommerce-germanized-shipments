@@ -63,7 +63,6 @@ class Emails {
 	}
 
 	public static function register_email_notifications( $actions ) {
-
 		$actions = array_merge(
 			$actions,
 			array(

@@ -104,8 +104,9 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 		$request = new WP_REST_Request( 'POST', '/wc/v3/shipments' );
 		$request->set_header( 'content-type', 'application/json' );
 		$request->set_body( json_encode( array(
-			'status'   => 'processing',
-			'order_id' => "$order_id",
+			'status'      => 'processing',
+			'order_id'    => "$order_id",
+			"tracking_id" => '12345678',
 		) ) );
 
 		$response        = $this->server->dispatch( $request );
@@ -113,6 +114,7 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 
 		$this->assertEquals( 201, $response->get_status() );
 		$this->assertEquals( 'processing', $create_response['status'] );
+		$this->assertEquals( '12345678', $create_response['tracking_id'] );
 		$this->assertEquals( 1, count( $create_response['items'] ) );
 	}
 

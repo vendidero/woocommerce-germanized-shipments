@@ -133,16 +133,6 @@ $layout-spacing: 1rem;
     }
   }
 
-  p.form-field {
-    &:first-child, &:last-child {
-      margin-bottom: 5px !important;
-      margin-top: 5px !important;
-    }
-
-    margin-bottom: 5px !important;
-    margin-top: 5px !important;
-  }
-
   .columns {
     margin-left: -.5rem !important;
     margin-right: -.5rem !important;
@@ -164,8 +154,14 @@ $layout-spacing: 1rem;
   }
 
   p.form-field {
+    padding: 5px 0;
     display: flex;
     flex-wrap: wrap;
+    margin: 0;
+
+    &.product_id_field {
+      padding-top: 0;
+    }
 
     label {
       margin-bottom: 5px;
@@ -189,9 +185,8 @@ $layout-spacing: 1rem;
       flex-wrap: wrap;
       flex-direction: row;
       justify-content: flex-start;
-      margin-top: 10px !important;
-      margin-bottom: 10px !important;
       align-items: center;
+      padding: 6px 0;
 
       label {
         width: auto;

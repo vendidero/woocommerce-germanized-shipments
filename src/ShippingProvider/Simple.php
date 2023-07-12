@@ -44,7 +44,15 @@ class Simple extends WC_Data implements ShippingProvider {
 	 */
 	protected $cache_group = 'shipping_provider';
 
+	/**
+	 * @var Service[]
+	 */
 	protected $services = null;
+
+	/**
+	 * @var Product[]
+	 */
+	protected $products = null;
 
 	/**
 	 * Stores provider data.
@@ -1258,27 +1266,62 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	/**
-	 * @param Service $service
+	 * @param $filter_args
 	 *
-	 * @return array
+	 * @return Product[]
 	 */
-	protected function get_service_setting_fields( $service ) {
-		return array(
-			$service->get_setting_field()
-		);
+	public function get_products( $filter_args = array() ) {
+		if ( is_null( $this->products ) ) {
+			$this->products = array();
+			$this->register_products();
+		}
+
+		$products = $this->products;
+
+		if ( ! empty( $filter_args ) ) {
+			$products = array();
+
+			foreach( $this->products as $product_key => $product ) {
+				$include_product = $product->supports( $filter_args );
+
+				if ( $include_product ) {
+					$products[ $product_key ] = $product;
+				}
+			}
+		}
+
+		return $products;
 	}
 
 	/**
-	 * @param Service $service
-	 * @param Shipment $shipment
-	 * @param array $default_props
+	 * @param $id
 	 *
-	 * @return array
+	 * @return false|Product
 	 */
-	protected function get_service_label_fields( $service, $shipment, $default_props = array() ) {
-		return array(
-			$service->get_label_field( $shipment, $default_props )
-		);
+	public function get_product( $id ) {
+		$products = $this->get_products();
+
+		return array_key_exists( $id, $products ) ? $products[ $id ] : false;
+	}
+
+	protected function register_products() {
+
+	}
+
+	protected function register_product( $id, $args ) {
+		$args['id'] = $id;
+
+		try {
+			if ( is_null( $this->products ) ) {
+				$this->products = array();
+			}
+
+			$this->products[ $id ] = new Product( $this, $args );
+
+			return true;
+		} catch( Exception $e ) {
+			return new \WP_Error( 'register-product', $e->getMessage() );
+		}
 	}
 
 	/**
@@ -1323,19 +1366,43 @@ class Simple extends WC_Data implements ShippingProvider {
 
 	}
 
-	protected function register_service( $id, $args ) {
-		$args['id'] = $id;
-
-		try {
-			if ( is_null( $this->services ) ) {
-				$this->services = array();
-			}
-
-			$this->services[ $id ] = new Service( $this, $args );
+	/**
+	 * @param string|Service $id
+	 * @param $args
+	 *
+	 * @return true|\WP_Error
+	 */
+	protected function register_service( $id, $args = array() ) {
+		if ( is_a( $id, 'Vendidero\Germanized\Shipments\ShippingProvider\Service' ) ) {
+			$this->services[ $id->get_id() ] = $id;
 
 			return true;
-		} catch( Exception $e ) {
-			return new \WP_Error( 'register-service', $e->getMessage() );
+		} else {
+			$args['id'] = $id;
+
+			try {
+				if ( is_null( $this->services ) ) {
+					$this->services = array();
+				}
+
+				$this->services[ $id ] = new Service( $this, $args );
+
+				return true;
+			} catch( Exception $e ) {
+				return new \WP_Error( 'register-service', $e->getMessage() );
+			}
 		}
+	}
+
+	public function get_supported_shipment_types() {
+		$shipment_types = array();
+
+		foreach ( wc_gzd_get_shipment_types() as $shipment_type ) {
+			if ( $this->supports_labels( $shipment_type ) ) {
+				$shipment_types[] = $shipment_type;
+			}
+		}
+
+		return $shipment_types;
 	}
 }

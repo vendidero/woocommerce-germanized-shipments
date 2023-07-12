@@ -310,8 +310,44 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return array();
 	}
 
+	protected function get_label_settings_by_shipment_type( $shipment_type = 'simple', $for = 'global' ) {
+		$settings = array();
+
+		foreach( $this->get_available_label_zones( $shipment_type ) as $zone ) {
+			$setting_id          = 'shipping_provider_' . $shipment_type . '_label_' . $zone;
+			$inner_zone_settings = $this->get_label_settings_by_zone( $zone, $shipment_type, $for );
+
+			if ( ! empty( $inner_zone_settings ) ) {
+				$settings = array_merge( $settings, array(
+					array(
+						'title' => sprintf( _x( '%1$s shipments', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_label_zone_title( $zone ) ),
+						'type'  => 'title',
+						'id'    => $setting_id,
+					),
+				), $inner_zone_settings, array(
+					array(
+						'type' => 'sectionend',
+						'id'   => $setting_id,
+					),
+				) );
+			}
+		}
+
+		return $settings;
+	}
+
+	protected function get_simple_label_settings() {
+		return $this->get_label_settings_by_shipment_type( 'simple' );
+	}
+
+	protected function get_return_label_settings() {
+		return $this->get_label_settings_by_shipment_type( 'return' );
+	}
+
 	protected function get_label_settings( $for_shipping_method = false ) {
-		$settings = array(
+		$settings = array();
+
+		$settings = array_merge( $settings, array(
 			array(
 				'title' => '',
 				'type'  => 'title',
@@ -346,7 +382,57 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'type' => 'sectionend',
 				'id'   => 'shipping_provider_label_options',
 			),
-		);
+		) );
+
+		return $settings;
+	}
+
+	protected function get_label_settings_by_zone( $zone = 'dom', $shipment_type = 'simple', $for = 'global' ) {
+		$settings = array();
+		$products = $this->get_products( array( 'zone' => $zone, 'shipment_type' => $shipment_type ) );
+		$services = $this->get_services( array( 'zone' => $zone, 'shipment_type' => $shipment_type ) );
+		$product_setting_id = '';
+
+		if ( ! empty( $products ) ) {
+			$default_product    = array_values( $products )[0]->get_id();
+			$product_setting_id = $this->get_product_setting_id( $zone, $shipment_type );
+			$select             = array();
+
+			foreach( $products as $product ) {
+				$select[ $product->get_id() ] = $product->get_label();
+			}
+
+			$settings = array_merge( $settings, array(
+				array(
+					'title'   => _x( 'Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
+					'type'    => 'select',
+					'id'      => $product_setting_id,
+					'default' => $default_product,
+					'value'   => $this->get_setting( $product_setting_id, $default_product ),
+					'desc'    => sprintf( _x( 'Select the default service for %1$s shipments.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_label_zone_title( $zone ) ),
+					'options' => $select,
+					'class'   => 'wc-enhanced-select',
+				),
+			) );
+		}
+
+		if ( ! empty( $services ) ) {
+			foreach( $services as $service ) {
+				$service_setting_fields = $service->get_setting_fields( array( 'zone' => $zone, 'shipment_type' => $shipment_type ) );
+
+				if ( ! empty( $product_setting_id ) ) {
+					foreach( $service_setting_fields as $k => $service_setting ) {
+						$service_setting_fields[ $k ] = wp_parse_args( $service_setting_fields[ $k ], array(
+							'custom_attributes' => array()
+						) );
+
+						$service_setting_fields[ $k ]['custom_attributes']["data-show_if_{$product_setting_id}"] = implode( ',', $service->get_products() );
+					}
+				}
+
+				$settings = array_merge( $settings, $service_setting_fields );
+			}
+		}
 
 		return $settings;
 	}
@@ -363,10 +449,18 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	public function get_setting_sections() {
 		$sections = array(
-			''           => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' ),
-			'label'      => _x( 'Labels', 'shipments', 'woocommerce-germanized-shipments' ),
-			'automation' => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ),
+			'' => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' ),
 		);
+
+		foreach( $this->get_supported_shipment_types() as $shipment_type ) {
+			$sections = array_merge( $sections, array(
+				$shipment_type . '_label' => sprintf( _x( '%1$s labels', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label_title( $shipment_type ) ),
+			) );
+		}
+
+		$sections = array_merge( $sections, array(
+			'automation' => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ),
+		) );
 
 		$sections = array_replace_recursive( $sections, parent::get_setting_sections() );
 
@@ -401,7 +495,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 			foreach( $services as $service ) {
 				if ( $service->supports_location( 'label' ) ) {
-					$service_settings = array_merge( $service_settings, $this->get_service_label_fields( $service, $shipment, $default_props ) );
+					$service_settings = array_merge( $service_settings, $service->get_label_fields( $shipment ) );
 				}
 			}
 
@@ -473,6 +567,22 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		$dimensions = wc_gzd_get_shipment_label_dimensions( $shipment );
 		$default    = array_merge( $default, $dimensions );
 
+		foreach( $this->get_services( array( 'shipment' => $shipment, 'product_id' => $default['product_id'] ) ) as $service ) {
+			if ( $service->book_as_default( $shipment ) ) {
+				$default['services'][] = $service->get_id();
+
+				foreach( $service->get_label_fields( $shipment ) as $setting ) {
+					if ( isset( $setting['id'], $setting['value'] ) ) {
+						if ( $setting['id'] === $service->get_label_field_id() && 'checkbox' === $setting['type'] ) {
+							continue;
+						} else {
+							$default[ $setting['id'] ] = $setting['value'];
+						}
+					}
+				}
+			}
+		}
+
 		return $default;
 	}
 
@@ -489,44 +599,21 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		if ( false === $props ) {
 			$props = $this->get_default_label_props( $shipment );
 		} elseif ( is_array( $props ) ) {
-			$fields = $this->get_label_fields( $shipment );
-
-			/**
-			 * By default checkbox fields won't be transmitted via POST data.
-			 * In case the values does not exist within props, assume not checked.
-			 */
-			foreach ( $fields as $field ) {
-				if ( ! isset( $field['value'] ) ) {
-					continue;
-				}
-
-				if ( 'checkbox' === $field['type'] && ! isset( $props[ $field['id'] ] ) ) {
-					// Exclude array fields from default checkbox handling
-					if ( isset( $field['name'] ) && strstr( $field['name'], '[]' ) ) {
-						continue;
-					}
-
-					$props[ $field['id'] ] = 'no';
-				} elseif ( 'multiselect' === $field['type'] ) {
-					if ( isset( $props[ $field['id'] ] ) ) {
-						$props[ $field['id'] ] = (array) $props[ $field['id'] ];
-					}
-				}
-			}
-
-			/**
-			 * Merge with default data. That needs to be done after manually
-			 * parsing checkboxes as missing data would be overridden with defaults.
-			 */
-			$props               = wp_parse_args( $props, $this->get_default_label_props( $shipment ) );
-			$props               = wp_parse_args( $props, array(
-				'product_id' => '',
-				'services'   => array()
+			$props = wp_parse_args( $props, array(
+				'shipping_provider' => $this->get_name(),
+				'weight'            => wc_gzd_get_shipment_label_weight( $shipment ),
+				'net_weight'        => wc_gzd_get_shipment_label_weight( $shipment, true ),
+				'shipment_id'       => $shipment->get_id(),
+				'services'          => array(),
+				'product_id'        => $this->get_default_label_product( $shipment ),
 			) );
+
+			$dimensions = wc_gzd_get_shipment_label_dimensions( $shipment );
+			$props      = array_merge( $props, $dimensions );
 			$service_by_settings = array();
 
 			foreach( $this->get_services() as $service ) {
-				$service_by_settings[ $service->get_setting_id() ] = $service;
+				$service_by_settings[ $service->get_label_field_id() ] = $service;
 			}
 
 			foreach ( $props as $key => $value ) {
@@ -731,16 +818,42 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
 	public function get_available_label_services( $shipment ) {
-		return array();
+		$services = array();
+
+		foreach( $this->get_services( array( 'shipment' => $shipment ) ) as $service ) {
+			$services[] = $service->get_id();
+		}
+
+		return $services;
 	}
 
 	/**
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
-	abstract public function get_available_label_products( $shipment );
+	public function get_available_label_products( $shipment ) {
+		$products = array();
+
+		foreach( $this->get_products( array( 'shipment' => $shipment ) ) as $product ) {
+			$products[ $product->get_id() ] = $product->get_label();
+		}
+
+		return $products;
+	}
+
+	protected function get_product_setting_id( $zone = 'dom', $shipment_type = 'simple' ) {
+		if ( 'simple' !== $shipment_type ) {
+			$zone = $shipment_type . '_' . $zone;
+		}
+
+		$setting_id = 'label_default_product_' . $zone;
+
+		return $setting_id;
+	}
 
 	/**
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
-	abstract public function get_default_label_product( $shipment );
+	public function get_default_label_product( $shipment ) {
+		return $this->get_shipment_setting( $shipment, $this->get_product_setting_id( $shipment->get_shipping_zone(), $shipment->get_type() ) );
+	}
 }

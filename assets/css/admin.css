@@ -87,13 +87,6 @@
       font-size: 13px;
       line-height: 1.5; }
 
-.wc-gzd-admin-shipment-modal p.form-field {
-  margin-bottom: 5px !important;
-  margin-top: 5px !important; }
-  .wc-gzd-admin-shipment-modal p.form-field:first-child, .wc-gzd-admin-shipment-modal p.form-field:last-child {
-    margin-bottom: 5px !important;
-    margin-top: 5px !important; }
-
 .wc-gzd-admin-shipment-modal .columns {
   margin-left: -.5rem !important;
   margin-right: -.5rem !important; }
@@ -109,8 +102,12 @@
   color: #777; }
 
 .wc-gzd-admin-shipment-modal p.form-field {
+  padding: 5px 0;
   display: flex;
-  flex-wrap: wrap; }
+  flex-wrap: wrap;
+  margin: 0; }
+  .wc-gzd-admin-shipment-modal p.form-field.product_id_field {
+    padding-top: 0; }
   .wc-gzd-admin-shipment-modal p.form-field label {
     margin-bottom: 5px;
     font-weight: bold;
@@ -127,9 +124,8 @@
     flex-wrap: wrap;
     flex-direction: row;
     justify-content: flex-start;
-    margin-top: 10px !important;
-    margin-bottom: 10px !important;
-    align-items: center; }
+    align-items: center;
+    padding: 6px 0; }
     .wc-gzd-admin-shipment-modal p.form-field.form-field-checkbox label {
       width: auto;
       margin-left: .5em;
