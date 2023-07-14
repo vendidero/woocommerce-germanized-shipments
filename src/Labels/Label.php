@@ -271,6 +271,26 @@ class Label extends WC_Data implements ShipmentLabel {
 		return ( in_array( $service, $this->get_services(), true ) );
 	}
 
+	/**
+	 * Retrieve additional data for a certain service, e.g.
+	 * retrieve the min_age for the DHL VisualCheckOfAge service.
+	 *
+	 * @param $service
+	 * @param $prop
+	 * @param $default
+	 *
+	 * @return mixed
+	 */
+	public function get_service_prop( $service, $prop, $default = null ) {
+		$meta_key = "service_{$service}_{$prop}";
+
+		if ( $this->get_meta( $meta_key ) ) {
+			return $this->get_meta( $meta_key );
+		} else {
+			return $default;
+		}
+	}
+
 	public function get_shipment() {
 		if ( is_null( $this->shipment ) ) {
 			$this->shipment = ( $this->get_shipment_id() > 0 ? wc_gzd_get_shipment( $this->get_shipment_id() ) : false );
