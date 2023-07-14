@@ -353,8 +353,10 @@ window.germanized.admin = window.germanized.admin || {};
 
                 if ( isHidden ) {
                     $field.parents( '.form-field' ).hide();
+                    $field.trigger( 'change' );
                 } else {
                     $field.parents( '.form-field' ).show();
+                    $field.trigger( 'change' );
                 }
             } );
         },

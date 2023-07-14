@@ -572,7 +572,7 @@ class Settings {
 						<span class="dashicons dashicons-minus"></span> <?php echo esc_html_x( 'Fewer services', 'shipments', 'woocommerce-germanized-shipments' ); ?>
 					</a>
 				</p>
-				<div class="<?php echo ( $hide_default ? 'hide-default' : '' ); ?> show-more-wrapper show-if-further-services">
+				<div class="<?php echo ( $hide_default ? 'hide-default' : '' ); ?> show-more-wrapper show-if-further-services" data-trigger=".show-services-trigger">
 				<?php
 			} elseif ( 'columns' === $setting['type'] ) {
 				$missing_div_closes++;

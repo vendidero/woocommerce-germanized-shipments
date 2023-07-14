@@ -37,8 +37,6 @@ class Service {
 
 	protected $setting_id = '';
 
-	protected $label_field_id = '';
-
 	protected $locations = array();
 
 	protected $long_description = '';
@@ -61,8 +59,7 @@ class Service {
 			'option_type' => 'checkbox',
 			'default_value' => 'no',
 			'setting_base_id'   => '',
-			'label_field_id' => '',
-			'locations'   => array( 'global', 'label' ),
+			'excluded_locations' => array(),
 			'options'     => array(),
 			'products'    => array(),
 			'supported_shipment_types' => array( 'simple' ),
@@ -86,9 +83,8 @@ class Service {
 		$this->option_type = $args['option_type'];
 		$this->default_value = $args['default_value'];
 		$this->setting_base_id = ! empty( $args['setting_base_id'] ) ? $args['setting_base_id'] : $this->get_id();
-		$this->label_field_id = ! empty( $args['label_field_id'] ) ? $args['label_field_id'] : 'service_' . $this->get_id();
-		$this->locations    = array_filter( (array) $args['locations'] );
 		$this->options      = array_filter( (array) $args['options'] );
+		$this->locations = array_diff( array( 'settings', 'global_settings', 'labels', 'label_services' ), array_filter( (array) $args['excluded_locations'] ) );
 		$this->products      = array_filter( (array) $args['products'] );
 		$this->supported_shipment_types = array_filter( (array) $args['supported_shipment_types'] );
 		$this->supported_countries = is_null( $args['supported_countries'] ) ? null : array_filter( (array) $args['supported_countries'] );
@@ -311,7 +307,7 @@ class Service {
 			'shipment_type' => 'simple'
 		) );
 
-		if ( ! $this->supports_location( $args['location'] ) ) {
+		if ( ! $this->supports_location( $args['location'] . '_settings' ) || ! $this->supports_location( 'settings' ) ) {
 			return array();
 		}
 
@@ -346,10 +342,11 @@ class Service {
 
 	/**
 	 * @param $props
+	 * @param Shipment $shipment
 	 *
 	 * @return true|\WP_Error
 	 */
-	public function validate_label_request( $props ) {
+	public function validate_label_request( $props, $shipment ) {
 		return true;
 	}
 
@@ -401,8 +398,8 @@ class Service {
 		return $book_as_default;
 	}
 
-	public function get_label_fields( $shipment ) {
-		if ( ! $this->supports_location( 'label' ) ) {
+	public function get_label_fields( $shipment, $location = '' ) {
+		if ( ( ! empty( $location ) && ! $this->supports_location( 'label_' . $location ) ) || ! $this->supports_location( 'labels' ) ) {
 			return array();
 		}
 

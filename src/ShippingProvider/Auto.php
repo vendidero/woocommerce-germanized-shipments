@@ -426,7 +426,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 							'custom_attributes' => array()
 						) );
 
-						$service_setting_fields[ $k ]['custom_attributes']["data-show_if_{$product_setting_id}"] = implode( ',', $service->get_products() );
+						$service_setting_fields[ $k ]['custom_attributes'] = array_merge( array( "data-show_if_{$product_setting_id}" => implode( ',', $service->get_products() ) ), $service_setting_fields[ $k ]['custom_attributes'] );
 					}
 				}
 
@@ -494,8 +494,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			$has_default_service = ! empty( $default_props['services'] ) ? true : false;
 
 			foreach( $services as $service ) {
-				if ( $service->supports_location( 'label' ) ) {
-					$service_settings = array_merge( $service_settings, $service->get_label_fields( $shipment ) );
+				if ( $service->supports_location( 'label_services' ) ) {
+					$service_settings = array_merge( $service_settings, $service->get_label_fields( $shipment, 'services' ) );
 				}
 			}
 
@@ -593,6 +593,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @return ShipmentError|true
 	 */
 	public function create_label( $shipment, $props = false ) {
+		$errors = new ShipmentError();
+
 		/**
 		 * In case props is false this indicates an automatic (non-manual) request.
 		 */
@@ -610,48 +612,76 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 			$dimensions = wc_gzd_get_shipment_label_dimensions( $shipment );
 			$props      = array_merge( $props, $dimensions );
-			$service_by_settings = array();
+		}
 
-			foreach( $this->get_services() as $service ) {
-				$service_by_settings[ $service->get_label_field_id() ] = $service;
+		/**
+		 * Neither allow invalid service configuration from automatic nor manual requests.
+		 */
+		foreach ( $this->get_services() as $service ) {
+			$label_field_id = $service->get_label_field_id();
+
+			if ( ! $service->supports( array( 'shipment' => $shipment, 'product' => $props['product_id'] ) ) ) {
+				$props['services'] = array_diff( $props['services'], array( $service->get_id() ) );
+
+				foreach( $service->get_label_fields( $shipment ) as $setting ) {
+					if ( array_key_exists( $setting['id'], $props ) ) {
+						unset( $props[ $setting['id'] ] );
+					}
+				}
+
+				if ( array_key_exists( $label_field_id, $props ) ) {
+					unset( $props[ $label_field_id ] );
+					continue;
+				}
 			}
 
-			foreach ( $props as $key => $value ) {
-				if ( array_key_exists( $key, $service_by_settings ) ) {
-					$service = $service_by_settings[ $key ];
+			/**
+			 * Should only be the case for manual requests, e.g. form submits.
+			 */
+			if ( array_key_exists( $label_field_id, $props ) ) {
+				$value = $props[ $label_field_id ];
 
-					if ( ! $service->supports( array( 'shipment' => $shipment, 'product' => $props['product_id'] ) ) ) {
+				if ( 'checkbox' === $service->get_option_type() ) {
+					if ( wc_string_to_bool( $value ) ) {
+						if ( ! in_array( $service->get_id(), $props['services'], true ) ) {
+							$props['services'][] = $service->get_id();
+						}
+					}
+
+					unset( $props[ $label_field_id ] );
+				} elseif ( 'select' === $service->get_option_type() ) {
+					if ( ! empty( $value ) && array_key_exists( $value, $service->get_options() ) ) {
+						if ( ! in_array( $service->get_id(), $props['services'], true ) ) {
+							$props['services'][] = $service->get_id();
+						}
+					} else {
 						$props['services'] = array_diff( $props['services'], array( $service->get_id() ) );
-						unset( $props[ $key ] );
-						continue;
+						unset( $props[ $label_field_id ] );
 					}
+				}
+			}
 
-					if ( 'checkbox' === $service->get_option_type() ) {
-						if ( wc_string_to_bool( $value ) ) {
-							if ( ! in_array( $service->get_id(), $props['services'], true ) ) {
-								$props['services'][] = $service->get_id();
-							}
-						}
+			if ( in_array( $service->get_id(), $props['services'], true ) ) {
+				$valid = $service->validate_label_request( $props, $shipment );
 
-						unset( $props[ $key ] );
-					} elseif ( 'select' === $service->get_option_type() ) {
-						if ( ! empty( $value ) && array_key_exists( $value, $service->get_options() ) ) {
-							if ( ! in_array( $service->get_id(), $props['services'], true ) ) {
-								$props['services'][] = $service->get_id();
-							}
-						} else {
-							$props['services'] = array_diff( $props['services'], array( $service->get_id() ) );
-							unset( $props[ $key ] );
-						}
-					}
+				if ( is_wp_error( $valid ) ) {
+					$errors->merge_from( $valid );
 				}
 			}
 		}
 
+		var_dump($props);
+		var_dump($errors);
+		exit();
+
 		$props = $this->validate_label_request( $shipment, $props );
 
 		if ( is_wp_error( $props ) ) {
-			return $props;
+			$errors->merge_from( $props );
+		}
+
+		if ( wc_gzd_shipment_wp_error_has_errors( $errors ) ) {
+			return $errors;
 		}
 
 		if ( isset( $props['services'] ) ) {
