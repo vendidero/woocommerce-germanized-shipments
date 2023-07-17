@@ -453,8 +453,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		);
 
 		foreach( $this->get_supported_shipment_types() as $shipment_type ) {
+			$section_title = 'simple' === $shipment_type ? _x( 'Labels', 'shipments', 'woocommerce-germanized-shipments' ) : sprintf( _x( '%1$s labels', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label_title( $shipment_type ) );
+
 			$sections = array_merge( $sections, array(
-				$shipment_type . '_label' => sprintf( _x( '%1$s labels', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label_title( $shipment_type ) ),
+				$shipment_type . '_label' => $section_title,
 			) );
 		}
 
@@ -666,13 +668,27 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 				if ( is_wp_error( $valid ) ) {
 					$errors->merge_from( $valid );
+				} else {
+					foreach( $service->get_label_fields( $shipment ) as $setting ) {
+						if ( $label_field_id === $setting['id'] ) {
+							continue;
+						}
+
+						if ( array_key_exists( $setting['id'], $props ) ) {
+							$setting = wp_parse_args( $setting, array(
+								'data_type' => '',
+							) );
+
+							if ( ! empty( $setting['data_type'] ) ) {
+								if ( in_array( $setting['data_type'], array( 'price', 'decimal' ), true ) ) {
+									$props[ $setting['id'] ] = wc_format_decimal( $props[ $setting['id'] ] );
+								}
+							}
+						}
+					}
 				}
 			}
 		}
-
-		var_dump($props);
-		var_dump($errors);
-		exit();
 
 		$props = $this->validate_label_request( $shipment, $props );
 
@@ -698,7 +714,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 					$label->{$setter}( $value );
 				} else {
 					$label->update_meta_data( $key, $value );
-				}
+			    }
 			}
 
 			$label->set_shipment( $shipment );
@@ -731,10 +747,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			'eu',
 			'int'
 		);
-	}
-
-	public function get_product_services( $product, $shipment = false ) {
-		return array();
 	}
 
 	protected function override_setting_in_packaging( $option, $shipment_type = 'simple', $zone = 'dom' ) {

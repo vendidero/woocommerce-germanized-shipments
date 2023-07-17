@@ -281,11 +281,11 @@ class Label extends WC_Data implements ShipmentLabel {
 	 *
 	 * @return mixed
 	 */
-	public function get_service_prop( $service, $prop, $default = null ) {
+	public function get_service_prop( $service, $prop, $default = null, $context = 'view' ) {
 		$meta_key = "service_{$service}_{$prop}";
 
-		if ( $this->get_meta( $meta_key ) ) {
-			return $this->get_meta( $meta_key );
+		if ( $this->get_meta( $meta_key, true, $context ) ) {
+			return $this->get_meta( $meta_key, true, $context );
 		} else {
 			return $default;
 		}

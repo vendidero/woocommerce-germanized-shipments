@@ -25,6 +25,20 @@ class Product {
 
 	protected $supported_shipment_types = array();
 
+	protected $price = 0.0;
+
+	protected $weight_unit = '';
+
+	protected $weight = array( 'min' => -1, 'max' => 1 );
+
+	protected $dimension_unit = '';
+
+	protected $length = null;
+
+	protected $width = null;
+
+	protected $height = null;
+
 	public function __construct( $shipping_provider, $args = array() ) {
 		if ( is_a( $shipping_provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
 			$this->shipping_provider      = $shipping_provider;
@@ -40,6 +54,13 @@ class Product {
 			'supported_shipment_types' => array( 'simple' ),
 			'supported_countries'      => null,
 			'supported_zones'          => array_keys( wc_gzd_get_shipping_label_zones() ),
+			'price'                    => 0.0,
+			'weight'                   => null,
+			'length'                   => null,
+			'width'                    => null,
+			'height'                   => null,
+			'dimension_unit'           => get_option( 'woocommerce_dimension_unit' ),
+			'weight_unit'              => get_option( 'woocommerce_weight_unit' ),
 		) );
 
 		if ( empty( $args['id'] ) ) {
@@ -63,6 +84,32 @@ class Product {
 		}
 
 		$this->supported_zones          = array_filter( (array) $args['supported_zones'] );
+		$this->price                    = (float) wc_format_decimal( $args['price'] );
+		$this->dimension_unit           = $args['dimension_unit'];
+		$this->weight_unit              = $args['weight_unit'];
+
+		$this->set_min_max_prop( 'weight', $args['weight'] );
+		$this->set_min_max_prop( 'length', $args['length'] );
+		$this->set_min_max_prop( 'width', $args['width'] );
+		$this->set_min_max_prop( 'height', $args['height'] );
+	}
+
+	private function set_min_max_prop( $prop, $default = null ) {
+		if ( ! is_null( $default ) ) {
+			$default = wp_parse_args( (array) $default, array(
+				'min' => null,
+				'max' => null,
+			) );
+
+			if ( is_null( $default['min'] ) && is_null( $default['max'] ) ) {
+				$this->{$prop} = null;
+			} else {
+				$default['min'] = is_null( $default['min'] ) ? null : (float) wc_format_decimal( $default['min'] );
+				$default['max'] = is_null( $default['max'] ) ? null : (float) wc_format_decimal( $default['max'] );
+
+				$this->{$prop} = array( 'min' => $default['min'], 'max' => $default['max'] );
+			}
+		}
 	}
 
 	public function get_id() {
@@ -100,12 +147,78 @@ class Product {
 		return in_array( $type, $this->supported_shipment_types, true );
 	}
 
+	protected function supports_min_max_dimension( $value, $dim = 'length', $unit = '' ) {
+		if ( is_null( $this->{$dim} ) || ( is_null( $this->{$dim}['min'] ) && is_null( $this->{$dim}['max'] ) ) ) {
+			return true;
+		}
+
+		$supports = true;
+
+		if ( '' === $unit ) {
+			$unit = get_option( 'woocommerce_weight_unit' );
+		}
+
+		$dim_in_local_unit = wc_get_weight( $value, $this->weight_unit, $unit );
+
+		if ( ! is_null( $this->{$dim}['min'] ) && (float) $dim_in_local_unit < (float) $this->{$dim}['min'] ) {
+			$supports = false;
+		}
+
+		if ( ! is_null( $this->{$dim}['max'] ) && (float) $dim_in_local_unit > (float) $this->{$dim}['max'] ) {
+			$supports = false;
+		}
+
+		return $supports;
+	}
+
+	public function supports_weight( $weight, $unit = '' ) {
+		if ( is_null( $this->weight ) || ( is_null( $this->weight['min'] ) && is_null( $this->weight['max'] ) ) ) {
+			return true;
+		}
+
+		$supports = true;
+
+		if ( '' === $unit ) {
+			$unit = get_option( 'woocommerce_weight_unit' );
+		}
+
+		$weight_in_local_unit = wc_get_weight( $weight, $this->weight_unit, $unit );
+
+		if ( ! is_null( $this->weight['min'] ) && (float) $weight_in_local_unit < (float) $this->weight['min'] ) {
+			$supports = false;
+		}
+
+		if ( ! is_null( $this->weight['max'] ) && (float) $weight_in_local_unit > (float) $this->weight['max'] ) {
+			$supports = false;
+		}
+
+		return $supports;
+	}
+
+	public function supports_length( $length, $unit = '' ) {
+		return $this->supports_min_max_dimension( $length, 'length', $unit );
+	}
+
+	public function supports_width( $width, $unit = '' ) {
+		return $this->supports_min_max_dimension( $width, 'width', $unit );
+	}
+
+	public function supports_height( $height, $unit = '' ) {
+		return $this->supports_min_max_dimension( $height, 'height', $unit );
+	}
+
 	public function supports( $filter_args = array() ) {
 		$filter_args = wp_parse_args( $filter_args, array(
 			'country'       => '',
 			'zone'          => '',
 			'shipment'      => false,
 			'shipment_type' => '',
+			'weight'        => null,
+			'weight_unit'   => '',
+			'length'        => null,
+			'width'         => null,
+			'height'        => null,
+			'dimension_unit' => ''
 		) );
 
 		$include_product = true;
@@ -113,9 +226,15 @@ class Product {
 		if ( ! empty( $filter_args['shipment'] ) && ( $shipment = wc_gzd_get_shipment( $filter_args['shipment'] ) ) ) {
 			$include_product = $this->supports_shipment( $shipment );
 
-			$filter_args['shipment_type'] = '';
-			$filter_args['zone']          = '';
-			$filter_args['country']       = '';
+			$filter_args['shipment_type']  = '';
+			$filter_args['zone']           = '';
+			$filter_args['country']        = '';
+			$filter_args['weight']         = null;
+			$filter_args['weight_unit']    = '';
+			$filter_args['length']         = null;
+			$filter_args['width']          = null;
+			$filter_args['height']         = null;
+			$filter_args['dimension_unit'] = '';
 		}
 
 		if ( $include_product && ! empty( $filter_args['country'] ) && ! $this->supports_country( $filter_args['country'] ) ) {
@@ -127,6 +246,22 @@ class Product {
 		}
 
 		if ( $include_product && ! empty( $filter_args['shipment_type'] ) && ! $this->supports_shipment_type( $filter_args['shipment_type'] ) ) {
+			$include_product = false;
+		}
+
+		if ( $include_product && ! is_null( $filter_args['weight'] ) && ! $this->supports_weight( $filter_args['weight'], $filter_args['weight_unit'] ) ) {
+			$include_product = false;
+		}
+
+		if ( $include_product && ! is_null( $filter_args['length'] ) && ! $this->supports_length( $filter_args['length'], $filter_args['dimension_unit'] ) ) {
+			$include_product = false;
+		}
+
+		if ( $include_product && ! is_null( $filter_args['width'] ) && ! $this->supports_length( $filter_args['width'], $filter_args['dimension_unit'] ) ) {
+			$include_product = false;
+		}
+
+		if ( $include_product && ! is_null( $filter_args['height'] ) && ! $this->supports_length( $filter_args['height'], $filter_args['dimension_unit'] ) ) {
 			$include_product = false;
 		}
 
@@ -150,6 +285,22 @@ class Product {
 		}
 
 		if ( $supports_shipment && ! $this->supports_country( $shipment->get_country() ) ) {
+			$supports_shipment = false;
+		}
+
+		if ( $supports_shipment && ! $this->supports_weight( $shipment->get_weight(), $shipment->get_weight_unit() ) ) {
+			$supports_shipment = false;
+		}
+
+		if ( $supports_shipment && ! $this->supports_length( $shipment->get_length(), $shipment->get_dimension_unit() ) ) {
+			$supports_shipment = false;
+		}
+
+		if ( $supports_shipment && ! $this->supports_width( $shipment->get_width(), $shipment->get_dimension_unit() ) ) {
+			$supports_shipment = false;
+		}
+
+		if ( $supports_shipment && ! $this->supports_height( $shipment->get_height(), $shipment->get_dimension_unit() ) ) {
 			$supports_shipment = false;
 		}
 
