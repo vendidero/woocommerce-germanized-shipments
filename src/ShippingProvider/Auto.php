@@ -393,14 +393,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		$services = $this->get_services( array( 'zone' => $zone, 'shipment_type' => $shipment_type ) );
 		$product_setting_id = '';
 
-		if ( ! empty( $products ) ) {
-			$default_product    = array_values( $products )[0]->get_id();
+		if ( ! $products->empty() ) {
+			$default_product    = $products->get_by_index( 0 )->get_id();
 			$product_setting_id = $this->get_product_setting_id( $zone, $shipment_type );
-			$select             = array();
-
-			foreach( $products as $product ) {
-				$select[ $product->get_id() ] = $product->get_label();
-			}
+			$select             = $products->as_options();
 
 			$settings = array_merge( $settings, array(
 				array(
@@ -416,22 +412,20 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			) );
 		}
 
-		if ( ! empty( $services ) ) {
-			foreach( $services as $service ) {
-				$service_setting_fields = $service->get_setting_fields( array( 'zone' => $zone, 'shipment_type' => $shipment_type ) );
+		foreach( $services as $service ) {
+			$service_setting_fields = $service->get_setting_fields( array( 'zone' => $zone, 'shipment_type' => $shipment_type ) );
 
-				if ( ! empty( $product_setting_id ) ) {
-					foreach( $service_setting_fields as $k => $service_setting ) {
-						$service_setting_fields[ $k ] = wp_parse_args( $service_setting_fields[ $k ], array(
-							'custom_attributes' => array()
-						) );
+			if ( ! empty( $product_setting_id ) ) {
+				foreach( $service_setting_fields as $k => $service_setting ) {
+					$service_setting_fields[ $k ] = wp_parse_args( $service_setting_fields[ $k ], array(
+						'custom_attributes' => array()
+					) );
 
-						$service_setting_fields[ $k ]['custom_attributes'] = array_merge( array( "data-show_if_{$product_setting_id}" => implode( ',', $service->get_products() ) ), $service_setting_fields[ $k ]['custom_attributes'] );
-					}
+					$service_setting_fields[ $k ]['custom_attributes'] = array_merge( array( "data-show_if_{$product_setting_id}" => implode( ',', $service->get_products() ) ), $service_setting_fields[ $k ]['custom_attributes'] );
 				}
-
-				$settings = array_merge( $settings, $service_setting_fields );
 			}
+
+			$settings = array_merge( $settings, $service_setting_fields );
 		}
 
 		return $settings;
@@ -525,7 +519,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'id'          => 'product_id',
 				'label'       => sprintf( _x( '%s Product', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title() ),
 				'description' => '',
-				'options'     => $this->get_available_label_products( $shipment ),
+				'options'     => $available,
 				'value'       => $default && array_key_exists( $default, $available ) ? $default : '',
 				'type'        => 'select',
 			),
@@ -873,13 +867,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
 	public function get_available_label_products( $shipment ) {
-		$products = array();
-
-		foreach( $this->get_products( array( 'shipment' => $shipment ) ) as $product ) {
-			$products[ $product->get_id() ] = $product->get_label();
-		}
-
-		return $products;
+		return $this->get_products( array( 'shipment' => $shipment ) )->as_options();
 	}
 
 	protected function get_product_setting_id( $zone = 'dom', $shipment_type = 'simple' ) {

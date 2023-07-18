@@ -45,12 +45,12 @@ class Simple extends WC_Data implements ShippingProvider {
 	protected $cache_group = 'shipping_provider';
 
 	/**
-	 * @var Service[]
+	 * @var ServiceList
 	 */
 	protected $services = null;
 
 	/**
-	 * @var Product[]
+	 * @var ProductList
 	 */
 	protected $products = null;
 
@@ -1099,32 +1099,6 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $settings;
 	}
 
-	protected function get_service_settings() {
-		$settings = array(
-			array(
-				'title' => '',
-				'type'  => 'title',
-				'id'    => 'shipping_provider_service_options',
-			),
-		);
-
-		foreach( $this->get_services() as $service ) {
-			$settings = array_merge( $settings, $this->get_service_setting_fields( $service ) );
-		}
-
-		$settings = array_merge(
-			$settings,
-			array(
-				array(
-					'type' => 'sectionend',
-					'id'   => 'shipping_provider_service_options',
-				),
-			)
-		);
-
-		return $settings;
-	}
-
 	protected function get_all_settings( $for_shipping_method = false ) {
 		$settings = array();
 		$sections = array_keys( $this->get_setting_sections() );
@@ -1268,26 +1242,18 @@ class Simple extends WC_Data implements ShippingProvider {
 	/**
 	 * @param $filter_args
 	 *
-	 * @return Product[]
+	 * @return ProductList
 	 */
 	public function get_products( $filter_args = array() ) {
 		if ( is_null( $this->products ) ) {
-			$this->products = array();
+			$this->products = new ProductList();
 			$this->register_products();
 		}
 
 		$products = $this->products;
 
 		if ( ! empty( $filter_args ) ) {
-			$products = array();
-
-			foreach( $this->products as $product_key => $product ) {
-				$include_product = $product->supports( $filter_args );
-
-				if ( $include_product ) {
-					$products[ $product_key ] = $product;
-				}
-			}
+			return $products->filter( $filter_args );
 		}
 
 		return $products;
@@ -1301,51 +1267,49 @@ class Simple extends WC_Data implements ShippingProvider {
 	public function get_product( $id ) {
 		$products = $this->get_products();
 
-		return array_key_exists( $id, $products ) ? $products[ $id ] : false;
+		return $products->get( $id );
 	}
 
 	protected function register_products() {
 
 	}
 
-	protected function register_product( $id, $args ) {
-		$args['id'] = $id;
+	protected function register_product( $id, $args = array() ) {
+		if ( is_null( $this->products ) ) {
+			$this->products = new ProductList();
+		}
 
-		try {
-			if ( is_null( $this->products ) ) {
-				$this->products = array();
-			}
-
-			$this->products[ $id ] = new Product( $this, $args );
+		if ( is_a( $id, 'Vendidero\Germanized\Shipments\ShippingProvider\Product' ) ) {
+			$this->products->add( $id );
 
 			return true;
-		} catch( Exception $e ) {
-			return new \WP_Error( 'register-product', $e->getMessage() );
+		} else {
+			$args['id'] = $id;
+
+			try {
+				$this->products->add( new Product( $this, $args ) );
+
+				return true;
+			} catch( Exception $e ) {
+				return new \WP_Error( 'register-product', $e->getMessage() );
+			}
 		}
 	}
 
 	/**
-	 * @return Service[]
+	 * @return ServiceList
 	 * @param array $filter_args
 	 */
 	public function get_services( $filter_args = array() ) {
 		if ( is_null( $this->services ) ) {
-			$this->services = array();
+			$this->services = new ServiceList();
 			$this->register_services();
 		}
 
 		$services = $this->services;
 
 		if ( ! empty( $filter_args ) ) {
-			$services = array();
-
-			foreach( $this->services as $service_key => $service ) {
-				$include_service = $service->supports( $filter_args );
-
-				if ( $include_service ) {
-					$services[ $service_key ] = $service;
-				}
-			}
+			return $services->filter( $filter_args );
 		}
 
 		return $services;
@@ -1357,9 +1321,7 @@ class Simple extends WC_Data implements ShippingProvider {
 	 * @return false|Service
 	 */
 	public function get_service( $id ) {
-		$services = $this->get_services();
-
-		return array_key_exists( $id, $services ) ? $services[ $id ] : false;
+		return $this->get_services()->get( $id );
 	}
 
 	protected function register_services() {
@@ -1373,19 +1335,19 @@ class Simple extends WC_Data implements ShippingProvider {
 	 * @return true|\WP_Error
 	 */
 	protected function register_service( $id, $args = array() ) {
+		if ( is_null( $this->services ) ) {
+			$this->services = new ServiceList();
+		}
+
 		if ( is_a( $id, 'Vendidero\Germanized\Shipments\ShippingProvider\Service' ) ) {
-			$this->services[ $id->get_id() ] = $id;
+			$this->services->add( $id );
 
 			return true;
 		} else {
 			$args['id'] = $id;
 
 			try {
-				if ( is_null( $this->services ) ) {
-					$this->services = array();
-				}
-
-				$this->services[ $id ] = new Service( $this, $args );
+				$this->services->add( new Service( $this, $args ) );
 
 				return true;
 			} catch( Exception $e ) {

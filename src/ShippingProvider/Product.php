@@ -9,8 +9,6 @@ defined( 'ABSPATH' ) || exit;
 
 class Product {
 
-	protected $shipment_type = 'simple';
-
 	protected $id = '';
 
 	protected $label = '';
@@ -39,6 +37,10 @@ class Product {
 
 	protected $height = null;
 
+	protected $meta = array();
+
+	protected $parent_id = 0;
+
 	public function __construct( $shipping_provider, $args = array() ) {
 		if ( is_a( $shipping_provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
 			$this->shipping_provider      = $shipping_provider;
@@ -49,6 +51,8 @@ class Product {
 
 		$args = wp_parse_args( $args, array(
 			'id'                       => '',
+			'internal_id'              => 0,
+			'parent_id'                => 0,
 			'label'                    => '',
 			'description'              => '',
 			'supported_shipment_types' => array( 'simple' ),
@@ -61,6 +65,7 @@ class Product {
 			'height'                   => null,
 			'dimension_unit'           => get_option( 'woocommerce_dimension_unit' ),
 			'weight_unit'              => get_option( 'woocommerce_weight_unit' ),
+			'meta'                     => array(),
 		) );
 
 		if ( empty( $args['id'] ) ) {
@@ -72,8 +77,11 @@ class Product {
 		}
 
 		$this->id                       = $args['id'];
+		$this->internal_id              = ! empty( $args['internal_id'] ) ? $args['internal_id'] : $this->id;
+		$this->parent_id                = $args['parent_id'];
 		$this->label                    = $args['label'];
 		$this->description              = $args['description'];
+		$this->meta                     = (array) $args['meta'];
 		$this->supported_shipment_types = array_filter( (array) $args['supported_shipment_types'] );
 		$this->supported_countries      = is_null( $args['supported_countries'] ) ? null : array_filter( (array) $args['supported_countries'] );
 
@@ -116,6 +124,14 @@ class Product {
 		return $this->id;
 	}
 
+	public function get_internal_id() {
+		return $this->internal_id;
+	}
+
+	public function get_parent_id() {
+		return $this->parent_id;
+	}
+
 	public function get_label() {
 		return $this->label;
 	}
@@ -124,8 +140,30 @@ class Product {
 		return $this->description;
 	}
 
+	public function get_price() {
+		return $this->price;
+	}
+
+	public function get_dimension_unit() {
+		return $this->dimension_unit;
+	}
+
+	public function get_weight_unit() {
+		return $this->weight_unit;
+	}
+
 	public function supports_zone( $zone ) {
 		return in_array( $zone, $this->supported_zones, true );
+	}
+
+	public function get_meta( $prop = null, $default = false ) {
+		if ( is_null( $prop ) ) {
+			return $this->meta;
+		} elseif ( array_key_exists( $prop, $this->meta ) ) {
+			return $this->meta[ $prop ];
+		} else {
+			return $default;
+		}
 	}
 
 	public function supports_country( $country, $postcode = '' ) {
@@ -153,18 +191,19 @@ class Product {
 		}
 
 		$supports = true;
+		$value    = (float) wc_format_decimal( $value );
 
 		if ( '' === $unit ) {
-			$unit = get_option( 'woocommerce_weight_unit' );
+			$unit = get_option( 'woocommerce_dimension_unit' );
 		}
 
-		$dim_in_local_unit = wc_get_weight( $value, $this->weight_unit, $unit );
+		$dim_in_local_unit = (float) wc_get_dimension( $value, $this->get_dimension_unit(), $unit );
 
-		if ( ! is_null( $this->{$dim}['min'] ) && (float) $dim_in_local_unit < (float) $this->{$dim}['min'] ) {
+		if ( ! is_null( $this->{$dim}['min'] ) && $dim_in_local_unit < $this->{$dim}['min'] ) {
 			$supports = false;
 		}
 
-		if ( ! is_null( $this->{$dim}['max'] ) && (float) $dim_in_local_unit > (float) $this->{$dim}['max'] ) {
+		if ( ! is_null( $this->{$dim}['max'] ) && $dim_in_local_unit > $this->{$dim}['max'] ) {
 			$supports = false;
 		}
 
@@ -177,18 +216,19 @@ class Product {
 		}
 
 		$supports = true;
+		$weight   = (float) wc_format_decimal( $weight );
 
 		if ( '' === $unit ) {
 			$unit = get_option( 'woocommerce_weight_unit' );
 		}
 
-		$weight_in_local_unit = wc_get_weight( $weight, $this->weight_unit, $unit );
+		$weight_in_local_unit = (float) wc_get_weight( $weight, $this->get_weight_unit(), $unit );
 
-		if ( ! is_null( $this->weight['min'] ) && (float) $weight_in_local_unit < (float) $this->weight['min'] ) {
+		if ( ! is_null( $this->weight['min'] ) && $weight_in_local_unit < $this->weight['min'] ) {
 			$supports = false;
 		}
 
-		if ( ! is_null( $this->weight['max'] ) && (float) $weight_in_local_unit > (float) $this->weight['max'] ) {
+		if ( ! is_null( $this->weight['max'] ) && $weight_in_local_unit > $this->weight['max'] ) {
 			$supports = false;
 		}
 
@@ -207,23 +247,56 @@ class Product {
 		return $this->supports_min_max_dimension( $height, 'height', $unit );
 	}
 
+	public function get_formatted_dimensions( $type = 'length' ) {
+		$formatted_dimension = '';
+
+		if ( ! is_null( $this->{$type} ) ) {
+			$min  = $this->{$type}['min'];
+			$max  = $this->{$type}['max'];
+			$unit = 'weight' === $type ? $this->get_weight_unit() : $this->get_dimension_unit();
+
+			if ( ! is_null( $min ) && 0.0 !== $min ) {
+				$formatted_dimension .= wc_format_localized_decimal( $min );
+			}
+
+			if ( ! is_null( $max ) ) {
+				$formatted_dimension .= ( empty( $formatted_dimension ) ? sprintf( _x( 'until %s', 'dhl', 'woocommerce-germanized-dhl' ), wc_format_localized_decimal( $max ) ) : '-' . wc_format_localized_decimal( $max ) );
+			}
+
+			if ( ! empty( $formatted_dimension ) ) {
+				$formatted_dimension .= ' ' . $unit;
+			}
+		}
+
+		return $formatted_dimension;
+	}
+
+	public function get_formatted_weight() {
+		return $this->get_formatted_dimensions( 'weight' );
+	}
+
 	public function supports( $filter_args = array() ) {
 		$filter_args = wp_parse_args( $filter_args, array(
-			'country'       => '',
-			'zone'          => '',
-			'shipment'      => false,
-			'shipment_type' => '',
-			'weight'        => null,
-			'weight_unit'   => '',
-			'length'        => null,
-			'width'         => null,
-			'height'        => null,
-			'dimension_unit' => ''
+			'country'        => '',
+			'zone'           => '',
+			'shipment'       => false,
+			'shipment_type'  => '',
+			'weight'         => null,
+			'weight_unit'    => '',
+			'length'         => null,
+			'width'          => null,
+			'height'         => null,
+			'dimension_unit' => '',
+			'parent_id'      => null,
 		) );
 
 		$include_product = true;
 
-		if ( ! empty( $filter_args['shipment'] ) && ( $shipment = wc_gzd_get_shipment( $filter_args['shipment'] ) ) ) {
+		if ( ! is_null( $filter_args['parent_id'] ) && (string) $this->get_parent_id() !== (string) $filter_args['parent_id'] ) {
+			$include_product = false;
+		}
+
+		if ( $include_product && ! empty( $filter_args['shipment'] ) && ( $shipment = wc_gzd_get_shipment( $filter_args['shipment'] ) ) ) {
 			$include_product = $this->supports_shipment( $shipment );
 
 			$filter_args['shipment_type']  = '';

@@ -15,6 +15,8 @@ class Service {
 
 	protected $id = '';
 
+	protected $internal_id = '';
+
 	protected $label = '';
 
 	protected $shipping_provider = null;
@@ -53,6 +55,7 @@ class Service {
 
 		$args = wp_parse_args( $args, array(
 			'id'          => '',
+			'internal_id' => '',
 			'label'       => '',
 			'description' => '',
 			'long_description' => '',
@@ -61,7 +64,7 @@ class Service {
 			'setting_base_id'   => '',
 			'excluded_locations' => array(),
 			'options'     => array(),
-			'products'    => array(),
+			'products'    => null,
 			'supported_shipment_types' => array( 'simple' ),
 			'supported_countries' => null,
 			'supported_zones' => array_keys( wc_gzd_get_shipping_label_zones() ),
@@ -77,6 +80,7 @@ class Service {
 		}
 
 		$this->id          = $args['id'];
+		$this->internal_id = empty( $args['internal_id'] ) ? $this->id : $args['internal_id'];
 		$this->label       = $args['label'];
 		$this->description = $args['description'];
 		$this->long_description = $args['long_description'];
@@ -84,8 +88,8 @@ class Service {
 		$this->default_value = $args['default_value'];
 		$this->setting_base_id = ! empty( $args['setting_base_id'] ) ? $args['setting_base_id'] : $this->get_id();
 		$this->options      = array_filter( (array) $args['options'] );
-		$this->locations = array_diff( array( 'settings', 'global_settings', 'labels', 'label_services' ), array_filter( (array) $args['excluded_locations'] ) );
-		$this->products      = array_filter( (array) $args['products'] );
+		$this->locations = array_diff( wc_gzd_get_shipping_provider_service_locations(), array_filter( (array) $args['excluded_locations'] ) );
+		$this->products      = is_null( $args['products'] ) ? null: array_filter( (array) $args['products'] );
 		$this->supported_shipment_types = array_filter( (array) $args['supported_shipment_types'] );
 		$this->supported_countries = is_null( $args['supported_countries'] ) ? null : array_filter( (array) $args['supported_countries'] );
 
@@ -101,6 +105,10 @@ class Service {
 
 	public function get_id() {
 		return $this->id;
+	}
+
+	public function get_internal_id() {
+		return $this->internal_id;
 	}
 
 	public function get_label() {
@@ -120,7 +128,7 @@ class Service {
 	}
 
 	public function get_products() {
-		return $this->products;
+		return is_null( $this->products ) ? array() : $this->products;
 	}
 
 	public function get_locations() {
@@ -183,7 +191,7 @@ class Service {
 	}
 
 	public function supports_product( $product ) {
-		return in_array( $product, $this->get_products(), true );
+		return is_null( $this->products ) ? true : in_array( $product, $this->get_products(), true );
 	}
 
 	public function supports_zone( $zone ) {

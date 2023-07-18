@@ -812,6 +812,10 @@ function wc_gzd_get_shipment_shipping_provider_title( $shipment ) {
 	return $title;
 }
 
+function wc_gzd_get_shipping_provider_service_locations() {
+	return array( 'settings', 'global_settings', 'labels', 'label_services' );
+}
+
 function wc_gzd_get_shipping_provider_slug( $provider ) {
 	$providers = wc_gzd_get_shipping_providers();
 

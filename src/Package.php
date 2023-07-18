@@ -4,11 +4,13 @@ namespace Vendidero\Germanized\Shipments;
 
 use DVDoug\BoxPacker\ItemList;
 use Exception;
+use Vendidero\Germanized\Shipments\DataStores\ShippingProvider;
 use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
 use Vendidero\Germanized\Shipments\Packing\CartItem;
 use Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use Vendidero\Germanized\Shipments\ShippingProvider\Method;
+use Vendidero\Germanized\Shipments\ShippingProvider\ProductList;
 use WC_Shipping;
 use WC_Shipping_Method;
 
