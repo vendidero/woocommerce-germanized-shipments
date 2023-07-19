@@ -884,6 +884,13 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
 	public function get_default_label_product( $shipment ) {
-		return $this->get_shipment_setting( $shipment, $this->get_product_setting_id( $shipment->get_shipping_zone(), $shipment->get_type() ) );
+		$product_id = $this->get_shipment_setting( $shipment, $this->get_product_setting_id( $shipment->get_shipping_zone(), $shipment->get_type() ) );
+		$available  = $this->get_available_label_products( $shipment );
+
+		if ( ! array_key_exists( $product_id, $available ) && ! empty( $available ) ) {
+			$product_id = array_keys( $available )[0];
+		}
+
+		return $product_id;
 	}
 }
