@@ -18,7 +18,10 @@ window.germanized.admin = window.germanized.admin || {};
 
             $( document )
                 .on( 'change', 'select[id$=shipping_provider]', self.showOrHideAll )
-                .on( 'change', ':input:visible[id]', self.onChangeField );
+                //.on( 'change', ':input:visible[id]', self.onChangeField )
+                .on( 'change gzd_show_or_hide_fields', ':input:visible[id]', self.onChangeInput )
+                .on( 'click', '.wc-gzd-shipping-provider-method-tabs .nav-tab-wrapper a.nav-tab', self.onChangeTab )
+                .on( 'change', '.override-checkbox :input', self.onChangeOverride );
 
             $( document.body ).on( 'wc_backbone_modal_loaded', self.onShippingMethodOpen );
 
@@ -29,6 +32,139 @@ window.germanized.admin = window.germanized.admin || {};
 
         parseFieldId: function( fieldId ) {
             return fieldId.replace( '[', '_' ).replace( ']', '' );
+        },
+
+        onChangeOverride: function() {
+            var self      = germanized.admin.shipping_provider_method,
+                $checkbox = $( this ),
+                isChecked = $checkbox.is( ':checked' ),
+                $parent   = $checkbox.parents( '.wc-gzd-shipping-provider-override-wrapper' );
+
+            if ( isChecked ) {
+                $parent.find( '.wc-gzd-shipping-provider-override-inner-wrapper' ).addClass( 'has-override' );
+            } else {
+                $parent.find( '.wc-gzd-shipping-provider-override-inner-wrapper' ).removeClass( 'has-override' );
+            }
+        },
+
+        onChangeTab: function() {
+            var self     = germanized.admin.shipping_provider_method,
+                $navTab  = $( this ),
+                $wrapper = $navTab.parents( 'form' ),
+                tab      = $navTab.attr( 'href' ).replace( '#', '' ),
+                $tab     = $wrapper.find( '.wc-gzd-shipping-provider-method-tab-content[data-tab="' + tab + '"]' );
+
+            $navTab.parents( '.wc-gzd-shipping-provider-method-tabs' ).find( '.nav-tab-active' ).removeClass( 'nav-tab-active' );
+            $wrapper.find( '.wc-gzd-shipping-provider-method-tab-content' ).removeClass( 'tab-content-active' );
+
+            if ( $tab.length > 0 ) {
+                $navTab.addClass( 'nav-tab-active' );
+                $tab.addClass( 'tab-content-active' );
+                $tab.find( ':input:visible' ).trigger( 'change' );
+            }
+
+            return false;
+        },
+
+        getInputByIdOrName: function( $wrapper , cleanName ) {
+            var self = germanized.admin.shipping_provider_method;
+            cleanName = cleanName.toLowerCase();
+
+            return $wrapper.find( ':input' ).filter( function() {
+                var id = self.getCleanInputId( $( this ) );
+
+                if ( ! id ) {
+                    return false;
+                }
+
+                return id.toLowerCase() === cleanName;
+            });
+        },
+
+        getCleanInputId: function( $mainInput ) {
+            var self            = germanized.admin.shipping_provider_method,
+                currentProvider = self.currentProvider,
+                fieldId         = $mainInput.attr( 'id' ) ? $mainInput.attr( 'id' ) : $mainInput.attr( 'name' );
+
+            if ( ! fieldId ) {
+                return false;
+            }
+
+            if ( currentProvider && fieldId.toLowerCase().indexOf( '_' + currentProvider + '_' ) >= 0 ) {
+                // Remove the shipping method name prefix
+                return fieldId.substring( fieldId.lastIndexOf( currentProvider + '_' ), fieldId.length );
+            }
+
+            return fieldId;
+        },
+
+        onChangeInput: function() {
+            var self             = germanized.admin.shipping_provider_method,
+                $mainInput       = $( this ),
+                $wrapper         = $( this ).parents( 'form' ),
+                mainId           = self.getCleanInputId( $mainInput ),
+                $dependentFields = $wrapper.find( ':input[data-show_if_' + mainId + ']' );
+
+            var $input, $field, data, meetsConditions, cleanName, $dependentField, valueExpected, val, isChecked;
+
+            $.each( $dependentFields, function () {
+                $input          = $( this );
+                $field          = $input.parents( 'tr' );
+                data            = $input.data();
+                meetsConditions = true;
+
+                for ( var dataName in data ) {
+                    if ( data.hasOwnProperty( dataName ) ) {
+                        /**
+                         * Check all the conditions for a dependent field.
+                         */
+                        if ( dataName.substring( 0, 8 ) === 'show_if_' ) {
+                            cleanName       = dataName.replace( 'show_if_', '' );
+                            $dependentField = self.getInputByIdOrName( $wrapper, cleanName );
+                            valueExpected   = $input.data( dataName ) ? $input.data( dataName ).split(',') : [];
+
+                            if ( $dependentField.length > 0 ) {
+                                val       = $dependentField.val();
+                                isChecked = false;
+
+                                if ( $dependentField.is( ':radio' ) ) {
+                                    val = $dependentField.parents( 'fieldset' ).find( ':checked' ).length > 0 ? $dependentField.parents( 'fieldset' ).find( ':checked' ).val() : 'no';
+
+                                    if ( 'no' !== val ) {
+                                        isChecked = true;
+                                    }
+                                } else if ( $dependentField.is( ':checkbox' ) ) {
+                                    val = $dependentField.is( ':checked' ) ? 'yes' : 'no';
+
+                                    if ( 'yes' === val ) {
+                                        isChecked = true;
+                                    }
+                                } else {
+                                    isChecked = undefined !== val && '0' !== val && '' !== val;
+                                }
+
+                                if ( valueExpected && valueExpected.length > 0 ) {
+                                    if ( $.inArray( val, valueExpected ) === -1 ) {
+                                        meetsConditions = false;
+                                    }
+                                } else if ( ! isChecked ) {
+                                    meetsConditions = false;
+                                }
+                            }
+
+                            if ( ! meetsConditions ) {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if ( meetsConditions ) {
+                    $field.show();
+                } else {
+                    $field.hide();
+                }
+            } );
         },
 
         onChangeField: function() {
@@ -85,12 +221,18 @@ window.germanized.admin = window.germanized.admin || {};
                 }
             });
 
+            $form.find( '.wc-gzd-shipping-provider-method-tabs' ).hide();
+            $form.find( '.wc-gzd-shipping-provider-method-tab-content' ).removeClass( 'tab-content-active' );
+
             if ( self.currentProvider.length > 0 ) {
                 $form.find( 'table.form-table' ).each( function() {
                     if ( $( this ).find( ':input[id*=_' + self.currentProvider + '_]' ).length > 0 ) {
                         self.showTable( $( this ) );
                     }
                 });
+
+                $form.find( '.wc-gzd-shipping-provider-method-tabs[data-provider="' + self.currentProvider + '"]' ).show();
+                $form.find( '.wc-gzd-shipping-provider-method-tabs[data-provider="' + self.currentProvider + '"] .nav-tab-wrapper' ).find( 'a.nav-tab:first' ).trigger( 'click' );
 
                 // Trigger show/hide
                 $form.find( ':input[id*=_' + self.currentProvider + '_]:visible' ).trigger( 'change' );

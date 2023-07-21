@@ -41,14 +41,72 @@ class Method {
 	public function __construct( $method, $is_placeholder = false ) {
 		if ( ! $is_placeholder ) {
 			$this->method = $method;
-			$this->init();
 		} else {
 			$this->is_placeholder = true;
-			$this->init_placeholder( $method );
+			$this->parse_placeholder( $method );
 		}
 	}
 
-	protected function init_placeholder( $id ) {
+	public function get_shipping_provider_name() {
+
+	}
+
+	public function get_shipping_provider() {
+		$id = sanitize_key( $this->get_id() );
+
+		if ( is_null( $this->provider_slug ) ) {
+			$provider_slug = $this->method ? $this->method->get_option( 'shipping_provider' ) : '';
+
+			if ( ! empty( $provider_slug ) ) {
+				if ( $provider = wc_gzd_get_shipping_provider( $provider_slug ) ) {
+					if ( ! $provider->is_activated() ) {
+						$provider_slug = '';
+					}
+				}
+			}
+
+			if ( empty( $provider_slug ) ) {
+				$provider_slug = wc_gzd_get_default_shipping_provider();
+			}
+
+			/**
+			 * Filter that allows adjusting the shipping provider chosen for a specific shipping method.
+			 *
+			 * @param string $provider_slug The shipping provider.
+			 * @param string $method_id The shipping method id.
+			 * @param Method $method The method instance.
+			 *
+			 * @since 3.0.6
+			 * @package Vendidero/Germanized/Shipments
+			 */
+			$this->provider_slug = apply_filters( 'woocommerce_gzd_shipping_provider_method_provider', $provider_slug, $this->get_id(), $this );
+		}
+
+		/**
+		 * Filter that allows choosing a shipping provider for a specific shipping method.
+		 *
+		 * The dynamic portion of this hook, `$id` refers to the shipping method id.
+		 *
+		 * Example hook name: `woocommerce_gzd_shipping_provider_method_flat_rate_provider`
+		 *
+		 * @param string $provider_slug The shipping provider name to be used.
+		 * @param Method $method The method instance.
+		 *
+		 * @since 3.0.6
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( "{$this->get_hook_prefix()}{$id}_provider", $this->provider_slug, $this );
+	}
+
+	public function get_label_services( $shipment ) {
+
+	}
+
+	public function get_label_product( $shipment ) {
+
+	}
+
+	protected function parse_placeholder( $id ) {
 		if ( is_a( $id, 'WC_Shipping_Rate' ) ) {
 			$instance_id = $id->get_instance_id();
 			$id          = $id->get_id();
@@ -75,8 +133,6 @@ class Method {
 
 		$this->placeholder_id          = $id;
 		$this->placeholder_instance_id = $instance_id;
-
-		$this->instance_form_fields = Package::get_method_settings();
 	}
 
 	public function get_fallback_setting_value( $setting_key ) {
@@ -117,77 +173,6 @@ class Method {
 
 	public function is_placeholder() {
 		return true === $this->is_placeholder;
-	}
-
-	/**
-	 * Get all available shipping method settings. This method (re-) loads all
-	 * the settings available across every registered shipping provider.
-	 * Call the cached version instead for performance improvements.
-	 *
-	 * @see Package::get_method_settings()
-	 *
-	 * @return mixed|void
-	 */
-	public static function get_admin_settings() {
-		/**
-		 * Filter to adjust admin settings added to the shipment method instance specifically for shipping providers.
-		 *
-		 * @param array $settings Admin setting fields.
-		 *
-		 * @since 3.0.6
-		 * @package Vendidero/Germanized/Shipments
-		 */
-		$settings = apply_filters(
-			'woocommerce_gzd_shipping_provider_method_admin_settings',
-			array(
-				'shipping_provider_title' => array(
-					'title'       => _x( 'Shipping Provider Settings', 'shipments', 'woocommerce-germanized-shipments' ),
-					'type'        => 'title',
-					'default'     => '',
-					'description' => _x( 'Adjust shipping provider settings used for managing shipments.', 'shipments', 'woocommerce-germanized-shipments' ),
-				),
-				'shipping_provider'       => array(
-					'title'       => _x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' ),
-					'type'        => 'select',
-					/**
-					 * Filter to adjust default shipping provider pre-selected within shipping provider method settings.
-					 *
-					 * @param string $provider_name The shipping provider name e.g. dhl.
-					 *
-					 * @since 3.0.6
-					 * @package Vendidero/Germanized/Shipments
-					 */
-					'default'     => apply_filters( 'woocommerce_gzd_shipping_provider_method_default_provider', '' ),
-					'options'     => wc_gzd_get_shipping_provider_select(),
-					'description' => _x( 'Choose a shipping provider which will be selected by default for an eligible shipment.', 'shipments', 'woocommerce-germanized-shipments' ),
-				),
-			)
-		);
-
-		foreach ( wc_gzd_get_shipping_providers() as $provider ) {
-			if ( ! $provider->is_activated() ) {
-				continue;
-			}
-
-			$additional_settings = $provider->get_shipping_method_settings();
-			$settings            = array_merge( $settings, $additional_settings );
-		}
-
-		/**
-		 * Append a stop title to make sure the table is closed within settings.
-		 */
-		$settings = array_merge(
-			$settings,
-			array(
-				'shipping_provider_stop_title' => array(
-					'title'   => '',
-					'type'    => 'title',
-					'default' => '',
-				),
-			)
-		);
-
-		return apply_filters( 'woocommerce_gzd_shipping_provider_method_admin_settings_wrapped', $settings );
 	}
 
 	protected function init() {

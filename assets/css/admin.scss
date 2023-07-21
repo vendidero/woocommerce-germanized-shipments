@@ -16,6 +16,94 @@ $layout-spacing: 1rem;
   background: #efefef;
 }
 
+.wc-gzd-shipping-provider-method-tabs {
+  display: none;
+
+  .nav-tab-wrapper {
+    margin: 0 !important;
+    padding: 0;
+    margin-bottom: 1em !important;
+
+    .nav-tab {
+      &:focus {
+        box-shadow: none;
+        outline: none;
+      }
+    }
+  }
+}
+
+.wc-modal-shipping-method-settings {
+  .nav-tab-wrapper {
+    .nav-tab {
+      &.nav-tab-active {
+        background: #f8f8f8;
+        border-bottom: 1px solid #f8f8f8;
+      }
+    }
+  }
+}
+
+.wc-gzd-shipping-provider-method-tab-content {
+  display: none;
+
+  &.tab-content-active {
+    display: block;
+  }
+
+  .wc-gzd-shipping-provider-override-wrapper {
+    .wc-gzd-shipping-provider-override-title-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+
+      p.override-checkbox {
+        margin: 0;
+        margin-left: 2em;
+      }
+    }
+    .wc-gzd-shipping-provider-override-inner-wrapper {
+      opacity: .5;
+      pointer-events: none;
+      overflow: hidden;
+      max-height: 190px;
+      background: #f8f8f8;
+      position: relative;
+      margin-bottom: 1em;
+
+      table {
+        background: #f8f8f8;
+      }
+
+      &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        box-shadow: inset 0 -12px 20px -12px rgba(0, 0, 0, 0.3);
+      }
+
+      &.has-override {
+        opacity: 1;
+        pointer-events: all;
+        overflow: auto;
+        max-height: 100%;
+        background: #fff;
+
+        table {
+          background: #fff;
+        }
+
+        &::after {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
 .wc-gzd-shipments-packaging {
   .nav-tab-wrapper {
     margin: 1.5em 0 1em;

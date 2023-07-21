@@ -320,9 +320,9 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			if ( ! empty( $inner_zone_settings ) ) {
 				$settings = array_merge( $settings, array(
 					array(
-						'title' => sprintf( _x( '%1$s shipments', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_label_zone_title( $zone ) ),
-						'type'  => 'title',
-						'id'    => $setting_id,
+						'title'   => sprintf( _x( '%1$s shipments', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_label_zone_title( $zone ) ),
+						'type'    => 'title',
+						'id'      => $setting_id,
 					),
 				), $inner_zone_settings, array(
 					array(
@@ -892,5 +892,81 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		}
 
 		return $product_id;
+	}
+
+	public function get_shipping_method_settings() {
+		$method_settings = array();
+
+		foreach( $this->get_supported_shipment_types() as $shipment_type ) {
+			foreach( $this->get_available_label_zones( $shipment_type ) as $zone ) {
+				$settings = $this->get_label_settings_by_zone( $zone, $shipment_type, 'shipping_method' );
+
+				if ( ! empty( $settings ) ) {
+					if ( ! isset( $method_settings[ $zone ][ $shipment_type ] ) ) {
+						$method_settings[ $zone ][ $shipment_type ] = array();
+
+						$title_id_type = 'simple' === $shipment_type ? '' : '_' . $shipment_type;
+						$title_id = "{$this->get_name()}{$title_id_type}_{$zone}_override";
+
+						$method_settings[ $zone ][ $shipment_type ][ $title_id ] = array(
+							'id'      => $title_id,
+							'default' => '',
+							'type'    => 'shipping_provider_method_zone_override_open',
+							'title'   => sprintf( _x( "%s Shipments", 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_label_zone_title( $zone ) ),
+						);
+					}
+
+					foreach( $settings as $setting ) {
+						$setting = wp_parse_args( $setting, array(
+							'default'           => '',
+							'type'              => '',
+							'id'                => '',
+							'custom_attributes' => array(),
+						) );
+
+						if ( ! empty( $setting['custom_attributes'] ) ) {
+							foreach ( $setting['custom_attributes'] as $attr => $val ) {
+								$new_attr = $attr;
+
+								if ( 'data-show_if_' === substr( $attr, 0, 13 ) ) {
+									$new_attr = 'data-show_if_' . $this->get_name() . '_' . substr( $attr, 13, strlen( $attr ) );
+									unset( $setting['custom_attributes'][ $attr ] );
+								}
+
+								$setting['custom_attributes'][ $new_attr ] = $val;
+							}
+						}
+
+						$setting_id = $this->get_name() . '_' . $setting['id'];
+
+						if ( 'sectionend' === $setting['type'] ) {
+							$setting['type'] = 'title';
+						} elseif ( 'gzd_toggle' === $setting['type'] ) {
+							$setting['type'] = 'checkbox';
+						}
+
+						if ( 'checkbox' === $setting['type'] ) {
+							$setting['label'] = $setting['desc'];
+						}
+
+						if ( isset( $setting['desc'] ) && 'checkbox' !== $setting['type'] ) {
+							$setting['description'] = $setting['desc'];
+						}
+
+						$method_settings[ $zone ][ $shipment_type ][ $setting_id ] = $setting;
+					}
+
+					$close_id = "{$this->get_name()}{$title_id_type}_{$zone}_override_close";
+
+					$method_settings[ $zone ][ $shipment_type ][ $close_id ] = array(
+						'id'      => $close_id,
+						'default' => '',
+						'type'    => 'shipping_provider_method_zone_override_close',
+					);
+				}
+			}
+		}
+
+		return $method_settings;
 	}
 }

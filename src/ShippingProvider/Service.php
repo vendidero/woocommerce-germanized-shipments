@@ -155,11 +155,7 @@ class Service {
 			$args['shipment_type'] = $args['shipment']->get_type();
 		}
 
-		$setting_base_id = $this->setting_base_id;
-
-		if ( 'dom' !== $args['zone'] ) {
-			$setting_base_id = $args['zone'] . '_' . $setting_base_id;
-		}
+		$setting_base_id = $args['zone'] . '_' . $this->setting_base_id;
 
 		if ( 'simple' !== $args['shipment_type'] ) {
 			$setting_base_id = $args['shipment_type'] . '_' . $setting_base_id;
