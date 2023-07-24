@@ -61,7 +61,6 @@ class Service {
 			'long_description' => '',
 			'option_type' => 'checkbox',
 			'default_value' => 'no',
-			'setting_base_id'   => '',
 			'excluded_locations' => array(),
 			'options'     => array(),
 			'products'    => null,
@@ -86,7 +85,6 @@ class Service {
 		$this->long_description = $args['long_description'];
 		$this->option_type = $args['option_type'];
 		$this->default_value = $args['default_value'];
-		$this->setting_base_id = ! empty( $args['setting_base_id'] ) ? $args['setting_base_id'] : $this->get_id();
 		$this->options      = array_filter( (array) $args['options'] );
 		$this->locations = array_diff( wc_gzd_get_shipping_provider_service_locations(), array_filter( (array) $args['excluded_locations'] ) );
 		$this->products      = is_null( $args['products'] ) ? null: array_filter( (array) $args['products'] );
@@ -155,21 +153,18 @@ class Service {
 			$args['shipment_type'] = $args['shipment']->get_type();
 		}
 
-		$setting_base_id = $args['zone'] . '_' . $this->setting_base_id;
-
-		if ( 'simple' !== $args['shipment_type'] ) {
-			$setting_base_id = $args['shipment_type'] . '_' . $setting_base_id;
-		}
+		$suffix = $this->get_id();
+		$prefix = $args['shipment_type'] . '_' . $args['zone'];
 
 		if ( ! empty( $args['suffix'] ) ) {
-			$setting_base_id = $setting_base_id . "_" . $args['suffix'];
+			$suffix = $suffix . "_" . $args['suffix'];
 		}
 
-		return "label_service_{$setting_base_id}";
+		return $prefix . "_label_service_{$suffix}";
 	}
 
 	public function get_label_field_id( $suffix = '' ) {
-		$setting_base_id = $this->setting_base_id;
+		$setting_base_id = $this->get_id();
 
 		if ( ! empty( $suffix ) ) {
 			$setting_base_id .= "_{$suffix}";

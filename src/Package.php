@@ -8,6 +8,7 @@ use Vendidero\Germanized\Shipments\DataStores\ShippingProvider;
 use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
 use Vendidero\Germanized\Shipments\Packing\CartItem;
 use Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod;
+use Vendidero\Germanized\Shipments\ShippingProvider\ConfigurationSet;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use Vendidero\Germanized\Shipments\ShippingProvider\Method;
 use Vendidero\Germanized\Shipments\ShippingProvider\ProductList;
@@ -258,7 +259,7 @@ class Package {
 				continue;
 			}
 
-			// add_filter( 'woocommerce_shipping_' . $method . '_instance_settings_values', array( __CLASS__, 'filter_method_settings' ), 10, 2 );
+            add_filter( 'woocommerce_shipping_' . $method . '_instance_settings_values', array( __CLASS__, 'filter_method_settings' ), 10, 2 );
 			add_filter( 'woocommerce_shipping_instance_form_fields_' . $method, array( __CLASS__, 'add_method_settings' ), 10, 1 );
 
 			/**
@@ -294,8 +295,8 @@ class Package {
 		return $load_all_setting_fields;
 	}
 
-	public static function get_method_settings() {
-		$load_all_settings = self::load_all_method_settings();
+	public static function get_method_settings( $force_load_all = false ) {
+		$load_all_settings = $force_load_all ? true : self::load_all_method_settings();
 		$method_settings   = array(
 			'shipping_provider_title' => array(
 				'title'       => _x( 'Shipping Provider Settings', 'shipments', 'woocommerce-germanized-shipments' ),
@@ -363,6 +364,7 @@ class Package {
 							'tabs'     => $provider_tabs,
 							'type'     => 'shipping_provider_method_tabs',
 							'default'  => '',
+							'display_only' => true,
 							'provider' => $provider,
 						),
 					) );
@@ -419,27 +421,95 @@ class Package {
 		return $method_settings;
 	}
 
+    public static function validate_method_zone_override( $value ) {
+	    return ! is_null( $value ) ? 'yes' : 'no';
+    }
+
+	/**
+	 * @param array $p_settings
+	 * @param WC_Shipping_Method $method
+	 *
+	 * @return array
+	 */
 	public static function filter_method_settings( $p_settings, $method ) {
-		$shipping_provider_settings = self::get_method_settings();
-		$shipping_provider          = isset( $p_settings['shipping_provider'] ) ? $p_settings['shipping_provider'] : '';
-		$shipping_method            = wc_gzd_get_shipping_provider_method( $method );
+		$shipping_provider     = isset( $p_settings['shipping_provider'] ) ? $p_settings['shipping_provider'] : '';
+        $all_provider_settings = self::get_method_settings( true );
+        $available_settings    = array();
 
-		/**
-		 * Make sure the (maybe) new selected provider is used on updating the settings.
-		 */
-		$shipping_method->set_provider( $shipping_provider );
+        foreach( $p_settings as $setting_id => $setting_val ) {
+            if ( 'shipping_provider_' === substr( $setting_id, 0, 18 ) ) {
+                $provider_prefix = "shipping_provider_{$shipping_provider}_";
 
-		foreach ( $p_settings as $setting => $value ) {
-			if ( array_key_exists( $setting, $shipping_provider_settings ) ) {
-				// Check if setting does neither belong to global setting nor shipping provider prefix
-				if ( 'shipping_provider' !== $setting && ! $shipping_method->setting_belongs_to_provider( $setting ) ) {
-					unset( $p_settings[ $setting ] );
-				} elseif ( $shipping_method->get_fallback_setting_value( $setting ) === $value ) {
-					unset( $p_settings[ $setting ] );
-				} elseif ( '' === $value ) {
-					unset( $p_settings[ $setting ] );
-				}
-			}
+                if ( $provider_prefix === substr( $setting_id, 0, strlen( $provider_prefix ) ) ) {
+                    if ( array_key_exists( $setting_id, $all_provider_settings ) ) {
+                        $available_settings[ $setting_id ] = wp_parse_args( $all_provider_settings[ $setting_id ], array(
+	                        'id'       => '',
+	                        'provider' => '',
+	                        'shipment_zone' => '',
+	                        'shipment_type' => '',
+	                        'shipment_setting_type' => '',
+	                        'type'          => '',
+	                        'service'       => '',
+                        ) );
+
+	                    $available_settings[ $setting_id ]['value'] = $setting_val;
+                    }
+
+                    unset( $p_settings[ $setting_id ] );
+                } else {
+	                unset( $p_settings[ $setting_id ] );
+                }
+            }
+        }
+
+		if ( ! empty( $shipping_provider ) ) {
+            $zones = array();
+
+            foreach( $available_settings as $setting_id => $provider_setting ) {
+	            $set_id               = "{$provider_setting['provider']}_{$provider_setting['shipment_type']}_{$provider_setting['shipment_zone']}";
+	            $setting_field_prefix = "shipping_provider_{$set_id}";
+                $has_override         = isset( $available_settings[ $setting_field_prefix . '_override' ] ) ? wc_string_to_bool( $available_settings[ $setting_field_prefix . '_override' ]['value'] ) : false;
+
+                if ( ! $has_override ) {
+                    continue;
+                }
+
+                if ( ! empty( $provider_setting['shipment_setting_type'] ) ) {
+	                if ( ! isset( $zones[ $set_id ] ) ) {
+		                $zones[ $set_id ] = new ConfigurationSet( array(
+			                'shipping_provider_name' => $provider_setting['provider'],
+			                'shipment_type'          => $provider_setting['shipment_type'],
+			                'zone'                   => $provider_setting['shipment_zone'],
+			                'setting_type'           => 'shipping_method'
+		                ) );
+	                }
+
+	                $clean_setting_id = str_replace( "{$setting_field_prefix}_", '', $setting_id );
+
+	                if ( 'service' === $provider_setting['shipment_setting_type'] ) {
+		                if ( $clean_setting_id === "label_service_{$provider_setting['service']}" ) {
+			                $zones[ $set_id ]->update_service( $provider_setting['service'], $provider_setting['value'] );
+		                } elseif ( $zones[ $set_id ]->has_service( $provider_setting['service'] ) ) {
+			                $clean_setting_id = str_replace( "label_service_{$provider_setting['service']}_", '', $clean_setting_id );
+
+                            if ( ! empty( $clean_setting_id ) ) {
+	                            $zones[ $set_id ]->update_service_meta( $provider_setting['service'], $clean_setting_id, $provider_setting['value'] );
+                            }
+		                }
+	                } elseif ( 'product' === $provider_setting['shipment_setting_type'] ) {
+		                $zones[ $set_id ]->update_product( $provider_setting['value'] );
+	                } else {
+		                $zones[ $set_id ]->update_setting( $clean_setting_id, $provider_setting['value'], 'additional' );
+	                }
+                }
+            }
+
+            // Add zones to settings
+            if ( ! empty( $zones ) ) {
+                foreach( $zones as $zone ) {
+                    $p_settings[ $zone->get_id() ] = $zone->get_data();
+                }
+            }
 		}
 
 		/**

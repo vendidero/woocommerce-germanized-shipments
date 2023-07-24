@@ -24,6 +24,15 @@
   background: #f8f8f8;
   border-bottom: 1px solid #f8f8f8; }
 
+.wc-modal-shipping-method-settings .wc-gzd-shipping-provider-method-tab-content .wc-gzd-shipping-provider-override-wrapper .wc-gzd-shipping-provider-override-inner-wrapper {
+  background: #f8f8f8; }
+  .wc-modal-shipping-method-settings .wc-gzd-shipping-provider-method-tab-content .wc-gzd-shipping-provider-override-wrapper .wc-gzd-shipping-provider-override-inner-wrapper table {
+    background: #f8f8f8; }
+  .wc-modal-shipping-method-settings .wc-gzd-shipping-provider-method-tab-content .wc-gzd-shipping-provider-override-wrapper .wc-gzd-shipping-provider-override-inner-wrapper.has-override {
+    background: #fff; }
+    .wc-modal-shipping-method-settings .wc-gzd-shipping-provider-method-tab-content .wc-gzd-shipping-provider-override-wrapper .wc-gzd-shipping-provider-override-inner-wrapper.has-override table {
+      background: #fff; }
+
 .wc-gzd-shipping-provider-method-tab-content {
   display: none; }
   .wc-gzd-shipping-provider-method-tab-content.tab-content-active {
@@ -40,11 +49,8 @@
     pointer-events: none;
     overflow: hidden;
     max-height: 190px;
-    background: #f8f8f8;
     position: relative;
     margin-bottom: 1em; }
-    .wc-gzd-shipping-provider-method-tab-content .wc-gzd-shipping-provider-override-wrapper .wc-gzd-shipping-provider-override-inner-wrapper table {
-      background: #f8f8f8; }
     .wc-gzd-shipping-provider-method-tab-content .wc-gzd-shipping-provider-override-wrapper .wc-gzd-shipping-provider-override-inner-wrapper::after {
       content: "";
       position: absolute;
@@ -57,10 +63,7 @@
       opacity: 1;
       pointer-events: all;
       overflow: auto;
-      max-height: 100%;
-      background: #fff; }
-      .wc-gzd-shipping-provider-method-tab-content .wc-gzd-shipping-provider-override-wrapper .wc-gzd-shipping-provider-override-inner-wrapper.has-override table {
-        background: #fff; }
+      max-height: 100%; }
       .wc-gzd-shipping-provider-method-tab-content .wc-gzd-shipping-provider-override-wrapper .wc-gzd-shipping-provider-override-inner-wrapper.has-override::after {
         display: none; }
 

@@ -408,17 +408,27 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 					'desc'    => sprintf( _x( 'Select the default service for %1$s shipments.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_label_zone_title( $zone ) ),
 					'options' => $select,
 					'class'   => 'wc-enhanced-select',
+					'provider' => $this->get_name(),
+					'shipment_setting_type' => 'product',
+					'shipment_zone' => $zone,
+					'shipment_type' => $shipment_type,
 				),
 			) );
 		}
 
 		foreach( $services as $service ) {
-			$service_setting_fields = $service->get_setting_fields( array( 'zone' => $zone, 'shipment_type' => $shipment_type ) );
+			$service_args           = array( 'zone' => $zone, 'shipment_type' => $shipment_type, 'location' => $for );
+			$service_setting_fields = $service->get_setting_fields( $service_args );
 
 			if ( ! empty( $product_setting_id ) ) {
 				foreach( $service_setting_fields as $k => $service_setting ) {
 					$service_setting_fields[ $k ] = wp_parse_args( $service_setting_fields[ $k ], array(
-						'custom_attributes' => array()
+						'custom_attributes'     => array(),
+						'service'               => $service->get_id(),
+						'provider'              => $this->get_name(),
+						'shipment_setting_type' => 'service',
+						'shipment_zone'         => $zone,
+						'shipment_type'         => $shipment_type,
 					) );
 
 					$service_setting_fields[ $k ]['custom_attributes'] = array_merge( array( "data-show_if_{$product_setting_id}" => implode( ',', $service->get_products() ) ), $service_setting_fields[ $k ]['custom_attributes'] );
@@ -871,11 +881,9 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	}
 
 	protected function get_product_setting_id( $zone = 'dom', $shipment_type = 'simple' ) {
-		if ( 'simple' !== $shipment_type ) {
-			$zone = $shipment_type . '_' . $zone;
-		}
+		$prefix = $shipment_type . '_' . $zone;
 
-		$setting_id = 'label_default_product_' . $zone;
+		$setting_id = $prefix . '_label_product';
 
 		return $setting_id;
 	}
@@ -905,13 +913,16 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 					if ( ! isset( $method_settings[ $zone ][ $shipment_type ] ) ) {
 						$method_settings[ $zone ][ $shipment_type ] = array();
 
-						$title_id_type = 'simple' === $shipment_type ? '' : '_' . $shipment_type;
-						$title_id = "{$this->get_name()}{$title_id_type}_{$zone}_override";
+						$title_id = "shipping_provider_{$this->get_name()}_{$shipment_type}_{$zone}_override";
 
 						$method_settings[ $zone ][ $shipment_type ][ $title_id ] = array(
 							'id'      => $title_id,
 							'default' => '',
 							'type'    => 'shipping_provider_method_zone_override_open',
+							'sanitize_callback' => array( '\Vendidero\Germanized\Shipments\Package', 'validate_method_zone_override' ),
+							'provider' => $this->get_name(),
+							'shipment_zone'     => $zone,
+							'shipment_type'     => $shipment_type,
 							'title'   => sprintf( _x( "%s Shipments", 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_label_zone_title( $zone ) ),
 						);
 					}
@@ -937,7 +948,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 							}
 						}
 
-						$setting_id = $this->get_name() . '_' . $setting['id'];
+						$setting_id = "shipping_provider_{$this->get_name()}_{$setting['id']}";
 
 						if ( 'sectionend' === $setting['type'] ) {
 							$setting['type'] = 'title';
@@ -956,11 +967,13 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 						$method_settings[ $zone ][ $shipment_type ][ $setting_id ] = $setting;
 					}
 
-					$close_id = "{$this->get_name()}{$title_id_type}_{$zone}_override_close";
+					$close_id = "shipping_provider_{$this->get_name()}_{$shipment_type}_{$zone}_override_close";
 
 					$method_settings[ $zone ][ $shipment_type ][ $close_id ] = array(
 						'id'      => $close_id,
 						'default' => '',
+						'display_only' => true,
+						'provider' => $this->get_name(),
 						'type'    => 'shipping_provider_method_zone_override_close',
 					);
 				}

@@ -42,6 +42,26 @@ $layout-spacing: 1rem;
       }
     }
   }
+
+  .wc-gzd-shipping-provider-method-tab-content {
+    .wc-gzd-shipping-provider-override-wrapper {
+      .wc-gzd-shipping-provider-override-inner-wrapper {
+        background: #f8f8f8;
+
+        table {
+          background: #f8f8f8;
+        }
+
+        &.has-override {
+          background: #fff;
+
+          table {
+            background: #fff;
+          }
+        }
+      }
+    }
+  }
 }
 
 .wc-gzd-shipping-provider-method-tab-content {
@@ -67,13 +87,8 @@ $layout-spacing: 1rem;
       pointer-events: none;
       overflow: hidden;
       max-height: 190px;
-      background: #f8f8f8;
       position: relative;
       margin-bottom: 1em;
-
-      table {
-        background: #f8f8f8;
-      }
 
       &::after {
         content: "";
@@ -90,11 +105,6 @@ $layout-spacing: 1rem;
         pointer-events: all;
         overflow: auto;
         max-height: 100%;
-        background: #fff;
-
-        table {
-          background: #fff;
-        }
 
         &::after {
           display: none;
