@@ -1,6 +1,6 @@
 <?php
 
-namespace Vendidero\Germanized\Shipments\ShippingProvider;
+namespace Vendidero\Germanized\Shipments\Labels;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -82,6 +82,10 @@ class ConfigurationSet {
 
 	public function set_zone( $zone ) {
 		$this->zone = $zone;
+	}
+
+	public function set_setting_type( $type ) {
+		$this->setting_type = $type;
 	}
 
 	public function get_shipment_type() {
@@ -191,14 +195,18 @@ class ConfigurationSet {
 
 	public function get_settings() {
 		if ( is_null( $this->settings ) ) {
-			$this->settings = array_merge( $this->product, wp_list_pluck( $this->services, 'value' ), $this->additional );
+			$this->settings = array_merge( array( 'product' => $this->product ), wp_list_pluck( $this->services, 'value' ), $this->additional );
 		}
 
 		return $this->settings;
 	}
 
+	protected function get_setting_id( $id ) {
+		return str_replace( array( 'label_service_', 'label_' ), '', $id );
+	}
+
 	public function has_setting( $id ) {
-		if ( array_key_exists( $id, $this->get_settings() ) ) {
+		if ( array_key_exists( $this->get_setting_id( $id ), $this->get_settings() ) ) {
 			return true;
 		}
 
@@ -206,10 +214,11 @@ class ConfigurationSet {
 	}
 
 	public function get_setting( $id, $default = null ) {
-		$settings = $this->get_settings();
+		$settings   = $this->get_settings();
+		$setting_id = $this->get_setting_id( $id );
 
-		if ( array_key_exists( $id, $settings ) ) {
-			return $settings[ $id ];
+		if ( $this->has_setting( $setting_id ) ) {
+			return $settings[ $setting_id ];
 		}
 
 		return $default;
@@ -224,8 +233,8 @@ class ConfigurationSet {
 			} elseif ( 'additional' === $group ) {
 				$this->additional[ $id ] = $value;
 			}
-		} elseif ( array_key_exists( $id, $this->product ) ) {
-			$this->product[ $id ] = $value;
+		} elseif ( 'product' === $id ) {
+			$this->product = $value;
 		} elseif ( array_key_exists( $id, $this->services ) ) {
 			$this->update_service( $id, $value );
 		} elseif ( array_key_exists( $id, $this->additional ) ) {

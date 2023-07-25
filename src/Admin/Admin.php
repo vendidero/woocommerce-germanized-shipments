@@ -3,7 +3,8 @@
 namespace Vendidero\Germanized\Shipments\Admin;
 
 use Vendidero\Germanized\Shipments\Package;
-use Vendidero\Germanized\Shipments\ShippingProvider\ConfigurationSet;
+use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
+use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\Automation;
@@ -1353,7 +1354,7 @@ class Admin {
 
 		// Shipping provider method
 		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$excluded_sections = array( 'classes' ) + Package::get_excluded_methods();
+			$excluded_sections = array( 'classes' ) + MethodHelper::get_excluded_methods();
 
 			/**
 			 * Older third-party shipping methods may not support instance-settings and will have their settings

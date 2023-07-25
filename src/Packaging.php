@@ -7,7 +7,7 @@
  */
 namespace Vendidero\Germanized\Shipments;
 
-use Vendidero\Germanized\Shipments\ShippingProvider\ConfigurationSet;
+use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use WC_Data;
 use WC_Data_Store;

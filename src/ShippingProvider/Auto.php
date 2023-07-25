@@ -7,6 +7,7 @@
 namespace Vendidero\Germanized\Shipments\ShippingProvider;
 
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto;
+use Vendidero\Germanized\Shipments\Labels\ConfigurationSetTrait;
 use Vendidero\Germanized\Shipments\Labels\Factory;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Packaging;
@@ -18,6 +19,8 @@ defined( 'ABSPATH' ) || exit;
 
 abstract class Auto extends Simple implements ShippingProviderAuto {
 
+	use ConfigurationSetTrait;
+
 	protected $extra_data = array(
 		'label_default_shipment_weight'      => '',
 		'label_minimum_shipment_weight'      => '',
@@ -26,6 +29,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		'label_return_auto_enable'           => false,
 		'label_return_auto_shipment_status'  => 'gzd-processing',
 		'label_auto_shipment_status_shipped' => false,
+		'configuration_sets'                 => array(),
 	);
 
 	public function get_label_default_shipment_weight( $context = 'view' ) {
@@ -919,7 +923,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 							'id'      => $title_id,
 							'default' => '',
 							'type'    => 'shipping_provider_method_zone_override_open',
-							'sanitize_callback' => array( '\Vendidero\Germanized\Shipments\Package', 'validate_method_zone_override' ),
+							'sanitize_callback' => array( '\Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper', 'validate_method_zone_override' ),
 							'provider' => $this->get_name(),
 							'shipment_zone'     => $zone,
 							'shipment_type'     => $shipment_type,
@@ -981,5 +985,21 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		}
 
 		return $method_settings;
+	}
+
+	protected function get_configuration_set_args( $args ) {
+		$args = wp_parse_args( $args, array(
+			'shipping_provider_name' => '',
+			'shipment_type'          => 'simple',
+			'zone'                   => 'dom',
+		) );
+
+		$args['shipping_provider_name'] = '';
+
+		return $args;
+	}
+
+	public function get_configuration_set_setting_type() {
+		return 'shipping_provider';
 	}
 }
