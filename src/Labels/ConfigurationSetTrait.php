@@ -18,18 +18,19 @@ trait ConfigurationSetTrait {
 		return $this->get_prop( 'configuration_sets', $context );
 	}
 
-	protected function get_configuration_set_args( $args ) {
+	protected function get_configuration_set_default_args( $args ) {
 		$args = wp_parse_args( $args, array(
 			'shipping_provider_name' => '',
 			'shipment_type'          => 'simple',
 			'zone'                   => 'dom',
+			'setting_type'           => $this->get_configuration_set_setting_type(),
 		) );
 
 		return $args;
 	}
 
 	protected function get_configuration_set_id( $args ) {
-		$args   = $this->get_configuration_set_args( $args );
+		$args   = $this->get_configuration_set_default_args( $args );
 		$set_id = '';
 
 		if ( ! empty( $args['shipping_provider_name'] ) ) {
@@ -69,7 +70,7 @@ trait ConfigurationSetTrait {
 	 * @return false|ConfigurationSet
 	 */
 	public function get_configuration_set( $args, $context = 'view' ) {
-		$args                 = $this->get_configuration_set_args( $args );
+		$args                 = $this->get_configuration_set_default_args( $args );
 		$configuration_set_id = $this->get_configuration_set_id( $args );
 		$configuration_set    = false;
 
@@ -113,17 +114,46 @@ trait ConfigurationSetTrait {
 		$this->set_configuration_sets( $configuration_sets );
 	}
 
-	public function reset_configuration_sets( $args ) {
-		$id_prefix          = $this->get_configuration_set_id( $args );
-		$configuration_sets = $this->get_configuration_sets( 'edit' );
-		$id_prefix          = $id_prefix . '_';
+	/**
+	 * @param $args
+	 *
+	 * @return ConfigurationSet
+	 */
+	public function get_or_create_configuration_set( $args = array(), $context = 'view' ) {
+		if ( $configuration_set = $this->get_configuration_set( $args, $context ) ) {
+			return $configuration_set;
+		} else {
+			$args              = $this->get_configuration_set_default_args( $args );
+			$configuration_set = new ConfigurationSet( $args );
 
-		foreach( $configuration_sets as $set_id => $set ) {
-			if ( $id_prefix === substr( $set_id, 0, strlen( $id_prefix ) ) ) {
-				unset( $configuration_sets[ $set_id ] );
-			}
+			$this->update_configuration_set( $configuration_set );
+
+			return $configuration_set;
 		}
+	}
 
-		$this->set_configuration_sets( $configuration_sets );
+	public function reset_configuration_sets( $args ) {
+		$args = wp_parse_args( $args, array(
+			'shipping_provider_name' => '',
+			'shipment_type'          => '',
+			'zone'                   => '',
+		) );
+
+		$id_prefix = implode( '_', array_filter( array_values( $args ) ) );
+
+		if ( empty( $id_prefix ) ) {
+			$this->set_configuration_sets( array() );
+		} else {
+			$configuration_sets = $this->get_configuration_sets( 'edit' );
+			$id_prefix          = $id_prefix . '_';
+
+			foreach( $configuration_sets as $set_id => $set ) {
+				if ( $id_prefix === substr( $set_id, 0, strlen( $id_prefix ) ) ) {
+					unset( $configuration_sets[ $set_id ] );
+				}
+			}
+
+			$this->set_configuration_sets( $configuration_sets );
+		}
 	}
 }

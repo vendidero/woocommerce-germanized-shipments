@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments\ShippingProvider;
 
+use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Shipment;
 
@@ -133,19 +134,23 @@ class Service {
 		return $this->locations;
 	}
 
-	public function get_setting_id( $args = array() ) {
+	public function get_setting_id( $args = array(), $service_meta = '' ) {
 		if ( is_a( $args, 'Vendidero\Germanized\Shipments\Shipment' ) ) {
 			$args = array(
 				'zone' => $args->get_shipping_zone(),
 				'shipment_type' => $args->get_type(),
 			);
+		} elseif ( is_a( $args, 'Vendidero\Germanized\Shipments\Labels\ConfigurationSet' ) ) {
+			$setting_id = $this->get_id() . ( empty( $service_meta ) ? '' : '_' . $service_meta );
+			$group      = empty( $service_meta ) ? 'service' : 'additional';
+
+			return $args->get_setting_id( $setting_id, $group );
 		}
 
 		$args = wp_parse_args( $args, array(
 			'zone' => 'dom',
 			'shipment_type' => 'simple',
 			'shipment' => false,
-			'suffix' => '',
 		) );
 
 		if ( is_a( $args['shipment'], 'Vendidero\Germanized\Shipments\Shipment' ) ) {
@@ -156,8 +161,8 @@ class Service {
 		$suffix = $this->get_id();
 		$prefix = $args['shipment_type'] . '_' . $args['zone'];
 
-		if ( ! empty( $args['suffix'] ) ) {
-			$suffix = $suffix . "_" . $args['suffix'];
+		if ( ! empty( $service_meta ) ) {
+			$suffix = $suffix . "_" . $service_meta;
 		}
 
 		return $prefix . "_label_service_{$suffix}";
@@ -299,19 +304,18 @@ class Service {
 		return $this->shipping_provider;
 	}
 
-	public function get_setting_fields( $args = array() ) {
-		$args = wp_parse_args( $args, array(
-			'location'      => 'global',
-			'zone'          => 'dom',
-			'shipment_type' => 'simple'
-		) );
-
-		if ( ! $this->supports_location( $args['location'] . '_settings' ) || ! $this->supports_location( 'settings' ) ) {
+	/**
+	 * @param ConfigurationSet $configuration_set
+	 *
+	 * @return array
+	 */
+	public function get_setting_fields( $configuration_set ) {
+		if ( ! $this->supports_location( $configuration_set->get_setting_type() . '_settings' ) || ! $this->supports_location( 'settings' ) ) {
 			return array();
 		}
 
-		$setting_id  = $this->get_setting_id( $args );
-		$value       = $this->get_shipping_provider() ? $this->get_shipping_provider()->get_setting( $setting_id, $this->default_value ) : $this->default_value;
+		$setting_id  = $this->get_setting_id( $configuration_set );
+		$value       = $configuration_set->get_service_value( $this->get_id() ) ? $configuration_set->get_service_value( $this->get_id() ) : $this->default_value;
 		$option_type = $this->get_option_type();
 
 		if ( 'checkbox' === $this->get_option_type() ) {
@@ -331,11 +335,16 @@ class Service {
 					'type'    => $option_type,
 				),
 			),
-			$this->get_additional_setting_fields( $args ),
+			$this->get_additional_setting_fields( $configuration_set ),
 		);
 	}
 
-	protected function get_additional_setting_fields( $args ) {
+	/**
+	 * @param ConfigurationSet $configuration_set
+	 *
+	 * @return array
+	 */
+	protected function get_additional_setting_fields( $configuration_set ) {
 		return array();
 	}
 

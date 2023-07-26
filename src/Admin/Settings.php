@@ -447,7 +447,6 @@ class Settings {
 
 		// Loop options and get values to save.
 		foreach ( $settings as $option ) {
-
 			if ( ! isset( $option['id'] ) || empty( $option['id'] ) || ! isset( $option['type'] ) || in_array( $option['type'], array( 'title', 'sectionend' ), true ) || ( isset( $option['is_option'] ) && false === $option['is_option'] ) ) {
 				continue;
 			}

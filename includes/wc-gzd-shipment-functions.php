@@ -813,7 +813,7 @@ function wc_gzd_get_shipment_shipping_provider_title( $shipment ) {
 }
 
 function wc_gzd_get_shipping_provider_service_locations() {
-	return array( 'settings', 'global_settings', 'labels', 'label_services' );
+	return array( 'settings', 'shipping_provider_settings', 'shipping_method_settings', 'labels', 'label_services' );
 }
 
 function wc_gzd_get_shipping_provider_slug( $provider ) {

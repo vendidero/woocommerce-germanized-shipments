@@ -22,7 +22,7 @@ class ConfigurationSet {
 
 	protected $shipping_provider = null;
 
-	protected $setting_type = 'global';
+	protected $setting_type = 'shipping_provider';
 
 	protected $all_services = null;
 
@@ -30,7 +30,7 @@ class ConfigurationSet {
 		$args = wp_parse_args( $args, array(
 			'shipping_provider_name' => '',
 			'shipment_type' => 'simple',
-			'setting_type' => 'global',
+			'setting_type' => 'shipping_provider',
 			'zone' => 'dom',
 			'product'    => '',
 			'services'   => array(),
@@ -48,7 +48,11 @@ class ConfigurationSet {
 	}
 
 	public function get_id() {
-		return "{$this->get_shipping_provider_name()}_{$this->get_shipment_type()}_{$this->get_zone()}";
+		if ( 'shipping_provider' === $this->get_setting_type() ) {
+			return "{$this->get_shipment_type()}_{$this->get_zone()}";
+		} else {
+			return "{$this->get_shipping_provider_name()}_{$this->get_shipment_type()}_{$this->get_zone()}";
+		}
 	}
 
 	public function get_shipping_provider_name() {
@@ -73,7 +77,7 @@ class ConfigurationSet {
 	}
 
 	public function get_product() {
-		return ! empty( $this->product ) ? array_values( $this->product )[0] : '';
+		return $this->product;
 	}
 
 	public function get_zone() {
@@ -98,7 +102,7 @@ class ConfigurationSet {
 
 	protected function get_all_services() {
 		if ( is_null( $this->all_services ) ) {
-			$this->all_services = wp_list_pluck( $this->services, 'name' );
+			$this->all_services = wp_list_pluck( wp_list_filter( $this->services, array( 'value' => 'no' ), 'NOT' ), 'name' );
 		}
 
 		return $this->all_services;
@@ -129,25 +133,15 @@ class ConfigurationSet {
 			$service_name = array_key_exists( $id, $this->services ) ? $this->services[ $id ]['name'] : $id;
 		}
 
-		$include_service = true;
-
 		if ( in_array( $value, array( true, false, 'true', 'false', 'yes', 'no' ), true ) ) {
-			if ( ! wc_string_to_bool( $value ) ) {
-				$include_service = false;
-			}
+			$value = wc_bool_to_string( $value );
 		}
 
-		if ( ! $include_service ) {
-			if ( isset( $this->services[ $id ] ) ) {
-				unset( $this->services[ $id ] );
-			}
-		} else {
-			$this->services[ $id ] = array(
-				'id'    => $id,
-				'name'  => $service_name,
-				'value' => $value,
-			);
-		}
+		$this->services[ $id ] = array(
+			'id'    => $id,
+			'name'  => $service_name,
+			'value' => $value,
+		);
 
 		$this->settings     = null;
 		$this->all_services = null;
@@ -162,7 +156,7 @@ class ConfigurationSet {
 			$service = $service_id;
 		}
 
-		return array_key_exists( $service, $this->services ) ? true : false;
+		return in_array( $service, $this->get_all_services(), true ) ? true : false;
 	}
 
 	public function get_service( $service ) {
@@ -181,8 +175,8 @@ class ConfigurationSet {
 		return false;
 	}
 
-	public function get_service_meta( $service_id, $meta_key, $value ) {
-		$this->get_setting( $service_id . '_' . $meta_key, $value, 'additional' );
+	public function get_service_meta( $service_id, $meta_key, $default_value = null ) {
+		return $this->get_setting( $service_id . '_' . $meta_key, $default_value );
 	}
 
 	public function get_service_value( $service ) {
@@ -201,12 +195,29 @@ class ConfigurationSet {
 		return $this->settings;
 	}
 
-	protected function get_setting_id( $id ) {
-		return str_replace( array( 'label_service_', 'label_' ), '', $id );
+	public function get_setting_id( $setting_name, $group = '' ) {
+		$setting_name = str_replace( array(
+			"label_config_set_{$this->get_shipment_type()}_{$this->get_zone()}_",
+			"label_config_set_{$this->get_shipping_provider_name()}_{$this->get_shipment_type()}_{$this->get_zone()}_",
+		), '', $setting_name );
+
+		if ( 'product' === $group ) {
+			$group = '';
+		}
+
+		if ( ! empty( $group ) && "{$group}_" !== substr( $setting_name, 0, strlen( $group ) + 1 ) ) {
+			$setting_name = "{$group}_{$setting_name}";
+		}
+
+		return "label_config_set_{$this->get_id()}_{$setting_name}";
+	}
+
+	protected function get_clean_setting_id( $id ) {
+		return str_replace( array( 'service_meta_', 'service_', 'additional_' ), '', $id );
 	}
 
 	public function has_setting( $id ) {
-		if ( array_key_exists( $this->get_setting_id( $id ), $this->get_settings() ) ) {
+		if ( array_key_exists( $this->get_clean_setting_id( $id ), $this->get_settings() ) ) {
 			return true;
 		}
 
@@ -215,7 +226,7 @@ class ConfigurationSet {
 
 	public function get_setting( $id, $default = null ) {
 		$settings   = $this->get_settings();
-		$setting_id = $this->get_setting_id( $id );
+		$setting_id = $this->get_clean_setting_id( $id );
 
 		if ( $this->has_setting( $setting_id ) ) {
 			return $settings[ $setting_id ];
@@ -225,10 +236,26 @@ class ConfigurationSet {
 	}
 
 	public function update_setting( $id, $value, $group = '' ) {
+		$def_id   = $id;
+		$id       = $this->get_clean_setting_id( $id );
+
+		if ( empty( $group ) && $def_id !== $id ) {
+			foreach( array( 'service_meta_', 'service_', 'additional_', 'product_' ) as $prefix ) {
+				if ( $prefix === substr( $def_id, 0, strlen( $prefix ) ) ) {
+					$group = substr( $prefix, 0, -1 );
+
+					if ( 'service_meta' === $group ) {
+						$group = 'additional';
+					}
+					break;
+				}
+			}
+		}
+
 		if ( ! empty( $group ) ) {
 			if ( 'product' === $group ) {
 				$this->update_product( $value );
-			} elseif ( 'services' === $group ) {
+			} elseif ( 'service' === $group ) {
 				$this->update_service( $id, $value );
 			} elseif ( 'additional' === $group ) {
 				$this->additional[ $id ] = $value;

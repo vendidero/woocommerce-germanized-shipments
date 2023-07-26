@@ -74,9 +74,9 @@ class MethodHelper {
 				// Inject the zone to prevent additional load
 				$method->instance_settings[ $setting_id ] = $value;
 			}
-		} elseif ( 'shipping_provider_' === substr( $setting_id, 0, 18 ) ) {
+		} elseif ( 'label_config_set_' === substr( $setting_id, 0, 17 ) ) {
 			$shipping_provider = $method->get_option( 'shipping_provider' );
-			$provider_prefix   = "shipping_provider_{$shipping_provider}_";
+			$provider_prefix   = "label_config_set_{$shipping_provider}_";
 
 			if ( $provider_prefix === substr( $setting_id, 0, strlen( $provider_prefix ) ) ) {
 				$clean_setting_id = explode( '_', str_replace( $provider_prefix, '', $setting_id ) );
@@ -118,8 +118,10 @@ class MethodHelper {
 		$available_settings    = array();
 
 		foreach( $p_settings as $setting_id => $setting_val ) {
-			if ( 'shipping_provider_' === substr( $setting_id, 0, 18 ) ) {
-				$provider_prefix = "shipping_provider_{$shipping_provider}_";
+            if ( 'shipping_provider_zone_' === substr( $setting_id, 0, 23 ) ) {
+                unset( $p_settings[ $setting_id ] );
+            } elseif ( 'label_config_set_' === substr( $setting_id, 0, 17 ) ) {
+				$provider_prefix = "label_config_set_{$shipping_provider}_";
 
 				if ( $provider_prefix === substr( $setting_id, 0, strlen( $provider_prefix ) ) ) {
 					if ( array_key_exists( $setting_id, $all_provider_settings ) ) {
@@ -148,7 +150,7 @@ class MethodHelper {
 
 			foreach( $available_settings as $setting_id => $provider_setting ) {
 				$set_id               = "{$provider_setting['provider']}_{$provider_setting['shipment_type']}_{$provider_setting['shipment_zone']}";
-				$setting_field_prefix = "shipping_provider_{$set_id}";
+				$setting_field_prefix = "label_config_set_{$set_id}";
 				$has_override         = isset( $available_settings[ $setting_field_prefix . '_override' ] ) ? wc_string_to_bool( $available_settings[ $setting_field_prefix . '_override' ]['value'] ) : false;
 
 				if ( ! $has_override ) {
@@ -166,22 +168,7 @@ class MethodHelper {
 					}
 
 					$clean_setting_id = str_replace( "{$setting_field_prefix}_", '', $setting_id );
-
-					if ( 'service' === $provider_setting['shipment_setting_type'] ) {
-						if ( $clean_setting_id === "label_service_{$provider_setting['service']}" ) {
-							$zones[ $set_id ]->update_service( $provider_setting['service'], $provider_setting['value'] );
-						} elseif ( $zones[ $set_id ]->has_service( $provider_setting['service'] ) ) {
-							$clean_setting_id = str_replace( "label_service_{$provider_setting['service']}_", '', $clean_setting_id );
-
-							if ( ! empty( $clean_setting_id ) ) {
-								$zones[ $set_id ]->update_service_meta( $provider_setting['service'], $clean_setting_id, $provider_setting['value'] );
-							}
-						}
-					} elseif ( 'product' === $provider_setting['shipment_setting_type'] ) {
-						$zones[ $set_id ]->update_product( $provider_setting['value'] );
-					} else {
-						$zones[ $set_id ]->update_setting( $clean_setting_id, $provider_setting['value'], 'additional' );
-					}
+					$zones[ $set_id ]->update_setting( $clean_setting_id, $provider_setting['value'] );
 				}
 			}
 
@@ -304,7 +291,7 @@ class MethodHelper {
 				}
 
 				if ( ! empty( $provider_inner_settings ) ) {
-					$tabs_open_id  = "shipping_provider_tabs_{$provider}";
+					$tabs_open_id  = "label_config_set_tabs_{$provider}";
 
 					$method_settings = array_merge( $method_settings, array(
 						$tabs_open_id => array(
@@ -322,8 +309,8 @@ class MethodHelper {
 					foreach( $provider_inner_settings as $shipment_type => $settings ) {
 						$count ++;
 
-						$tabs_open_id  = "shipping_provider_tabs_{$provider}_{$shipment_type}_open";
-						$tabs_close_id = "shipping_provider_tabs_{$provider}_{$shipment_type}_close";
+						$tabs_open_id  = "label_config_set_tabs_{$provider}_{$shipment_type}_open";
+						$tabs_close_id = "label_config_set_tabs_{$provider}_{$shipment_type}_close";
 
 						$method_settings = array_merge( $method_settings, array(
 							$tabs_open_id => array(
