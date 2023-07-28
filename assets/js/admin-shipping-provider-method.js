@@ -68,7 +68,7 @@ window.germanized.admin = window.germanized.admin || {};
 
         getInputByIdOrName: function( $wrapper , cleanName ) {
             var self = germanized.admin.shipping_provider_method;
-            cleanName = cleanName.toLowerCase();
+            cleanName = self.getCleanDataId( cleanName );
 
             return $wrapper.find( ':input' ).filter( function() {
                 var id = self.getCleanInputId( $( this ) );
@@ -77,7 +77,7 @@ window.germanized.admin = window.germanized.admin || {};
                     return false;
                 }
 
-                return id.toLowerCase() === cleanName;
+                return self.getCleanDataId( id ) === cleanName;
             });
         },
 
@@ -90,12 +90,20 @@ window.germanized.admin = window.germanized.admin || {};
                 return false;
             }
 
-            if ( currentProvider && fieldId.toLowerCase().indexOf( '_' + currentProvider + '_' ) >= 0 ) {
+            if ( currentProvider && fieldId.toLowerCase().indexOf( '-p-' + currentProvider + '-' ) >= 0 ) {
                 // Remove the shipping method name prefix
-                return fieldId.substring( fieldId.lastIndexOf( currentProvider + '_' ), fieldId.length );
+                return fieldId.substring( fieldId.lastIndexOf( '-p-' + currentProvider + '-' ), fieldId.length );
             }
 
             return fieldId;
+        },
+
+        /**
+         * Make sure to remove any hyphens as data-attributes are stored
+         * camel case without hyphens in the DOM.
+         */
+        getCleanDataId: function( id ) {
+            return id.toLowerCase().replace( /-/g, '' );
         },
 
         onChangeInput: function() {
@@ -103,7 +111,7 @@ window.germanized.admin = window.germanized.admin || {};
                 $mainInput       = $( this ),
                 $wrapper         = $( this ).parents( 'form' ),
                 mainId           = self.getCleanInputId( $mainInput ),
-                $dependentFields = $wrapper.find( ':input[data-show_if_' + mainId + ']' );
+                $dependentFields = $wrapper.find( ':input[data-show_if_' + $.escapeSelector( mainId ) + ']' );
 
             var $input, $field, data, meetsConditions, cleanName, $dependentField, valueExpected, val, isChecked;
 

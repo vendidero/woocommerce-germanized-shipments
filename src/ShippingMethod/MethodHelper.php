@@ -3,12 +3,15 @@
 namespace Vendidero\Germanized\Shipments\ShippingMethod;
 
 use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
+use Vendidero\Germanized\Shipments\ShippingProvider\Method;
 
 defined( 'ABSPATH' ) || exit;
 
 class MethodHelper {
 
 	protected static $provider_method_settings = null;
+
+    protected static $methods = array();
 
 	/**
 	 * Hook in methods.
@@ -22,7 +25,12 @@ class MethodHelper {
 		add_filter( 'woocommerce_generate_shipping_provider_method_zone_override_close_html', array( __CLASS__, 'render_zone_override_close' ), 10, 4 );
 		add_filter( 'woocommerce_generate_shipping_provider_method_tabs_open_html', array( __CLASS__, 'render_method_tab_content' ), 10, 4 );
 		add_filter( 'woocommerce_generate_shipping_provider_method_tabs_close_html', array( __CLASS__, 'render_method_tab_content_close' ), 10, 4 );
+		add_filter( 'woocommerce_generate_shipping_provider_method_configuration_sets_html', array( __CLASS__, 'render_method_configuration_sets' ), 10 );
 	}
+
+    public static function render_method_configuration_sets() {
+        return '';
+    }
 
 	public static function set_method_filters( $methods ) {
 		foreach ( $methods as $method => $class ) {
@@ -52,6 +60,21 @@ class MethodHelper {
 		return $methods;
 	}
 
+	/**
+	 * @param \WC_Shipping_Method $method
+	 *
+	 * @return Method
+	 */
+    public static function get_method( $method ) {
+        $method_id = $method->id . '_' . $method->get_instance_id();
+
+        if ( ! array_key_exists( $method_id, self::$methods ) ) {
+            self::$methods[ $method_id ] = new Method( $method );
+        }
+
+	    return self::$methods[ $method_id ];
+    }
+
 	public static function get_excluded_methods() {
 		return apply_filters( 'woocommerce_gzd_shipments_get_methods_excluded_from_provider_settings', array( 'pr_dhl_paket', 'flexible_shipping_info' ) );
 	}
@@ -68,39 +91,18 @@ class MethodHelper {
 	 * @return mixed
 	 */
 	public static function filter_method_option_value( $value, $setting_id, $method ) {
-		if ( 'shipping_provider_zone_' === substr( $setting_id, 0, 23 ) ) {
-			if ( ! empty( $value ) && ! is_a( $value, '\Vendidero\Germanized\Shipments\Labels\ConfigurationSet' ) ) {
-				$value = new ConfigurationSet( (array) $value );
-				// Inject the zone to prevent additional load
-				$method->instance_settings[ $setting_id ] = $value;
-			}
-		} elseif ( 'label_config_set_' === substr( $setting_id, 0, 17 ) ) {
-			$shipping_provider = $method->get_option( 'shipping_provider' );
-			$provider_prefix   = "label_config_set_{$shipping_provider}_";
+        $shipping_method = self::get_method( $method );
 
-			if ( $provider_prefix === substr( $setting_id, 0, strlen( $provider_prefix ) ) ) {
-				$clean_setting_id = explode( '_', str_replace( $provider_prefix, '', $setting_id ) );
+		if ( $shipping_method->is_configuration_set_setting( $setting_id ) ) {
+            if ( $configuration_set = $shipping_method->get_configuration_set( $setting_id ) ) {
+                $suffix = $shipping_method->get_configuration_setting_suffix( $setting_id );
 
-				if ( count( $clean_setting_id ) >= 3 ) {
-					$shipment_type = $clean_setting_id[0];
-					$zone          = $clean_setting_id[1];
-					$setting_suffix = implode( "_", array_slice( $clean_setting_id, 2 ) );
-					$zone_key      = "shipping_provider_zone_{$shipping_provider}_{$shipment_type}_{$zone}";
-					$zone_data     = false;
-
-					if ( isset( $method->instance_settings[ $zone_key ] ) ) {
-						$zone_data = $method->get_instance_option( $zone_key );
-					}
-
-					if ( is_a( $zone_data, '\Vendidero\Germanized\Shipments\Labels\ConfigurationSet' ) ) {
-						if ( 'override' === $setting_suffix ) {
-							$value = 'yes';
-						} else {
-							$value = $zone_data->has_setting( $setting_suffix ) ? $zone_data->get_setting( $setting_suffix ) : $value;
-						}
-					}
-				}
-			}
+                if ( 'override' === $suffix ) {
+                    return 'yes';
+                } else {
+	                return $configuration_set->has_setting( $setting_id ) ? $configuration_set->get_setting( $setting_id ) : $value;
+                }
+            }
 		}
 
 		return $value;
@@ -113,85 +115,34 @@ class MethodHelper {
 	 * @return array
 	 */
 	public static function filter_method_settings( $p_settings, $method ) {
-		$shipping_provider     = isset( $p_settings['shipping_provider'] ) ? $p_settings['shipping_provider'] : '';
-		$all_provider_settings = self::get_method_settings( true );
-		$available_settings    = array();
+		$shipping_provider = isset( $p_settings['shipping_provider'] ) ? $p_settings['shipping_provider'] : '';
+        $method            = self::get_method( $method );
+
+        $method->set_shipping_provider( $shipping_provider );
 
 		foreach( $p_settings as $setting_id => $setting_val ) {
-            if ( 'shipping_provider_zone_' === substr( $setting_id, 0, 23 ) ) {
+            if ( 'configuration_sets' === $setting_id ) {
                 unset( $p_settings[ $setting_id ] );
-            } elseif ( 'label_config_set_' === substr( $setting_id, 0, 17 ) ) {
-				$provider_prefix = "label_config_set_{$shipping_provider}_";
+            } elseif ( $method->is_configuration_set_setting( $setting_id ) ) {
+                $args = $method->get_configuration_set_args_by_id( $setting_id );
 
-				if ( $provider_prefix === substr( $setting_id, 0, strlen( $provider_prefix ) ) ) {
-					if ( array_key_exists( $setting_id, $all_provider_settings ) ) {
-						$available_settings[ $setting_id ] = wp_parse_args( $all_provider_settings[ $setting_id ], array(
-							'id'       => '',
-							'provider' => '',
-							'shipment_zone' => '',
-							'shipment_type' => '',
-							'shipment_setting_type' => '',
-							'type'          => '',
-							'service'       => '',
-						) );
+                if ( ! empty( $args['shipping_provider_name'] ) && $args['shipping_provider_name'] === $method->get_shipping_provider() ) {
+                    if ( 'override' === $args['setting_name'] && wc_string_to_bool( $setting_val ) ) {
+                        if ( $config_set = $method->get_or_create_configuration_set( $args ) ) {
+                            $config_set->update_setting( $setting_id, $setting_val );
+                        }
+                    } elseif ( $config_set = $method->get_configuration_set( $args ) ) {
+                        $config_set->update_setting( $setting_id, $setting_val );
+                    }
+                }
 
-						$available_settings[ $setting_id ]['value'] = $setting_val;
-					}
-
-					unset( $p_settings[ $setting_id ] );
-				} else {
-					unset( $p_settings[ $setting_id ] );
-				}
+                unset( $p_settings[ $setting_id ] );
 			}
 		}
 
-		if ( ! empty( $shipping_provider ) ) {
-			$zones = array();
+		$p_settings['configuration_sets'] = $method->get_configuration_sets();
 
-			foreach( $available_settings as $setting_id => $provider_setting ) {
-				$set_id               = "{$provider_setting['provider']}_{$provider_setting['shipment_type']}_{$provider_setting['shipment_zone']}";
-				$setting_field_prefix = "label_config_set_{$set_id}";
-				$has_override         = isset( $available_settings[ $setting_field_prefix . '_override' ] ) ? wc_string_to_bool( $available_settings[ $setting_field_prefix . '_override' ]['value'] ) : false;
-
-				if ( ! $has_override ) {
-					continue;
-				}
-
-				if ( ! empty( $provider_setting['shipment_setting_type'] ) ) {
-					if ( ! isset( $zones[ $set_id ] ) ) {
-						$zones[ $set_id ] = new ConfigurationSet( array(
-							'shipping_provider_name' => $provider_setting['provider'],
-							'shipment_type'          => $provider_setting['shipment_type'],
-							'zone'                   => $provider_setting['shipment_zone'],
-							'setting_type'           => 'shipping_method'
-						) );
-					}
-
-					$clean_setting_id = str_replace( "{$setting_field_prefix}_", '', $setting_id );
-					$zones[ $set_id ]->update_setting( $clean_setting_id, $provider_setting['value'] );
-				}
-			}
-
-			// Add zones to settings
-			if ( ! empty( $zones ) ) {
-				foreach( $zones as $zone ) {
-					$p_settings["shipping_provider_zone_{$zone->get_id()}"] = $zone->get_data();
-				}
-			}
-		}
-
-		/**
-		 * Filter that returns shipping method settings cleaned from global shipping provider method settings.
-		 * This filter might be useful to remove some default setting values from
-		 * shipping provider method settings e.g. DHL settings.
-		 *
-		 * @param array               $p_settings The settings
-		 * @param \WC_Shipping_Method $method The shipping method instance
-		 *
-		 * @since 3.0.6
-		 * @package Vendidero/Germanized/Shipments
-		 */
-		return apply_filters( 'woocommerce_gzd_shipping_provider_method_clean_settings', $p_settings, $method );
+        return $p_settings;
 	}
 
 	public static function add_method_settings( $p_settings ) {
@@ -233,9 +184,10 @@ class MethodHelper {
 	public static function get_method_settings( $force_load_all = false ) {
 		$load_all_settings = $force_load_all ? true : self::load_all_method_settings();
 		$method_settings   = array(
-			'shipping_provider_title' => array(
+			'label_configuration_set_shipping_provider_title' => array(
 				'title'       => _x( 'Shipping Provider Settings', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'        => 'title',
+                'id'          => 'label_configuration_set_shipping_provider_title',
 				'default'     => '',
 				'description' => _x( 'Adjust shipping provider settings used for managing shipments.', 'shipments', 'woocommerce-germanized-shipments' ),
 			),
@@ -253,6 +205,11 @@ class MethodHelper {
 				'default'     => apply_filters( 'woocommerce_gzd_shipping_provider_method_default_provider', '' ),
 				'options'     => wc_gzd_get_shipping_provider_select(),
 				'description' => _x( 'Choose a shipping provider which will be selected by default for an eligible shipment.', 'shipments', 'woocommerce-germanized-shipments' ),
+			),
+			'configuration_sets' => array(
+				'title'       => '',
+				'type'        => 'shipping_provider_method_configuration_sets',
+				'default'     => array(),
 			),
 		);
 
@@ -345,8 +302,9 @@ class MethodHelper {
 		$method_settings = array_merge(
 			apply_filters( 'woocommerce_gzd_shipping_provider_method_admin_settings', $method_settings, $load_all_settings ),
 			array(
-				'shipping_provider_stop_title' => array(
+				'label_configuration_set_shipping_provider_stop_title' => array(
 					'title'   => '',
+					'id'      => 'label_configuration_set_shipping_provider_stop_title',
 					'type'    => 'title',
 					'default' => '',
 				),

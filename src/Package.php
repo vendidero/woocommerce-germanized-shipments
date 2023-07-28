@@ -4,7 +4,9 @@ namespace Vendidero\Germanized\Shipments;
 
 use DVDoug\BoxPacker\ItemList;
 use Exception;
+use Vendidero\Germanized\DHL\ShippingProvider\DHL;
 use Vendidero\Germanized\Shipments\DataStores\ShippingProvider;
+use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
 use Vendidero\Germanized\Shipments\Packing\CartItem;
 use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
@@ -721,5 +723,41 @@ class Package {
 
 	public static function is_valid_mysql_date( $mysql_date ) {
 		return ( '0000-00-00 00:00:00' === $mysql_date || null === $mysql_date ) ? false : true;
+	}
+
+	public static function extract_args_from_id( $id ) {
+		$args = array(
+			'shipping_provider_name' => '',
+			'shipment_type'          => '',
+			'zone'                   => '',
+			'setting_group'          => '',
+			'setting_name'           => '',
+			'meta'                   => '',
+		);
+
+		$data = preg_split( '/-([a-z]-[a-zA-Z_0-9]+)-{0,1}/', $id, -1, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY );
+
+		if ( false !== $data ) {
+			foreach( $data as $d ) {
+				$arg = substr( $d, 0, 2 );
+				$val = substr( $d, 2 );
+
+				if ( 'p-' === $arg ) {
+					$args['shipping_provider_name'] = $val;
+				} elseif ( 's-' === $arg ) {
+					$args['shipment_type'] = $val;
+				} elseif ( 'z-' === $arg ) {
+					$args['zone'] = $val;
+				} elseif ( 'g-' == $arg ) {
+					$args['setting_group'] = $val;
+				} elseif ( 'n-' == $arg ) {
+					$args['setting_name'] = $val;
+				} elseif ( 'm-' == $arg ) {
+					$args['meta'] = $val;
+				}
+			}
+		}
+
+		return $args;
 	}
 }

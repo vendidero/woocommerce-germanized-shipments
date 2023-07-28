@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\Shipments\Labels;
 
+use Vendidero\Germanized\Shipments\Package;
+
 defined( 'ABSPATH' ) || exit;
 
 trait ConfigurationSetTrait {
@@ -19,12 +21,16 @@ trait ConfigurationSetTrait {
 	}
 
 	protected function get_configuration_set_default_args( $args ) {
-		$args = wp_parse_args( $args, array(
-			'shipping_provider_name' => '',
-			'shipment_type'          => 'simple',
-			'zone'                   => 'dom',
-			'setting_type'           => $this->get_configuration_set_setting_type(),
-		) );
+		if ( is_array( $args ) ) {
+			$args = wp_parse_args( $args, array(
+				'shipping_provider_name' => '',
+				'shipment_type'          => 'simple',
+				'zone'                   => 'dom',
+				'setting_type'           => $this->get_configuration_set_setting_type(),
+			) );
+		} else {
+			$args = $this->get_configuration_set_args_by_id( $args );
+		}
 
 		return $args;
 	}
@@ -34,12 +40,16 @@ trait ConfigurationSetTrait {
 		$set_id = '';
 
 		if ( ! empty( $args['shipping_provider_name'] ) ) {
-			$set_id = $args['shipping_provider_name'] . '_';
+			$set_id = '-p-' . $args['shipping_provider_name'];
 		}
 
-		$set_id = "{$set_id}{$args['shipment_type']}_{$args['zone']}";
+		$set_id = "{$set_id}-s-{$args['shipment_type']}-z-{$args['zone']}";
 
 		return $set_id;
+	}
+
+	public function get_configuration_set_args_by_id( $id ) {
+		return Package::extract_args_from_id( $id );
 	}
 
 	/**
@@ -49,7 +59,12 @@ trait ConfigurationSetTrait {
 	 * @return false|ConfigurationSet
 	 */
 	protected function get_configuration_set_data( $args, $context = 'view' ) {
-		$id                 = $this->get_configuration_set_id( $args );
+		if ( is_array( $args ) ) {
+			$id = $this->get_configuration_set_id( $args );
+		} else {
+			$id = $args;
+		}
+
 		$configuration_sets = $this->get_configuration_sets( $context );
 
 		if ( array_key_exists( $id, $configuration_sets ) ) {
@@ -70,14 +85,19 @@ trait ConfigurationSetTrait {
 	 * @return false|ConfigurationSet
 	 */
 	public function get_configuration_set( $args, $context = 'view' ) {
-		$args                 = $this->get_configuration_set_default_args( $args );
-		$configuration_set_id = $this->get_configuration_set_id( $args );
-		$configuration_set    = false;
+		if ( is_array( $args ) ) {
+			$args                 = $this->get_configuration_set_default_args( $args );
+			$configuration_set_id = $this->get_configuration_set_id( $args );
+		} else {
+			$configuration_set_id = $this->get_configuration_set_id( $args );
+		}
 
-		if ( ! is_null( $this->configuration_sets ) && array_key_exists( $this->get_configuration_set_id( $args ), $this->configuration_sets ) ) {
+		$configuration_set = false;
+
+		if ( ! is_null( $this->configuration_sets ) && array_key_exists( $configuration_set_id, $this->configuration_sets ) ) {
 			return $this->configuration_sets[ $configuration_set_id ];
-		} elseif ( $configuration_set_data = $this->get_configuration_set_data( $args, $context ) ) {
-			$configuration_set = new ConfigurationSet( $configuration_set_data );
+		} elseif ( $configuration_set_data = $this->get_configuration_set_data( $configuration_set_id, $context ) ) {
+			$configuration_set = new ConfigurationSet( $configuration_set_data, $this );
 
 			if ( is_null( $this->configuration_sets ) ) {
 				$this->configuration_sets = array();
@@ -124,12 +144,48 @@ trait ConfigurationSetTrait {
 			return $configuration_set;
 		} else {
 			$args              = $this->get_configuration_set_default_args( $args );
-			$configuration_set = new ConfigurationSet( $args );
+			$configuration_set = new ConfigurationSet( $args, $this );
 
 			$this->update_configuration_set( $configuration_set );
 
 			return $configuration_set;
 		}
+	}
+
+	private function get_configuration_set_setting_parts( $setting_name ) {
+		if ( 'label_config_set_' === substr( $setting_name, 0, 17 ) ) {
+			return $this->get_configuration_set_args_by_id( substr( $setting_name, 17 ) );
+		}
+
+		return false;
+	}
+
+	public function get_configuration_set_id_by_setting_name( $setting_name ) {
+		if ( $this->is_configuration_set_setting( $setting_name ) ) {
+			if ( $parts = $this->get_configuration_set_setting_parts( $setting_name ) ) {
+				return $this->get_configuration_set_id( $parts );
+			}
+		}
+
+		return false;
+	}
+
+	public function is_configuration_set_setting( $setting_name ) {
+		if ( 'label_config_set_' === substr( $setting_name, 0, 17 ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public function get_configuration_setting_suffix( $setting_name ) {
+		if ( $this->is_configuration_set_setting( $setting_name ) ) {
+			if ( $parts = $this->get_configuration_set_setting_parts( $setting_name ) ) {
+				return $parts['setting_name'];
+			}
+		}
+
+		return false;
 	}
 
 	public function reset_configuration_sets( $args ) {
@@ -139,13 +195,26 @@ trait ConfigurationSetTrait {
 			'zone'                   => '',
 		) );
 
-		$id_prefix = implode( '_', array_filter( array_values( $args ) ) );
+		$id_prefix = '';
+
+		foreach( $args as $arg => $value ) {
+			if ( empty( $value ) ) {
+				continue;
+			}
+
+			if ( 'shipping_provider_name' === $arg ) {
+				$id_prefix = '-p-' . $value;
+			} elseif ( 'shipment_type' === $arg ) {
+				$id_prefix = $id_prefix . '-s-' . $value;
+			} elseif ( 'zone' === $arg ) {
+				$id_prefix = $id_prefix . '-z-' . $value;
+			}
+		}
 
 		if ( empty( $id_prefix ) ) {
 			$this->set_configuration_sets( array() );
 		} else {
 			$configuration_sets = $this->get_configuration_sets( 'edit' );
-			$id_prefix          = $id_prefix . '_';
 
 			foreach( $configuration_sets as $set_id => $set ) {
 				if ( $id_prefix === substr( $set_id, 0, strlen( $id_prefix ) ) ) {

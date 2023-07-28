@@ -320,7 +320,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 		foreach( $this->get_available_label_zones( $shipment_type ) as $zone ) {
 			$setting_id          = 'shipping_provider_' . $shipment_type . '_label_' . $zone;
-			$configuration_set   = $this->get_or_create_configuration_set( array( 'shipment_type' => $shipment_type, 'zone' => $zone ) );
+			$configuration_set   = $this->get_or_create_configuration_set( array( 'shipping_provider_name' => $this->get_name(), 'shipment_type' => $shipment_type, 'zone' => $zone ) );
 			$inner_zone_settings = $this->get_label_settings_by_zone( $configuration_set );
 
 			if ( ! empty( $inner_zone_settings ) ) {
@@ -438,7 +438,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 							'custom_attributes'     => array(),
 							'service'               => $service->get_id(),
 							'provider'              => $this->get_name(),
-							'shipment_setting_type' => 1 === $count ? 'service' : 'additional',
+							'shipment_setting_type' => 1 === $count ? 'service' : 'service_meta',
 							'shipment_zone'         => $configuration_set->get_zone(),
 							'shipment_type'         => $configuration_set->get_shipment_type(),
 						) );
@@ -959,6 +959,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 							'shipment_setting_type' => '',
 						) );
 
+						$setting['default'] = $this->get_setting( $setting['id'] );
+
 						if ( ! empty( $setting['custom_attributes'] ) ) {
 							foreach ( $setting['custom_attributes'] as $attr => $val ) {
 								$new_attr = $attr;
@@ -992,7 +994,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 						$method_settings[ $zone ][ $shipment_type ][ $setting_id ] = $setting;
 					}
 
-					$close_id = $configuration_set->get_setting_id( "override_close" );
+					$close_id = "label_config_set_override_close_{$this->get_name()}_{$shipment_type}_{$zone}";
 
 					$method_settings[ $zone ][ $shipment_type ][ $close_id ] = array(
 						'id'      => $close_id,
@@ -1012,6 +1014,20 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return 'shipping_provider';
 	}
 
+	public function get_setting( $key, $default = null, $context = 'view' ) {
+		$setting_name_clean = $this->unprefix_setting_key( $key );
+
+		if ( $this->is_configuration_set_setting( $setting_name_clean ) ) {
+			if ( $configuration_set = $this->get_configuration_set( $setting_name_clean ) ) {
+				return $configuration_set->get_setting( $setting_name_clean, $default );
+			} else {
+				return $default;
+			}
+		} else {
+			return parent::get_setting( $key, $default, $context );
+		}
+	}
+
 	public function update_settings( $section = '', $data = null, $save = true ) {
 		if ( 'config_set_' === substr( $section, 0, 11 ) ) {
 			$section_parts = explode( '_', substr( $section, 11 ) );
@@ -1028,16 +1044,9 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	public function update_setting( $setting, $value ) {
 		$setting_name_clean = $this->unprefix_setting_key( $setting );
 
-		if ( 'label_config_set_' === substr( $setting_name_clean, 0, 17 ) ) {
-			$clean_setting_id = explode( '_', substr( $setting_name_clean, 17 ) );
-
-			if ( count( $clean_setting_id ) >= 3 ) {
-				$shipment_type     = $clean_setting_id[0];
-				$zone              = $clean_setting_id[1];
-				$setting_suffix    = implode( "_", array_slice( $clean_setting_id, 2 ) );
-				$configuration_set = $this->get_or_create_configuration_set( array( 'shipment_type' => $shipment_type, 'zone' => $zone ) );
-
-				$configuration_set->update_setting( $setting_suffix, $value );
+		if ( $this->is_configuration_set_setting( $setting_name_clean ) ) {
+			if ( $configuration_set = $this->get_configuration_set( $setting_name_clean ) ) {
+				$configuration_set->update_setting( $setting_name_clean, $value );
 				$this->update_configuration_set( $configuration_set );
 			}
 		} else {

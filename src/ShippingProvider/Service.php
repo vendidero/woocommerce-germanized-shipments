@@ -141,8 +141,8 @@ class Service {
 				'shipment_type' => $args->get_type(),
 			);
 		} elseif ( is_a( $args, 'Vendidero\Germanized\Shipments\Labels\ConfigurationSet' ) ) {
-			$setting_id = $this->get_id() . ( empty( $service_meta ) ? '' : '_' . $service_meta );
-			$group      = empty( $service_meta ) ? 'service' : 'additional';
+			$setting_id = $this->get_id() . ( empty( $service_meta ) ? '' : '-m-' . $service_meta );
+			$group      = empty( $service_meta ) ? 'service' : 'service_meta';
 
 			return $args->get_setting_id( $setting_id, $group );
 		}
