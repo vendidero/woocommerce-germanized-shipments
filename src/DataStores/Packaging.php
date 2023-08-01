@@ -48,7 +48,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 	 * @var array
 	 */
 	protected $internal_meta_keys = array(
-		'_shipping_providers',
+		'_available_shipping_provider',
 		'_configuration_sets',
 	);
 
@@ -512,6 +512,10 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			return false;
 		}
 
+		if ( ! $packaging->supports_shipping_provider( $shipment->get_shipping_provider() ) ) {
+			return false;
+		}
+
 		$weight           = (float) wc_format_decimal( empty( $shipment->get_content_weight() ) ? 0 : wc_get_weight( $shipment->get_content_weight(), wc_gzd_get_packaging_weight_unit(), $shipment->get_weight_unit() ), 1 );
 		$volume           = (float) wc_format_decimal( empty( $shipment->get_content_volume() ) ? 0 : wc_gzd_get_volume_dimension( $shipment->get_content_volume(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );
 		$fits             = true;
@@ -543,7 +547,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 
 		// Get from cache if available.
 		if ( $shipment->get_id() > 0 ) {
-			$results = wp_cache_get( 'available-packaging-' . $shipment->get_id(), 'shipments' );
+			// $results = wp_cache_get( 'available-packaging-' . $shipment->get_id(), 'shipments' );
 		}
 
 		if ( false === $results && count( $items_to_pack ) > 0 ) {
@@ -600,8 +604,14 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 
 				if ( $results ) {
 					foreach ( $results as $result ) {
-						$available_packaging_ids[] = $result->packaging_id;
-						$packaging_available[]     = wc_gzd_get_packaging( $result->packaging_id );
+						$packaging = wc_gzd_get_packaging( $result->packaging_id );
+
+						if ( ! $packaging->supports_shipping_provider( $shipment->get_shipping_provider() ) ) {
+							continue;
+						}
+
+						$available_packaging_ids[] = $packaging->get_id();
+						$packaging_available[]     = $packaging;
 					}
 				}
 			}
@@ -611,7 +621,13 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			$packaging_available = wc_gzd_get_packaging_list();
 		} else {
 			foreach ( (array) $results as $packaging_id ) {
-				$packaging_available[] = wc_gzd_get_packaging( $packaging_id );
+				$packaging = wc_gzd_get_packaging( $packaging_id );
+
+				if ( ! $packaging->supports_shipping_provider( $shipment->get_shipping_provider() ) ) {
+					continue;
+				}
+
+				$packaging_available[] = $packaging;
 			}
 		}
 

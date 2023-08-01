@@ -9,7 +9,6 @@ namespace Vendidero\Germanized\Shipments;
 
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
-use Vendidero\Germanized\Shipments\ShippingProvider\Method;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
@@ -56,6 +55,8 @@ abstract class Shipment extends WC_Data {
 	 * @var string
 	 */
 	protected $cache_group = 'shipment';
+
+	protected $label_configuration_set = null;
 
 	/**
 	 * The contained ShipmentItems.
@@ -116,7 +117,7 @@ abstract class Shipment extends WC_Data {
 	protected $packaging = null;
 
 	/**
-	 * @var Method
+	 * @var ProviderMethod
 	 */
 	protected $shipping_method_instance = null;
 
@@ -385,6 +386,32 @@ abstract class Shipment extends WC_Data {
 		}
 
 		return is_null( $this->shipping_method_instance ) ? false : $this->shipping_method_instance;
+	}
+
+	/**
+	 * @return false|Labels\ConfigurationSet
+	 */
+	public function get_label_configuration_set() {
+		if ( is_null( $this->label_configuration_set ) ) {
+			$this->label_configuration_set = false;
+
+			if ( $method = $this->get_shipping_method_instance() ) {
+
+				if ( $method_set = $method->get_configuration_set( $this ) ) {
+					$this->label_configuration_set = $method_set;
+				}
+			}
+
+			if ( ! $this->label_configuration_set && ( $provider = $this->get_shipping_provider_instance() ) ) {
+				if ( is_a( $provider, 'Vendidero\Germanized\Shipments\Interfaces\LabelConfigurationSet' ) ) {
+					if ( $provider_set = $provider->get_configuration_set( $this ) ) {
+						$this->label_configuration_set = $provider_set;
+					}
+				}
+			}
+		}
+
+		return $this->label_configuration_set;
 	}
 
 	/**

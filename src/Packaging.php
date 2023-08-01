@@ -61,7 +61,7 @@ class Packaging extends WC_Data {
 		'order'              => 0,
 		'type'               => '',
 		'description'        => '',
-		'shipping_providers' => array(),
+		'available_shipping_provider' => array(),
 		'configuration_sets' => array(),
 	);
 
@@ -226,14 +226,22 @@ class Packaging extends WC_Data {
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return array
 	 */
-	public function get_shipping_providers( $context = 'view' ) {
-		$provider_names = $this->get_prop( 'shipping_providers', $context );
+	public function get_available_shipping_provider( $context = 'view' ) {
+		$provider_names = $this->get_prop( 'available_shipping_provider', $context );
 
 		if ( 'view' === $context && empty( $provider_names ) ) {
 			$provider_names = array_keys( Helper::instance()->get_available_shipping_providers() );
 		}
 
 		return $provider_names;
+	}
+
+	public function supports_shipping_provider( $provider ) {
+		if ( is_a( $provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
+			$provider = $provider->get_name();
+		}
+
+		return apply_filters( "{$this->get_general_hook_prefix()}supports_shipping_provider", in_array( $provider, $this->get_available_shipping_provider(), true ), $provider, $this );
 	}
 
 	public function get_configuration_sets( $context = 'view' ) {
@@ -359,8 +367,8 @@ class Packaging extends WC_Data {
 	 *
 	 * @param array $provider_names The provider names
 	 */
-	public function set_shipping_providers( $provider_names ) {
-		$this->set_prop( 'shipping_providers', array_filter( (array) $provider_names ) );
+	public function set_available_shipping_provider( $provider_names ) {
+		$this->set_prop( 'available_shipping_provider', array_filter( (array) $provider_names ) );
 	}
 
 	public function set_configuration_sets( $sets ) {

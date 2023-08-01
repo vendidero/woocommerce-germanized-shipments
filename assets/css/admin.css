@@ -67,6 +67,10 @@
       .wc-gzd-shipping-provider-method-tab-content .wc-gzd-shipping-provider-override-wrapper .wc-gzd-shipping-provider-override-inner-wrapper.has-override::after {
         display: none; }
 
+.wc-gzd-admin-settings-germanized-shipments-packaging td.wc-gzd-shipments-packaging-shipping-provider-select .select2-container {
+  min-width: 200px !important;
+  max-width: 200px !important; }
+
 .wc-gzd-shipments-packaging .nav-tab-wrapper {
   margin: 1.5em 0 1em; }
 

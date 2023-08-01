@@ -175,115 +175,10 @@ function wc_gzd_get_shipment_order_return_statuses() {
 /**
  * @param $instance_id
  *
- * @return ShippingProvider\Method
+ * @return \Vendidero\Germanized\Shipments\ShippingMethod\ProviderMethod|false
  */
 function wc_gzd_get_shipping_provider_method( $instance_id ) {
-	$original_id = $instance_id;
-	$method      = false;
-	$method_id   = '';
-
-	if ( is_a( $original_id, 'WC_Shipping_Rate' ) ) {
-		$instance_id = $original_id->get_instance_id();
-		$method_id   = $original_id->get_method_id();
-	} elseif ( is_a( $original_id, 'WC_Shipping_Method' ) ) {
-		$instance_id = $original_id->get_instance_id();
-		$method_id   = $original_id->id;
-	} elseif ( ! is_numeric( $instance_id ) && is_string( $instance_id ) ) {
-		if ( strpos( $instance_id, ':' ) !== false ) {
-			$expl        = explode( ':', $instance_id );
-			$instance_id = ( ( ! empty( $expl ) && count( $expl ) > 1 ) ? (int) $expl[1] : 0 );
-			$method_id   = ( ! empty( $expl ) ) ? $expl[0] : $instance_id;
-		} else {
-			/**
-			 * Plugins like Flexible Shipping use underscores to separate instance ids.
-			 * Example: flexible_shipping_4_1. In this case, 4 ist the instance id.
-			 * method_id: flexible_shipping
-			 * instance_id: 4
-			 *
-			 * On the other hand legacy shipping methods may be string only, e.g. an instance id might not exist.
-			 * Example: local_pickup_plus
-			 * method: local_pickup_plus
-			 * instance_id: 0
-			 */
-			$expl      = explode( '_', $instance_id );
-			$numbers   = array_values( array_filter( $expl, 'is_numeric' ) );
-			$method_id = rtrim( preg_replace( '/[0-9]+/', '', $instance_id ), '_' );
-
-			if ( ! empty( $numbers ) ) {
-				$instance_id = absint( $numbers[0] );
-			} else {
-				$instance_id = 0;
-			}
-		}
-	}
-
-	if ( ! empty( $instance_id ) ) {
-		// Make sure shipping zones are loaded
-		include_once WC_ABSPATH . 'includes/class-wc-shipping-zones.php';
-
-		/**
-		 * Cache methods within frontend
-		 */
-		if ( WC()->session && did_action( 'woocommerce_shipping_init' ) ) {
-			$cache_key  = 'woocommerce_gzd_method_' . $instance_id;
-			$tmp_method = WC()->session->get( $cache_key );
-
-			if ( ! $tmp_method || ! is_object( $tmp_method ) || is_a( $tmp_method, '__PHP_Incomplete_Class' ) ) {
-				$method = WC_Shipping_Zones::get_shipping_method( $instance_id );
-
-				if ( $method ) {
-					WC()->session->set( $cache_key, $method );
-				}
-			} else {
-				$method = $tmp_method;
-			}
-		} else {
-			$method = WC_Shipping_Zones::get_shipping_method( $instance_id );
-		}
-	}
-
-	/**
-	 * Fallback for legacy shipping methods that do not support instance ids.
-	 */
-	if ( ! $method && empty( $instance_id ) && ! empty( $method_id ) ) {
-		$shipping_methods = WC()->shipping()->get_shipping_methods();
-
-		if ( array_key_exists( $method_id, $shipping_methods ) ) {
-			$method = $shipping_methods[ $method_id ];
-		}
-	}
-
-	if ( $method ) {
-		/**
-		 * Filter to adjust the classname used to construct the shipping provider method
-		 * which contains additional provider related settings useful for shipments.
-		 *
-		 * @param string             $classname The classname.
-		 * @param WC_Shipping_Method $method The shipping method instance.
-		 *
-		 * @since 3.0.6
-		 * @package Vendidero/Germanized/Shipments
-		 */
-		$classname = apply_filters( 'woocommerce_gzd_shipping_provider_method_classname', 'Vendidero\Germanized\Shipments\ShippingProvider\Method', $method );
-
-		return new $classname( $method );
-	}
-
-	// Load placeholder
-	$placeholder = new ShippingProvider\MethodPlaceholder( $original_id );
-
-	/**
-	 * Filter to adjust the fallback shipping method to be loaded if no real
-	 * shipping method was able to be constructed (e.g. a custom plugin is being used which
-	 * replaces the default Woo shipping zones integration).
-	 *
-	 * @param ShippingProvider\MethodPlaceholder $placeholder The placeholder impl.
-	 * @param string                             $original_id The shipping method id.
-	 *
-	 * @since 3.0.6
-	 * @package Vendidero/Germanized/Shipments
-	 */
-	return apply_filters( 'woocommerce_gzd_shipping_provider_method_fallback', $placeholder, $original_id );
+	return \Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper::get_provider_method( $instance_id );
 }
 
 /**
@@ -762,11 +657,11 @@ function wc_gzd_get_default_shipping_provider() {
 	return apply_filters( 'woocommerce_gzd_default_shipping_provider', $default );
 }
 
-function wc_gzd_get_shipping_provider_select() {
+function wc_gzd_get_shipping_provider_select( $include_none = true ) {
 	$providers = wc_gzd_get_shipping_providers();
-	$select    = array(
+	$select    = $include_none ? array(
 		'' => _x( 'None', 'shipments', 'woocommerce-germanized-shipments' ),
-	);
+	) : array();
 
 	foreach ( $providers as $provider ) {
 		if ( ! $provider->is_activated() ) {
@@ -1388,7 +1283,7 @@ function wc_gzd_get_order_shipping_provider( $order ) {
 	$provider = false;
 
 	if ( $method = wc_gzd_get_shipping_provider_method( wc_gzd_get_shipment_order_shipping_method_id( $order ) ) ) {
-		$provider = $method->get_provider_instance();
+		$provider = $method->get_shipping_provider_instance();
 	}
 
 	/**

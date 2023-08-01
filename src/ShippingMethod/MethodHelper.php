@@ -2,9 +2,6 @@
 
 namespace Vendidero\Germanized\Shipments\ShippingMethod;
 
-use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
-use Vendidero\Germanized\Shipments\ShippingProvider\Method;
-
 defined( 'ABSPATH' ) || exit;
 
 class MethodHelper {
@@ -34,7 +31,7 @@ class MethodHelper {
 
 	public static function set_method_filters( $methods ) {
 		foreach ( $methods as $method => $class ) {
-			if ( in_array( $method, self::get_excluded_methods(), true ) ) {
+			if ( self::method_is_excluded( $method ) ) {
 				continue;
 			}
 
@@ -61,23 +58,103 @@ class MethodHelper {
 	}
 
 	/**
-	 * @param \WC_Shipping_Method $method
+	 * @param \WC_Shipping_Method|string|integer $method
 	 *
-	 * @return Method
+	 * @return ProviderMethod|false
 	 */
-    public static function get_method( $method ) {
-        $method_id = $method->id . '_' . $method->get_instance_id();
+    public static function get_provider_method( $maybe_method ) {
+	    $original_id = $maybe_method;
+	    $method      = false;
+	    $method_id   = '';
+	    $instance_id = 0;
 
-        if ( ! array_key_exists( $method_id, self::$methods ) ) {
-            self::$methods[ $method_id ] = new Method( $method );
+	    if ( is_a( $original_id, 'WC_Shipping_Rate' ) ) {
+		    $instance_id = $original_id->get_instance_id();
+		    $method_id   = $original_id->get_method_id();
+	    } elseif ( is_a( $original_id, 'WC_Shipping_Method' ) ) {
+		    $instance_id = $original_id->get_instance_id();
+		    $method_id   = $original_id->id;
+		    $method      = $original_id;
+	    } elseif ( ! is_numeric( $original_id ) && is_string( $original_id ) ) {
+		    if ( strpos( $original_id, ':' ) !== false ) {
+			    $expl        = explode( ':', $original_id );
+			    $instance_id = ( ( ! empty( $expl ) && count( $expl ) > 1 ) ? (int) $expl[1] : 0 );
+			    $method_id   = ( ! empty( $expl ) ) ? $expl[0] : $original_id;
+		    } else {
+			    /**
+			     * Plugins like Flexible Shipping use underscores to separate instance ids.
+			     * Example: flexible_shipping_4_1. In this case, 4 ist the instance id.
+			     * method_id: flexible_shipping
+			     * instance_id: 4
+			     *
+			     * On the other hand legacy shipping methods may be string only, e.g. an instance id might not exist.
+			     * Example: local_pickup_plus
+			     * method: local_pickup_plus
+			     * instance_id: 0
+			     */
+			    $expl      = explode( '_', $original_id );
+			    $numbers   = array_values( array_filter( $expl, 'is_numeric' ) );
+			    $method_id = rtrim( preg_replace( '/[0-9]+/', '', $original_id ), '_' );
+
+			    if ( ! empty( $numbers ) ) {
+				    $instance_id = absint( $numbers[0] );
+			    } else {
+				    $instance_id = 0;
+			    }
+		    }
+	    } elseif ( is_numeric( $original_id ) ) {
+            $instance_id = absint( $original_id );
         }
 
-	    return self::$methods[ $method_id ];
+        if ( empty( $method_id ) && empty( $instance_id ) ) {
+            return false;
+        }
+
+	    $method_key = $method_id . '_' . $instance_id;
+
+	    if ( array_key_exists( $method_key, self::$methods ) ) {
+		    return self::$methods[ $method_key ];
+	    } else {
+		    if ( ! is_a( $method, 'WC_Shipping_Method' ) && ! empty( $instance_id ) ) {
+			    // Make sure shipping zones are loaded
+			    include_once WC_ABSPATH . 'includes/class-wc-shipping-zones.php';
+
+			    $method = \WC_Shipping_Zones::get_shipping_method( $instance_id );
+		    }
+
+		    /**
+		     * Fallback for legacy shipping methods that do not support instance ids.
+		     */
+		    if ( ! $method && empty( $instance_id ) && ! empty( $method_id ) ) {
+			    $shipping_methods = WC()->shipping()->get_shipping_methods();
+
+			    if ( array_key_exists( $method_id, $shipping_methods ) ) {
+				    $method = $shipping_methods[ $method_id ];
+			    }
+		    }
+
+		    if ( ! is_a( $method, 'WC_Shipping_Method' ) ) {
+			    self::$methods[ $method_key ] = new ProviderMethodPlaceholder( array( 'id' => $method_id, 'instance_id' => $instance_id ) );
+		    } else {
+			    self::$methods[ $method_key ] = new ProviderMethod( $method );
+		    }
+        }
+
+	    return self::$methods[ $method_key ];
     }
 
-	public static function get_excluded_methods() {
-		return apply_filters( 'woocommerce_gzd_shipments_get_methods_excluded_from_provider_settings', array( 'pr_dhl_paket', 'flexible_shipping_info' ) );
-	}
+    public static function method_is_excluded( $method ) {
+        $is_excluded = false;
+        $excluded    = apply_filters( 'woocommerce_gzd_shipments_get_methods_excluded_from_provider_settings', array( 'pr_dhl_paket', 'flexible_shipping_info' ) );
+
+        if ( in_array( $method, $excluded, true ) ) {
+	        $is_excluded = true;
+        } elseif ( 'shipping_provider_' === substr( $method, 0, 18 ) ) {
+            $is_excluded = true;
+        }
+
+        return apply_filters( 'woocommerce_gzd_shipments_shipping_method_is_excluded_from_provider_settings', $is_excluded, $method );
+    }
 
 	public static function validate_method_zone_override( $value ) {
 		return ! is_null( $value ) ? 'yes' : 'no';
@@ -91,7 +168,7 @@ class MethodHelper {
 	 * @return mixed
 	 */
 	public static function filter_method_option_value( $value, $setting_id, $method ) {
-        $shipping_method = self::get_method( $method );
+        $shipping_method = self::get_provider_method( $method );
 
 		if ( $shipping_method->is_configuration_set_setting( $setting_id ) ) {
             if ( $configuration_set = $shipping_method->get_configuration_set( $setting_id ) ) {
@@ -116,7 +193,7 @@ class MethodHelper {
 	 */
 	public static function filter_method_settings( $p_settings, $method ) {
 		$shipping_provider = isset( $p_settings['shipping_provider'] ) ? $p_settings['shipping_provider'] : '';
-        $method            = self::get_method( $method );
+        $method            = self::get_provider_method( $method );
 
         $method->set_shipping_provider( $shipping_provider );
 

@@ -12,7 +12,6 @@ use Vendidero\Germanized\Shipments\Packing\CartItem;
 use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
 use Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
-use Vendidero\Germanized\Shipments\ShippingProvider\Method;
 use Vendidero\Germanized\Shipments\ShippingProvider\ProductList;
 use WC_Shipping;
 use WC_Shipping_Method;
@@ -176,7 +175,7 @@ class Package {
 	public static function get_excluded_methods() {
 		wc_deprecated_function( __FUNCTION__, '3.0.0', 'MethodHelper::get_excluded_methods()' );
 
-		return MethodHelper::get_excluded_methods();
+		return array();
 	}
 
 	/**

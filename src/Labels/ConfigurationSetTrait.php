@@ -28,6 +28,13 @@ trait ConfigurationSetTrait {
 				'zone'                   => 'dom',
 				'setting_type'           => $this->get_configuration_set_setting_type(),
 			) );
+		} elseif ( is_a( $args, 'Vendidero\Germanized\Shipments\Shipment' ) ) {
+			$args = wp_parse_args( $args, array(
+				'shipping_provider_name' => $args->get_shipping_provider(),
+				'shipment_type'          => $args->get_type(),
+				'zone'                   => $args->get_shipping_zone(),
+				'setting_type'           => $this->get_configuration_set_setting_type(),
+			) );
 		} else {
 			$args = $this->get_configuration_set_args_by_id( $args );
 		}
@@ -59,10 +66,10 @@ trait ConfigurationSetTrait {
 	 * @return false|ConfigurationSet
 	 */
 	protected function get_configuration_set_data( $args, $context = 'view' ) {
-		if ( is_array( $args ) ) {
-			$id = $this->get_configuration_set_id( $args );
-		} else {
+		if ( is_string( $args ) ) {
 			$id = $args;
+		} else {
+			$id = $this->get_configuration_set_id( $args );
 		}
 
 		$configuration_sets = $this->get_configuration_sets( $context );
@@ -85,10 +92,10 @@ trait ConfigurationSetTrait {
 	 * @return false|ConfigurationSet
 	 */
 	public function get_configuration_set( $args, $context = 'view' ) {
-		if ( is_array( $args ) ) {
-			$args                 = $this->get_configuration_set_default_args( $args );
+		if ( is_string( $args ) ) {
 			$configuration_set_id = $this->get_configuration_set_id( $args );
 		} else {
+			$args                 = $this->get_configuration_set_default_args( $args );
 			$configuration_set_id = $this->get_configuration_set_id( $args );
 		}
 

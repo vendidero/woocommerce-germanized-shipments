@@ -18,7 +18,6 @@ window.germanized.admin = window.germanized.admin || {};
 
             $( document )
                 .on( 'change', 'select[id$=shipping_provider]', self.showOrHideAll )
-                //.on( 'change', ':input:visible[id]', self.onChangeField )
                 .on( 'change gzd_show_or_hide_fields', ':input:visible[id]', self.onChangeInput )
                 .on( 'click', '.wc-gzd-shipping-provider-method-tabs .nav-tab-wrapper a.nav-tab', self.onChangeTab )
                 .on( 'change', '.override-checkbox :input', self.onChangeOverride );
@@ -56,6 +55,8 @@ window.germanized.admin = window.germanized.admin || {};
 
             $navTab.parents( '.wc-gzd-shipping-provider-method-tabs' ).find( '.nav-tab-active' ).removeClass( 'nav-tab-active' );
             $wrapper.find( '.wc-gzd-shipping-provider-method-tab-content' ).removeClass( 'tab-content-active' );
+
+            console.log($tab);
 
             if ( $tab.length > 0 ) {
                 $navTab.addClass( 'nav-tab-active' );
@@ -173,29 +174,6 @@ window.germanized.admin = window.germanized.admin || {};
                     $field.hide();
                 }
             } );
-        },
-
-        onChangeField: function() {
-            var self     = germanized.admin.shipping_provider_method,
-                $wrapper = $( this ).parents( 'form' ),
-                fieldId  = self.parseFieldId( $( this ).attr( 'id' ) ),
-                val      = $( this ).val(),
-                currentProvider = self.currentProvider;
-
-            if ( currentProvider && fieldId.toLowerCase().indexOf( '_' + currentProvider + '_' ) >= 0 ) {
-                // Remove the shipping method name prefix
-                var fieldIdClean = fieldId.substring( fieldId.lastIndexOf( currentProvider + '_' ), fieldId.length );
-
-                $wrapper.find( ':input[data-show_if_' + fieldIdClean + ']' ).parents( 'tr' ).hide();
-
-                if ( $( this ).is( ':checkbox' ) ) {
-                    if ( $( this ).is( ':checked' ) ) {
-                        $wrapper.find( ':input[data-show_if_' + fieldIdClean + ']' ).parents( 'tr' ).show();
-                    }
-                } else {
-                    $wrapper.find( ':input[data-show_if_' + fieldIdClean + '*="' + val + '"]' ).parents( 'tr' ).show();
-                }
-            }
         },
 
         onShippingMethodOpen: function( e, t ) {

@@ -67,17 +67,15 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @return boolean
 	 */
 	public function automatically_generate_label( $shipment = false ) {
-		$setting_key = 'label_auto_enable';
-
-		if ( $shipment ) {
-			if ( 'return' === $shipment->get_type() ) {
-				$setting_key = 'label_return_auto_enable';
-			}
-
-			return wc_string_to_bool( $this->get_shipment_setting( $shipment, $setting_key, false ) );
+		if ( $shipment && 'return' === $shipment->get_type() ) {
+			return $this->automatically_generate_return_label();
 		} else {
-			return wc_string_to_bool( $this->get_setting( $setting_key, false ) );
+			return $this->get_label_auto_enable();
 		}
+	}
+
+	public function automatically_generate_return_label() {
+		return $this->get_label_return_auto_enable();
 	}
 
 	/**
@@ -86,27 +84,15 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @return string
 	 */
 	public function get_label_automation_shipment_status( $shipment = false ) {
-		$setting_key = 'label_auto_shipment_status';
-
-		if ( $shipment ) {
-			if ( 'return' === $shipment->get_type() ) {
-				$setting_key = 'label_return_auto_shipment_status';
-			}
-
-			return $this->get_shipment_setting( $shipment, $setting_key, 'gzd-processing' );
-		} else {
-			return $this->get_setting( $setting_key, 'gzd-processing' );
+		if ( $shipment && 'return' === $shipment->get_type() ) {
+			return $this->get_label_return_auto_shipment_status();
 		}
+
+		return $this->get_label_auto_shipment_status();
 	}
 
 	public function automatically_set_shipment_status_shipped( $shipment = false ) {
-		$setting_key = 'label_auto_shipment_status_shipped';
-
-		if ( $shipment ) {
-			return wc_string_to_bool( $this->get_shipment_setting( $shipment, $setting_key, false ) );
-		} else {
-			return wc_string_to_bool( $this->get_setting( $setting_key, false ) );
-		}
+		return $this->get_label_auto_shipment_status_shipped();
 	}
 
 	public function get_label_auto_enable( $context = 'view' ) {
@@ -119,10 +105,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	public function get_label_auto_shipment_status( $context = 'view' ) {
 		return $this->get_prop( 'label_auto_shipment_status', $context );
-	}
-
-	public function automatically_generate_return_label() {
-		return $this->get_label_return_auto_enable();
 	}
 
 	public function get_label_return_auto_enable( $context = 'view' ) {
@@ -166,7 +148,13 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	}
 
 	public function get_label_classname( $type ) {
-		return '\Vendidero\Germanized\Shipments\Labels\Simple';
+		$classname = '\Vendidero\Germanized\Shipments\Labels\Label';
+
+		if ( 'return' === $type ) {
+			$classname = '\Vendidero\Germanized\Shipments\Labels\ReturnLabel';
+		}
+
+		return $classname;
 	}
 
 	/**
@@ -909,8 +897,12 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
 	public function get_default_label_product( $shipment ) {
-		$product_id = $this->get_shipment_setting( $shipment, $this->get_product_setting_id( $shipment->get_shipping_zone(), $shipment->get_type() ) );
+		$product_id = '';
 		$available  = $this->get_available_label_products( $shipment );
+
+		if ( $config_set = $shipment->get_label_configuration_set() ) {
+			$product_id = $config_set->get_product();
+		}
 
 		if ( ! array_key_exists( $product_id, $available ) && ! empty( $available ) ) {
 			$product_id = array_keys( $available )[0];

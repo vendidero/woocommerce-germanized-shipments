@@ -627,6 +627,7 @@ class Admin {
 							'width'              => empty( $packaging['width'] ) ? 0 : $packaging['width'],
 							'height'             => empty( $packaging['height'] ) ? 0 : $packaging['height'],
 							'max_content_weight' => empty( $packaging['max_content_weight'] ) ? 0 : $packaging['max_content_weight'],
+                            'available_shipping_provider' => empty( $packaging['available_shipping_provider'] ) ? '' : array_filter( (array) $packaging['available_shipping_provider'] ),
 							'order'              => ++$order,
 						)
 					);
@@ -879,11 +880,12 @@ class Admin {
 						<thead>
 						<tr>
 							<th class="sort">&nbsp;</th>
-							<th style="width: 20ch;"><?php echo esc_html_x( 'Description', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'A description to help you identify the packaging.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
-							<th style="width: 15ch;"><?php echo esc_html_x( 'Type', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+							<th style="width: 15ch;"><?php echo esc_html_x( 'Description', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'A description to help you identify the packaging.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
+							<th style="width: 10ch;"><?php echo esc_html_x( 'Type', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
 							<th style="width: 5ch;"><?php echo sprintf( esc_html_x( 'Weight (%s)', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_packaging_weight_unit() ) ); ?> <?php echo wc_help_tip( _x( 'The weight of the packaging.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
 							<th style="width: 15ch;"><?php echo sprintf( esc_html_x( 'Dimensions (LxWxH, %s)', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_packaging_dimension_unit() ) ); ?></th>
 							<th style="width: 5ch;"><?php echo esc_html_x( 'Max weight (kg)', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'The maximum weight this packaging can hold. Leave empty to not restrict maximum weight.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
+                            <th style="width: 15ch;"><?php echo esc_html_x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'Choose which shipping provider support the packaging.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
 						</tr>
 						</thead>
 						<tbody class="packaging_list">
@@ -893,14 +895,14 @@ class Admin {
 							?>
 							<tr class="packaging">
 								<td class="sort"></td>
-								<td style="width: 20ch;">
+								<td style="width: 15ch;">
 									<input type="text" name="packaging[<?php echo esc_attr( $count ); ?>][description]" value="<?php echo esc_attr( wp_unslash( $packaging->get_description() ) ); ?>" />
 									<input type="hidden" name="packaging[<?php echo esc_attr( $count ); ?>][packaging_id]" value="<?php echo esc_attr( $packaging->get_id() ); ?>" />
 								</td>
-								<td style="width: 15ch;">
+								<td style="width: 10ch;">
 									<select name="packaging[<?php echo esc_attr( $count ); ?>][type]">
 										<?php foreach ( wc_gzd_get_packaging_types() as $type => $type_title ) : ?>
-											<option value="<?php echo esc_attr( $type ); ?>" <?php selected( $packaging->get_type(), $type ); ?>><?php echo esc_attr( $type_title ); ?></option>
+											<option value="<?php echo esc_attr( $type ); ?>" <?php selected( $packaging->get_type(), $type ); ?>><?php echo esc_html( $type_title ); ?></option>
 										<?php endforeach; ?>
 									</select>
 								</td>
@@ -917,6 +919,13 @@ class Admin {
 								<td style="width: 5ch;">
 									<input class="wc_input_decimal" type="text" name="packaging[<?php echo esc_attr( $count ); ?>][max_content_weight]" value="<?php echo esc_attr( wc_format_localized_decimal( $packaging->get_max_content_weight() ) ); ?>" placeholder="0" />
 								</td>
+                                <td style="width: 15ch;" class="wc-gzd-shipments-packaging-shipping-provider-select">
+                                    <select multiple="multiple" data-placeholder="<?php echo esc_attr_x( 'All shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>" class="multiselect wc-enhanced-select wc-gzd-shipments-packaging-provider-select" name="packaging[<?php echo esc_attr( $count ); ?>][available_shipping_provider][]">
+		                                <?php foreach ( wc_gzd_get_shipping_provider_select( false ) as $provider => $provider_title ) : ?>
+                                            <option value="<?php echo esc_attr( $provider ); ?>" <?php selected( in_array( (string) $provider, $packaging->get_available_shipping_provider( 'edit' ), true ), true ); ?>><?php echo esc_html( $provider_title ); ?></option>
+		                                <?php endforeach; ?>
+                                    </select>
+                                </td>
 							</tr>
 							<?php
 							$count++;
@@ -938,7 +947,7 @@ class Admin {
 
 							jQuery('<tr class="packaging">\
 									<td class="sort"></td>\
-									<td style="width: 10ch;"><input type="text" name="packaging[' + size + '][description]" value="" /></td>\
+									<td style="width: 15ch;"><input type="text" name="packaging[' + size + '][description]" value="" /></td>\
 									<td style="width: 10ch;">\
 										<select name="packaging[' + size + '][type]">\
 											<?php
@@ -962,7 +971,19 @@ class Admin {
 									<td style="width: 5ch;">\
 										<input class="wc_input_decimal" type="text" name="packaging[' + size + '][max_content_weight]" placeholder="0" />\
 									</td>\
+                                    <td style="width: 15ch;" class="wc-gzd-shipments-packaging-shipping-provider-select">\
+                                        <select multiple="multiple" data-placeholder="<?php echo esc_attr_x( 'All shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>" class="multiselect wc-enhanced-select wc-gzd-shipments-packaging-provider-select" name="packaging[' + size + '][available_shipping_provider][]">\
+	                                        <?php
+                                            foreach ( wc_gzd_get_shipping_provider_select( false ) as $provider => $provider_title ) :
+                                            ?>
+                                            \
+                                            <option value="<?php echo esc_attr( $provider ); ?>"><?php echo esc_html( $provider_title ); ?></option>\
+                                            <?php endforeach; ?>\
+                                        </select>\
+                                    </td>\
 								</tr>').appendTo('#packaging_list_wrapper table tbody');
+
+                            jQuery( document.body ).trigger( 'wc-enhanced-select-init' );
 
 							return false;
 						});
@@ -1354,13 +1375,11 @@ class Admin {
 
 		// Shipping provider method
 		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$excluded_sections = array( 'classes' ) + MethodHelper::get_excluded_methods();
-
 			/**
 			 * Older third-party shipping methods may not support instance-settings and will have their settings
 			 * output in a separate section under Settings > Shipping.
 			 */
-			if ( ( isset( $_GET['zone_id'] ) || isset( $_GET['instance_id'] ) ) || ( isset( $_GET['section'] ) && ! in_array( $_GET['section'], $excluded_sections, true ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			if ( ( isset( $_GET['zone_id'] ) || isset( $_GET['instance_id'] ) ) || ( isset( $_GET['section'] ) && ! MethodHelper::method_is_excluded( $_GET['section'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				wp_enqueue_script( 'wc-gzd-admin-shipping-provider-method' );
 				$providers = array_filter( array_keys( wc_gzd_get_shipping_provider_select() ) );
 
