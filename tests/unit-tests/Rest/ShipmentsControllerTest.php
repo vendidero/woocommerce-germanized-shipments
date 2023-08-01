@@ -44,7 +44,7 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 	function test_get_shipment() {
 		wp_set_current_user( $this->user );
 
-		$shipment_initial = ShipmentHelper::create_simple_shipment();
+		$shipment_initial = ShipmentHelper::create_simple_shipment( array( 'length' => 12, 'width' => 10, 'height' => 5 ) );
 
 		$response = $this->server->dispatch( new WP_REST_Request( 'GET', '/wc/v3/shipments/' . $shipment_initial->get_id() ) );
 		$shipment_response = $response->get_data();
@@ -178,9 +178,9 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 	public function test_list_shipments() {
 		wp_set_current_user( $this->user );
 
-		ShipmentHelper::create_simple_shipment();
-		ShipmentHelper::create_simple_shipment();
-		ShipmentHelper::create_simple_shipment();
+		ShipmentHelper::create_simple_shipment( array( 'length' => 12, 'width' => 10, 'height' => 5 ) );
+		ShipmentHelper::create_simple_shipment( array( 'length' => 12, 'width' => 10, 'height' => 5 ) );
+		ShipmentHelper::create_simple_shipment( array( 'length' => 12, 'width' => 10, 'height' => 5 ) );
 
 		$response           = $this->server->dispatch( new WP_REST_Request( 'GET', '/wc/v3/shipments' ) );
 		$shipments_response = $response->get_data();
@@ -203,9 +203,9 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 		$this->assertEquals( '4.4', $shipment['weight'] );
 		$this->assertEquals( 'draft', $shipment['status'] );
 		$this->assertEquals( array(
-			'length' => '25',
-			'width'  => '17.5',
-			'height' => '10',
+			'length' => '12',
+			'width'  => '10',
+			'height' => '5',
 		), $shipment['dimensions'] );
 		$this->assertEquals( array(
 			'first_name' => 'Max',

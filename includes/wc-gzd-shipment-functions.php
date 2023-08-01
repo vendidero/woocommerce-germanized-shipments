@@ -426,7 +426,6 @@ function wc_gzd_create_shipment( $order_shipment, $args = array() ) {
 		$shipment->sync( $args['props'] );
 		$shipment->sync_items( $args );
 		$shipment->save();
-
 	} catch ( Exception $e ) {
 		return new WP_Error( 'error', $e->getMessage() );
 	}

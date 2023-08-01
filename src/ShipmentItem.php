@@ -352,7 +352,6 @@ class ShipmentItem extends WC_Data {
 		}
 
 		if ( is_a( $item, '\Vendidero\Germanized\Shipments\ShipmentItem' ) ) {
-
 			$default_data = $item->get_data();
 
 			unset( $default_data['id'] );
@@ -360,9 +359,7 @@ class ShipmentItem extends WC_Data {
 
 			$default_data['parent_id'] = $item->get_id();
 			$args                      = wp_parse_args( $args, $default_data );
-
 		} elseif ( is_a( $item, 'WC_Order_Item' ) ) {
-
 			if ( is_callable( array( $item, 'get_variation_id' ) ) && is_callable( array( $item, 'get_product_id' ) ) ) {
 				$this->set_product_id( $item->get_variation_id() ? $item->get_variation_id() : $item->get_product_id() );
 			} elseif ( is_callable( array( $item, 'get_product_id' ) ) ) {
