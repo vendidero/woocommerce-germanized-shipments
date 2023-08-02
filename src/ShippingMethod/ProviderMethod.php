@@ -129,7 +129,7 @@ class ProviderMethod implements LabelConfigurationSet {
 			$default = wc_gzd_get_default_shipping_provider();
 		}
 
-		if ( ! $this->is_placeholder() ) {
+		if ( ! $this->is_placeholder() && ! MethodHelper::method_is_excluded( $this->get_id() ) ) {
 			$value = $this->supports_instance_settings() ? $this->method->get_instance_option( $key, $default ) : $this->method->get_option( $key, $default );
 		} else {
 			$value = $default;
@@ -139,7 +139,7 @@ class ProviderMethod implements LabelConfigurationSet {
 	}
 
 	public function set_prop( $key, $value ) {
-		if ( ! $this->is_placeholder() ) {
+		if ( ! $this->is_placeholder() && ! MethodHelper::method_is_excluded( $this->get_id() ) ) {
 			if ( $this->supports_instance_settings() ) {
 				if ( empty( $this->method->instance_settings ) ) {
 					$this->method->init_instance_settings();

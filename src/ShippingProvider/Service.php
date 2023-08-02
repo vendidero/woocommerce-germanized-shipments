@@ -315,7 +315,7 @@ class Service {
 		}
 
 		$setting_id  = $this->get_setting_id( $configuration_set );
-		$value       = $configuration_set->get_service_value( $this->get_id() ) ? $configuration_set->get_service_value( $this->get_id() ) : $this->default_value;
+		$value       = $this->get_value( $configuration_set );
 		$option_type = $this->get_option_type();
 
 		if ( 'checkbox' === $this->get_option_type() ) {
@@ -369,17 +369,26 @@ class Service {
 	}
 
 	/**
-	 * @param Shipment $shipment
+	 * @param Shipment|ConfigurationSet $shipment
 	 * @param $suffix
 	 *
 	 * @return mixed
 	 */
-	public function get_shipment_setting( $shipment, $suffix = '' ) {
-		$setting_id = $this->get_setting_id( array( 'shipment' => $shipment, 'suffix' => $suffix ) );
-		$value      = $this->get_default_value( $suffix );
+	public function get_value( $shipment, $suffix = '' ) {
+		if ( is_a( $shipment, 'Vendidero\Germanized\Shipments\Labels\ConfigurationSet' ) ) {
+			$config_set = $shipment;
+		} else {
+			$config_set = $shipment->get_label_configuration_set();
+		}
 
-		if ( $provider = $this->get_shipping_provider() ) {
-			$value = $provider->get_shipment_setting( $shipment, $setting_id, $value );
+		$value = $this->get_default_value( $suffix );
+
+		if ( $config_set ) {
+			if ( empty( $suffix ) ) {
+				$value = $config_set->get_service_value( $this->get_id() );
+			} else {
+				$value = $config_set->get_service_meta( $this->get_id(), $suffix, $value );
+			}
 		}
 
 		return $value;
@@ -394,12 +403,10 @@ class Service {
 		$book_as_default = false;
 
 		if ( $this->allow_default_booking ) {
-			$value = $this->get_shipment_setting( $shipment );
-
-			if ( 'checkbox' === $this->get_option_type() ) {
-				$book_as_default = wc_string_to_bool( $value );
-			} elseif ( 'select' === $this->get_option_type() ) {
-				$book_as_default = ! empty( $value ) ? true : false;
+			if ( $config_set = $shipment->get_label_configuration_set() ) {
+				if ( $config_set->has_service( $this->get_id() ) ) {
+					$book_as_default = true;
+				}
 			}
 		}
 
@@ -420,7 +427,7 @@ class Service {
 				'desc_tip' => true,
 				'wrapper_class' => 'form-field-' . $option_type,
 				'id'      => $this->get_label_field_id(),
-				'value'   => $this->allow_default_booking() ? $this->get_shipment_setting( $shipment ) : $this->get_default_value(),
+				'value'   => $this->allow_default_booking() ? $this->get_value( $shipment ) : $this->get_default_value(),
 				'options' => $this->options,
 				'type'    => $option_type,
 				'custom_attributes' => $this->get_show_if_attributes()

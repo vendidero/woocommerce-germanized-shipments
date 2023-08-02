@@ -396,7 +396,6 @@ abstract class Shipment extends WC_Data {
 			$this->label_configuration_set = false;
 
 			if ( $method = $this->get_shipping_method_instance() ) {
-
 				if ( $method_set = $method->get_configuration_set( $this ) ) {
 					$this->label_configuration_set = $method_set;
 				}

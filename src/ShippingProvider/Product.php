@@ -27,7 +27,7 @@ class Product {
 
 	protected $weight_unit = '';
 
-	protected $weight = array( 'min' => -1, 'max' => 1 );
+	protected $weight = null;
 
 	protected $dimension_unit = '';
 

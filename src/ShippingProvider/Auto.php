@@ -522,7 +522,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
 	protected function get_simple_label_fields( $shipment ) {
-		$default   = $this->get_default_label_product( $shipment );
+		$defaults  = $this->get_default_label_props( $shipment );
 		$available = $this->get_available_label_products( $shipment );
 
 		$settings = array(
@@ -531,7 +531,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'label'       => sprintf( _x( '%s Product', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title() ),
 				'description' => '',
 				'options'     => $available,
-				'value'       => $default && array_key_exists( $default, $available ) ? $default : '',
+				'value'       => $defaults['product_id'] && array_key_exists( $defaults['product_id'], $available ) ? $defaults['product_id'] : '',
 				'type'        => 'select',
 			),
 		);
@@ -879,18 +879,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 */
 	public function get_available_label_products( $shipment ) {
 		return $this->get_products( array( 'shipment' => $shipment ) )->as_options();
-	}
-
-	/**
-	 * @param ConfigurationSet $configuration_set
-	 *
-	 * @return string
-	 */
-	protected function get_product_setting_id( $configuration_set ) {
-		$prefix     = $configuration_set->get_shipment_type() . '_' . $configuration_set->get_zone();
-		$setting_id = $prefix . '_label_product';
-
-		return $setting_id;
 	}
 
 	/**

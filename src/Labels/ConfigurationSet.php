@@ -132,7 +132,7 @@ class ConfigurationSet {
 
 	protected function get_all_services() {
 		if ( is_null( $this->all_services ) ) {
-			$this->all_services = wp_list_pluck( wp_list_filter( $this->services, array( 'value' => 'no' ), 'NOT' ), 'name' );
+			$this->all_services = wp_list_pluck( wp_list_filter( wp_list_filter( $this->services, array( 'value' => 'no' ), 'NOT' ), array( 'value' => '' ), 'NOT' ), 'name' );
 		}
 
 		return $this->all_services;
@@ -232,12 +232,12 @@ class ConfigurationSet {
 		return array_key_exists( $additional_id, $this->additional ) ? $this->additional[ $additional_id ] : $default_value;
 	}
 
-	public function get_service_value( $service ) {
+	public function get_service_value( $service, $default = null ) {
 		if ( $service_id = $this->get_service_id( $service ) ) {
 			$service = $service_id;
 		}
 
-		return array_key_exists( $service, $this->services ) ? $this->services[ $service ]['value'] : false;
+		return array_key_exists( $service, $this->services ) ? $this->services[ $service ]['value'] : $default;
 	}
 
 	public function get_settings() {
