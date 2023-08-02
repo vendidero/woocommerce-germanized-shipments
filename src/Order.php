@@ -118,6 +118,22 @@ class Order {
 		return apply_filters( 'woocommerce_gzd_shipment_order_shipping_status', $status, $this );
 	}
 
+	public function supports_third_party_email_transmission() {
+		$supports_email_transmission = function_exists( 'wc_gzd_order_supports_parcel_delivery_reminder' ) ? wc_gzd_order_supports_parcel_delivery_reminder( $this->get_order() ) : 'yes' === $this->get_order()->get_meta( '_parcel_delivery_opted_in' );
+
+		/**
+		 * Filter to adjust whether the email address may be transmitted to third-parties, e.g.
+		 * the shipping provider (via label requests) or not.
+		 *
+		 * @param boolean $supports_email_transmission Whether the order supports email transmission or not.
+		 * @param Order   $order The order instance.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_shipment_order_supports_email_transmission', $supports_email_transmission, $this );
+	}
+
 	public function has_shipped_shipments() {
 		$shipments = $this->get_simple_shipments();
 
