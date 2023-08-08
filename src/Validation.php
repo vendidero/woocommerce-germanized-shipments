@@ -49,7 +49,7 @@ class Validation {
 		add_action( 'woocommerce_order_refund_object_updated_props', array( __CLASS__, 'refresh_refund_order' ), 10, 1 );
 
 		// Check if order is shipped
-		add_action( 'woocommerce_gzd_shipment_status_changed', array( __CLASS__, 'maybe_update_order_date_shipped' ), 10, 4 );
+		add_action( 'woocommerce_gzd_shipment_before_status_change', array( __CLASS__, 'maybe_update_order_date_shipped' ), 5, 2 );
 
 		add_action( 'woocommerce_gzd_shipping_provider_deactivated', array( __CLASS__, 'maybe_disable_default_shipping_provider' ), 10 );
 	}
@@ -69,12 +69,10 @@ class Validation {
 	}
 
 	/**
-	 * @param $shipment_id
-	 * @param $status_from
-	 * @param $status_to
+	 * @param integer $shipment_id
 	 * @param Shipment $shipment
 	 */
-	public static function maybe_update_order_date_shipped( $shipment_id, $status_from, $status_to, $shipment ) {
+	public static function maybe_update_order_date_shipped( $shipment_id, $shipment ) {
 		if ( 'simple' === $shipment->get_type() && ( $order = $shipment->get_order() ) ) {
 			self::check_order_shipped( $order );
 		}
