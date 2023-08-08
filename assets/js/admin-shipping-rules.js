@@ -9,20 +9,20 @@
 
             // Backbone model
             ShippingRule = Backbone.Model.extend({
-                updateRules: function(rules, packaging) {
-                    if ( 0 === Object.keys(rules).length ) {
+                updateRules: function( rules, packaging ) {
+                    if ( 0 === Object.keys( rules ).length ) {
                         rules = {};
                     }
 
-                    var currentRules = {...this.get('rules')};
-                    currentRules[String(packaging)] = rules;
+                    var currentRules = { ...this.get( 'rules' ) };
+                    currentRules[ String( packaging ) ] = rules;
 
-                    this.set('rules', currentRules);
+                    this.set( 'rules', currentRules );
                 },
                 getRulesByPackaging: function( packaging ) {
-                    var rules = {...this.get('rules')};
+                    var rules = { ...this.get( 'rules' ) };
 
-                    return rules.hasOwnProperty(String(packaging)) ? rules[String(packaging)] : [];
+                    return rules.hasOwnProperty( String( packaging ) ) ? rules[ String( packaging ) ] : {};
                 }
             } ),
 
@@ -31,7 +31,7 @@
                 rowTemplate: $row_template,
                 packaging: '',
                 initialize: function() {
-                    this.packaging = String($( this.el ).data('packaging'));
+                    this.packaging = String( $( this.el ).data( 'packaging' ) );
                     $( this.el ).on( 'change', { view: this }, this.updateModelOnChange );
                 },
                 block: function() {
@@ -50,8 +50,8 @@
                     return this.model.getRulesByPackaging( this.packaging );
                 },
                 render: function() {
-                    var rules       = this.getRules(),
-                        view        = this;
+                    var rules = this.getRules(),
+                        view  = this;
 
                     this.$el.empty();
                     this.unblock();
@@ -86,6 +86,12 @@
                     $tr.find( '.shipping-rules-type' ).on( 'change', { view: this }, this.onChangeRuleType );
                     $tr.find( '.shipping-rules-type' ).trigger( 'change' );
 
+                    $tr.find( 'input.decimal' ).on( 'change', { view: this }, this.onChangeDecimal );
+                    $tr.find( 'input.wc_input_price' ).on( 'change', { view: this }, this.onChangePrice );
+                    $tr.find( 'input.decimal, input.wc_input_price' ).trigger( 'change' );
+
+                    $tr.find( '.shipping-rule-remove' ).on( 'click', { view: this }, this.onDeleteRow );
+
                     if ( $tbody.find( 'tr.wc-gzd-shipments-shipping-rules-packaging-info' ).length <= 0 ) {
                         $tbody.prepend( $packaging_info );
                         var $packagingTr = $tbody.find( 'tr.wc-gzd-shipments-shipping-rules-packaging-info' );
@@ -102,73 +108,79 @@
                     $( document.body ).trigger( 'wc-enhanced-select-init' );
                     $( document.body ).trigger( 'init_tooltips' );
                 },
+                onChangeDecimal: function( event ) {
+                    var $tr     = $( this ).closest( 'tr' ),
+                        $input  = $( this );
+
+                    $input.val( $input.val().replace( '.', data.decimal_separator ) );
+                },
+                onChangePrice: function( event ) {
+                    var $tr     = $( this ).closest( 'tr' ),
+                        $input  = $( this );
+
+                    $input.val( $input.val().replace( '.', data.price_decimal_separator ) );
+                },
                 onChangeRuleType: function( event ) {
-                    var $tr     = $( this ).closest('tr'),
-                        rule    = $(this).val();
+                    var $tr     = $( this ).closest( 'tr' ),
+                        rule    = $( this ).val();
 
                     $tr.find( '.shipping-rules-type-container' ).hide();
                     $tr.find( '.conditions-column:not(.conditions-when)' ).hide();
-                    $tr.find('.shipping-rules-type-container-' + rule).show();
-                    $tr.find('.shipping-rules-type-container-' + rule).parents('.conditions-column').show();
-                },
-                onAddNewRow: function( event ) {
-                    event.preventDefault();
-
-                    var view    = event.data.view,
-                        model   = view.model,
-                        rules   = view.getRules(),
-                        size    = _.size( rules ),
-                        newRow  = _.extend( {}, data.default_shipping_rule, {
-                            rule_id: 'new-' + size + '-' + Date.now(),
-                            newRow : true
-                        } );
-
-                    rules[ newRow.rule_id ] = newRow;
-                    model.updateRules(rules, view.packaging);
-                    view.renderRow( newRow );
-                    $( '.wc-gzd-shipments-shipping-rules-blank-state' ).remove();
+                    $tr.find( '.shipping-rules-type-container-' + rule ).show();
+                    $tr.find( '.shipping-rules-type-container-' + rule ).parents( '.conditions-column' ).show();
                 },
                 onDeleteRow: function( event ) {
-                    var view    = event.data.view,
-                        model   = view.model,
-                        rules   = _.indexBy( model.get( 'rules' ), 'rule_id' ),
-                        rule_id = $( this ).closest('tr').data('id');
+                    var view       = event.data.view,
+                        model      = view.model,
+                        rules      = view.getRules(),
+                        rule_id    = $( this ).closest( 'tr' ).data( 'id' ),
+                        rule_index = "rule_" + rule_id;
 
                     event.preventDefault();
 
-                    if ( rules[ rule_id ] ) {
-                        delete rules[ rule_id ];
-                        model.set( 'rules', rules );
+                    if ( rules[ rule_index ] ) {
+                        delete rules[ rule_index ];
+
+                        model.updateRules( rules, view.packaging );
                     }
 
                     view.render();
                 },
                 updateModelOnChange: function( event ) {
-                    var view      = event.data.view,
-                        model     = view.model,
-                        $target   = $( event.target ),
-                        rule_id   = $target.closest( 'tr' ).data( 'id' ),
-                        attribute = $target.data( 'attribute' ),
-                        value     = $target.val(),
-                        rules     = view.getRules();
+                    var view       = event.data.view,
+                        model      = view.model,
+                        $target    = $( event.target ),
+                        rule_id    = $target.closest( 'tr' ).data( 'id' ),
+                        rule_index = "rule_" + rule_id,
+                        attribute  = $target.data( 'attribute' ),
+                        value      = $target.val(),
+                        rules      = view.getRules();
 
-                    if ( $target.is(':checkbox') ) {
-                        value = $target.is(':checked') ? value : '';
+                    if ( ! $target.is( ':visible' ) ) {
+                        return false;
                     }
 
-                    if ( ! rules[ rule_id ] || String(rules[ rule_id ][ attribute ]) !== String(value) ) {
-                        rules[ rule_id ][ attribute ] = value;
+                    if ( $target.is( ':checkbox' ) ) {
+                        value = $target.is( ':checked' ) ? value : '';
+                    } else if ( value && $target.hasClass( 'decimal' ) ) {
+                        value = parseFloat( value.replace( data.decimal_separator , '.' ) );
+                    } else if ( value && $target.hasClass( 'wc_input_price' ) ) {
+                        value = parseFloat( value.replace( data.price_decimal_separator, '.' ) );
+                    }
 
-                        if ( String(rules[ rule_id ]['packaging']) !== String(view.packaging) ) {
-                            var newPackaging = rules[ rule_id ]['packaging'],
-                                newView = shippingRuleViews[newPackaging],
+                    if ( ! rules[ rule_index ] || String( rules[ rule_index ][ attribute ] ) !== String( value ) ) {
+                        rules[ rule_index ][ attribute ] = value;
+
+                        if ( String( rules[ rule_index ]['packaging'] ) !== String( view.packaging ) ) {
+                            var newPackaging = rules[ rule_index ]['packaging'],
+                                newView = shippingRuleViews[ newPackaging ],
                                 newRules = newView.getRules();
 
-                            newRules[rule_id] = {...rules[rule_id]};
-                            delete rules[rule_id];
+                            newRules[ rule_index ] = { ...rules[ rule_index ] };
+                            delete rules[ rule_index ];
 
                             model.updateRules( rules, view.packaging );
-                            newView.model.updateRules(newRules, newPackaging);
+                            newView.model.updateRules( newRules, newPackaging );
 
                             view.render();
                             newView.render();
@@ -184,12 +196,12 @@
 
         $tbody.each( function() {
             var view = new ShippingRuleView({
-                model:    shippingRule,
-                el:       $( this )
+                model: shippingRule,
+                el: $( this )
             } );
 
             view.render();
-            shippingRuleViews[$( this ).data('packaging')] = view;
+            shippingRuleViews[ $( this ).data( 'packaging' ) ] = view;
 
             // Sorting
             $( this ).sortable({
@@ -215,20 +227,20 @@
             } );
         } );
 
-        $( document).on( 'click', '.wc-gzd-shipments-shipping-rule-add', function() {
+        $( document ).on( 'click', '.wc-gzd-shipments-shipping-rule-add', function() {
             var packagingId = $( '.new-shipping-packaging' ).val(),
-                view = shippingRuleViews[packagingId],
-                rules = view.model.getRulesByPackaging(packagingId),
+                view = shippingRuleViews[ packagingId ],
+                rules = view.model.getRulesByPackaging( packagingId ),
                 newRow  = _.extend( {}, data.default_shipping_rule, {
-                    rule_id: 'new-' + _.size(rules) + '-' + Date.now(),
+                    rule_id: 'new-' + _.size( rules ) + '-' + Date.now(),
                     packaging: packagingId,
                     newRow : true
                 } );
 
-            rules[ newRow.rule_id ] = newRow;
-            view.model.updateRules(rules, packagingId);
+            rules[ 'rule_' + newRow.rule_id ] = newRow;
+            view.model.updateRules( rules, packagingId );
 
-            shippingRuleViews[packagingId].renderRow(newRow);
+            shippingRuleViews[ packagingId ].renderRow( newRow );
 
             return false;
         } );
@@ -243,31 +255,32 @@
              }
         });
 
-        $( document).on( 'click', '.wc-gzd-shipments-shipping-rule-remove', function() {
-            var rules = shippingRule.get('rules'),
-                $button = $(this),
+        $( document ).on( 'click', '.wc-gzd-shipments-shipping-rule-remove', function() {
+            var rules = shippingRule.get( 'rules' ),
+                $button = $( this ),
                 $table = $button.parents( 'table' ),
                 packagingIds = [];
 
             $table.find( 'input.cb:checked' ).each( function() {
-                var id = $( this ).val(),
-                    $tr = $( this ).parents('tr'),
-                    packagingId = $tr.find('.shipping-packaging').val();
+                var rule_id = $( this ).val(),
+                    rule_index = 'rule_' + rule_id,
+                    $tr = $( this ).parents( 'tr' ),
+                    packagingId = $tr.find( '.shipping-packaging' ).val();
 
-                if ( ! packagingIds.includes(packagingId) ) {
-                    packagingIds.push(packagingId);
+                if ( ! packagingIds.includes( packagingId ) ) {
+                    packagingIds.push( packagingId );
                 }
 
-                delete rules[packagingId][ id ];
+                delete rules[ packagingId ][ rule_index ];
             });
 
-            shippingRule.set('rules', rules);
+            shippingRule.set( 'rules', rules );
 
-            packagingIds.forEach(function (packagingId, index) {
-                shippingRuleViews[packagingId].render();
+            packagingIds.forEach( function ( packagingId, index) {
+                shippingRuleViews[ packagingId ].render();
             });
 
-            $button.addClass('disabled');
+            $button.addClass( 'disabled' );
 
             return false;
         } );

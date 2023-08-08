@@ -217,6 +217,8 @@ table.wc-gzd-shipments-shipping-rules th, table.wc-gzd-shipments-shipping-rules 
   display: table-cell !important; }
   table.wc-gzd-shipments-shipping-rules th.conditions, table.wc-gzd-shipments-shipping-rules td.conditions {
     width: 35%; }
+  table.wc-gzd-shipments-shipping-rules th.actions, table.wc-gzd-shipments-shipping-rules td.actions {
+    text-align: right; }
 
 table.wc-gzd-shipments-shipping-rules thead th {
   border-bottom: 0; }

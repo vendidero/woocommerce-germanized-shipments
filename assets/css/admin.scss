@@ -339,6 +339,10 @@ table.wc-gzd-shipments-shipping-rules {
     &.conditions {
       width: 35%;
     }
+
+    &.actions {
+      text-align :right;
+    }
   }
 
   thead th {

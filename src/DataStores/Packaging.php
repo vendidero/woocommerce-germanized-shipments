@@ -28,6 +28,10 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 
 	protected $must_exist_meta_keys = array();
 
+	protected $all_packaging = null;
+
+	protected $packaging_lookup = null;
+
 	protected $core_props = array(
 		'type',
 		'date_created',
@@ -260,6 +264,9 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 	protected function clear_caches( &$packaging ) {
 		wp_cache_delete( $packaging->get_id(), $this->meta_type . '_meta' );
 		wp_cache_delete( 'packaging-list', 'packaging' );
+
+		$this->all_packaging    = null;
+		$this->packaging_lookup = null;
 	}
 
 	/*
@@ -452,32 +459,18 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		return apply_filters( 'woocommerce_gzd_packaging_data_store_get_shipments_query', $wp_query_args, $query_vars, $this );
 	}
 
-	public function get_packaging_list( $args = array() ) {
+	/**
+	 * @return \Vendidero\Germanized\Shipments\Packaging[]
+	 */
+	protected function get_all_packaging() {
 		global $wpdb;
 
-		$all_types = array_keys( wc_gzd_get_packaging_types() );
+		if ( is_null( $this->all_packaging ) ) {
+			$query = "
+				SELECT packaging_id FROM {$wpdb->gzd_packaging} 
+				ORDER BY packaging_order ASC
+			";
 
-		$args = wp_parse_args(
-			$args,
-			array(
-				'type' => $all_types,
-			)
-		);
-
-		if ( ! is_array( $args['type'] ) ) {
-			$args['type'] = array( $args['type'] );
-		}
-
-		$types = array_filter( wc_clean( $args['type'] ) );
-		$types = empty( $types ) ? $all_types : $types;
-
-		$query = "
-			SELECT packaging_id FROM {$wpdb->gzd_packaging} 
-			WHERE packaging_type IN ( '" . implode( "','", $types ) . "' )
-			ORDER BY packaging_order ASC
-		";
-
-		if ( $all_types === $types ) {
 			// Get from cache if available.
 			$results = wp_cache_get( 'packaging-list', 'packaging' );
 
@@ -486,15 +479,59 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 
 				wp_cache_set( 'packaging-list', $results, 'packaging' );
 			}
-		} else {
-			$results = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+			$all_packaging    = array();
+			$packaging_lookup = array();
+
+			foreach ( $results as $key => $packaging ) {
+				if ( $the_packaging = wc_gzd_get_packaging( $packaging ) ) {
+					$all_packaging[ $key ]                        = $the_packaging;
+					$packaging_lookup[ $the_packaging->get_id() ] = $key;
+				}
+			}
+
+			$this->all_packaging    = $all_packaging;
+			$this->packaging_lookup = $packaging_lookup;
 		}
 
-		foreach ( $results as $key => $packaging ) {
-			$results[ $key ] = wc_gzd_get_packaging( $packaging );
+		return $this->all_packaging;
+	}
+
+	/**
+	 * @param $args
+	 *
+	 * @return \Vendidero\Germanized\Shipments\Packaging[]
+	 */
+	public function get_packaging_list( $args = array() ) {
+		$the_list      = $this->get_all_packaging();
+		$all_types     = array_keys( wc_gzd_get_packaging_types() );
+		$args          = wp_parse_args(
+			$args,
+			array(
+				'type'              => $all_types,
+				'shipping_provider' => '',
+			)
+		);
+
+		if ( ! is_array( $args['type'] ) ) {
+			$args['type'] = array_filter( array( $args['type'] ) );
 		}
 
-		return $results;
+		$types = array_filter( wc_clean( $args['type'] ) );
+		$types = empty( $types ) ? $all_types : $types;
+
+		foreach ( $the_list as $key => $packaging ) {
+			if ( ! in_array( $packaging->get_type(), $types, true ) ) {
+				unset( $the_list[ $key ] );
+				continue;
+			}
+
+			if ( ! empty( $args['shipping_provider'] ) && ! $packaging->supports_shipping_provider( $args['shipping_provider'] ) ) {
+				unset( $the_list[ $key ] );
+			}
+		}
+
+		return array_values( $the_list );
 	}
 
 	/**
@@ -547,7 +584,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 
 		// Get from cache if available.
 		if ( $shipment->get_id() > 0 ) {
-			// $results = wp_cache_get( 'available-packaging-' . $shipment->get_id(), 'shipments' );
+			$results = wp_cache_get( 'available-packaging-' . $shipment->get_id(), 'shipments' );
 		}
 
 		if ( false === $results && count( $items_to_pack ) > 0 ) {
