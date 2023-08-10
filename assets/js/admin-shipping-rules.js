@@ -91,6 +91,7 @@
                     $tr.find( 'input.decimal, input.wc_input_price' ).trigger( 'change' );
 
                     $tr.find( '.shipping-rule-remove' ).on( 'click', { view: this }, this.onDeleteRow );
+                    $tr.find( '.shipping-rule-add' ).on( 'click', { view: this }, this.onAddRow );
 
                     if ( $tbody.find( 'tr.wc-gzd-shipments-shipping-rules-packaging-info' ).length <= 0 ) {
                         $tbody.prepend( $packaging_info );
@@ -136,8 +137,6 @@
                         rule_id    = $( this ).closest( 'tr' ).data( 'id' ),
                         rule_index = "rule_" + rule_id;
 
-                    event.preventDefault();
-
                     if ( rules[ rule_index ] ) {
                         delete rules[ rule_index ];
 
@@ -145,6 +144,38 @@
                     }
 
                     view.render();
+
+                    if ( view.$el.find( 'tr:last' ).length > 0 ) {
+                        view.$el.find( 'tr:last' ).addClass( 'current' );
+                    }
+
+                    return false;
+                },
+                onAddRow: function( event ) {
+                    var view         = event.data.view,
+                        model        = view.model,
+                        rules        = view.getRules(),
+                        rule_id      = $( this ).closest( 'tr' ).data( 'id' ),
+                        rule_index   = "rule_" + rule_id,
+                        current_rule = rules[ rule_index ],
+                        newRow       = _.extend( {}, current_rule, {
+                            rule_id: 'new-' + _.size( rules ) + '-' + Date.now(),
+                            newRow : true,
+                            costs: '',
+                        } );
+
+                    if ( -1 !== $.inArray( newRow.type, ['weight', 'total'] ) ) {
+                        newRow[newRow.type + '_from'] = newRow[newRow.type + '_to'];
+                        newRow[newRow.type + '_to'] = '';
+                    }
+
+                    rules[ 'rule_' + newRow.rule_id ] = newRow;
+                    model.updateRules( rules, view.packaging );
+
+                    view.renderRow( newRow );
+                    view.$el.find( 'tr[data-id="' + newRow.rule_id + '"]').trigger( 'focus' );
+
+                    return false;
                 },
                 updateModelOnChange: function( event ) {
                     var view       = event.data.view,
@@ -223,8 +254,19 @@
                 stop: function ( event, ui ) {
                     ui.item.removeAttr( 'style' );
                     ui.item.trigger( 'updateMoveButtons' );
+                    ui.item.trigger( 'focus' );
                 },
             } );
+        } );
+
+        $( document ).on( 'change', '.wc-gzd-shipments-shipping-rules-cb-all', function() {
+            var $table = $( this ).parents( 'table' );
+
+            if ( $( this ).is( ':checked' ) ) {
+                $table.find( 'input.cb' ).prop( 'checked', true );
+            } else {
+                $table.find( 'input.cb' ).prop( 'checked', false );
+            }
         } );
 
         $( document ).on( 'click', '.wc-gzd-shipments-shipping-rule-add', function() {
@@ -241,19 +283,10 @@
             view.model.updateRules( rules, packagingId );
 
             shippingRuleViews[ packagingId ].renderRow( newRow );
+            shippingRuleViews[ packagingId ].$el.find( 'tr[data-id="' + newRow.rule_id + '"]').trigger( 'focus' );
 
             return false;
         } );
-
-        $( document).on( 'change', '.wc-gzd-shipments-shipping-rules-rows input.cb', function() {
-             $selected = $( this ).parents( 'table' ).find( 'input.cb:checked' );
-
-             if ( $selected.length > 0 ) {
-                 $table.find( '.wc-gzd-shipments-shipping-rule-remove' ).removeClass( 'disabled' );
-             } else {
-                 $table.find( '.wc-gzd-shipments-shipping-rule-remove' ).addClass( 'disabled' );
-             }
-        });
 
         $( document ).on( 'click', '.wc-gzd-shipments-shipping-rule-remove', function() {
             var rules = shippingRule.get( 'rules' ),
@@ -281,8 +314,83 @@
             });
 
             $button.addClass( 'disabled' );
+            $table.find( '.wc-gzd-shipments-shipping-rules-cb-all' ).prop( 'checked', false );
 
             return false;
+        } );
+
+        $( document ).on( 'keydown', function( e ) {
+            var $selectedRow   = $table.find( 'tr.current' ),
+                $selectedTable = $( '.wc-gzd-shipments-shipping-rules.has-focus' );
+
+            if ( $selectedRow.length === 0 && $selectedTable.length === 0 ) {
+                return;
+            }
+
+            var command_or_ctrl = e.metaKey || e.ctrlKey; // command/ctrl
+
+            if ( command_or_ctrl && ( 'd' === e.key || '-' === e.key ) ) {
+                $selected = $table.find( 'input.cb:checked' );
+
+                if ( $selected.length > 0 ) {
+                    $table.find( '.wc-gzd-shipments-shipping-rule-remove' ).trigger( 'click' );
+                } else if ( $selectedRow ) {
+                    $selectedRow.find( '.shipping-rule-remove' ).trigger( 'click' );
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                return false;
+            } else if ( $selectedRow && command_or_ctrl && '+' === e.key ) {
+                $selectedRow.find( '.shipping-rule-add' ).trigger( 'click' );
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                return false;
+            } else if ( $selectedTable && command_or_ctrl && 'a' === e.key ) {
+                $selectedTable.find( '.wc-gzd-shipments-shipping-rules-cb-all' ).prop( 'checked', ! $selectedTable.find( '.wc-gzd-shipments-shipping-rules-cb-all' ).is( ':checked' ) );
+                $selectedTable.find( '.wc-gzd-shipments-shipping-rules-cb-all' ).trigger( 'change' );
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                return false;
+            }
+        } );
+
+        $( document ).on( 'change', '.wc-gzd-shipments-shipping-rules-rows input.cb, .wc-gzd-shipments-shipping-rules-cb-all', function() {
+             $selected = $( this ).parents( 'table' ).find( 'input.cb:checked' );
+
+             if ( $selected.length > 0 ) {
+                 $table.find( '.wc-gzd-shipments-shipping-rule-remove' ).removeClass( 'disabled' );
+             } else {
+                 $table.find( '.wc-gzd-shipments-shipping-rule-remove' ).addClass( 'disabled' );
+             }
+        } );
+
+        // Remove current focus
+        $( document ).on( 'mouseup', function( e ) {
+            var container = $( 'table.wc-gzd-shipments-shipping-rules' );
+
+            // if the target of the click isn't the container nor a descendant of the container
+            if ( ! container.is( e.target ) && container.has( e.target ).length === 0 ) {
+                container.removeClass( 'has-focus' );
+                container.find( 'tr' ).removeClass( 'current' );
+            } else {
+                container.addClass( 'has-focus' );
+            }
+        } );
+
+        // Focus on inputs within the table if clicked instead of trying to sort.
+        $( document ).on( 'click', '.wc-gzd-shipments-shipping-rules tbody, .wc-gzd-shipments-shipping-rules input', function () {
+            $( this ).trigger( 'focus' );
+        } );
+
+        $( document ).on( 'focus click', '.wc-gzd-shipments-shipping-rules input, .wc-gzd-shipments-shipping-rules tr', function (e) {
+            $( this ).parents( 'table' ).find( 'tr' ).removeClass( 'current' );
+            $( this ).closest( 'tr:not(.wc-gzd-shipments-shipping-rules-packaging-info)' ).addClass( 'current' );
         } );
     });
 })( jQuery, wc_gzd_admin_shipping_rules_params, wp, ajaxurl );

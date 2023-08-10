@@ -222,6 +222,8 @@ table.wc-gzd-shipments-shipping-rules th, table.wc-gzd-shipments-shipping-rules 
 
 table.wc-gzd-shipments-shipping-rules thead th {
   border-bottom: 0; }
+  table.wc-gzd-shipments-shipping-rules thead th input {
+    margin: 0; }
 
 table.wc-gzd-shipments-shipping-rules tbody tr.wc-gzd-shipments-shipping-rules-packaging-info td {
   background: #f0f0f1;
@@ -446,6 +448,8 @@ a.button.wc-gzd-shipment-action-button {
       content: "\f182"; }
   a.button.wc-gzd-shipment-action-button.download::after {
     content: "\f103"; }
+  a.button.wc-gzd-shipment-action-button.add::after {
+    content: "\f132"; }
 
 .woocommerce_page_wc-gzd-shipments .tablenav .actions, .woocommerce_page_wc-gzd-return-shipments .tablenav .actions {
   overflow: visible; }

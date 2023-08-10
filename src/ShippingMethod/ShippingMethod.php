@@ -43,8 +43,8 @@ class ShippingMethod extends \WC_Shipping_Method {
 		$this->id                 = 'shipping_provider_' . $this->shipping_provider->get_name();
 		$this->instance_id        = absint( $instance_id );
 		$this->method_title       = $this->shipping_provider->get_title();
+        $this->method_description = sprintf( _x( 'Apply rule-based shipping costs for shipments handled by %1$s based on your available packaging options. Learn <a href="%2$s">how to configure →</a>', 'shipments', 'woocommerce-germanized-shipments' ), $this->shipping_provider->get_title(), 'https://vendidero.de' );
 		$this->title              = $this->method_title;
-		$this->method_description = '';
 		$this->supports           = array(
 			'shipping-zones',
 			'instance-settings',
@@ -196,6 +196,24 @@ class ShippingMethod extends \WC_Shipping_Method {
 				'description' => _x( 'This controls the title which the user sees during checkout.', 'shipments', 'woocommerce-germanized-shipments' ),
 				'default'     => $this->method_title,
 				'desc_tip'    => true,
+			),
+			'shipping_rules_title' => array(
+				'title'       => _x( 'Shipping Rules', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'        => 'title',
+				'id'          => 'shipping_rules_title',
+				'default'     => '',
+				'description' => sprintf( _x( 'Configure shipping costs per packaging option. Within cart, a rucksack algorithm will automatically fit the items in the packaging option(s) available and calculate it\'s cost.<br/> Some important hints on the calculation logic: <ol><li>The <i>from</i> value (e.g. 3) is expected to be inclusive (greater or equal 3). The <i>to</i> value (e.g. 5) is expected to be exclusive (smaller than 5).</li><li>Leave the <i>to</i> value empty for your last packaging rule to match all subsequent values</li><li>The <i>all packaging</i> option will override other rules in case the rule applies. In case no other packaging rules exist, <a href="%1$s">all available packaging options</a> for %2$s are used.</li><li>Use the <i>all packaging</i> option to configure free shipping starting at a certain minimum amount.</li></ol>', 'shipments', 'woocommerce-germanized-shipments' ), '', $this->shipping_provider->get_title() ),
+			),
+			'multiple_shipments_cost_calculation_mode' => array(
+				'title'       => _x( 'For multiple shipments', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'        => 'select',
+				'default'     => 'sum',
+				'options'     => array(
+					'sum' => _x( 'Sum all costs', 'shipments', 'woocommerce-germanized-shipments' ),
+					'max' => _x( 'Apply the maximum cost only', 'shipments', 'woocommerce-germanized-shipments' ),
+					'min' => _x( 'Apply the minimum cost only', 'shipments', 'woocommerce-germanized-shipments' )
+				),
+				'desc_tip'    => _x( 'The algorithm may detect that multiple shipments, with possibly different packaging, for the current cart may be needed. Choose how to calculate costs.', 'shipments', 'woocommerce-germanized-shipments' ),
 			),
 			'shipping_rules' => array(
 				'title'       => _x( 'Rules', 'shipments', 'woocommerce-germanized-shipments' ),
@@ -567,7 +585,9 @@ class ShippingMethod extends \WC_Shipping_Method {
 			<thead>
 				<tr>
 					<th class="sort"></th>
-					<th class="cb"></th>
+					<th class="cb">
+                        <input class="wc-gzd-shipments-shipping-rules-cb-all" name="shipping_rules_cb_all" type="checkbox" value="" />
+                    </th>
 					<th class="packaging">
 						<?php echo esc_html_x( 'Packaging', 'shipments', 'woocommerce-germanized-shipments' ); ?>
 					</th>
@@ -695,6 +715,7 @@ class ShippingMethod extends \WC_Shipping_Method {
                     </p>
                 </td    >
                 <td class="actions">
+                    <a class="button wc-gzd-shipment-action-button shipping-rule-add add" href="#"></a>
                     <a class="button wc-gzd-shipment-action-button shipping-rule-remove delete" href="#"></a>
                 </td>
             </tr>

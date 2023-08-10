@@ -347,6 +347,10 @@ table.wc-gzd-shipments-shipping-rules {
 
   thead th {
     border-bottom: 0;
+
+    input {
+      margin: 0;
+    }
   }
 
   tbody {
@@ -689,6 +693,10 @@ a.button.wc-gzd-shipment-action-button {
 
   &.download::after {
     content: "\f103";
+  }
+
+  &.add::after {
+    content: "\f132";
   }
 }
 
