@@ -363,13 +363,24 @@ class Settings {
 	protected static function get_packaging_settings() {
 		$settings = array(
 			array(
-				'title' => '',
+				'title' => _x( 'Available packaging', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'  => 'title',
-				'id'    => 'packaging_options',
+				'id'    => 'packaging_list_options',
 			),
 
 			array(
 				'type' => 'packaging_list',
+			),
+
+            array(
+				'type' => 'sectionend',
+				'id'   => 'packaging_list_options',
+			),
+
+            array(
+				'title' => '',
+				'type'  => 'title',
+				'id'    => 'packaging_options',
 			),
 
 			array(

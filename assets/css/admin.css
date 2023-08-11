@@ -67,9 +67,47 @@
       .wc-gzd-shipping-provider-method-tab-content .wc-gzd-shipping-provider-override-wrapper .wc-gzd-shipping-provider-override-inner-wrapper.has-override::after {
         display: none; }
 
+.wc-gzd-admin-settings-germanized-shipments-packaging #packaging_list_wrapper {
+  padding-left: 0;
+  padding-right: 0; }
+
+.wc-gzd-admin-settings-germanized-shipments-packaging td.wc-gzd-shipments-packaging-shipping-provider-select select {
+  visibility: hidden;
+  min-width: 300px;
+  max-width: 300px;
+  height: 40px; }
+
 .wc-gzd-admin-settings-germanized-shipments-packaging td.wc-gzd-shipments-packaging-shipping-provider-select .select2-container {
-  min-width: 200px !important;
-  max-width: 200px !important; }
+  min-width: 300px !important;
+  max-width: 300px !important; }
+
+.wc-gzd-admin-settings-germanized-shipments-packaging td.actions {
+  text-align: center; }
+  .wc-gzd-admin-settings-germanized-shipments-packaging td.actions a.wc-gzd-shipment-action-button {
+    float: none; }
+
+a.woocommerce-gzd-input-toggle-trigger {
+  text-decoration: none;
+  box-shadow: none;
+  outline: 0;
+  cursor: pointer; }
+  a.woocommerce-gzd-input-toggle-trigger:focus {
+    box-shadow: none;
+    outline: 0; }
+
+.forminp-gzd_toggle span.description, .forminp-gzd_toggle p.description {
+  display: inline-block;
+  font-style: normal;
+  font-size: 14px;
+  margin-left: 5px; }
+  .forminp-gzd_toggle span.description .wc-gzd-additional-desc, .forminp-gzd_toggle p.description .wc-gzd-additional-desc {
+    margin-bottom: -1em; }
+
+.forminp-gzd_toggle fieldset {
+  text-decoration: none;
+  margin-top: 1.25em; }
+  .forminp-gzd_toggle fieldset:first-child {
+    margin-top: 0; }
 
 .wc-gzd-shipments-packaging .nav-tab-wrapper {
   margin: 1.5em 0 1em; }
@@ -82,29 +120,15 @@
   .wc-gzd-shipments-packaging ul.subsubsub li:last-child::after {
     content: ""; }
 
-.wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper .wc-gzd-packaging-zone-options {
-  opacity: .5;
-  pointer-events: none;
-  overflow: hidden;
-  max-height: 190px; }
-
-.wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper.zone-wrapper-has-override .wc-gzd-packaging-zone-options {
-  opacity: 1;
-  pointer-events: all;
-  overflow: auto;
-  max-height: 100%; }
-
-.wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper fieldset.gzd-toggle-wrapper, .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper .forminp-gzd_toggle {
-  text-decoration: none; }
-  .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper fieldset.gzd-toggle-wrapper a.woocommerce-gzd-input-toggle-trigger, .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper .forminp-gzd_toggle a.woocommerce-gzd-input-toggle-trigger {
-    text-decoration: none;
-    box-shadow: none;
-    outline: 0;
-    cursor: pointer; }
-    .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper fieldset.gzd-toggle-wrapper a.woocommerce-gzd-input-toggle-trigger:focus, .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper .forminp-gzd_toggle a.woocommerce-gzd-input-toggle-trigger:focus {
-      box-shadow: none;
-      outline: 0; }
-  .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper fieldset.gzd-toggle-wrapper p.description, .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper .forminp-gzd_toggle p.description {
+.wc-gzd-shipments-packaging .wc-gzd-shipping-provider-override-title-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 2em 0;
+  align-items: center; }
+  .wc-gzd-shipments-packaging .wc-gzd-shipping-provider-override-title-wrapper h3 {
+    margin: 0;
+    margin-right: 2em; }
+  .wc-gzd-shipments-packaging .wc-gzd-shipping-provider-override-title-wrapper .gzd-toggle-wrapper p.description {
     display: inline-block;
     font-style: normal;
     font-size: 14px;
@@ -112,14 +136,16 @@
     margin-top: 0;
     margin-bottom: 0; }
 
-.wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper .wc-gzd-packaging-zone-header {
-  display: flex;
-  flex-wrap: wrap;
-  margin: 2em 0;
-  align-items: center; }
-  .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper .wc-gzd-packaging-zone-header h3 {
-    margin: 0;
-    margin-right: 2em; }
+.wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper {
+  opacity: .5;
+  pointer-events: none;
+  overflow: hidden;
+  max-height: 190px; }
+  .wc-gzd-shipments-packaging .wc-gzd-packaging-zone-wrapper.zone-wrapper-has-override {
+    opacity: 1;
+    pointer-events: all;
+    overflow: auto;
+    max-height: 100%; }
 
 .wc-gzd-admin-settings-shipping_provider .wc-gzd-shipment-api-connection-status {
   padding: .2em .5em;
@@ -450,6 +476,8 @@ a.button.wc-gzd-shipment-action-button {
     content: "\f103"; }
   a.button.wc-gzd-shipment-action-button.add::after {
     content: "\f132"; }
+  a.button.wc-gzd-shipment-action-button.edit::after {
+    content: "\f464"; }
 
 .woocommerce_page_wc-gzd-shipments .tablenav .actions, .woocommerce_page_wc-gzd-return-shipments .tablenav .actions {
   overflow: visible; }

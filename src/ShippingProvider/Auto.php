@@ -760,105 +760,65 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	/**
 	 * @param Packaging $packaging
-	 * @param string $shipment_type
-	 * @param string $zone
 	 *
 	 * @return array
 	 */
-	public function get_packaging_label_settings( $packaging, $shipment_type = 'simple', $zone = 'dom' ) {
-		if ( ! $this->supports_labels( $shipment_type ) ) {
-			return array();
-		}
+	public function get_packaging_label_settings( $packaging ) {
+		$settings = array();
 
-		if ( ! in_array( $zone, $this->get_available_label_zones( $shipment_type ), true ) ) {
-			return array();
-		}
+		foreach( $this->get_supported_shipment_types() as $shipment_type ) {
+			$settings[ $shipment_type ] = array();
 
-		$provider_label_settings = $this->get_label_settings( true );
-		$label_settings          = array(
-			'product'    => array(),
-			'services'   => array(),
-			'additional' => array(),
-		);
-		$has_settings       = false;
-		$configuration_set  = $packaging->get_configuration_set( $this->get_name(), $shipment_type, $zone );
-		$service_identifier = 'simple' === $shipment_type ? 'label_service_' : $shipment_type . '_label_service_';
-		$product_identifier = 'simple' === $shipment_type ? 'label_default_product' : $shipment_type . 'label_default_product';
+			foreach ( $this->get_available_label_zones( $shipment_type ) as $zone ) {
+				$config_set_args = array(
+					'shipping_provider_name' => $this->get_name(),
+					'shipment_type'          => $shipment_type,
+					'zone'                   => $zone,
+					'setting_type'           => 'packaging',
+				);
 
-		foreach( $provider_label_settings as $label_setting ) {
-			if ( isset( $label_setting['id'] ) ) {
-				$override_type = false;
-				$label_setting = wp_parse_args( $label_setting, array(
-					'group'             => '',
-					'zone'              => array(),
-					'custom_attributes' => array(),
-					'class'             => '',
-					'desc'              => '',
-					'is_service'        => false,
-					'is_product'        => false,
-					'shipment_type'     => 'simple',
-				) );
-
-				if ( ! empty( $label_setting['zone'] ) && ! in_array( $zone, $label_setting['zone'], true ) ) {
-					continue;
-				}
-
-				if ( $service_identifier === substr( $label_setting['id'], 0, strlen( $service_identifier ) ) || ( true === $label_setting['is_service'] && $shipment_type === $label_setting['shipment_type'] ) ) {
-					$label_setting = wp_parse_args( $label_setting, array(
-						'service_name' => str_replace( $service_identifier, '', $label_setting['id'] ),
+				if ( $available_config_set = $packaging->get_configuration_set( $config_set_args ) ) {
+					$configuration_set = $available_config_set;
+				} else {
+					$configuration_set = new ConfigurationSet( array(
+						'shipping_provider_name' => $this->get_name(),
+						'shipment_type'          => $shipment_type,
+						'zone'                   => $zone,
+						'setting_type'           => 'shipping_method'
 					) );
-
-					$label_setting['is_service']        = true;
-					$label_setting['custom_attributes'] = array( 'data-service' => $label_setting['service_name'] );
-					$label_setting['class']             .= ' service-check';
-					$label_setting['group']             = 'services';
-
-					$override_type = 'services';
-				} elseif ( $product_identifier === substr( $label_setting['id'], 0, strlen( $product_identifier ) ) || ( true === $label_setting['is_product'] && $shipment_type === $label_setting['shipment_type'] ) ) {
-					if ( empty( $label_setting['zone'] ) ) {
-						$maybe_setting_zone = str_replace( $product_identifier . '_', '', $label_setting['id'] );
-						$maybe_setting_zone = empty( $maybe_setting_zone ) ? 'dom' : $maybe_setting_zone;
-
-						if ( $zone !== $maybe_setting_zone ) {
-							continue;
-						}
-					}
-
-					foreach( $label_setting['options'] as $product_key => $product_title ) {
-						$label_setting['custom_attributes']['data-services-' . $product_key] = implode( ',', $this->get_product_services( $product_key ) );
-					}
-
-					$label_setting['desc']  = '';
-					$label_setting['group'] = 'product';
-					$label_setting['class'] .= ' default-product';
-					$label_setting['title'] = _x( 'Default Service', 'shipments', 'woocommerce-germanized-shipments' );
- 					$label_setting['is_product'] = true;
-					$override_type = 'product';
-				} elseif ( $current_label_setting = $this->override_setting_in_packaging( $label_setting, $shipment_type, $zone ) ) {
-					$current_label_setting['group'] = 'additional';
-					$label_setting = $current_label_setting;
-					$override_type = 'additional';
 				}
 
-				if ( $override_type ) {
-					if ( $configuration_set && $configuration_set->get_setting( $label_setting['id'] ) ) {
-						$label_setting['value'] = $configuration_set->get_setting( $label_setting['id'] );
-					}
+				$label_settings = $this->get_label_settings_by_zone( $configuration_set );
 
-					$label_setting['original_id'] = $label_setting['id'];
-					$label_setting['id'] .= "[{$zone}]";
-					$has_settings = true;
+				if ( ! empty( $label_settings ) ) {
+					$settings[ $shipment_type ][ $zone ] = array();
 
-					$label_settings[ $override_type ][] = $label_setting;
+					$settings[ $shipment_type ][ $zone ][] = array(
+						'id'                => $configuration_set->get_setting_id( "override" ),
+						'default'           => '',
+						'value'             => $packaging->has_configuration_set( $config_set_args ) ? 'yes' : 'no',
+						'type'              => 'shipping_provider_packaging_zone_title',
+						'provider'          => $this->get_name(),
+						'shipment_zone'     => $zone,
+						'shipment_type'     => $shipment_type,
+						'title'             => sprintf( _x( "%s Shipments", 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_label_zone_title( $zone ) ),
+					);
+
+					$settings[ $shipment_type ][ $zone ] = array_merge( $settings[ $shipment_type ][ $zone ], $label_settings );
+
+					$settings[ $shipment_type ][ $zone ][] = array(
+						'id'                => $configuration_set->get_setting_id( "override" ),
+						'type'              => 'shipping_provider_packaging_zone_title_close',
+					);
 				}
+			}
+
+			if ( empty( $settings[ $shipment_type ] ) ) {
+				unset( $settings[ $shipment_type ] );
 			}
 		}
 
-		if ( ! $has_settings ) {
-			$label_settings = array();
-		}
-
-		return $label_settings;
+		return $settings;
 	}
 
 	/**

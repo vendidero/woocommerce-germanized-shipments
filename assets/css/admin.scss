@@ -115,10 +115,63 @@ $layout-spacing: 1rem;
 }
 
 .wc-gzd-admin-settings-germanized-shipments-packaging {
+  #packaging_list_wrapper {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
   td.wc-gzd-shipments-packaging-shipping-provider-select {
+    select {
+      visibility: hidden;
+      min-width: 300px;
+      max-width: 300px;
+      height: 40px;
+    }
     .select2-container {
-      min-width: 200px !important;
-      max-width: 200px !important;
+      min-width: 300px !important;
+      max-width: 300px !important;
+    }
+  }
+
+  td.actions {
+    text-align: center;
+
+    a.wc-gzd-shipment-action-button {
+      float: none;
+    }
+  }
+}
+
+a.woocommerce-gzd-input-toggle-trigger {
+  text-decoration: none;
+  box-shadow: none;
+  outline: 0;
+  cursor: pointer;
+
+  &:focus {
+    box-shadow: none;
+    outline: 0;
+  }
+}
+
+.forminp-gzd_toggle {
+  span.description, p.description {
+    display: inline-block;
+    font-style: normal;
+    font-size: 14px;
+    margin-left: 5px;
+
+    .wc-gzd-additional-desc {
+      margin-bottom: -1em;
+    }
+  }
+
+  fieldset {
+    text-decoration: none;
+    margin-top: 1.25em;
+
+    &:first-child {
+      margin-top: 0;
     }
   }
 }
@@ -143,38 +196,18 @@ $layout-spacing: 1rem;
     }
   }
 
-  .wc-gzd-packaging-zone-wrapper {
-    .wc-gzd-packaging-zone-options {
-      opacity: .5;
-      pointer-events: none;
-      overflow: hidden;
-      max-height: 190px;
+  .wc-gzd-shipping-provider-override-title-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 2em 0;
+    align-items: center;
+
+    h3 {
+      margin: 0;
+      margin-right: 2em;
     }
 
-    &.zone-wrapper-has-override {
-        .wc-gzd-packaging-zone-options {
-          opacity: 1;
-          pointer-events: all;
-          overflow: auto;
-          max-height: 100%;
-        }
-    }
-
-    fieldset.gzd-toggle-wrapper, .forminp-gzd_toggle {
-      text-decoration: none;
-
-      a.woocommerce-gzd-input-toggle-trigger {
-        text-decoration: none;
-        box-shadow: none;
-        outline: 0;
-        cursor: pointer;
-
-        &:focus {
-          box-shadow: none;
-          outline: 0;
-        }
-      }
-
+    .gzd-toggle-wrapper {
       p.description {
         display: inline-block;
         font-style: normal;
@@ -184,17 +217,19 @@ $layout-spacing: 1rem;
         margin-bottom: 0;
       }
     }
+  }
 
-    .wc-gzd-packaging-zone-header {
-      display: flex;
-      flex-wrap: wrap;
-      margin: 2em 0;
-      align-items: center;
+  .wc-gzd-packaging-zone-wrapper {
+    opacity: .5;
+    pointer-events: none;
+    overflow: hidden;
+    max-height: 190px;
 
-      h3 {
-        margin: 0;
-        margin-right: 2em;
-      }
+    &.zone-wrapper-has-override {
+      opacity: 1;
+      pointer-events: all;
+      overflow: auto;
+      max-height: 100%;
     }
   }
 }
@@ -697,6 +732,10 @@ a.button.wc-gzd-shipment-action-button {
 
   &.add::after {
     content: "\f132";
+  }
+
+  &.edit::after {
+    content: "\f464";
   }
 }
 
