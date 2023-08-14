@@ -401,7 +401,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 					'title'                 => _x( 'Default Service', 'dhl', 'woocommerce-germanized-dhl' ),
 					'type'                  => 'select',
 					'id'                    => $product_setting_id,
-					'default'               => $default_product,
+					'default'               => 'shipping_provider' === $configuration_set->get_setting_type() ? $default_product : $this->get_setting( $product_setting_id, $default_product ),
 					'value'                 => $configuration_set->get_product() ? $configuration_set->get_product() : $default_product,
 					'desc'                  => sprintf( _x( 'Select the default service for %1$s shipments.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_label_zone_title( $configuration_set->get_zone() ) ),
 					'options'               => $select,
@@ -431,6 +431,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 							'shipment_type'         => $configuration_set->get_shipment_type(),
 						) );
 
+						$service_setting_fields[ $k ]['default'] = 'shipping_provider' === $configuration_set->get_setting_type() ? $service_setting_fields[ $k ]['default'] : $this->get_setting( $service_setting_fields[ $k ]['id'], $service_setting_fields[ $k ]['default'] );
 						$service_setting_fields[ $k ]['custom_attributes'] = array_merge( array( "data-show_if_{$product_setting_id}" => implode( ',', $service->get_products() ) ), $service_setting_fields[ $k ]['custom_attributes'] );
 					}
 				}
@@ -784,7 +785,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 						'shipping_provider_name' => $this->get_name(),
 						'shipment_type'          => $shipment_type,
 						'zone'                   => $zone,
-						'setting_type'           => 'shipping_method'
+						'setting_type'           => 'packaging'
 					) );
 				}
 
@@ -898,8 +899,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 							'custom_attributes'     => array(),
 							'shipment_setting_type' => '',
 						) );
-
-						$setting['default'] = $this->get_setting( $setting['id'] );
 
 						if ( ! empty( $setting['custom_attributes'] ) ) {
 							foreach ( $setting['custom_attributes'] as $attr => $val ) {

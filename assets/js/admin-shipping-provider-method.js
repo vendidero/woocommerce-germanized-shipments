@@ -18,7 +18,6 @@ window.germanized.admin = window.germanized.admin || {};
 
             $( document )
                 .on( 'change', 'select[id$=shipping_provider]', self.showOrHideAll )
-                .on( 'change gzd_show_or_hide_fields', ':input:visible[id]', self.onChangeInput )
                 .on( 'click', '.wc-gzd-shipping-provider-method-tabs .nav-tab-wrapper a.nav-tab', self.onChangeTab )
                 .on( 'change', '.override-checkbox :input', self.onChangeOverride );
 
@@ -56,8 +55,6 @@ window.germanized.admin = window.germanized.admin || {};
             $navTab.parents( '.wc-gzd-shipping-provider-method-tabs' ).find( '.nav-tab-active' ).removeClass( 'nav-tab-active' );
             $wrapper.find( '.wc-gzd-shipping-provider-method-tab-content' ).removeClass( 'tab-content-active' );
 
-            console.log($tab);
-
             if ( $tab.length > 0 ) {
                 $navTab.addClass( 'nav-tab-active' );
                 $tab.addClass( 'tab-content-active' );
@@ -67,21 +64,12 @@ window.germanized.admin = window.germanized.admin || {};
             return false;
         },
 
-        getInputByIdOrName: function( $wrapper , cleanName ) {
-            var self = germanized.admin.shipping_provider_method;
-            cleanName = self.getCleanDataId( cleanName );
-
-            return $wrapper.find( ':input' ).filter( function() {
-                var id = self.getCleanInputId( $( this ) );
-
-                if ( ! id ) {
-                    return false;
-                }
-
-                return self.getCleanDataId( id ) === cleanName;
-            });
-        },
-
+        /**
+         * Is being provided as callback for germanized.admin.shipment_settings.getCleanInputId().
+         *
+         * @param $mainInput
+         * @returns {*|boolean}
+         */
         getCleanInputId: function( $mainInput ) {
             var self            = germanized.admin.shipping_provider_method,
                 currentProvider = self.currentProvider,
@@ -97,83 +85,6 @@ window.germanized.admin = window.germanized.admin || {};
             }
 
             return fieldId;
-        },
-
-        /**
-         * Make sure to remove any hyphens as data-attributes are stored
-         * camel case without hyphens in the DOM.
-         */
-        getCleanDataId: function( id ) {
-            return id.toLowerCase().replace( /-/g, '' );
-        },
-
-        onChangeInput: function() {
-            var self             = germanized.admin.shipping_provider_method,
-                $mainInput       = $( this ),
-                $wrapper         = $( this ).parents( 'form' ),
-                mainId           = self.getCleanInputId( $mainInput ),
-                $dependentFields = $wrapper.find( ':input[data-show_if_' + $.escapeSelector( mainId ) + ']' );
-
-            var $input, $field, data, meetsConditions, cleanName, $dependentField, valueExpected, val, isChecked;
-
-            $.each( $dependentFields, function () {
-                $input          = $( this );
-                $field          = $input.parents( 'tr' );
-                data            = $input.data();
-                meetsConditions = true;
-
-                for ( var dataName in data ) {
-                    if ( data.hasOwnProperty( dataName ) ) {
-                        /**
-                         * Check all the conditions for a dependent field.
-                         */
-                        if ( dataName.substring( 0, 8 ) === 'show_if_' ) {
-                            cleanName       = dataName.replace( 'show_if_', '' );
-                            $dependentField = self.getInputByIdOrName( $wrapper, cleanName );
-                            valueExpected   = $input.data( dataName ) ? $input.data( dataName ).split(',') : [];
-
-                            if ( $dependentField.length > 0 ) {
-                                val       = $dependentField.val();
-                                isChecked = false;
-
-                                if ( $dependentField.is( ':radio' ) ) {
-                                    val = $dependentField.parents( 'fieldset' ).find( ':checked' ).length > 0 ? $dependentField.parents( 'fieldset' ).find( ':checked' ).val() : 'no';
-
-                                    if ( 'no' !== val ) {
-                                        isChecked = true;
-                                    }
-                                } else if ( $dependentField.is( ':checkbox' ) ) {
-                                    val = $dependentField.is( ':checked' ) ? 'yes' : 'no';
-
-                                    if ( 'yes' === val ) {
-                                        isChecked = true;
-                                    }
-                                } else {
-                                    isChecked = undefined !== val && '0' !== val && '' !== val;
-                                }
-
-                                if ( valueExpected && valueExpected.length > 0 ) {
-                                    if ( $.inArray( val, valueExpected ) === -1 ) {
-                                        meetsConditions = false;
-                                    }
-                                } else if ( ! isChecked ) {
-                                    meetsConditions = false;
-                                }
-                            }
-
-                            if ( ! meetsConditions ) {
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if ( meetsConditions ) {
-                    $field.show();
-                } else {
-                    $field.hide();
-                }
-            } );
         },
 
         onShippingMethodOpen: function( e, t ) {

@@ -187,13 +187,13 @@ class MethodHelper {
 
 	/**
 	 * @param array $p_settings
-	 * @param \WC_Shipping_Method $method
+	 * @param \WC_Shipping_Method $shipping_method
 	 *
 	 * @return array
 	 */
-	public static function filter_method_settings( $p_settings, $method ) {
+	public static function filter_method_settings( $p_settings, $shipping_method ) {
 		$shipping_provider = isset( $p_settings['shipping_provider'] ) ? $p_settings['shipping_provider'] : '';
-        $method            = self::get_provider_method( $method );
+        $method            = self::get_provider_method( $shipping_method );
 
         $method->set_shipping_provider( $shipping_provider );
 
@@ -204,9 +204,13 @@ class MethodHelper {
                 $args = $method->get_configuration_set_args_by_id( $setting_id );
 
                 if ( ! empty( $args['shipping_provider_name'] ) && $args['shipping_provider_name'] === $method->get_shipping_provider() ) {
-                    if ( 'override' === $args['setting_name'] && wc_string_to_bool( $setting_val ) ) {
-                        if ( $config_set = $method->get_or_create_configuration_set( $args ) ) {
-                            $config_set->update_setting( $setting_id, $setting_val );
+                    if ( 'override' === $args['setting_name'] ) {
+                        if ( wc_string_to_bool( $setting_val ) ) {
+	                        if ( $config_set = $method->get_or_create_configuration_set( $args ) ) {
+		                        $config_set->update_setting( $setting_id, $setting_val );
+	                        }
+                        } else {
+                            $method->reset_configuration_sets( $args );
                         }
                     } elseif ( $config_set = $method->get_configuration_set( $args ) ) {
                         $config_set->update_setting( $setting_id, $setting_val );
@@ -218,6 +222,11 @@ class MethodHelper {
 		}
 
 		$p_settings['configuration_sets'] = $method->get_configuration_sets();
+
+		/**
+		 * Force reloading instance default settings to prevent cached values
+		 */
+		$shipping_method->instance_settings = array();
 
         return $p_settings;
 	}
@@ -301,7 +310,7 @@ class MethodHelper {
 
 					self::$provider_method_settings[ $provider->get_name() ] = $provider->get_shipping_method_settings();
 				}
-			}
+            }
 
 			$supported_zones = array_keys( wc_gzd_get_shipping_label_zones() );
 

@@ -319,7 +319,10 @@ class Service {
 		$option_type = $this->get_option_type();
 
 		if ( 'checkbox' === $this->get_option_type() ) {
-			$value = wc_bool_to_string( $value );
+			if ( is_string( $value ) ) {
+				$value = wc_bool_to_string( $value );
+			}
+
 			$option_type = 'gzd_toggle';
 		}
 
@@ -330,7 +333,7 @@ class Service {
 					'desc'    => $this->get_description() . ( ! empty( $this->get_long_description() ) ? ' ' . $this->get_long_description() : '' ),
 					'id'      => $setting_id,
 					'value'   => $value,
-					'default' => $this->default_value,
+					'default' => $this->get_default_value(),
 					'options' => $this->options,
 					'type'    => $option_type,
 				),

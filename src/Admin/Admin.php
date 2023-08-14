@@ -37,6 +37,7 @@ class Admin {
 		add_filter( 'set_screen_option_woocommerce_page_wc_gzd_return_shipments_per_page', array( __CLASS__, 'set_screen_option' ), 10, 3 );
 
 		add_filter( 'woocommerce_screen_ids', array( __CLASS__, 'register_screen_ids' ), 10 );
+		add_action( 'admin_menu', array( __CLASS__, 'menu_highlight' ), 100 );
 
 		// Template check
 		add_filter( 'woocommerce_gzd_template_check', array( __CLASS__, 'add_template_check' ), 10, 1 );
@@ -67,9 +68,9 @@ class Admin {
 		// Observe base country setting
 		add_action( 'woocommerce_settings_save_general', array( __CLASS__, 'observe_base_country_setting' ), 100 );
 
+		// Edit packaging page
 		add_action( 'admin_menu', array( __CLASS__, 'add_packaging_page' ), 25 );
 		add_action( 'admin_head', array( __CLASS__, 'hide_packaging_page_from_menu' ) );
-
         add_action( 'woocommerce_admin_field_shipping_provider_packaging_zone_title', array( __CLASS__, 'render_shipping_provider_packaging_zone_title_field' ) );
 		add_action( 'woocommerce_admin_field_shipping_provider_packaging_zone_title_close', array( __CLASS__, 'render_shipping_provider_packaging_zone_title_close_field' ) );
         add_action( 'admin_post_woocommerce_gzd_save_packaging_settings', array( __CLASS__, 'save_packaging_page' ) );
@@ -187,6 +188,7 @@ class Admin {
 		    ?>
             <div class="wrap woocommerce wc-gzd-shipments-packaging packaging-<?php echo esc_attr( $packaging->get_id() ); ?>">
                 <h1 class="wp-heading-inline"><?php echo esc_html( $packaging->get_title() ); ?></h1>
+                <a class="page-title-action" href="<?php echo esc_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=packaging' ); ?>"><?php echo esc_html_x( 'All packaging', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
                 <hr class="wp-header-end" />
 
                 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
@@ -236,63 +238,46 @@ class Admin {
 	        wp_die( '', 400 );
         }
 
-        $provider = isset( $_POST['shipping_provider'] ) ? wc_clean( wp_unslash( $_POST['shipping_provider'] ) ) : '';
+        $provider      = isset( $_POST['shipping_provider'] ) ? wc_clean( wp_unslash( $_POST['shipping_provider'] ) ) : '';
 	    $shipment_type = isset( $_POST['shipment_type'] ) ? wc_clean( wp_unslash( $_POST['shipment_type'] ) ) : 'simple';
-	    $packaging_id = isset( $_POST['packaging_id'] ) ? absint( wp_unslash( $_POST['packaging_id'] ) ) : 0;
+	    $packaging_id  = isset( $_POST['packaging_id'] ) ? absint( wp_unslash( $_POST['packaging_id'] ) ) : 0;
 
         $shipping_provider = wc_gzd_get_shipping_provider( $provider );
         $packaging         = wc_gzd_get_packaging( $packaging_id );
-	    $override          = isset( $_POST['override'] ) ? (array) wc_clean( wp_unslash( $_POST['override'] ) ) : array();
 
-        if ( $shipping_provider && $packaging ) {
-            $packaging->reset_configuration_sets( $shipping_provider->get_name(), $shipment_type );
-
-            foreach( $shipping_provider->get_available_label_zones( $shipment_type ) as $zone ) {
-                if ( isset( $override[ $zone ] ) ) {
-	                $available_settings = $shipping_provider->get_packaging_label_settings( $packaging, $shipment_type, $zone );
-
-                    if ( ! empty( $available_settings ) ) {
-	                    $current_product = isset( $_POST[ $available_settings['product'][0]['original_id'] ][ $zone ] ) ? wc_clean( wp_unslash( $_POST[ $available_settings['product'][0]['original_id'] ][ $zone ] ) ) : '';
-
-                        if ( empty( $current_product ) ) {
-                            continue;
-                        }
-
-                        $services_for_product  = $shipping_provider->get_product_services( $current_product );
-	                    $configuration_set     = new ConfigurationSet();
-                        $configuration_set->set_shipment_type( $shipment_type );
-                        $configuration_set->set_shipping_provider_name( $shipping_provider->get_name() );
-                        $configuration_set->set_zone( $zone );
-
-	                    remove_all_filters( 'woocommerce_admin_settings_sanitize_option', 1001 );
-	                    add_filter( 'woocommerce_admin_settings_sanitize_option', function( $value, $option, $raw_value ) use ( $configuration_set, $services_for_product ) {
-		                    if ( ! empty( $option['group'] ) ) {
-			                    if ( 'product' === $option['group'] ) {
-                                    $configuration_set->update_setting( $option['original_id'], $value, 'product' );
-			                    } elseif ( 'services' === $option['group'] ) {
-				                    if ( in_array( $option['service_name'], $services_for_product, true ) ) {
-					                    $configuration_set->update_service( $option['original_id'], $value, $option['service_name'] );
-				                    }
-			                    } elseif ( 'additional' === $option['group'] ) {
-				                    $configuration_set->update_setting( $option['original_id'], $value, 'additional' );
-			                    }
-                            }
-
-		                    return null;
-	                    }, 1001, 3 );
-
-	                    $fields_to_save = array_merge( $available_settings['product'], $available_settings['services'], $available_settings['additional'] );
-	                    \WC_Admin_Settings::save_fields( $fields_to_save );
-
-                        if ( $configuration_set->get_product() ) {
-	                        $packaging->update_configuration_set( $configuration_set );
-                        }
-                    }
-                }
-            }
-
-            $packaging->save();
+        if ( ! $shipping_provider || ! $packaging ) {
+	        wp_die( '', 400 );
         }
+
+	    $all_settings      = $shipping_provider->get_packaging_label_settings( $packaging );
+	    $current_settings  = isset( $all_settings[ $shipment_type ] ) ? $all_settings[ $shipment_type ] : array();
+
+        $packaging->reset_configuration_sets( array(
+            'shipping_provider_name' => $shipping_provider->get_name(),
+            'shipment_type'          => $shipment_type,
+        ) );
+
+	    add_filter( 'woocommerce_admin_settings_sanitize_option', function( $value, $setting, $raw_value ) use ( $packaging ) {
+		    $setting_id = $setting['id'];
+		    $args       = $packaging->get_configuration_set_args_by_id( $setting_id );
+            $value      = wc_clean( $value );
+
+		    if ( 'override' === $args['setting_name'] && wc_string_to_bool( $value ) ) {
+			    if ( $config_set = $packaging->get_or_create_configuration_set( $args ) ) {
+				    $config_set->update_setting( $setting_id, $value );
+			    }
+		    } elseif ( $config_set = $packaging->get_configuration_set( $args ) ) {
+			    $config_set->update_setting( $setting_id, $value );
+		    }
+	    }, 1001, 3 );
+
+        foreach( $current_settings as $location => $settings ) {
+	        \WC_Admin_Settings::save_fields( $settings );
+        }
+
+	    remove_all_filters( 'woocommerce_admin_settings_sanitize_option', 1001 );
+
+        $packaging->save();
 
 	    wp_safe_redirect( esc_url_raw( wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=wc-gzd-shipments' ) ) );
     }
@@ -1022,6 +1007,15 @@ class Admin {
 		return $screen_ids;
 	}
 
+    public static function menu_highlight() {
+        global $parent_file, $submenu_file;
+
+        if ( isset( $_GET['page'] ) && in_array( $_GET['page'], array( 'shipment-packaging', 'shipment-packaging-report' ) ) ) {
+            $parent_file  = 'woocommerce';
+            $submenu_file = 'wc-settings';
+        }
+    }
+
 	public static function handle_order_bulk_actions( $redirect_to, $action, $ids ) {
 		$ids           = apply_filters( 'woocommerce_bulk_action_ids', array_reverse( array_map( 'absint', $ids ) ), $action, 'order' );
 		$changed       = 0;
@@ -1285,7 +1279,7 @@ class Admin {
 		wp_register_script( 'wc-gzd-admin-packaging', Package::get_assets_url() . '/js/admin-packaging' . $suffix . '.js', array( 'wc-gzd-admin-shipment-settings' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_register_script( 'wc-gzd-admin-shipments-table', Package::get_assets_url() . '/js/admin-shipments-table' . $suffix . '.js', array( 'woocommerce_admin', 'wc-gzd-admin-shipment-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_register_script( 'wc-gzd-admin-shipping-providers', Package::get_assets_url() . '/js/admin-shipping-providers' . $suffix . '.js', array( 'jquery', 'jquery-ui-sortable' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_register_script( 'wc-gzd-admin-shipping-provider-method', Package::get_assets_url() . '/js/admin-shipping-provider-method' . $suffix . '.js', array( 'jquery' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-admin-shipping-provider-method', Package::get_assets_url() . '/js/admin-shipping-provider-method' . $suffix . '.js', array( 'wc-gzd-admin-shipment-settings', 'jquery' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 
 		wp_register_script( 'wc-gzd-admin-shipping-rules', Package::get_assets_url() . '/js/admin-shipping-rules' . $suffix . '.js', array( 'woocommerce_admin', 'jquery', 'jquery-ui-sortable', 'wp-util', 'underscore', 'backbone' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 
@@ -1369,6 +1363,12 @@ class Admin {
 			)
 		);
 
+		wp_localize_script(
+			'wc-gzd-admin-shipment-settings',
+			'wc_gzd_admin_shipment_settings_params',
+			self::get_admin_settings_params()
+		);
+
 		// Shipping provider settings
 		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'germanized-shipping_provider' === $_GET['tab'] && empty( $_GET['provider'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			wp_enqueue_script( 'wc-gzd-admin-shipping-providers' );
@@ -1387,7 +1387,7 @@ class Admin {
 		}
 
 		// Shipping provider method
-		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( self::is_shipping_settings_request() ) {
 			/**
 			 * Older third-party shipping methods may not support instance-settings and will have their settings
 			 * output in a separate section under Settings > Shipping.
@@ -1406,6 +1406,23 @@ class Admin {
 			}
 		}
 	}
+
+    protected static function is_shipping_settings_request() {
+	    $screen    = get_current_screen();
+	    $screen_id = $screen ? $screen->id : '';
+
+        return 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+    }
+
+    private static function get_admin_settings_params() {
+        $params = array();
+
+        if ( self::is_shipping_settings_request() ) {
+            $params['clean_input_callback'] = 'germanized.admin.shipping_provider_method.getCleanInputId';
+        }
+
+        return $params;
+    }
 
 	/**
 	 * @return BulkActionHandler[] $handler
