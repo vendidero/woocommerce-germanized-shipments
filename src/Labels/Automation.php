@@ -26,6 +26,30 @@ class Automation {
 
 		// After a label has been successfully created - maybe update shipment status
 		add_action( 'woocommerce_gzd_shipment_created_label', array( __CLASS__, 'maybe_adjust_shipment_status' ), 10 );
+
+		add_action( 'woocommerce_gzd_shipments_label_auto_sync_callback', array( __CLASS__, 'auto_sync_callback' ) );
+	}
+
+	public static function auto_sync_callback( $shipment_id ) {
+		/**
+		 * Maybe cancel duplicate deferred syncs.
+		 */
+		self::cancel_deferred_sync( array( 'shipment_id' => $shipment_id ) );
+
+		Package::log( 'Starting shipment #' . $shipment_id . ' label sync (deferred)' );
+
+		self::create_label( $shipment_id );
+
+		return true;
+	}
+
+	public static function cancel_deferred_sync( $args ) {
+		$queue = WC()->queue();
+
+		/**
+		 * Cancel outstanding events and queue new.
+		 */
+		$queue->cancel_all( 'woocommerce_gzd_shipments_label_auto_sync_callback', $args, 'woocommerce-gzd-shipments-label-sync' );
 	}
 
 	/**
@@ -40,14 +64,19 @@ class Automation {
 	}
 
 	public static function set_after_create_automation( $shipment_id, $shipment ) {
-		self::do_automation( $shipment, false );
+		self::init_automation( $shipment, array( 'is_hook' => false ) );
 	}
 
 	/**
 	 * @param Shipment $shipment
 	 * @param boolean $is_hook
 	 */
-	protected static function do_automation( $shipment, $is_hook = true ) {
+	protected static function init_automation( $shipment, $args = array() ) {
+		$args = wp_parse_args( $args, array(
+			'is_hook'             => true,
+			'allow_deferred_sync' => wc_gzd_shipments_allow_deferred_sync( 'label' ),
+		) );
+
 		$disable = false;
 
 		if ( ! $shipment->needs_label( false ) ) {
@@ -76,10 +105,12 @@ class Automation {
 			if ( $provider->automatically_generate_label( $shipment ) && ! empty( $auto_status ) ) {
 				$status = str_replace( 'gzd-', '', $auto_status );
 
-				if ( $is_hook ) {
-					add_action( $hook_prefix . $status, array( __CLASS__, 'maybe_create_label' ), 5, 2 );
+				if ( $args['is_hook'] ) {
+					add_action( $hook_prefix . $status, function( $shipment_id, $shipment ) use( $args ) {
+						self::maybe_create_label( $shipment_id, $shipment, $args );
+					}, 5, 2 );
 				} elseif ( $shipment->has_status( $status ) ) {
-					self::maybe_create_label( $shipment->get_id(), $shipment );
+					self::maybe_create_label( $shipment->get_id(), $shipment, $args );
 				}
 			}
 		}
@@ -90,7 +121,7 @@ class Automation {
 	 * @param Shipment $shipment
 	 */
 	public static function set_automation( $shipment_id, $shipment ) {
-		self::do_automation( $shipment, true );
+		self::init_automation( $shipment );
 	}
 
 	public static function create_label( $shipment_id, $shipment = false ) {
@@ -119,16 +150,39 @@ class Automation {
 		}
 	}
 
-	private static function is_admin_edit_order_request() {
-		return ( isset( $_POST['action'] ) && 'editpost' === $_POST['action'] && isset( $_POST['post_type'] ) && 'shop_order' === $_POST['post_type'] ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-	}
+	protected static function maybe_create_label( $shipment_id, $shipment = false, $args = array() ) {
+		$args = wp_parse_args( $args, array(
+			'allow_deferred_sync' => wc_gzd_shipments_allow_deferred_sync( 'label' ),
+		) );
 
-	public static function maybe_create_label( $shipment_id, $shipment = false ) {
 		// Make sure that MetaBox is saved before we process automation
-		if ( self::is_admin_edit_order_request() && ! did_action( 'woocommerce_process_shop_order_meta' ) ) {
-			add_action( 'woocommerce_process_shop_order_meta', array( __CLASS__, 'create_label' ), 70 );
+		if ( \Vendidero\Germanized\Shipments\Automation::is_admin_edit_order_request() ) {
+			add_action( 'woocommerce_process_shop_order_meta', function() use ( $shipment_id, $shipment ) {
+				self::create_label( $shipment_id, $shipment );
+			}, 75 );
 		} else {
-			self::create_label( $shipment_id, $shipment );
+			if ( $args['allow_deferred_sync'] ) {
+				Package::log( 'Deferring shipment #' . $shipment_id . ' label sync' );
+
+				$queue      = WC()->queue();
+				$defer_args = array(
+					'shipment_id' => $shipment_id,
+				);
+
+				/**
+				 * Cancel outstanding events and queue new.
+				 */
+				self::cancel_deferred_sync( $defer_args );
+
+				$queue->schedule_single(
+					time() + 50,
+					'woocommerce_gzd_shipments_label_auto_sync_callback',
+					$defer_args,
+					'woocommerce-gzd-shipments-label-sync'
+				);
+			} else {
+				self::create_label( $shipment_id, $shipment );
+			}
 		}
 	}
 }

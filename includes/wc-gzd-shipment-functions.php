@@ -1495,6 +1495,22 @@ if ( ! function_exists( 'wc_gzd_wp_theme_get_element_class_name' ) ) {
 	}
 }
 
+function wc_gzd_shipments_allow_deferred_sync( $type = 'shipments' ) {
+	$allow_defer = true;
+
+	if ( 'shipments' === $type || 'label' === $type ) {
+		if ( is_admin() && current_user_can( 'manage_woocommerce' ) ) {
+			$allow_defer = false;
+		}
+	}
+
+	if ( apply_filters( 'woocommerce_gzd_shipments_disable_deferred_sync', false ) ) {
+		$allow_defer = false;
+	}
+
+	return apply_filters( "woocommerce_gzd_shipments_allow_{$type}_deferred_sync", $allow_defer );
+}
+
 /**
  * Forces a WP_Error object to be converted to a ShipmentError.
  *

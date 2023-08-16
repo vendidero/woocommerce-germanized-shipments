@@ -17,12 +17,14 @@ class Packer {
 	}
 
 	public function set_boxes( $boxes ) {
-		$first_box = ! empty( $boxes ) ? array_values( $boxes )[0] : false;
+		if ( ! is_a( $boxes, '\DVDoug\BoxPacker\BoxList' ) ) {
+			$first_box = ! empty( $boxes ) ? array_values( $boxes )[0] : false;
 
-		if ( ! empty( $boxes ) && ! is_a( $first_box, 'Vendidero\Germanized\Shipments\Packing\PackagingBox' ) ) {
-			$boxes = \DVDoug\BoxPacker\BoxList::fromArray( Helper::get_packaging_boxes( $boxes ) );
-		} elseif ( ! is_a( $boxes, '\DVDoug\BoxPacker\BoxList' ) ) {
-			$boxes = \DVDoug\BoxPacker\BoxList::fromArray( $boxes );
+			if ( ! empty( $boxes ) && ! is_a( $first_box, 'Vendidero\Germanized\Shipments\Packing\PackagingBox' ) ) {
+				$boxes = \DVDoug\BoxPacker\BoxList::fromArray( Helper::get_packaging_boxes( $boxes ) );
+			} else {
+				$boxes = \DVDoug\BoxPacker\BoxList::fromArray( $boxes );
+			}
 		}
 
 		$this->packer->setBoxes( $boxes );
