@@ -70,40 +70,6 @@ class Package {
 		add_action( 'init', array( __CLASS__, 'check_version' ), 10 );
 
 		add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
-
-		add_filter( 'woocommerce_cart_shipping_packages', array( __CLASS__, 'add_cart_packaging' ) );
-		add_filter( 'woocommerce_shipping_methods', function( $methods ) {
-			foreach( Helper::instance()->get_shipping_providers() as $provider ) {
-				$methods['shipping_provider_' . $provider->get_name()] = new ShippingMethod( 0, $provider );
-			}
-
-			return $methods;
-		} );
-	}
-
-	public static function add_cart_packaging( $cart_contents ) {
-		foreach( $cart_contents as $index => $content ) {
-			$items = array();
-
-			foreach( $content['contents'] as $content_key => $data ) {
-				$cart_item      = new CartItem( $data );
-				$shipping_class = '';
-
-				if ( $cart_item->get_product() ) {
-					$shipping_class = $cart_item->get_product()->get_shipping_class();
-				}
-
-				if ( ! array_key_exists( $shipping_class, $items ) ) {
-					$items[ $shipping_class ] = new ItemList();
-				}
-
-				$items[ $shipping_class ]->insert( $cart_item, $data['quantity'] );
-			}
-
-			$cart_contents[ $index ]['package_items'] = $items;
-		}
-
-		return $cart_contents;
 	}
 
 	public static function add_return_shipment_guest_endpoints( $template, $template_name ) {
@@ -453,7 +419,7 @@ class Package {
 		return md5( serialize( $key ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
 	}
 
-	public static function log( $message, $type = 'info' ) {
+	public static function log( $message, $type = 'info', $source = '' ) {
 		$enable_logging = defined( 'WP_DEBUG' ) && WP_DEBUG ? true : false;
 
 		/**
@@ -465,20 +431,20 @@ class Package {
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		if ( ! apply_filters( 'woocommerce_gzd_shipments_enable_logging', $enable_logging ) ) {
-			return false;
+			return;
 		}
 
 		$logger = wc_get_logger();
 
 		if ( ! $logger ) {
-			return false;
+			return;
 		}
 
 		if ( ! is_callable( array( $logger, $type ) ) ) {
 			$type = 'info';
 		}
 
-		$logger->{$type}( $message, array( 'source' => 'wc-gzd-shipments' ) );
+		$logger->{$type}( $message, array( 'source' => 'wc-gzd-shipments' . ( ! empty( $source ) ? '-' . $source : '' ) ) );
 	}
 
 	public static function get_upload_dir_suffix() {

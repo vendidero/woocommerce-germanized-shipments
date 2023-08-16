@@ -839,18 +839,41 @@ function wc_gzd_get_shipment_return_address( $shipment_order = false ) {
 
 /**
  * @param WC_Order $order
+ * @return WC_Order_Item_Shipping|false
  */
-function wc_gzd_get_shipment_order_shipping_method_id( $order ) {
+function wc_gzd_get_shipment_order_shipping_method( $order ) {
 	$methods = $order->get_shipping_methods();
-	$id      = '';
+	$method  = false;
 
 	if ( ! empty( $methods ) ) {
 		$method_vals = array_values( $methods );
 		$method      = array_shift( $method_vals );
 
-		if ( $method ) {
-			$id = $method->get_method_id() . ':' . $method->get_instance_id();
+		if ( ! $method ) {
+			$method = false;
 		}
+	}
+
+	/**
+	 * Allows adjusting the shipping method for a certain order.
+	 *
+	 * @param WC_Order_Item_Shipping|false $method The order item.
+	 * @param WC_Order $order The order object.
+	 *
+	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
+	return apply_filters( 'woocommerce_gzd_shipment_order_shipping_method', $method, $order );
+}
+
+/**
+ * @param WC_Order $order
+ */
+function wc_gzd_get_shipment_order_shipping_method_id( $order ) {
+	$id = '';
+
+	if ( $method = wc_gzd_get_shipment_order_shipping_method( $order ) ) {
+		$id = $method->get_method_id() . ':' . $method->get_instance_id();
 	}
 
 	/**

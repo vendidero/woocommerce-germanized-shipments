@@ -2,14 +2,14 @@
 
 namespace Vendidero\Germanized\Shipments\Packing;
 
-use DVDoug\BoxPacker\Item;
+use Vendidero\Germanized\Shipments\Interfaces\PackingItem;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * An item to be packed.
  */
-class ShipmentItem implements Item {
+class ShipmentItem implements PackingItem {
 
 	/**
 	 * @var \Vendidero\Germanized\Shipments\ShipmentItem

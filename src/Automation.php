@@ -7,6 +7,7 @@
 namespace Vendidero\Germanized\Shipments;
 
 use Vendidero\Germanized\Shipments\Admin\MetaBox;
+use Vendidero\Germanized\Shipments\Packing\Helper;
 use WC_Order;
 
 defined( 'ABSPATH' ) || exit;
@@ -188,18 +189,62 @@ class Automation {
 		}
 
 		if ( $order_shipment = wc_gzd_get_shipment_order( $order ) ) {
-			if ( ! apply_filters( 'woocommerce_gzd_auto_create_custom_shipments_for_order', false, $order->get_id(), $order ) ) {
-				$shipments = $order_shipment->get_simple_shipments();
+			$shipments = $order_shipment->get_simple_shipments();
 
-				foreach ( $shipments as $shipment ) {
-					if ( $shipment->is_editable() ) {
-						$shipment->sync();
-						$shipment->sync_items();
-						$shipment->save();
-					}
+			foreach ( $shipments as $shipment ) {
+				if ( $shipment->is_editable() ) {
+					$shipment->sync();
+					$shipment->sync_items();
+					$shipment->save();
 				}
+			}
 
-				if ( $order_shipment->needs_shipping() ) {
+			if ( $order_shipment->needs_shipping() ) {
+				if ( $order_shipment->has_auto_packing() ) {
+					$items_to_pack       = $order_shipment->get_items_to_pack_left_for_shipping();
+					$available_packaging = wc_gzd_get_packaging_list();
+
+					if ( $provider = wc_gzd_get_order_shipping_provider( $order ) ) {
+						$available_packaging = wc_gzd_get_packaging_list( array( 'shipping_provider' => $provider->get_name() ) );
+					}
+
+					$packaging_boxes = Helper::get_packaging_boxes( $available_packaging );
+
+					foreach( $items_to_pack as $group => $items ) {
+						$packed_boxes = Helper::pack( $items, $packaging_boxes, 'order' );
+
+						foreach ( $packed_boxes as $box ) {
+							$packaging      = $box->getBox();
+							$items          = $box->getItems();
+							$shipment_items = array();
+
+							foreach ( $items as $item ) {
+								$order_item = $item->getItem();
+
+								if ( ! isset( $shipment_items[ $order_item->get_id() ] ) ) {
+									$shipment_items[ $order_item->get_id() ] = 1;
+								} else {
+									$shipment_items[ $order_item->get_id() ]++;
+								}
+							}
+
+							$shipment = wc_gzd_create_shipment(
+								$order_shipment,
+								array(
+									'items' => $shipment_items,
+									'props' => array(
+										'packaging_id' => $packaging->get_id(),
+										'status'       => $shipment_status,
+									),
+								)
+							);
+
+							if ( ! is_wp_error( $shipment ) ) {
+								$order_shipment->add_shipment( $shipment );
+							}
+						}
+					}
+				} else {
 					$shipment = wc_gzd_create_shipment( $order_shipment, array( 'props' => array( 'status' => $shipment_status ) ) );
 
 					if ( ! is_wp_error( $shipment ) ) {

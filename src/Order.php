@@ -2,7 +2,9 @@
 
 namespace Vendidero\Germanized\Shipments;
 
+use DVDoug\BoxPacker\ItemList;
 use Exception;
+use Vendidero\Germanized\Shipments\Packing\Helper;
 use Vendidero\Germanized\Shipments\Packing\OrderItem;
 use WC_DateTime;
 use DateTimeZone;
@@ -304,9 +306,7 @@ class Order {
 	 * @return Shipment[] Shipments
 	 */
 	public function get_shipments() {
-
 		if ( is_null( $this->shipments ) ) {
-
 			$this->shipments = wc_gzd_get_shipments(
 				array(
 					'order_id' => $this->get_order()->get_id(),
@@ -538,11 +538,11 @@ class Order {
 	}
 
 	/**
-	 * @param false $group_by_shipping_class
+	 * @param false $legacy_group_by_product_group
 	 *
 	 * @return OrderItem[]
 	 */
-	public function get_items_to_pack_left_for_shipping( $group_by_shipping_class = false ) {
+	public function get_items_to_pack_left_for_shipping( $legacy_group_by_product_group = null ) {
 		$items              = $this->get_available_items_for_shipment();
 		$items_to_be_packed = array();
 
@@ -551,29 +551,21 @@ class Order {
 				continue;
 			}
 
-			$shipping_class = '';
+			$product_group = '';
 
-			if ( $group_by_shipping_class ) {
-				if ( $product = $order_item->get_product() ) {
-					$shipping_class = $product->get_shipping_class();
-				}
+			if ( $product = $order_item->get_product() ) {
+				$product_group = Helper::get_product_packing_group( $product );
 			}
 
-			for ( $i = 0; $i < $item['max_quantity']; $i++ ) {
-				try {
-					$box_item = new Packing\OrderItem( $order_item );
-
-					if ( ! isset( $items_to_be_packed[ $shipping_class ] ) ) {
-						$items_to_be_packed[ $shipping_class ] = array();
-					}
-
-					$items_to_be_packed[ $shipping_class ][] = $box_item;
-				} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
-				}
+			if ( ! array_key_exists( $product_group, $items_to_be_packed ) ) {
+				$items_to_be_packed[ $product_group ] = new ItemList();
 			}
+
+			$box_item = new Packing\OrderItem( $order_item );
+			$items_to_be_packed[ $product_group ]->insert( $box_item, $item['max_quantity'] );
 		}
 
-		return apply_filters( 'woocommerce_gzd_shipment_order_items_to_pack_left_for_shipping', $items_to_be_packed, $group_by_shipping_class );
+		return apply_filters( 'woocommerce_gzd_shipment_order_items_to_pack_left_for_shipping', $items_to_be_packed );
 	}
 
 	/**
@@ -947,6 +939,27 @@ class Order {
 		}
 
 		return $has_pickup;
+	}
+
+	public function has_auto_packing() {
+		$has_auto_packing = false;
+
+		if ( Package::is_packing_supported() ) {
+			$has_auto_packing = Helper::enable_auto_packing();
+
+			if ( ! $has_auto_packing ) {
+				$shipping_methods = $this->get_order()->get_shipping_methods();
+
+				foreach ( $shipping_methods as $shipping_method ) {
+					if ( 'shipping_provider_' === substr( $shipping_method->get_method_id(), 0, 18 ) ) {
+						$has_auto_packing = true;
+						break;
+					}
+				}
+			}
+		}
+
+		return apply_filters( 'woocommerce_gzd_shipment_order_has_auto_packing', $has_auto_packing, $this->get_order(), $this );
 	}
 
 	/**

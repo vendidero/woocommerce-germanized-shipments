@@ -2,6 +2,11 @@
 
 namespace Vendidero\Germanized\Shipments\ShippingMethod;
 
+use DVDoug\BoxPacker\ItemList;
+use Vendidero\Germanized\Shipments\Package;
+use Vendidero\Germanized\Shipments\Packing\CartItem;
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
+
 defined( 'ABSPATH' ) || exit;
 
 class MethodHelper {
@@ -23,6 +28,50 @@ class MethodHelper {
 		add_filter( 'woocommerce_generate_shipping_provider_method_tabs_open_html', array( __CLASS__, 'render_method_tab_content' ), 10, 4 );
 		add_filter( 'woocommerce_generate_shipping_provider_method_tabs_close_html', array( __CLASS__, 'render_method_tab_content_close' ), 10, 4 );
 		add_filter( 'woocommerce_generate_shipping_provider_method_configuration_sets_html', array( __CLASS__, 'render_method_configuration_sets' ), 10 );
+
+		add_filter( 'woocommerce_cart_shipping_packages', array( __CLASS__, 'register_cart_items_to_pack' ) );
+		add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'register_shipping_methods' ) );
+	}
+
+    public static function register_shipping_methods( $methods ) {
+        if ( ! Package::is_packing_supported() ) {
+            return $methods;
+        }
+
+        foreach( Helper::instance()->get_shipping_providers() as $provider ) {
+            $methods["shipping_provider_{$provider->get_name()}"] = new ShippingMethod( 0, $provider );
+        }
+
+        return $methods;
+    }
+
+	public static function register_cart_items_to_pack( $cart_contents ) {
+		if ( ! Package::is_packing_supported() ) {
+			return $cart_contents;
+		}
+
+		foreach( $cart_contents as $index => $content ) {
+			$items = array();
+
+			foreach( $content['contents'] as $content_key => $data ) {
+				$cart_item     = new CartItem( $data );
+				$product_group = '';
+
+				if ( $product = $cart_item->get_product() ) {
+					$product_group = \Vendidero\Germanized\Shipments\Packing\Helper::get_product_packing_group( $product );
+				}
+
+				if ( ! array_key_exists( $product_group, $items ) ) {
+					$items[ $product_group ] = new ItemList();
+				}
+
+				$items[ $product_group ]->insert( $cart_item, $data['quantity'] );
+			}
+
+			$cart_contents[ $index ]['items_to_pack'] = $items;
+		}
+
+		return $cart_contents;
 	}
 
     public static function render_method_configuration_sets() {

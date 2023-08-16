@@ -2,7 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments\Admin;
 
-use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
+use Vendidero\Germanized\Shipments\Package;use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
 use Vendidero\Germanized\Shipments\Packaging\ReportQueue;
 
 defined( 'ABSPATH' ) || exit;
@@ -404,6 +404,94 @@ class Settings {
 				'id'   => 'packaging_options',
 			),
 		);
+
+        if ( Package::is_packing_supported() ) {
+            $settings = array_merge( $settings, array(
+                array(
+                    'title' => _x( 'Automated packing', 'shipments', 'woocommerce-germanized-shipments' ),
+                    'type'  => 'title',
+                    'id'    => 'automated_packing_options',
+                ),
+
+                array(
+                    'title'   => _x( 'Enable', 'shipments', 'woocommerce-germanized-shipments' ),
+                    'desc'    => _x( 'Automatically pack orders based on available packaging options', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'By enabling this option, shipments will be packed based on your available packaging options. For that purpose a knapsack algorithm is used to best fit available order items within your packaging. <a href="%s" target="_blank">Learn more</a> about the feature.', 'shipments', 'woocommerce-germanized-shipments' ), 'https://vendidero.de/dokument/sendungen-automatisiert-packen' ) . '</div>',
+                    'id'      => 'woocommerce_gzd_shipments_enable_auto_packing',
+                    'default' => 'yes',
+                    'type'    => 'gzd_toggle',
+                ),
+
+                array(
+                    'title'             => _x( 'Grouping', 'shipments', 'woocommerce-germanized-shipments' ),
+                    'desc'              => _x( 'Group items by shipping class.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Use this option to prevent items with different shipping classes from being packed in the same package.', 'shipments', 'woocommerce-germanized-shipments' ) ) . '</div>',
+                    'id'                => 'woocommerce_gzd_shipments_packing_group_by_shipping_class',
+                    'default'           => 'no',
+                    'type'              => 'gzd_toggle',
+                    'custom_attributes' => array(
+                        'data-show_if_woocommerce_gzd_shipments_enable_auto_packing' => '',
+                    ),
+                ),
+
+                array(
+                    'title'             => _x( 'Balance weights', 'shipments', 'woocommerce-germanized-shipments' ),
+                    'desc'              => _x( 'Automatically balance weights between packages in case multiple packages are needed.', 'shipments', 'woocommerce-germanized-shipments' ),
+                    'id'                => 'woocommerce_gzd_shipments_packing_balance_weights',
+                    'default'           => 'no',
+                    'type'              => 'gzd_toggle',
+                    'custom_attributes' => array(
+                        'data-show_if_woocommerce_gzd_shipments_enable_auto_packing' => '',
+                    ),
+                ),
+
+                array(
+                    'title'             => _x( 'Buffer type', 'shipments', 'woocommerce-germanized-shipments' ),
+                    'desc'              => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Choose a buffer type to leave space between the items and outer dimensions of your packaging.', 'shipments', 'woocommerce-germanized-shipments' ) ) . '</div>',
+                    'id'                => 'woocommerce_gzd_shipments_packing_inner_buffer_type',
+                    'default'           => 'fixed',
+                    'type'              => 'select',
+                    'options'           => array(
+                        'fixed'      => _x( 'Fixed', 'shipments', 'woocommerce-germanized-shipments' ),
+                        'percentage' => _x( 'Percentage', 'shipments', 'woocommerce-germanized-shipments' ),
+                    ),
+                    'custom_attributes' => array(
+                        'data-show_if_woocommerce_gzd_shipments_enable_auto_packing' => '',
+                    ),
+                ),
+
+                array(
+                    'title'             => _x( 'Fixed Buffer', 'shipments', 'woocommerce-germanized-shipments' ),
+                    'desc'              => 'mm',
+                    'id'                => 'woocommerce_gzd_shipments_packing_inner_fixed_buffer',
+                    'default'           => '5',
+                    'type'              => 'number',
+                    'css'               => 'max-width: 60px',
+                    'custom_attributes' => array(
+                        'data-show_if_woocommerce_gzd_shipments_enable_auto_packing' => '',
+                        'data-show_if_woocommerce_gzd_shipments_packing_inner_buffer_type' => 'fixed',
+                        'step' => 1,
+                    ),
+                ),
+
+                array(
+                    'title'             => _x( 'Percentage Buffer', 'shipments', 'woocommerce-germanized-shipments' ),
+                    'desc'              => '%',
+                    'id'                => 'woocommerce_gzd_shipments_packing_inner_percentage_buffer',
+                    'default'           => '0.5',
+                    'type'              => 'number',
+                    'css'               => 'max-width: 60px',
+                    'custom_attributes' => array(
+                         'data-show_if_woocommerce_gzd_shipments_enable_auto_packing' => '',
+                        'data-show_if_woocommerce_gzd_shipments_packing_inner_buffer_type' => 'percentage',
+                        'step' => 0.1,
+                    ),
+                ),
+
+                array(
+                    'type' => 'sectionend',
+                    'id'   => 'automated_packing_options',
+                ),
+            ) );
+        }
 
 		return $settings;
 	}

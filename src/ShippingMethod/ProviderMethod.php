@@ -80,6 +80,10 @@ class ProviderMethod implements LabelConfigurationSet {
 	 * @return false|ShippingProvider
 	 */
 	public function get_shipping_provider_instance() {
+		if ( is_a( $this->method, '\Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod' ) ) {
+			return $this->method->get_shipping_provider();
+		}
+
 		if ( is_null( $this->provider ) ) {
 			$provider = $this->get_shipping_provider();
 
@@ -92,7 +96,11 @@ class ProviderMethod implements LabelConfigurationSet {
 	}
 
 	public function get_shipping_provider() {
-		$provider_slug = $this->get_prop( 'shipping_provider' );
+		if ( is_a( $this->method, '\Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod' ) ) {
+			$provider_slug = $this->method->get_shipping_provider()->get_name();
+		} else {
+			$provider_slug = $this->get_prop( 'shipping_provider' );
+		}
 
 		/**
 		 * Filter that allows adjusting the shipping provider chosen for a specific shipping method.
