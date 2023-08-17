@@ -7,6 +7,7 @@
  */
 namespace Vendidero\Germanized\Shipments;
 
+use DVDoug\BoxPacker\ItemList;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
 use WC_Data;
@@ -395,7 +396,13 @@ abstract class Shipment extends WC_Data {
 		if ( is_null( $this->label_configuration_set ) ) {
 			$this->label_configuration_set = false;
 
-			if ( $method = $this->get_shipping_method_instance() ) {
+			if ( $packaging = $this->get_packaging() ) {
+				if ( $method_set = $packaging->get_configuration_set( $this ) ) {
+					$this->label_configuration_set = $method_set;
+				}
+			}
+
+			if ( ! $this->label_configuration_set && ( $method = $this->get_shipping_method_instance() ) ) {
 				if ( $method_set = $method->get_configuration_set( $this ) ) {
 					$this->label_configuration_set = $method_set;
 				}
@@ -410,7 +417,7 @@ abstract class Shipment extends WC_Data {
 			}
 		}
 
-		return $this->label_configuration_set;
+		return apply_filters( "{$this->get_hook_prefix()}label_configuration_set", $this->label_configuration_set, $this );
 	}
 
 	/**
@@ -451,18 +458,19 @@ abstract class Shipment extends WC_Data {
 		return $weight;
 	}
 
+	/**
+	 * @return ShipmentItem[]|ItemList
+	 */
 	public function get_items_to_pack() {
 		if ( ! Package::is_packing_supported() ) {
 			return $this->get_items();
 		} else {
 			if ( is_null( $this->items_to_pack ) ) {
-				$this->items_to_pack = array();
+				$this->items_to_pack = new ItemList();
 
 				foreach ( $this->get_items() as $item ) {
-					for ( $i = 0; $i < $item->get_quantity(); $i++ ) { // phpcs:ignore Generic.CodeAnalysis.ForLoopWithTestFunctionCall.NotAllowed
-						$box_item              = new Packing\ShipmentItem( $item );
-						$this->items_to_pack[] = $box_item;
-					}
+					$box_item = new Packing\ShipmentItem( $item );
+					$this->items_to_pack->insert( $box_item, $item->get_quantity() );
 				}
 			}
 

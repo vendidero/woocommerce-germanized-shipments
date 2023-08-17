@@ -31,7 +31,20 @@ class MethodHelper {
 
 		add_filter( 'woocommerce_cart_shipping_packages', array( __CLASS__, 'register_cart_items_to_pack' ) );
 		add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'register_shipping_methods' ) );
+		add_filter( 'woocommerce_hidden_order_itemmeta', array( __CLASS__, 'set_shipping_order_meta_hidden' ) );
 	}
+
+    public static function set_shipping_order_meta_hidden( $meta ) {
+        $meta = array_merge( $meta, array(
+            '_packed_items',
+            '_packed_item_map',
+            '_packaging_ids',
+            '_rule_ids',
+            '_packages'
+        ) );
+
+        return $meta;
+    }
 
     public static function register_shipping_methods( $methods ) {
         if ( ! Package::is_packing_supported() ) {

@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments\Packing;
 
 use DVDoug\BoxPacker\BoxList;
+use DVDoug\BoxPacker\ItemList;
 use DVDoug\BoxPacker\PackedBoxList;
 use Vendidero\Germanized\Shipments\Interfaces\PackingBox;
 use Vendidero\Germanized\Shipments\Interfaces\PackingItem;
@@ -14,6 +15,11 @@ defined( 'ABSPATH' ) || exit;
 class Helper {
 
 	protected static $packaging = null;
+
+	/**
+	 * @var array|ItemList
+	 */
+	protected static $items_too_large = array();
 
 	/**
 	 * @param false $id
@@ -91,6 +97,8 @@ class Helper {
 	 * @return PackedBoxList
 	 */
 	public static function pack( $items, $boxes, $for = 'order' ) {
+		self::$items_too_large = array();
+
 		/**
 		 * @var \Vendidero\Germanized\Shipments\Packing\Packer $packer
 		 */
@@ -110,15 +118,22 @@ class Helper {
 		$packed_boxes = $packer->pack();
 
 		// Items that do not fit in any box
-		$items_too_large = $packer->get_unpacked_items();
+		self::$items_too_large = $packer->get_unpacked_items();
 
-		if ( $items_too_large->count() > 0 ) {
-			foreach( $items_too_large as $item_too_large ) {
+		if ( self::$items_too_large->count() > 0 ) {
+			foreach( self::$items_too_large as $item_too_large ) {
 				Package::log( sprintf( _x( 'Item %1$s did not fit the available packaging.', 'shipments', 'woocommerce-germanized-shipments' ), $item_too_large->getDescription() ), 'info', 'packing' );
 			}
 		}
 
 		return $packed_boxes;
+	}
+
+	/**
+	 * @return ItemList|array
+	 */
+	public static function get_last_unpacked_items() {
+		return self::$items_too_large;
 	}
 
 	public static function get_available_packaging( $id = false ) {

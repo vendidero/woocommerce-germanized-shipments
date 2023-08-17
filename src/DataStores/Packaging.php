@@ -579,7 +579,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 	 */
 	public function find_available_packaging_for_shipment( $shipment ) {
 		$packaging_available = array();
-		$items_to_pack       = $shipment->get_items_to_pack();
+		$items               = $shipment->get_items_to_pack();
 		$results             = false;
 
 		// Get from cache if available.
@@ -587,12 +587,11 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			$results = wp_cache_get( 'available-packaging-' . $shipment->get_id(), 'shipments' );
 		}
 
-		if ( false === $results && count( $items_to_pack ) > 0 ) {
+		if ( false === $results && count( $items ) > 0 ) {
 			$available_packaging_ids = array();
 
 			if ( Package::is_packing_supported() ) {
-				$packaging_list = wc_gzd_get_packaging_list();
-				$items          = \DVDoug\BoxPacker\ItemList::fromArray( $items_to_pack );
+				$packaging_list = $this->get_packaging_list( array( 'shipping_provider' => $shipment->get_shipping_provider() ) );
 
 				foreach ( $packaging_list as $packaging ) {
 					/**
@@ -602,13 +601,13 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 						continue;
 					}
 
-					$box      = new PackagingBox( $packaging );
-					$org_size = count( $items_to_pack );
+					$box        = new PackagingBox( $packaging );
+					$item_count = count( $items );
 
 					$packer = new VolumePacker( $box, $items );
 					$packed = $packer->pack();
 
-					if ( count( $packed->getItems() ) === $org_size ) {
+					if ( count( $packed->getItems() ) === $item_count ) {
 						$packaging_available[]     = $packaging;
 						$available_packaging_ids[] = $packaging->get_id();
 					}
@@ -654,8 +653,8 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			}
 
 			wp_cache_set( 'available-packaging-' . $shipment->get_id(), $available_packaging_ids, 'shipments' );
-		} elseif ( count( $items_to_pack ) <= 0 ) {
-			$packaging_available = wc_gzd_get_packaging_list();
+		} elseif ( count( $items ) <= 0 ) {
+			$packaging_available = $this->get_packaging_list();
 		} else {
 			foreach ( (array) $results as $packaging_id ) {
 				$packaging = wc_gzd_get_packaging( $packaging_id );
