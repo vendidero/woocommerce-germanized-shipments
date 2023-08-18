@@ -40,6 +40,23 @@ class Package {
 		self::init_hooks();
 		self::includes();
 
+		/*
+		add_action( 'admin_init', function() {
+			$export = new ShippingExport( 1 );
+			$export->set_date_from( time() - DAY_IN_SECONDS * 3 );
+			$export->set_date_to( time() );
+			$export->set_tasks( array(
+				10 => 'create_label',
+				20 => 'merge_files'
+ 			) );
+
+			$export->start();
+
+			var_dump($export->get_error_messages());
+			exit();
+		} );
+		*/
+
 		do_action( 'woocommerce_gzd_shipments_init' );
 	}
 
@@ -655,7 +672,6 @@ class Package {
 	}
 
 	public static function filter_templates( $path, $template_name ) {
-
 		if ( file_exists( self::get_path() . '/templates/' . $template_name ) ) {
 			$path = self::get_path() . '/templates/' . $template_name;
 		}
@@ -681,6 +697,8 @@ class Package {
 			'gzd_shipping_providermeta' => 'woocommerce_gzd_shipping_providermeta',
 			'gzd_packaging'             => 'woocommerce_gzd_packaging',
 			'gzd_packagingmeta'         => 'woocommerce_gzd_packagingmeta',
+			'gzd_shipping_exports'      => 'woocommerce_gzd_shipping_exports',
+			'gzd_shipping_exportmeta'   => 'woocommerce_gzd_shipping_exportmeta',
 		);
 
 		foreach ( $tables as $name => $table ) {
@@ -695,6 +713,7 @@ class Package {
 		$stores['packaging']         = 'Vendidero\Germanized\Shipments\DataStores\Packaging';
 		$stores['shipment-item']     = 'Vendidero\Germanized\Shipments\DataStores\ShipmentItem';
 		$stores['shipping-provider'] = 'Vendidero\Germanized\Shipments\DataStores\ShippingProvider';
+		$stores['shipping-export']   = 'Vendidero\Germanized\Shipments\DataStores\ShippingExport';
 
 		do_action( 'woocommerce_gzd_shipments_registered_data_stores' );
 

@@ -646,6 +646,8 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 
 					if ( 'post_date' === $date_query['column'] ) {
 						$date_query['column'] = $wpdb->gzd_shipments . '.shipment_' . $db_key;
+					} elseif ( 'post_date_gmt' === $date_query['column'] ) {
+						$date_query['column'] = $wpdb->gzd_shipments . '.shipment_' . $db_key . '_gmt';
 					}
 
 					$wp_query_args['date_query'][] = $date_query;

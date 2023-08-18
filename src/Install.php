@@ -354,6 +354,39 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_providermeta (
   PRIMARY KEY  (meta_id),
   KEY gzd_shipping_provider_id (gzd_shipping_provider_id),
   KEY meta_key (meta_key(32))
+) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_exports (
+  shipping_export_id bigint(20) unsigned NOT NULL auto_increment,
+  shipping_export_date_created datetime default NULL,
+  shipping_export_date_created_gmt datetime default NULL,
+  shipping_export_date_from datetime default NULL,
+  shipping_export_date_from_gmt datetime default NULL,
+  shipping_export_date_to datetime default NULL,
+  shipping_export_date_to_gmt datetime default NULL,
+  shipping_export_status varchar(20) NOT NULL default 'gzd-created',
+  shipping_export_current_shipment_id bigint(20) unsigned NOT NULL DEFAULT 0,
+  shipping_export_percentage tinyint(3) unsigned NOT NULL DEFAULT 0,
+  shipping_export_limit smallint(4) unsigned NOT NULL DEFAULT 0,
+  shipping_export_total smallint(4) unsigned NOT NULL DEFAULT 0,
+  shipping_export_current_task varchar(200) NOT NULL DEFAULT '',
+  shipping_export_shipment_type varchar(200) NOT NULL DEFAULT '',
+  shipping_export_created_via varchar(200) NOT NULL DEFAULT '',
+  shipping_export_filters longtext NOT NULL DEFAULT '',
+  shipping_export_error_messages longtext NOT NULL DEFAULT '',
+  shipping_export_tasks longtext NOT NULL DEFAULT '',
+  shipping_export_shipments_processed longtext NOT NULL DEFAULT '',
+  shipping_export_files longtext NOT NULL DEFAULT '',
+  PRIMARY KEY  (shipping_export_id),
+  KEY shipping_export_current_shipment_id (shipping_export_current_shipment_id)
+) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_exportmeta (
+  meta_id bigint(20) unsigned NOT NULL auto_increment,
+  gzd_shipping_export_id bigint(20) unsigned NOT NULL,
+  meta_key varchar(255) default NULL,
+  meta_value longtext NULL,
+  PRIMARY KEY  (meta_id),
+  KEY gzd_shipping_export_id (gzd_shipping_export_id),
+  KEY meta_key (meta_key(32))
 ) $collate;";
 
 		return $tables;

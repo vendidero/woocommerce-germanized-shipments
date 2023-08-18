@@ -50,6 +50,7 @@ class ShipmentQuery extends WC_Object_Query {
 		return array(
 			'status'            => array_keys( wc_gzd_get_shipment_statuses() ),
 			'limit'             => 10,
+			'date_created'      => '',
 			'order_id'          => '',
 			'parent_id'         => '',
 			'product_ids'       => '',

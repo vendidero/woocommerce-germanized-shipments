@@ -413,6 +413,37 @@ function wc_gzd_get_shipment_statuses() {
 	return apply_filters( 'woocommerce_gzd_shipment_statuses', $shipment_statuses );
 }
 
+function wc_gzd_get_shipping_export_statuses() {
+	$statuses = array(
+		'gzd-created'    => _x( 'Created', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-running'    => _x( 'Running', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-halted'     => _x( 'Halted', 'shipments', 'woocommerce-germanized-shipments' ),
+		'gzd-completed'  => _x( 'Completed', 'shipments', 'woocommerce-germanized-shipments' ),
+	);
+
+	/**
+	 * Add or adjust available shipping export statuses.
+	 *
+	 * @param array $statuses The available export statuses.
+	 *
+	 * @since 3.0.0
+	 * @package Vendidero/Germanized/Shipments
+	 */
+	return apply_filters( 'woocommerce_gzd_shipping_export_statuses', $statuses );
+}
+
+/**
+ * See if a string is a shipping export status.
+ *
+ * @param  string $maybe_status Status, including any gzd- prefix.
+ * @return bool
+ */
+function wc_gzd_is_shipping_export_status( $maybe_status ) {
+	$statuses = wc_gzd_get_shipping_export_statuses();
+
+	return isset( $statuses[ $maybe_status ] );
+}
+
 /**
  * @param Shipment $shipment
  *
