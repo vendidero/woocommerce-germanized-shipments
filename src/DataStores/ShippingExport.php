@@ -43,12 +43,14 @@ class ShippingExport extends WC_Data_Store_WP implements WC_Object_Data_Store_In
 		'shipment_type',
 		'current_task',
 		'current_shipment_id',
+		'current_iteration',
 		'percentage',
 		'limit',
 		'total',
 		'filters',
 		'shipments_processed',
 		'tasks',
+		'tasks_at_completed',
 		'files',
 		'error_messages',
 	);
@@ -80,6 +82,7 @@ class ShippingExport extends WC_Data_Store_WP implements WC_Object_Data_Store_In
 			'shipping_export_created_via'      => $export->get_created_via( 'edit' ),
 			'shipping_export_shipment_type'    => $export->get_shipment_type( 'edit' ),
 			'shipping_export_current_shipment_id' => $export->get_current_shipment_id( 'edit' ),
+			'shipping_export_current_iteration' => $export->get_current_iteration( 'edit' ),
 			'shipping_export_current_task'      => $export->get_current_task( 'edit' ),
 			'shipping_export_limit'      => $export->get_limit( 'edit' ),
 			'shipping_export_total'      => $export->get_total( 'edit' ),
@@ -88,6 +91,7 @@ class ShippingExport extends WC_Data_Store_WP implements WC_Object_Data_Store_In
 			'shipping_export_shipments_processed'      => maybe_serialize( $export->get_shipments_processed( 'edit' ) ),
 			'shipping_export_error_messages'      => maybe_serialize( $export->get_error_messages( 'edit' ) ),
 			'shipping_export_tasks'      => maybe_serialize( $export->get_tasks( 'edit' ) ),
+			'shipping_export_tasks_at_completed' =>  maybe_serialize( $export->get_tasks_at_completed( 'edit' ) ),
 			'shipping_export_files'      => maybe_serialize( $export->get_files( 'edit' ) ),
 		);
 
@@ -171,6 +175,7 @@ class ShippingExport extends WC_Data_Store_WP implements WC_Object_Data_Store_In
 				case 'error_messages':
 				case 'files':
 				case 'tasks':
+				case 'tasks_at_completed':
 				case 'shipments_processed':
 					if ( is_callable( array( $export, 'get_' . $prop ) ) ) {
 						$export_data[ 'shipping_export_' . $prop ] = maybe_serialize( $export->{'get_' . $prop}( 'edit' ) );
@@ -212,6 +217,19 @@ class ShippingExport extends WC_Data_Store_WP implements WC_Object_Data_Store_In
 	public function delete( &$export, $force_delete = false ) {
 		global $wpdb;
 
+		/**
+		 * Delete files created during export
+		 */
+		foreach( $export->get_files() as $context => $task_files ) {
+			foreach( $task_files as $task => $files ) {
+				foreach( $files as $file ) {
+					if ( 'export' === $file['origin'] ) {
+						wp_delete_file( $export->get_file_path( $file['path'] ) );
+					}
+				}
+			}
+		}
+
 		$wpdb->delete( $wpdb->gzd_shipping_exports, array( 'shipping_export_id' => $export->get_id() ), array( '%d' ) );
 		$wpdb->delete( $wpdb->gzd_shipping_exportmeta, array( 'gzd_shipping_export_id' => $export->get_id() ), array( '%d' ) );
 
@@ -248,6 +266,7 @@ class ShippingExport extends WC_Data_Store_WP implements WC_Object_Data_Store_In
 					'status'            => $data->shipping_export_status,
 					'shipment_type'     => $data->shipping_export_shipment_type,
 					'current_shipment_id'     => $data->shipping_export_current_shipment_id,
+					'current_iteration'     => $data->shipping_export_current_iteration,
 					'current_task'     => $data->shipping_export_current_task,
 					'created_via'     => $data->shipping_export_created_via,
 					'limit'     => $data->shipping_export_limit,
@@ -255,6 +274,7 @@ class ShippingExport extends WC_Data_Store_WP implements WC_Object_Data_Store_In
 					'percentage'     => $data->shipping_export_percentage,
 					'filters'     => maybe_unserialize( $data->shipping_export_filters ),
 					'tasks'     => maybe_unserialize( $data->shipping_export_tasks ),
+					'tasks_at_completed'     => maybe_unserialize( $data->shipping_export_tasks_at_completed ),
 					'error_messages'     => maybe_unserialize( $data->shipping_export_error_messages ),
 					'files'     => maybe_unserialize( $data->shipping_export_files ),
 					'shipments_processed'     => maybe_unserialize( $data->shipping_export_shipments_processed ),

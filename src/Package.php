@@ -42,17 +42,28 @@ class Package {
 
 		/*
 		add_action( 'admin_init', function() {
-			$export = new ShippingExport( 1 );
-			$export->set_date_from( time() - DAY_IN_SECONDS * 3 );
-			$export->set_date_to( time() );
+			$export = new ShippingExport();
+			$export->set_date_from( '2023-08-16' );
+			$export->set_date_to( '2023-08-19' );
 			$export->set_tasks( array(
-				10 => 'create_label',
-				20 => 'merge_files'
+				'create_label' => array(
+					'priority' => 10,
+				),
+				'merge' => array(
+					'priority' => 100,
+					'runs_at' => 'after_query'
+				),
+				'test' => array(
+					'priority' => 20,
+					'runs_at' => 'completed'
+				),
  			) );
 
 			$export->start();
-
+			var_dump($export->get_files());
 			var_dump($export->get_error_messages());
+
+			$export->delete();
 			exit();
 		} );
 		*/

@@ -842,16 +842,22 @@ function _wc_gzd_shipments_keep_force_filename( $new_filename ) {
 	return isset( $GLOBALS['gzd_shipments_unique_filename'] ) ? $GLOBALS['gzd_shipments_unique_filename'] : $new_filename;
 }
 
-function wc_gzd_shipments_upload_data( $filename, $bits, $relative = true ) {
+function wc_gzd_shipments_upload_data( $filename, $bits, $relative = true, $force_override = true ) {
 	try {
 		Package::set_upload_dir_filter();
-		$GLOBALS['gzd_shipments_unique_filename'] = $filename;
-		add_filter( 'wp_unique_filename', '_wc_gzd_shipments_keep_force_filename', 10, 1 );
+
+		if ( $force_override ) {
+			$GLOBALS['gzd_shipments_unique_filename'] = $filename;
+			add_filter( 'wp_unique_filename', '_wc_gzd_shipments_keep_force_filename', 10, 1 );
+		}
 
 		$tmp = wp_upload_bits( $filename, null, $bits );
 
-		unset( $GLOBALS['gzd_shipments_unique_filename'] );
-		remove_filter( 'wp_unique_filename', '_wc_gzd_shipments_keep_force_filename', 10 );
+		if ( $force_override ) {
+			unset( $GLOBALS['gzd_shipments_unique_filename'] );
+			remove_filter( 'wp_unique_filename', '_wc_gzd_shipments_keep_force_filename', 10 );
+		}
+
 		Package::unset_upload_dir_filter();
 
 		if ( isset( $tmp['file'] ) ) {
@@ -868,6 +874,37 @@ function wc_gzd_shipments_upload_data( $filename, $bits, $relative = true ) {
 	} catch ( Exception $e ) {
 		return false;
 	}
+}
+
+function wc_gzd_shipments_get_absolute_file_path( $file ) {
+	// Optional wrapper(s).
+	$reg_exp = '%^(?<wrappers>(?:[[:print:]]{2,}://)*)';
+
+	// Optional root prefix.
+	$reg_exp .= '(?<root>(?:[[:alpha:]]:/|/)?)';
+
+	// Actual path.
+	$reg_exp .= '(?<path>(?:[[:print:]]*))$%';
+
+	$parts       = array();
+	$is_absolute = false;
+
+	if ( preg_match( $reg_exp, $file, $parts ) ) {
+		if ( '' !== $parts['root'] ) {
+			$is_absolute = true;
+		}
+	}
+
+	// If the file is relative, prepend upload dir.
+	if ( $file && ! $is_absolute ) {
+		$uploads = Package::get_upload_dir();
+
+		if ( false === $uploads['error'] ) {
+			$file = $uploads['basedir'] . "/$file";
+		}
+	}
+
+	return $file;
 }
 
 function wc_gzd_get_shipment_setting_default_address_fields( $type = 'shipper' ) {
