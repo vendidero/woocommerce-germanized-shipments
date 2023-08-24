@@ -1,6 +1,7 @@
 <?php
 namespace Vendidero\Germanized\Shipments;
 
+use Vendidero\Germanized\Shipments\Admin\ExportHandler;
 use WC_Data;
 
 defined( 'ABSPATH' ) || exit;
@@ -111,6 +112,39 @@ class ShippingExport extends WC_Data {
 	 */
 	public function get_date_created( $context = 'view' ) {
 		return $this->get_prop( 'date_created', $context );
+	}
+
+	public function get_title() {
+		if ( $this->get_id() > 0 ) {
+			$title = sprintf( _x( 'Export %1$s', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_id() );
+		} else {
+			$title = _x( 'New export', 'shipments', 'woocommerce-germanized-shipments' );
+		}
+
+
+		if ( $this->get_date_from() ) {
+			$title .= ' ' . sprintf( _x( 'from %1$s to %2$s', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_date_from()->date_i18n( get_option( 'date_format' ) ), $this->get_date_to()->date_i18n( get_option( 'date_format' ) ) );
+		}
+
+		return $title;
+	}
+
+	public function get_description() {
+		if ( ! $this->is_completed() ) {
+			$description = sprintf( _x( 'Processed %1$s of %2$s shipments.', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_total_shipments_processed(), $this->get_total() );
+		} else {
+			$description = sprintf( _x( 'Successfully processed %1$s shipments.', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_total_shipments_processed() );
+		}
+
+		if ( $this->is_halted() ) {
+			if ( $this->has_errors() ) {
+				$description .= ' ' . _x( 'Halted due to open issues. Please fix the issues to continue.', 'shipments', 'woocommerce-germanized-shipments' );
+			} else {
+				$description .= ' ' . _x( 'Press continue to complete the export.', 'shipments', 'woocommerce-germanized-shipments' );
+			}
+		}
+
+		return $description;
 	}
 
 	/**
@@ -359,17 +393,33 @@ class ShippingExport extends WC_Data {
 		$this->set_prop( 'error_messages', (array) $errors );
 	}
 
-	public function has_errors( $context = 'shipment' ) {
-		$current_shipment_id = is_numeric( $context ) ? $context : $this->get_current_shipment_id();
-		$current_task        = $this->get_current_task();
-		$errors              = $this->get_error_messages();
-		$access_key          = 'shipment' === $context || is_numeric( $context ) ? $current_shipment_id : $context;
+	public function has_errors( $context = '' ) {
+		if ( ! empty( $context ) ) {
+			$current_shipment_id = is_numeric( $context ) ? $context : $this->get_current_shipment_id();
+			$current_task        = $this->get_current_task();
+			$errors              = $this->get_error_messages();
+			$access_key          = 'shipment' === $context || is_numeric( $context ) ? $current_shipment_id : $context;
 
-		if ( isset( $errors[ $access_key ] ) && isset( $errors[ $access_key ][ $current_task ] ) ) {
-			return ! empty( $errors[ $access_key ][ $current_task ] );
+			if ( isset( $errors[ $access_key ] ) && isset( $errors[ $access_key ][ $current_task ] ) ) {
+				return ! empty( $errors[ $access_key ][ $current_task ] );
+			}
+		} else {
+			return ! empty( $this->get_all_error_messages() );
 		}
 
 		return false;
+	}
+
+	public function get_all_error_messages() {
+		$messages = array();
+
+		foreach( $this->get_error_messages() as $context => $tasks ) {
+			foreach( $tasks as $task_messages ) {
+				$messages = array_merge( $messages, $task_messages );
+			}
+		}
+
+		return $messages;
 	}
 
 	public function add_error_message( $error, $context = 'shipment' ) {
@@ -423,6 +473,49 @@ class ShippingExport extends WC_Data {
 		return $files_available;
 	}
 
+	public function get_download_url( $file_id, $force = '' ) {
+		$download_url = add_query_arg(
+			array(
+				'action'    => 'wc-gzd-download-shipping-export',
+				'file_id'   => $file_id,
+				'force'     => $force,
+				'export_id' => $this->get_id(),
+			),
+			wp_nonce_url( admin_url(), 'download-shipping-export' )
+		);
+
+		return esc_url_raw( $download_url );
+	}
+
+	public function get_downloadable_files() {
+		$downloadable_files = array();
+
+		foreach( $this->get_files() as $context_task => $task_files ) {
+			if ( 'shipment' === $context_task || is_numeric( $context_task ) ) {
+				continue;
+			}
+
+			foreach( $task_files as $task => $files ) {
+				foreach( $files as $file_id => $file_data ) {
+					$file_path = $this->get_file_path( $file_data['path'] );
+
+					if ( file_exists( $file_path ) ) {
+						$downloadable_files[ $file_id ] = array(
+							'path'             => $file_path,
+							'file_name'        => basename( $file_path ),
+							'file_type'        => pathinfo( $file_path, PATHINFO_EXTENSION ),
+							'file_size'        => size_format( wp_filesize( $file_path ) ),
+							'file_description' => $file_data['description'],
+							'file_task'        => $context_task,
+						);
+					}
+				}
+			}
+		}
+
+		return $downloadable_files;
+	}
+
 	public function get_files_by_shipment( $shipment_id = 0 ) {
 		if ( is_a( $shipment_id, 'Vendidero\Germanized\Shipments\Shipment' ) ) {
 			$shipment_id = $shipment_id->get_id();
@@ -454,9 +547,10 @@ class ShippingExport extends WC_Data {
 
 	public function add_file( $file, $args = array() ) {
 		$args = wp_parse_args( $args, array(
-			'context' => 'global',
-			'task'    => $this->get_current_task(),
-			'origin'  => 'export',
+			'context'     => 'global',
+			'task'        => $this->get_current_task(),
+			'origin'      => 'export',
+			'description' => '',
 		) );
 
 		$current_shipment_id = $this->get_current_shipment_id();
@@ -474,6 +568,10 @@ class ShippingExport extends WC_Data {
 		$access_key          = 'shipment' === $context ? $current_shipment_id : $context;
 		$origin              = 'shipment' === $context ? $args['task'] : $args['origin'];
 
+		if ( empty( $args['description'] ) ) {
+			$args['description'] = sprintf( _x( '%1$s file', 'shipments', 'woocommerce-germanized-shipments' ), ExportHandler::get_task_title( $args['task'] ) );
+		}
+
 		// Convert path to relative to save DB space
 		if ( strstr( $file, $base_dir ) ) {
 			$file = str_replace( $base_dir, '', $file );
@@ -488,8 +586,9 @@ class ShippingExport extends WC_Data {
 		}
 
 		$files[ $access_key ][ $args['task'] ][ $file_id ] = array(
-			'path'   => $file,
-			'origin' => $origin,
+			'path'        => $file,
+			'origin'      => $origin,
+			'description' => $args['description']
 		);
 
 		$this->set_files( $files );
@@ -615,8 +714,16 @@ class ShippingExport extends WC_Data {
 		return $this->has_status( 'halted' ) && $this->get_id() > 0;
 	}
 
+	public function is_completed() {
+		return $this->has_status( 'completed' ) && $this->get_id() > 0;
+	}
+
 	public function reset() {
 
+	}
+
+	public function get_admin_url() {
+		return admin_url( 'admin.php?page=wc-gzd-shipments-export&export=' . $this->get_id() );
 	}
 
 	protected function query( $update_total_count = false ) {
@@ -628,12 +735,11 @@ class ShippingExport extends WC_Data {
 			'type'         => $this->get_shipment_type(),
 			'date_created' => $date_query,
 			'limit'        => $this->get_limit(),
-			'status'       => array( 'processing' ),
 			'orderby'      => 'date_created',
 			'order'        => 'ASC'
 		);
 
-		$query = array_replace( $query, $filters );
+		$query = array_replace( $filters, $query );
 
 		if ( true === $update_total_count ) {
 			$query['limit']  = -1;
@@ -682,7 +788,7 @@ class ShippingExport extends WC_Data {
 							do_action( "woocommerce_gzd_shipments_shipping_export_run_{$current_task}", $this, ...$args );
 						}
 
-						if ( ! $this->is_halted() && ( $this->has_errors() || $this->has_errors( 'global' ) ) ) {
+						if ( ! $this->is_halted() && $this->has_errors() ) {
 							$this->halt();
 						}
 					} catch( \Exception $e ) {
@@ -864,7 +970,12 @@ class ShippingExport extends WC_Data {
 		}
 
 		if ( $label && file_exists( $label->get_file() ) ) {
-			$this->add_file( $label->get_file(), array( 'context' => 'shipment' ) );
+			$provider = $label->get_shipping_provider_instance() ? $label->get_shipping_provider_instance()->get_title() : '';
+
+			$this->add_file( $label->get_file(), array(
+				'context'     => 'shipment',
+				'description' => ! empty( $provider ) ? sprintf( _x( '%1$s Label', 'shipments', 'woocommerce-germanized-shipments' ), $provider ) : _x( 'Label', 'shipments', 'woocommerce-germanized-shipments' ),
+			) );
 		}
 	}
 
@@ -912,8 +1023,9 @@ class ShippingExport extends WC_Data {
 
 			if ( $path = wc_gzd_shipments_upload_data( $filename, $file, true, $merge_file_exists ) ) {
 				$this->add_file( $path, array(
-					'task'    => $task,
-					'context' => 'merge'
+					'task'        => $task,
+					'context'     => 'merge',
+					'description' => sprintf( _x( '%1$s merged files', 'shipments', 'woocommerce-germanized-shipments' ), ExportHandler::get_task_title( $task ) )
 				) );
 			}
 		}

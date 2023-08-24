@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments;
 
 use Vendidero\Germanized\Shipments\Admin\Admin;
+use Vendidero\Germanized\Shipments\Admin\ExportHandler;
 use Vendidero\Germanized\Shipments\Admin\MetaBox;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
@@ -48,6 +49,8 @@ class Ajax {
 			'remove_shipment_label',
 			'send_return_shipment_notification_email',
 			'confirm_return_request',
+            'create_shipments_export',
+            'edit_shipments_export',
 		);
 
 		foreach ( $ajax_events as $ajax_event ) {
@@ -62,6 +65,179 @@ class Ajax {
 		}
 
 		$GLOBALS['wpdb']->hide_errors();
+	}
+
+    public static function edit_shipments_export() {
+	    if ( ! current_user_can( 'edit_shop_orders' ) || ! check_admin_referer( 'edit-shipments-export' ) ) {
+		    return;
+	    }
+
+        $export_id = isset( $_POST['export_id'] ) ? absint( wp_unslash( $_POST['export_id'] ) ) : 0;
+
+        if ( empty( $export_id ) || ! ( $export = wc_gzd_get_shipping_export( $export_id ) ) ) {
+            return;
+        }
+
+        $action = isset( $_POST['export_action'] ) ? wc_clean( wp_unslash( $_POST['export_action'] ) ) : 'run';
+
+        if ( 'run' === $action || 'continue' === $action ) {
+            $export->start();
+        } elseif ( 'halt' === $action ) {
+            $export->halt();
+        }
+
+        $export_result = array(
+	        'success'        => true,
+            'status'         => $export->get_status(),
+            'error_messages' => $export->get_all_error_messages(),
+            'percentage'     => $export->get_percentage(),
+            'iteration'      => $export->get_current_iteration(),
+            'total'          => $export->get_total(),
+            'completed'      => $export->get_tasks_at_completed(),
+            'description'    => $export->get_description(),
+        );
+
+	    wp_send_json( $export_result );
+    }
+
+	public static function create_shipments_export() {
+		if ( ! current_user_can( 'edit_shop_orders' ) || ! check_admin_referer( 'create-shipments-export' ) ) {
+			return;
+		}
+
+        $errors       = new \WP_Error();
+        $shipment_ids = isset( $_POST['shipments'] ) ? wc_clean( wp_unslash( $_POST['shipments'] ) ) : array();
+        $date_from    = isset( $_POST['date_from'] ) ? wc_clean( wp_unslash( $_POST['date_from'] ) ) : '';
+		$date_to      = isset( $_POST['date_to'] ) ? wc_clean( wp_unslash( $_POST['date_to'] ) ) : '';
+        $export_tasks = array();
+        $filters      = array();
+        $options_to_update = array();
+
+        if ( ! empty( $date_from ) && ! \DateTime::createFromFormat( 'Y-m-d', $date_from ) ) {
+            $errors->add( 500, _x( 'Please choose a valid start date.', 'shipments', 'woocommerce-germanized-shipments' ) );
+        }
+
+		if ( ! empty( $date_to ) && ! \DateTime::createFromFormat( 'Y-m-d', $date_to ) ) {
+			$errors->add( 500, _x( 'Please choose a valid end date.', 'shipments', 'woocommerce-germanized-shipments' ) );
+		}
+
+        if ( empty( $date_to ) ) {
+            $date_to = date_i18n( 'Y-m-d' );
+        }
+
+		if ( ! wc_gzd_shipment_wp_error_has_errors( $errors ) ) {
+			$options_to_update['date_from'] = $date_from;
+			$options_to_update['date_to']   = $date_to;
+
+			foreach( ExportHandler::get_filters() as $filter_id => $filter ) {
+				$filter_val = isset( $_POST[ $filter['id'] ] ) ? wc_clean( wp_unslash( $_POST[ $filter['id'] ] ) ) : false;
+
+				if ( false !== $filter_val ) {
+					$options_to_update[ $filter['id'] ] = $filter_val;
+
+					if ( 'status' === $filter_id ) {
+						$filter_val = (array) $filter_val;
+
+						foreach( $filter_val as $k => $status ) {
+							if ( 'gzd-' === substr( $status, 0, 4 ) ) {
+								$filter_val[ $k ] = substr( $status, 4 );
+							}
+						}
+					}
+
+					$filters[ $filter_id ] = $filter_val;
+				} else {
+					$options_to_update[ $filter['id'] ] = '';
+                }
+			}
+
+			foreach( ExportHandler::get_tasks() as $task_id => $task ) {
+				$task_to_add = $task;
+
+				unset( $task_to_add['title'] );
+				unset( $task_to_add['description'] );
+				unset( $task_to_add['options'] );
+				unset( $task_to_add['type'] );
+				unset( $task_to_add['is_optional'] );
+
+				if ( true === $task['is_optional'] ) {
+					$task_input_id  = $task['id'];
+					$task_is_active = isset( $_POST[ $task_input_id ] ) ? 'yes' === wc_clean( wp_unslash( $_POST[ $task_input_id ] ) ) : false;
+
+					if ( $task_is_active ) {
+						$options_to_update[ $task_input_id ] = 'yes';
+
+						foreach( $task['fields'] as $field_key => $field ) {
+							$field_input_id   = $field['id'];
+							$task_field_value = isset( $_POST[ $field_input_id ] ) ? wc_clean( wp_unslash( $_POST[ $field_input_id ] ) ) : false;
+
+							if ( false !== $task_field_value ) {
+								$field['value'] = $task_field_value;
+
+								$options_to_update[ $field['id'] ] = $task_field_value;
+							} else {
+								$options_to_update[ $field['id'] ] = '';
+                            }
+
+							unset( $field['title'] );
+							unset( $field['description'] );
+							unset( $field['default'] );
+							unset( $field['options'] );
+							unset( $field['type'] );
+
+							$task_to_add['fields'][ $field_key ] = $field;
+						}
+
+						$export_tasks[ $task_id ] = $task_to_add;
+					} else {
+						$options_to_update[ $task['id'] ] = 'no';
+                    }
+				} else {
+					$export_tasks[ $task_id ] = $task_to_add;
+				}
+			}
+		}
+
+		if ( ! wc_gzd_shipment_wp_error_has_errors( $errors ) ) {
+            $export = new ShippingExport();
+
+            if ( ! empty( $date_from ) ) {
+                $export->set_date_from( $date_from );
+	            $export->set_date_to( $date_to );
+            }
+
+            $export->set_tasks( $export_tasks );
+            $export->set_filters( $filters );
+
+            $id = $export->save();
+
+            if ( $id > 0 ) {
+                foreach( $options_to_update as $option => $val ) {
+                    if ( '' === $val ) {
+                        delete_option( "woocommerce_gzd_shipments_export_{$option}" );
+                    } else {
+	                    update_option( "woocommerce_gzd_shipments_export_{$option}", $val );
+                    }
+                }
+
+	            wp_send_json( array(
+		            'success' => true,
+		            'url'     => esc_url_raw( $export->get_admin_url() ),
+	            ) );
+            } else {
+	            wp_send_json( array(
+		            'success'  => false,
+		            'messages' => array(
+                        _x( 'There was an error while creating the export. Please try again.', 'shipments', 'woocommerce-germanized-shipments' )
+                    ),
+	            ) );
+            }
+        } else {
+			wp_send_json( array(
+                'success'  => false,
+                'messages' => $errors->get_error_messages(),
+            ) );
+        }
 	}
 
 	public static function send_return_shipment_notification_email() {
@@ -118,7 +294,6 @@ class Ajax {
 		$success = false;
 
 		if ( current_user_can( 'edit_shop_orders' ) && isset( $_REQUEST['shipment_id'] ) ) {
-
 			if ( isset( $_GET['shipment_id'] ) ) {
 				$referrer = check_admin_referer( 'confirm-return-request' );
 			} else {
@@ -130,7 +305,6 @@ class Ajax {
 
 				if ( $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
 					if ( 'return' === $shipment->get_type() ) {
-
 						if ( $shipment->confirm_customer_request() ) {
 							$success = true;
 						}

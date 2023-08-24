@@ -18,11 +18,31 @@ class DownloadHandler {
 		}
 
 		if ( is_admin() ) {
-			add_action( 'admin_init', array( __CLASS__, 'download_bulk_export' ) );
+			add_action( 'admin_init', array( __CLASS__, 'admin_download' ) );
 		}
 	}
 
-	public static function download_bulk_export() {
+	public static function admin_download() {
+		if ( isset( $_GET['action'], $_GET['_wpnonce'] ) && 'wc-gzd-download-shipping-export' === $_GET['action'] ) {
+			if ( wp_verify_nonce( wp_unslash( $_REQUEST['_wpnonce'] ), 'download-shipping-export' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				$force     = isset( $_GET['force'] ) ? wc_clean( wp_unslash( $_GET['force'] ) ) : 'no'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				$file_id   = isset( $_GET['file_id'] ) ? wc_clean( wp_unslash( $_GET['file_id'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				$export_id = isset( $_GET['export_id'] ) ? absint( wp_unslash( $_GET['export_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+				if ( current_user_can( 'edit_shop_orders' ) ) {
+					if ( $export = wc_gzd_get_shipping_export( $export_id ) ) {
+						$available_files = $export->get_downloadable_files();
+
+						if ( array_key_exists( $file_id, $available_files ) ) {
+							$file = $available_files[ $file_id ];
+
+							self::download( $file['path'], $file['file_name'], wc_string_to_bool( $force ) );
+						}
+ 					}
+				}
+			}
+		}
+
 		if ( isset( $_GET['action'] ) && 'wc-gzd-download-export-shipment-label' === $_GET['action'] && isset( $_REQUEST['_wpnonce'] ) ) {
 			if ( wp_verify_nonce( wp_unslash( $_REQUEST['_wpnonce'] ), 'download-export-shipment-label' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$args = array(

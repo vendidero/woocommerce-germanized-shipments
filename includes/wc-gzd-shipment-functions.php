@@ -413,6 +413,31 @@ function wc_gzd_get_shipment_statuses() {
 	return apply_filters( 'woocommerce_gzd_shipment_statuses', $shipment_statuses );
 }
 
+/**
+ * @param $the_export
+ *
+ * @return false|\Vendidero\Germanized\Shipments\ShippingExport
+ */
+function wc_gzd_get_shipping_export( $the_export ) {
+	$export_id = false;
+
+	if ( is_numeric( $the_export ) ) {
+		$export_id = $the_export;
+	} elseif ( $the_export instanceof \Vendidero\Germanized\Shipments\ShippingExport ) {
+		$export_id = $the_export->get_id();
+	} elseif ( ! empty( $the_export->shipping_export_id ) ) {
+		$export_id = $the_export->shipping_export_id;
+	}
+
+	$export = new \Vendidero\Germanized\Shipments\ShippingExport( $export_id );
+
+	if ( $export_id && (int) $export_id !== $export->get_id() ) {
+		return false;
+	}
+
+	return $export;
+}
+
 function wc_gzd_get_shipping_export_statuses() {
 	$statuses = array(
 		'gzd-created'    => _x( 'Created', 'shipments', 'woocommerce-germanized-shipments' ),

@@ -76,6 +76,8 @@ class Admin {
 				add_filter( 'bulk_actions-' . ( 'shop_order' === self::get_order_screen_id() ? 'edit-shop_order' : self::get_order_screen_id() ), array( __CLASS__, 'define_order_bulk_actions' ), 10, 1 );
 			}
 		);
+
+        ExportHandler::init();
 	}
 
 	public static function render_order_columns( $column, $post_id ) {
@@ -1041,6 +1043,8 @@ class Admin {
 		wp_register_script( 'wc-gzd-admin-shipping-providers', Package::get_assets_url() . '/js/admin-shipping-providers' . $suffix . '.js', array( 'jquery', 'jquery-ui-sortable' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_register_script( 'wc-gzd-admin-shipping-provider-method', Package::get_assets_url() . '/js/admin-shipping-provider-method' . $suffix . '.js', array( 'jquery' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 
+		wp_register_script( 'wc-gzd-admin-shipments-export', Package::get_assets_url() . '/js/admin-shipments-export' . $suffix . '.js', array( 'jquery', 'woocommerce_admin', 'jquery-ui-datepicker' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+
 		// Orders.
 		if ( self::is_order_meta_box_screen( $screen_id ) ) {
 			wp_enqueue_script( 'wc-gzd-admin-shipments' );
@@ -1113,6 +1117,14 @@ class Admin {
 				'i18n_modal_close' => _x( 'Close', 'shipments-close-modal', 'woocommerce-germanized-shipments' ),
 				'load_nonce'       => wp_create_nonce( 'load-modal' ),
 				'submit_nonce'     => wp_create_nonce( 'submit-modal' ),
+			)
+		);
+
+		wp_localize_script(
+			'wc-gzd-admin-shipments-export',
+			'wc_gzd_admin_shipments_export_params',
+			array(
+				'ajax_url' => admin_url( 'admin-ajax.php' ),
 			)
 		);
 
