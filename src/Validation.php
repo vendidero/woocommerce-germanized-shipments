@@ -81,6 +81,8 @@ class Validation {
 	public static function check_order_shipped( $order ) {
 		if ( $shipment_order = wc_gzd_get_shipment_order( $order ) ) {
 			if ( $shipment_order->is_shipped() ) {
+				$order_id = $shipment_order->get_order()->get_id();
+
 				/**
 				 * Action that fires as soon as an order has been shipped completely.
 				 * That is the case when the order contains all relevant shipments and all the shipments are marked as shipped.
@@ -90,10 +92,17 @@ class Validation {
 				 * @since 3.1.0
 				 * @package Vendidero/Germanized/Shipments
 				 */
-				do_action( 'woocommerce_gzd_shipments_order_shipped', $shipment_order->get_order()->get_id() );
+				do_action( 'woocommerce_gzd_shipments_order_shipped', $order_id );
 
-				$shipment_order->get_order()->update_meta_data( '_date_shipped', time() );
-				$shipment_order->get_order()->save();
+				/**
+				 * Make sure to instantiate a new order instance as the woocommerce_gzd_shipments_order_shipped hook
+				 * might trigger the order save event. We must prevent old order data to be updated again after the
+				 * potential update within the hook. This issue seems to only occur related to the HPOS post sync feature.
+				 */
+				if ( $order = wc_get_order( $order_id ) ) {
+					$order->update_meta_data( '_date_shipped', time() );
+					$order->save();
+				}
 			} else {
 				$shipment_order->get_order()->delete_meta_data( '_date_shipped' );
 				$shipment_order->get_order()->save();
