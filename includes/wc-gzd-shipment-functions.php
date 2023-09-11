@@ -217,7 +217,11 @@ function wc_gzd_get_shipping_provider_method( $instance_id ) {
 				$method = WC_Shipping_Zones::get_shipping_method( $instance_id );
 
 				if ( $method ) {
-					WC()->session->set( $cache_key, $method );
+					// Prevent serialization errors with possible closures.
+					try {
+						WC()->session->set( $cache_key, $method );
+					} catch ( Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+					}
 				}
 			} else {
 				$method = $tmp_method;
