@@ -68,6 +68,15 @@ class Package {
 		add_action( 'init', array( __CLASS__, 'check_version' ), 10 );
 
 		add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
+		add_filter( 'woocommerce_shipping_method_add_rate_args', array( __CLASS__, 'manipulate_shipping_rates' ), 1000, 2 );
+	}
+
+	public static function manipulate_shipping_rates( $args, $method ) {
+		if ( $method = wc_gzd_get_shipping_provider_method( $method ) ) {
+			$args['meta_data']['shipping_provider'] = $method->get_provider();
+		}
+
+		return $args;
 	}
 
 	public static function add_return_shipment_guest_endpoints( $template, $template_name ) {
@@ -728,8 +737,17 @@ class Package {
 		return plugins_url( '', __DIR__ );
 	}
 
-	public static function get_assets_url() {
-		return self::get_url() . '/assets';
+	public static function get_assets_url( $script_or_style ) {
+		$assets_url = self::get_url() . '/build';
+		$is_debug   = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG;
+		$is_style   = '.css' === substr( $script_or_style, -4 );
+		$is_static  = strstr( $script_or_style, 'static/' );
+
+		if ( $is_debug && $is_static && ! $is_style ) {
+			$assets_url = self::get_url() . '/assets/js';
+		}
+
+		return trailingslashit( $assets_url ) . $script_or_style;
 	}
 
 	public static function get_setting( $name, $default = false ) {
