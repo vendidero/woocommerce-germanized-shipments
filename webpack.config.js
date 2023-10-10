@@ -179,8 +179,6 @@ const StaticConfig = {
     ]
 };
 
-console.log(StaticConfig);
-
 const MainConfig = {
     ...defaultConfig,
     entry: getEntryConfig( 'main', [] ),
@@ -481,7 +479,7 @@ const StylingConfig = {
 
 module.exports = [
     StaticConfig,
-    MainConfig,
+    // MainConfig,
     FrontendConfig,
     StylingConfig
 ];
