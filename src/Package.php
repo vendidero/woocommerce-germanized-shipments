@@ -724,8 +724,8 @@ class Package {
 	 *
 	 * @return string
 	 */
-	public static function get_path() {
-		return dirname( __DIR__ );
+	public static function get_path( $rel_path = '' ) {
+		return trailingslashit( dirname( __DIR__ ) ) . $rel_path;
 	}
 
 	/**
@@ -733,8 +733,8 @@ class Package {
 	 *
 	 * @return string
 	 */
-	public static function get_url() {
-		return plugins_url( '', __DIR__ );
+	public static function get_url( $rel_path = '' ) {
+		return trailingslashit( plugins_url( '', __DIR__ ) ) . $rel_path;
 	}
 
 	public static function get_assets_url( $script_or_style ) {
