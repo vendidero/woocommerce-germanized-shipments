@@ -3,7 +3,7 @@ const defaultConfig = require( '@wordpress/scripts/config/webpack.config' );
 const WooCommerceDependencyExtractionWebpackPlugin = require( '@woocommerce/dependency-extraction-webpack-plugin' );
 const MiniCssExtractPlugin = require( 'mini-css-extract-plugin' );
 const TerserJSPlugin = require( 'terser-webpack-plugin' );
-const OptimizeCssAssetsPlugin = require( 'optimize-css-assets-webpack-plugin' );
+const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const { omit } = require( 'lodash' );
 const fs = require("fs");
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
@@ -145,7 +145,7 @@ const StaticConfig = {
     ...defaultConfig,
     entry: getEntryConfig( 'static', [] ),
     optimization: {
-        minimizer: [new TerserJSPlugin({extractComments: false}), new OptimizeCssAssetsPlugin({})],
+        minimizer: [new TerserJSPlugin({extractComments: false}), new CssMinimizerPlugin({})],
         minimize: true,
     },
     module:  {
@@ -155,13 +155,8 @@ const StaticConfig = {
                 exclude: /node_modules/,
             },
             {
-                test: /\.(scss|css)$/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    'css-loader',
-                    'postcss-loader',
-                    'sass-loader'
-                ],
+                test: /.s?css$/,
+                use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
             },
         ],
     },
