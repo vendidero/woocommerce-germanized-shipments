@@ -66,6 +66,18 @@ const getBlockEntries = ( relativePath ) => {
     );
 };
 
+const staticCss = glob.sync('./assets/css/*.scss').reduce(function(obj, el){
+    obj[ path.parse(el).name + '-styles' ] = el;
+    return obj
+},{});
+
+const staticJs = glob.sync('./assets/js/static/*.js').reduce(function(obj, el){
+    obj[ path.parse(el).name ] = el;
+    return obj
+},{});
+
+const staticEntry = { ...staticCss, ...staticJs }
+
 const entries = {
     styling: {
         // Shared blocks code
@@ -81,15 +93,7 @@ const entries = {
     frontend: {
         ...getBlockEntries( 'frontend.{t,j}s{,x}' ),
     },
-    'static': {
-        'admin-styles': './assets/css/admin.scss',
-        'admin-shipment': './assets/js/static/admin-shipment.js',
-        'admin-shipment-modal': './assets/js/static/admin-shipment-modal.js',
-        'admin-shipments': './assets/js/static/admin-shipments.js',
-        'admin-shipments-table': './assets/js/static/admin-shipments-table.js',
-        'admin-shipping-provider-method': './assets/js/static/admin-shipping-provider-method.js',
-        'admin-shipping-providers': './assets/js/static/admin-shipping-providers.js',
-    },
+    'static': staticEntry,
 };
 
 const getEntryConfig = ( type = 'main', exclude = [] ) => {
@@ -141,199 +145,101 @@ const requestToHandle = ( request ) => {
     }
 };
 
+const getBaseConfig = ( entry ) => {
+    return {
+        ...defaultConfig,
+        entry: getEntryConfig( entry, [] ),
+        output: {
+            filename: ( chunkData ) => {
+                return `${ paramCase( chunkData.chunk.name ) }.js`;
+            },
+            path: path.resolve( __dirname, 'build/' ),
+            library: [ 'wcShipments', '[name]' ],
+            libraryTarget: 'window',
+            // This fixes an issue with multiple webpack projects using chunking
+            // overwriting each other's chunk loader function.
+            // See https://webpack.js.org/configuration/output/#outputjsonpfunction
+            chunkLoadingGlobal: 'webpackWcShipmentsBlocksJsonp',
+        },
+        module: {
+            ...defaultConfig.module,
+            rules: [
+                ...defaultRules,
+                {
+                    test: /\.(sc|sa)ss$/,
+                    exclude: /node_modules/,
+                    use: [
+                        MiniCssExtractPlugin.loader,
+                        { loader: 'css-loader', options: { importLoaders: 1 } },
+                        {
+                            loader: 'sass-loader',
+                            options: {
+                                sassOptions: {
+                                    includePaths: [ 'assets/css' ],
+                                },
+                                additionalData: ( content, loaderContext ) => {
+                                    const {
+                                        resourcePath,
+                                        rootContext,
+                                    } = loaderContext;
+                                    const relativePath = path.relative(
+                                        rootContext,
+                                        resourcePath
+                                    );
+
+                                    if (
+                                        relativePath.startsWith( 'assets/css/' )
+                                    ) {
+                                        return content;
+                                    }
+
+                                    // Add code here to prepend to all .scss/.sass files.
+                                    return (
+                                        content
+                                    );
+                                },
+                            },
+                        },
+                    ],
+                },
+            ],
+        },
+        resolve: {
+            alias: getAlias()
+        },
+        plugins: [
+            ...defaultConfig.plugins.filter(
+                ( plugin ) =>
+                    plugin.constructor.name !== 'DependencyExtractionWebpackPlugin'
+            ),
+            new WooCommerceDependencyExtractionWebpackPlugin( {
+                requestToExternal,
+                requestToHandle,
+            } ),
+            new MiniCssExtractPlugin( {
+                filename: `[name].css`,
+            } ),
+        ],
+    };
+};
+
 const StaticConfig = {
     ...defaultConfig,
     entry: getEntryConfig( 'static', [] ),
-    optimization: {
-        minimizer: [new TerserJSPlugin({extractComments: false}), new CssMinimizerPlugin({})],
-        minimize: true,
-    },
-    module:  {
-        rules: [
-            {
-                test: /\.js$/,
-                exclude: /node_modules/,
-            },
-            {
-                test: /.s?css$/,
-                use: [MiniCssExtractPlugin.loader, "css-loader", "sass-loader"],
-            },
-        ],
-    },
     resolve: {
         extensions: ['.js', '.css', '.scss']
     },
     output: {
         path: path.resolve( __dirname, './build/static/' ),
         filename: "[name].js",
-    },
-    plugins: [
-        new MiniCssExtractPlugin({
-            filename: '[name].css'
-        }),
-    ]
-};
-
-const MainConfig = {
-    ...defaultConfig,
-    entry: getEntryConfig( 'main', [] ),
-    output: {
-        devtoolNamespace: 'wcShipments',
-        path: path.resolve( __dirname, 'build/' ),
-        // This is a cache busting mechanism which ensures that the script is loaded via the browser with a ?ver=hash
-        // string. The hash is based on the built file contents.
-        // @see https://github.com/webpack/webpack/issues/2329
-        // Using the ?ver string is needed here so the filename does not change between builds. The WordPress
-        // i18n system relies on the hash of the filename, so changing that frequently would result in broken
-        // translations which we must avoid.
-        // @see https://github.com/Automattic/jetpack/pull/20926
-        chunkFilename: `[name].js?ver=[contenthash]`,
-        filename: `[name].js`,
-        library: [ 'wcShipments', 'blocks', '[name]' ],
+        devtoolNamespace: 'germanizedShipments',
+        library: [ 'germanizedShipments', 'static', '[name]' ],
         libraryTarget: 'window',
-        // This fixes an issue with multiple webpack projects using chunking
-        // overwriting each other's chunk loader function.
-        // See https://webpack.js.org/configuration/output/#outputjsonpfunction
-        // This can be removed when moving to webpack 5:
-        // https://webpack.js.org/blog/2020-10-10-webpack-5-release/#automatic-unique-naming
-        chunkLoadingGlobal: 'webpackWcShipmentsBlocksJsonp'
-    },
-    module: {
-        ...defaultConfig.module,
-        rules: [
-            ...defaultRules,
-            {
-                test: /\.js$/,
-                exclude: /node_modules/,
-            },
-            {
-                test: /\.(sc|sa)ss$/,
-                exclude: /node_modules/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    { loader: 'css-loader', options: { importLoaders: 1 } },
-                    {
-                        loader: 'sass-loader',
-                        options: {
-                            sassOptions: {
-                                includePaths: [ 'assets/css' ],
-                            },
-                            additionalData: ( content, loaderContext ) => {
-                                const {
-                                    resourcePath,
-                                    rootContext,
-                                } = loaderContext;
-                                const relativePath = path.relative(
-                                    rootContext,
-                                    resourcePath
-                                );
-
-                                if (
-                                    relativePath.startsWith( 'assets/css/' )
-                                ) {
-                                    return content;
-                                }
-
-                                // Add code here to prepend to all .scss/.sass files.
-                                return (
-                                    content
-                                );
-                            },
-                        },
-                    },
-                ],
-            },
-        ],
-    },
-    resolve: {
-        alias: getAlias()
-    },
-    plugins: [
-        ...defaultConfig.plugins.filter(
-            ( plugin ) =>
-                plugin.constructor.name !== 'DependencyExtractionWebpackPlugin'
-        ),
-        new WooCommerceDependencyExtractionWebpackPlugin( {
-            requestToExternal,
-            requestToHandle,
-        } ),
-        new MiniCssExtractPlugin( {
-            filename: `[name].css`,
-        } ),
-        new CopyWebpackPlugin( {
-            patterns: [
-                {
-                    from: './assets/js/**/block.json',
-                    to( { absoluteFilename } ) {
-                        /**
-                         * Getting the block name from the JSON metadata is less error prone
-                         * than extracting it from the file path.
-                         */
-                        const JSONFile = fs.readFileSync(
-                            path.resolve( __dirname, absoluteFilename )
-                        );
-                        const metadata = JSON.parse( JSONFile.toString() );
-
-                        const blockName = metadata.name
-                            .split( '/' )
-                            .at( 1 );
-
-                        if ( metadata.parent )
-                            return `./inner-blocks/${ blockName }/block.json`;
-                        return `./${ blockName }/block.json`;
-                    },
-                },
-            ],
-        } ),
-    ],
+    }
 };
 
 const FrontendConfig = {
-    ...defaultConfig,
-    entry: getEntryConfig( 'frontend', [] ),
-    module: {
-        ...defaultConfig.module,
-        rules: [
-            ...defaultRules,
-            {
-                test: /\.(sc|sa)ss$/,
-                exclude: /node_modules/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    { loader: 'css-loader', options: { importLoaders: 1 } },
-                    {
-                        loader: 'sass-loader',
-                        options: {
-                            sassOptions: {
-                                includePaths: [ 'assets/css' ],
-                            },
-                            additionalData: ( content, loaderContext ) => {
-                                const {
-                                    resourcePath,
-                                    rootContext,
-                                } = loaderContext;
-                                const relativePath = path.relative(
-                                    rootContext,
-                                    resourcePath
-                                );
-
-                                if (
-                                    relativePath.startsWith( 'assets/css/' )
-                                ) {
-                                    return content;
-                                }
-
-                                // Add code here to prepend to all .scss/.sass files.
-                                return (
-                                    content
-                                );
-                            },
-                        },
-                    },
-                ],
-            },
-        ],
-    },
+    ...getBaseConfig( 'frontend' ),
     output: {
         devtoolNamespace: 'wcShipments',
         path: path.resolve( __dirname, 'build/' ),
@@ -352,28 +258,13 @@ const FrontendConfig = {
         // This can be removed when moving to webpack 5:
         // https://webpack.js.org/blog/2020-10-10-webpack-5-release/#automatic-unique-naming
         chunkLoadingGlobal: 'webpackWcShipmentsBlocksJsonp',
-    },
-    resolve: {
-        alias: getAlias()
-    },
-    plugins: [
-        ...defaultConfig.plugins.filter(
-            ( plugin ) =>
-                plugin.constructor.name !== 'DependencyExtractionWebpackPlugin'
-        ),
-        new WooCommerceDependencyExtractionWebpackPlugin( {
-            requestToExternal,
-            requestToHandle,
-        } ),
-        new MiniCssExtractPlugin( {
-            filename: `[name].css`,
-        } ),
-    ],
+    }
 };
 
+const innerStylingConfig = getBaseConfig( 'styling' );
+
 const StylingConfig = {
-    ...defaultConfig,
-    entry: getEntryConfig( 'styling' ),
+    ...innerStylingConfig,
     optimization: {
         splitChunks: {
             minSize: 0,
@@ -395,51 +286,8 @@ const StylingConfig = {
             },
         },
     },
-    module: {
-        ...defaultConfig.module,
-        rules: [
-            ...defaultRules,
-            {
-                test: /\.(sc|sa)ss$/,
-                exclude: /node_modules/,
-                use: [
-                    MiniCssExtractPlugin.loader,
-                    { loader: 'css-loader', options: { importLoaders: 1 } },
-                    {
-                        loader: 'sass-loader',
-                        options: {
-                            sassOptions: {
-                                includePaths: [ 'assets/css' ],
-                            },
-                            additionalData: ( content, loaderContext ) => {
-                                const {
-                                    resourcePath,
-                                    rootContext,
-                                } = loaderContext;
-                                const relativePath = path.relative(
-                                    rootContext,
-                                    resourcePath
-                                );
-
-                                if (
-                                    relativePath.startsWith( 'assets/css/' )
-                                ) {
-                                    return content;
-                                }
-
-                                // Add code here to prepend to all .scss/.sass files.
-                                return (
-                                    content
-                                );
-                            },
-                        },
-                    },
-                ],
-            },
-        ],
-    },
     output: {
-        devtoolNamespace: 'wcShipments',
+        devtoolNamespace: 'wcGzdPro',
         path: path.resolve( __dirname, 'build/' ),
         filename: `[name]-style.js`,
         library: [ 'wcShipments', 'blocks', '[name]' ],
@@ -456,17 +304,7 @@ const StylingConfig = {
         extensions: [ '.js' ],
     },
     plugins: [
-        ...defaultConfig.plugins.filter(
-            ( plugin ) =>
-                plugin.constructor.name !== 'DependencyExtractionWebpackPlugin'
-        ),
-        new WooCommerceDependencyExtractionWebpackPlugin( {
-            requestToExternal,
-            requestToHandle,
-        } ),
-        new MiniCssExtractPlugin( {
-            filename: `[name].css`,
-        } ),
+        ...innerStylingConfig.plugins,
         // Remove JS files generated by MiniCssExtractPlugin.
         new RemoveFilesPlugin( `./build/*style.js` ),
     ],

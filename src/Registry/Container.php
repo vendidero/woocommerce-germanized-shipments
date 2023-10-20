@@ -16,7 +16,7 @@ class Container {
 	/**
 	 * A map of Dependency Type objects used to resolve dependencies.
 	 */
-	private $registry = [];
+	private $registry = array();
 
 	/**
 	 * Public api for adding a factory to the container.

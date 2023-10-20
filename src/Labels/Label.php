@@ -596,9 +596,11 @@ class Label extends WC_Data implements ShipmentLabel {
 
 				return $path;
 			} else {
-				throw new \Exception( _x( 'Error while downloading the PDF file.', 'shipments', 'woocommerce-germanized-shipments' ) );
+				throw new \Exception( $results['error'] );
 			}
 		} catch ( \Exception $e ) {
+			Package::log( sprintf( 'Error while downloading label file from URL %1$s: %2$s', esc_url( $url ), $e->getMessage() ), 'error' );
+
 			return false;
 		}
 	}
