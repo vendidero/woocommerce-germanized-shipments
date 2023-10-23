@@ -737,6 +737,12 @@ class Package {
 		return trailingslashit( plugins_url( '', __DIR__ ) ) . $rel_path;
 	}
 
+	public static function load_blocks() {
+		$woo_version = defined( 'WC_VERSION' ) ? WC_VERSION : '1.0.0';
+
+		return version_compare( $woo_version, '8.2.0', '>=' );
+	}
+
 	public static function get_assets_url( $script_or_style ) {
 		$assets_url = self::get_url() . '/build';
 		$is_debug   = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG;
