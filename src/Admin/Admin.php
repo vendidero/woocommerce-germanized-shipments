@@ -65,6 +65,9 @@ class Admin {
 		// Observe base country setting
 		add_action( 'woocommerce_settings_save_general', array( __CLASS__, 'observe_base_country_setting' ), 100 );
 
+		// Hide shipping provider meta
+		add_filter( 'woocommerce_hidden_order_itemmeta', array( __CLASS__, 'set_order_meta_hidden' ) );
+
 		add_action(
 			'admin_init',
 			function() {
@@ -76,6 +79,17 @@ class Admin {
 				add_filter( 'bulk_actions-' . ( 'shop_order' === self::get_order_screen_id() ? 'edit-shop_order' : self::get_order_screen_id() ), array( __CLASS__, 'define_order_bulk_actions' ), 10, 1 );
 			}
 		);
+	}
+
+	/**
+	 * Hide product description from order meta default output
+	 *
+	 * @param array $metas
+	 */
+	public static function set_order_meta_hidden( $metas ) {
+		array_push( $metas, 'shipping_provider' );
+
+		return $metas;
 	}
 
 	public static function render_order_columns( $column, $post_id ) {
