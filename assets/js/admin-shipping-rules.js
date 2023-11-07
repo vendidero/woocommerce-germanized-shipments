@@ -104,6 +104,10 @@
                         } else {
                             $packagingTr.find( '.woocommerce-help-tip' ).remove();
                         }
+
+                        if ( $tbody.data( 'edit-url' ) ) {
+                            $packagingTr.find( '.packaging-title' ).attr( 'href', $tbody.data( 'edit-url' ) );
+                        }
                     }
 
                     $( document.body ).trigger( 'wc-enhanced-select-init' );

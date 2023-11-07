@@ -12,6 +12,16 @@ defined( 'ABSPATH' ) || exit;
  */
 class Settings {
 
+    public static function get_settings_url( $section = '' ) {
+        $url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments' );
+
+        if ( ! empty( $section ) ) {
+            $url .= '&section=' . esc_attr( $section );
+        }
+
+        return $url;
+    }
+
 	public static function get_section_description( $section ) {
 		return '';
 	}

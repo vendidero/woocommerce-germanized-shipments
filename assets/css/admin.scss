@@ -289,6 +289,20 @@ a.woocommerce-gzd-input-toggle-trigger {
     display: none;
   }
 
+  .show-more-trigger {
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 0;
+    display: block;
+    text-align: right;
+    vertical-align: middle;
+    line-height: 20px;
+
+    a {
+      text-decoration: none;
+    }
+  }
+
   .show-if {
     label {
       color: #777;
@@ -402,6 +416,8 @@ table.wc-gzd-shipments-shipping-rules {
           .packaging-title {
             font-weight: 500;
             font-size: 11px;
+            display: inline;
+            color: #2c3338;
           }
 
           .woocommerce-help-tip {

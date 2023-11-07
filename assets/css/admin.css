@@ -185,6 +185,17 @@ a.woocommerce-gzd-input-toggle-trigger {
 .wc-gzd-admin-shipment-modal .show-if, .wc-gzd-admin-shipment-modal .hide-default {
   display: none; }
 
+.wc-gzd-admin-shipment-modal .show-more-trigger {
+  font-weight: bold;
+  margin-top: 15px;
+  margin-bottom: 0;
+  display: block;
+  text-align: right;
+  vertical-align: middle;
+  line-height: 20px; }
+  .wc-gzd-admin-shipment-modal .show-more-trigger a {
+    text-decoration: none; }
+
 .wc-gzd-admin-shipment-modal .show-if label {
   color: #777; }
 
@@ -260,7 +271,9 @@ table.wc-gzd-shipments-shipping-rules tbody tr.wc-gzd-shipments-shipping-rules-p
     margin: 0; }
     table.wc-gzd-shipments-shipping-rules tbody tr.wc-gzd-shipments-shipping-rules-packaging-info td p .packaging-title {
       font-weight: 500;
-      font-size: 11px; }
+      font-size: 11px;
+      display: inline;
+      color: #2c3338; }
     table.wc-gzd-shipments-shipping-rules tbody tr.wc-gzd-shipments-shipping-rules-packaging-info td p .woocommerce-help-tip {
       margin-left: 5px; }
 

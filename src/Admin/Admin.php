@@ -36,6 +36,9 @@ class Admin {
 		add_filter( 'set_screen_option_woocommerce_page_wc_gzd_shipments_per_page', array( __CLASS__, 'set_screen_option' ), 10, 3 );
 		add_filter( 'set_screen_option_woocommerce_page_wc_gzd_return_shipments_per_page', array( __CLASS__, 'set_screen_option' ), 10, 3 );
 
+		add_filter( 'woocommerce_navigation_get_breadcrumbs', array( __CLASS__, 'register_admin_breadcrumbs' ), 20, 2 );
+        add_filter( 'woocommerce_navigation_is_connected_page', array( __CLASS__, 'register_admin_connected_pages' ), 10, 2 );
+
 		add_filter( 'woocommerce_screen_ids', array( __CLASS__, 'register_screen_ids' ), 10 );
 		add_action( 'admin_menu', array( __CLASS__, 'menu_highlight' ), 100 );
 
@@ -87,6 +90,58 @@ class Admin {
 			}
 		);
 	}
+
+    public static function register_admin_connected_pages( $is_connected, $current_page ) {
+        if ( false === $is_connected && false === $current_page ) {
+            $screen = get_current_screen();
+
+            if ( $screen && in_array( $screen->id, self::get_core_screen_ids(), true ) ) {
+                $is_connected = true;
+
+                return $is_connected;
+            }
+        }
+
+        return $is_connected;
+    }
+
+    public static function register_admin_breadcrumbs( $breadcrumbs, $current_page ) {
+        if ( false === $current_page ) {
+            $screen = get_current_screen();
+
+            if ( $screen && in_array( $screen->id, self::get_core_screen_ids(), true ) ) {
+                $core_pages  = wc_admin_get_core_pages_to_connect();
+
+                if ( 'woocommerce_page_shipment-packaging' === $screen->id ) {
+                    $breadcrumbs = array(
+                        array(
+                            esc_url_raw( add_query_arg( 'page', 'wc-settings', 'admin.php' ) ),
+                            $core_pages['wc-settings']['title'],
+                        ),
+                        _x( 'Edit packaging', 'shipments', 'woocommerce-germanized-shipments' )
+                    );
+                } else {
+                    $page = isset( $_GET['page'] ) ? wc_clean( wp_unslash( $_GET['page'] ) ) : 'wc-gzd-shipments';
+
+                    if ( 'wc-gzd-shipments' === $page ) {
+                        $breadcrumbs = array(
+                            _x( 'Shipments', 'shipments', 'woocommerce-germanized-shipments' )
+                        );
+                    } elseif ( 'wc-gzd-return-shipments' === $page ) {
+                        $breadcrumbs = array(
+                            _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' )
+                        );
+                    } elseif ( 'shipment-packaging-report' === $page ) {
+	                    $breadcrumbs = array(
+		                    _x( 'Packaging Report', 'shipments', 'woocommerce-germanized-shipments' )
+	                    );
+                    }
+                }
+            }
+        }
+
+        return $breadcrumbs;
+    }
 
     public static function add_packaging_page() {
 	    add_submenu_page( 'woocommerce', _x( 'Packaging', 'shipments', 'woocommerce-germanized-shipments' ), _x( 'Packaging', 'shipments', 'woocommerce-germanized-shipments' ), 'manage_woocommerce', 'shipment-packaging', array( __CLASS__, 'render_packaging_page' ) );
@@ -188,7 +243,7 @@ class Admin {
 		    ?>
             <div class="wrap woocommerce wc-gzd-shipments-packaging packaging-<?php echo esc_attr( $packaging->get_id() ); ?>">
                 <h1 class="wp-heading-inline"><?php echo esc_html( $packaging->get_title() ); ?></h1>
-                <a class="page-title-action" href="<?php echo esc_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=packaging' ); ?>"><?php echo esc_html_x( 'All packaging', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+                <a class="page-title-action" href="<?php echo esc_url( Settings::get_settings_url( 'packaging' ) ); ?>"><?php echo esc_html_x( 'All packaging', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
                 <hr class="wp-header-end" />
 
                 <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
@@ -221,7 +276,7 @@ class Admin {
                             <?php wp_nonce_field( 'woocommerce-gzd-packaging-settings' ); ?>
                         </p>
                     <?php else: ?>
-                        <div class="notice notice-warning inline"><p><?php echo sprintf( esc_html_x( 'This provider does not support adjusting settings related to %1$s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_shipment_label_title( $shipment_type, true ) ) ); ?></p></div>
+                        <div class="notice notice-warning inline"><p><?php echo sprintf( esc_html_x( 'This provider does not support adjusting settings related to %1$s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_shipment_label_title( $current_shipment_type, true ) ) ); ?></p></div>
                     <?php endif; ?>
                 </form>
             </div>
@@ -920,7 +975,7 @@ class Admin {
                                     </select>
                                 </td>
                                 <td class="actions" style="width: 5ch;">
-                                    <a class="button wc-gzd-shipment-action-button wc-gzd-packaging-label-edit edit tip" aria-label="test" href="<?php echo esc_url( self::get_packaging_admin_url( $packaging->get_id() ) ); ?>">test</a>
+                                    <a class="button wc-gzd-shipment-action-button wc-gzd-packaging-label-edit edit tip" aria-label="<?php echo esc_html_x( 'Edit packaging configuration', 'shipments', 'woocommerce-germanized-shipments' ); ?>" href="<?php echo esc_url( self::get_packaging_admin_url( $packaging->get_id() ) ); ?>"><?php echo esc_html_x( 'Edit packaging configuration', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
                                 </td>
 							</tr>
 							<?php
@@ -1064,7 +1119,6 @@ class Admin {
 	}
 
 	public static function set_screen_option( $new_value, $option, $value ) {
-
 		if ( in_array( $option, array( 'woocommerce_page_wc_gzd_shipments_per_page', 'woocommerce_page_wc_gzd_return_shipments_per_page' ), true ) ) {
 			return absint( $value );
 		}
@@ -1493,6 +1547,7 @@ class Admin {
 		    'woocommerce_page_wc-gzd-shipments',
 		    'woocommerce_page_wc-gzd-return-shipments',
 		    'woocommerce_page_shipment-packaging',
+            'woocommerce_page_shipment-packaging-report'
 	    );
 
         return $screen_ids;

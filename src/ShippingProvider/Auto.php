@@ -47,6 +47,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return 0;
 	}
 
+	protected function get_default_label_default_print_format() {
+		return '';
+	}
+
 	public function get_label_minimum_shipment_weight( $context = 'view' ) {
 		$weight = $this->get_prop( 'label_minimum_shipment_weight', $context );
 
@@ -216,6 +220,57 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return apply_filters( "{$this->get_hook_prefix()}label_fields_html", $html, $shipment, $this );
 	}
 
+	protected function get_printing_settings() {
+		$settings = array(
+			array(
+				'title'          => _x( 'Label Format', 'shipments', 'woocommerce-germanized-shipments' ),
+				'allow_override' => true,
+				'type'           => 'title',
+				'id'             => 'shipping_provider_label_format_options',
+			),
+		);
+
+		$settings = array_merge( $settings, array(
+			array(
+				'title'   => _x( 'Default Format', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'    => 'select',
+				'id'      => 'label_print_format',
+				'default' => $this->get_default_label_default_print_format(),
+				'desc'    => _x( 'Set the default print format for a label.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'options' => $this->get_print_formats()->as_options(),
+				'class'   => 'wc-enhanced-select',
+				'value'   => $this->get_setting( 'label_print_format', $this->get_default_label_default_print_format() ),
+			)
+		) );
+
+		foreach( $this->get_products( array( 'parent_id' => 0 ) ) as $product ) {
+			$settings = array_merge( $settings, array(
+				array(
+					'title'   => $product->get_label(),
+					'type'    => 'select',
+					'id'      => 'label_print_format_' . $product->get_id(),
+					'default' => '',
+					'custom_attributes' => array( 'data-placeholder' => _x( 'Same as default format', 'shipments', 'woocommerce-germanized-shipments' ) ),
+					'options' => array_merge( array( '' => _x( 'Same as default format', 'shipments', 'woocommerce-germanized-shipments' ) ), $this->get_print_formats( array( 'product_id' => $product->get_id() ) )->as_options() ),
+					'class'   => 'wc-enhanced-select-nostd',
+					'value'   => $this->get_setting( "label_print_format_{$product->get_id()}" ),
+				)
+			) );
+		}
+
+		$settings = array_merge(
+			$settings,
+			array(
+				array(
+					'type' => 'sectionend',
+					'id'   => 'shipping_provider_label_format_options',
+				),
+			)
+		);
+
+		return $settings;
+	}
+
 	protected function get_automation_settings( $for_shipping_method = false ) {
 		$settings = array(
 			array(
@@ -331,7 +386,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	}
 
 	protected function get_config_set_simple_label_settings() {
-		return $this->get_label_settings_by_shipment_type( 'simple' );
+		$settings = $this->get_label_settings();
+		$settings = array_merge( $settings, $this->get_label_settings_by_shipment_type( 'simple' ) );
+
+		return $settings;
 	}
 
 	protected function get_config_set_return_label_settings() {
@@ -384,6 +442,17 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	/**
 	 * @param ConfigurationSet $configuration_set
 	 *
+	 * @return string
+	 */
+	protected function get_default_product_for_zone( $configuration_set ) {
+		$products = $this->get_products( array( 'zone' => $configuration_set->get_zone(), 'shipment_type' => $configuration_set->get_shipment_type() ) );
+
+		return $products->get_by_index( 0 )->get_id();
+	}
+
+	/**
+	 * @param ConfigurationSet $configuration_set
+	 *
 	 * @return array
 	 */
 	protected function get_label_settings_by_zone( $configuration_set ) {
@@ -392,7 +461,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		$services = $this->get_services( array( 'zone' => $configuration_set->get_zone(), 'shipment_type' => $configuration_set->get_shipment_type() ) );
 
 		if ( ! $products->empty() ) {
-			$default_product    = $products->get_by_index( 0 )->get_id();
+			$default_product    = $this->get_default_product_for_zone( $configuration_set );
 			$product_setting_id = $configuration_set->get_setting_id( 'product' );
 			$select             = $products->as_options();
 
@@ -466,6 +535,12 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			) );
 		}
 
+		if ( ! $this->get_print_formats()->empty() ) {
+			$sections = array_merge( $sections, array(
+				'printing' => _x( 'Printing', 'shipments', 'woocommerce-germanized-shipments' ),
+			) );
+		}
+
 		$sections = array_merge( $sections, array(
 			'automation' => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ),
 		) );
@@ -523,8 +598,9 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
 	protected function get_simple_label_fields( $shipment ) {
-		$defaults  = $this->get_default_label_props( $shipment );
-		$available = $this->get_available_label_products( $shipment );
+		$defaults      = $this->get_default_label_props( $shipment );
+		$available     = $this->get_available_label_products( $shipment );
+		$print_formats = $this->get_available_label_print_formats( $shipment );
 
 		$settings = array(
 			array(
@@ -536,6 +612,30 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'type'        => 'select',
 			),
 		);
+
+		if ( ! empty( $print_formats ) && count( $print_formats ) > 1 ) {
+			$custom_attributes = array( 'data-products-supported' => '' );
+
+			foreach( $print_formats as $print_format_id ) {
+				if ( $print_format = $this->get_print_format( $print_format_id ) ) {
+					if ( ! empty( $print_format->get_products() ) ) {
+						$custom_attributes['data-products-supported'] .= '&' . $print_format->get_id() . '=' . implode( ',', $print_format->get_products() );
+					}
+				}
+			}
+
+			$settings = array_merge( $settings, array(
+				array(
+					'id'          => 'print_format',
+					'label'       => _x( 'Print Format', 'shipments', 'woocommerce-germanized-shipments' ),
+					'description' => '',
+					'custom_attributes' => $custom_attributes,
+					'options'     => $print_formats,
+					'value'       => $defaults['print_format'] && array_key_exists( $defaults['print_format'], $print_formats ) ? $defaults['print_format'] : '',
+					'type'        => 'select',
+				),
+			) );
+		}
 
 		return $settings;
 	}
@@ -570,6 +670,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			'shipment_id'       => $shipment->get_id(),
 			'services'          => array(),
 			'product_id'        => $this->get_default_label_product( $shipment ),
+			'print_format'      => $this->get_default_label_print_format( $shipment ),
 		);
 
 		$dimensions = wc_gzd_get_shipment_label_dimensions( $shipment );
@@ -616,6 +717,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'shipment_id'       => $shipment->get_id(),
 				'services'          => array(),
 				'product_id'        => $this->get_default_label_product( $shipment ),
+				'print_format'      => $this->get_default_label_print_format( $shipment ),
 			) );
 
 			$dimensions = wc_gzd_get_shipment_label_dimensions( $shipment );
@@ -755,10 +857,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		);
 	}
 
-	protected function override_setting_in_packaging( $option, $shipment_type = 'simple', $zone = 'dom' ) {
-		return false;
-	}
-
 	/**
 	 * @param Packaging $packaging
 	 *
@@ -845,12 +943,24 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	/**
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 */
+	public function get_available_label_print_formats( $shipment ) {
+		$products = $this->get_available_label_products( $shipment );
+
+		return $this->get_print_formats( array( 'shipment' => $shipment, 'products' => array_keys( $products ) ) )->as_options();
+	}
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 */
 	public function get_default_label_product( $shipment ) {
 		$product_id = '';
 		$available  = $this->get_available_label_products( $shipment );
 
 		if ( $config_set = $shipment->get_label_configuration_set() ) {
 			$product_id = $config_set->get_product();
+		} else {
+			$config_set = $this->get_or_create_configuration_set( $shipment );
+			$product_id = $this->get_default_product_for_zone( $config_set );
 		}
 
 		if ( ! array_key_exists( $product_id, $available ) && ! empty( $available ) ) {
@@ -858,6 +968,21 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		}
 
 		return $product_id;
+	}
+
+	/**
+	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
+	 */
+	public function get_default_label_print_format( $shipment ) {
+		$product_id = $this->get_default_label_product( $shipment );
+
+		if ( $this->get_setting( "print_format_{$product_id}" ) ) {
+			return $this->get_setting( "print_format_{$product_id}" );
+		} elseif ( $this->get_setting( "print_format" ) ) {
+			return $this->get_setting( "print_format" );
+		} else {
+			return $this->get_default_label_default_print_format();
+		}
 	}
 
 	public function get_shipping_method_settings() {

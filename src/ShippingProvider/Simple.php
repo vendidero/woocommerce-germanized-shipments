@@ -55,6 +55,11 @@ class Simple extends WC_Data implements ShippingProvider {
 	protected $products = null;
 
 	/**
+	 * @var PrintFormatList
+	 */
+	protected $print_formats = null;
+
+	/**
 	 * Stores provider data.
 	 *
 	 * @var array
@@ -1205,6 +1210,63 @@ class Simple extends WC_Data implements ShippingProvider {
 				return true;
 			} catch( Exception $e ) {
 				return new \WP_Error( 'register-product', $e->getMessage() );
+			}
+		}
+	}
+
+	/**
+	 * @param $filter_args
+	 *
+	 * @return PrintFormatList
+	 */
+	public function get_print_formats( $filter_args = array() ) {
+		if ( is_null( $this->print_formats ) ) {
+			$this->print_formats = new PrintFormatList();
+			$this->register_print_formats();
+		}
+
+		$print_formats = $this->print_formats;
+
+		if ( ! empty( $filter_args ) ) {
+			return $print_formats->filter( $filter_args );
+		}
+
+		return $print_formats;
+	}
+
+	/**
+	 * @param $id
+	 *
+	 * @return false|PrintFormat
+	 */
+	public function get_print_format( $id ) {
+		$print_formats = $this->get_print_formats();
+
+		return $print_formats->get( $id );
+	}
+
+	protected function register_print_formats() {
+
+	}
+
+	protected function register_print_format( $id, $args = array() ) {
+		if ( is_null( $this->print_formats ) ) {
+			$this->print_formats = new PrintFormatList();
+		}
+
+		if ( is_a( $id, 'Vendidero\Germanized\Shipments\ShippingProvider\PrintFormat' ) ) {
+			$this->print_formats->add( $id );
+
+			return true;
+		} else {
+			$args['id'] = $id;
+
+			try {
+				$this->print_formats->add( new PrintFormat( $this, $args ) );
+
+				return true;
+			} catch( Exception $e ) {
+				return new \WP_Error( 'register-print-format', $e->getMessage() );
 			}
 		}
 	}

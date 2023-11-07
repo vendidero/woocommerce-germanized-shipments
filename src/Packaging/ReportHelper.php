@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\Shipments\Packaging;
 
+use Vendidero\Germanized\Shipments\Admin\Settings;
+
 defined( 'ABSPATH' ) || exit;
 
 class ReportHelper {
@@ -452,7 +454,7 @@ class ReportHelper {
 			 * Do not redirect deleted, refreshed reports back to report details page
 			 */
 			if ( strstr( $referer, '&report=' ) ) {
-				$referer = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=packaging' );
+				$referer = Settings::get_settings_url( 'packaging' );
 			}
 
 			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'report_deleted' => $report_id ), $referer ) ) );
@@ -503,7 +505,7 @@ class ReportHelper {
 			 * Do not redirect deleted, refreshed reports back to report details page
 			 */
 			if ( strstr( $referer, '&report=' ) ) {
-				$referer = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=packaging' );
+				$referer = Settings::get_settings_url( 'packaging' );
 			}
 
 			wp_safe_redirect( esc_url_raw( add_query_arg( array( 'report_cancelled' => $report_id ), $referer ) ) );

@@ -77,7 +77,6 @@ class ConfigurationSet {
 		return $this->handler;
 	}
 
-
 	/**
 	 * @param LabelConfigurationSet|null $handler
 	 */
