@@ -56,6 +56,8 @@ interface ShipmentLabel {
 
 	public function get_services();
 
+	public function get_print_format();
+
 	/**
 	 * Returns the label shipment type, e.g. simple or return.
 	 *

@@ -264,7 +264,9 @@ class ConfigurationSet {
 	}
 
 	protected function get_clean_setting_id( $id ) {
-		return strrpos( $id, '-' ) !== false ? substr( $id, strrpos( $id, '-n-' ) + 3 ) : $id;
+		$id = strrpos( $id, '-' ) !== false ? substr( $id, strrpos( $id, '-n-' ) + 3 ) : $id;
+
+		return $id;
 	}
 
 	protected function get_setting_details( $id ) {
@@ -286,7 +288,14 @@ class ConfigurationSet {
 	}
 
 	public function has_setting( $id ) {
-		if ( array_key_exists( $this->get_clean_setting_id( $id ), $this->get_settings() ) ) {
+		$details = $this->get_setting_details( $id );
+		$id      = $this->get_clean_setting_id( $id );
+
+		if ( 'service_meta' === $details['group'] && ! empty( $details['service_meta'] ) ) {
+			$id = $details['suffix'] . '_' . $details['service_meta'];
+		}
+
+		if ( array_key_exists( $id, $this->get_settings() ) ) {
 			return true;
 		}
 

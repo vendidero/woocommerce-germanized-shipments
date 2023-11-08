@@ -67,6 +67,7 @@ class Label extends WC_Data implements ShipmentLabel {
 		'path'              => '',
 		'created_via'       => '',
 		'services'          => array(),
+		'print_format'      => '',
 	);
 
 	public function __construct( $data = 0 ) {
@@ -181,6 +182,10 @@ class Label extends WC_Data implements ShipmentLabel {
 
 	public function get_number( $context = 'view' ) {
 		return $this->get_prop( 'number', $context );
+	}
+
+	public function get_print_format( $context = 'view' ) {
+		return $this->get_prop( 'print_format', $context );
 	}
 
 	public function has_number() {
@@ -321,6 +326,10 @@ class Label extends WC_Data implements ShipmentLabel {
 
 	public function set_product_id( $number ) {
 		$this->set_prop( 'product_id', $number );
+	}
+
+	public function set_print_format( $format ) {
+		$this->set_prop( 'print_format', $format );
 	}
 
 	public function set_shipping_provider( $slug ) {

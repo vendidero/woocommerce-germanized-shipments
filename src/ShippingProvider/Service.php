@@ -194,6 +194,10 @@ class Service {
 		return in_array( $zone, $this->supported_zones, true );
 	}
 
+	public function get_supported_zones() {
+		return $this->supported_zones;
+	}
+
 	public function supports_country( $country, $postcode = '' ) {
 		$supports_country = true;
 

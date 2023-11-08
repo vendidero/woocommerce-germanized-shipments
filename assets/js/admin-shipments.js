@@ -346,72 +346,74 @@ window.germanized.admin = window.germanized.admin || {};
                 var $field    = $( this ),
                     supported = $field.data( 'products-supported' );
 
-                if ( supported.indexOf( '&' ) > -1 && $field.is( 'select' ) ) {
-                    var supportedData = $field.data( 'products-supported' ).split( '&' ),
-                        needsReset = false;
+                if ( supported.length > 0 ) {
+                    if ( supported.indexOf( '&' ) > -1 && $field.is( 'select' ) ) {
+                        var supportedData = supported.split( '&' ).filter( Boolean ),
+                            needsReset = false;
 
-                    $.each( supportedData, function( i, d ) {
-                        var innerData = d.split( '=' );
+                        $.each( supportedData, function( i, d ) {
+                            var innerData = d.split( '=' ).filter( Boolean );
 
-                        if ( innerData.length > 1 ) {
-                            var optionKey = innerData[0];
-                            var supportedProducts = innerData[1].split( ',' );
-                            var isHidden = true;
-                            var $option = $field.find( 'option[value="' + optionKey + '"]' );
+                            if ( innerData.length > 1 ) {
+                                var optionKey = innerData[0];
+                                var supportedProducts = innerData[1].split( ',' );
+                                var isHidden = true;
+                                var $option = $field.find( 'option[value="' + optionKey + '"]' );
 
-                            if ( $option.length > 0 ) {
-                                if ( $.inArray( productId, supportedProducts ) !== -1 ) {
-                                    isHidden = false;
-                                }
-
-                                if ( isHidden ) {
-                                    if ( $option.is( ':selected' ) ) {
-                                        needsReset = true;
+                                if ( $option.length > 0 ) {
+                                    if ( $.inArray( productId, supportedProducts ) !== -1 ) {
+                                        isHidden = false;
                                     }
 
-                                    $option.hide();
-                                } else {
-                                    $option.show();
+                                    if ( isHidden ) {
+                                        if ( $option.is( ':selected' ) ) {
+                                            needsReset = true;
+                                        }
+
+                                        $option.hide();
+                                    } else {
+                                        $option.show();
+                                    }
                                 }
                             }
-                        }
-                    } );
+                        } );
 
-                    var isFieldHidden = true;
+                        var isFieldHidden = true;
 
-                    $field.find( 'option' ).each( function () {
-                        if ( $( this ).css( 'display' ) !== 'none' ) {
-                            if ( needsReset ) {
-                                $( this ).prop("selected", true );
+                        $field.find( 'option' ).each( function () {
+                            if ( $( this ).css( 'display' ) !== 'none' ) {
+                                if ( needsReset ) {
+                                    $( this ).prop("selected", true );
+                                }
+                                isFieldHidden = false;
+                                return false;
                             }
-                            isFieldHidden = false;
-                            return false;
+                        });
+
+                        if ( isFieldHidden ) {
+                            $field.parents( '.form-field' ).hide();
+                            $field.trigger( 'change' );
+                        } else {
+                            $field.parents( '.form-field' ).show();
+                            $field.trigger( 'change' );
                         }
-                    });
 
-                    if ( isFieldHidden ) {
-                        $field.parents( '.form-field' ).hide();
                         $field.trigger( 'change' );
                     } else {
-                        $field.parents( '.form-field' ).show();
-                        $field.trigger( 'change' );
-                    }
+                        var supportedProducts = supported.split( ',' ).filter( Boolean ),
+                            isHidden = supportedProducts.length > 0 ? true : false;
 
-                    $field.trigger( 'change' );
-                } else {
-                    var supportedProducts = $field.data( 'products-supported' ).split( ',' ),
-                        isHidden = true;
+                        if ( $.inArray( productId, supportedProducts ) !== -1 ) {
+                            isHidden = false;
+                        }
 
-                    if ( $.inArray( productId, supportedProducts ) !== -1 ) {
-                        isHidden = false;
-                    }
-
-                    if ( isHidden ) {
-                        $field.parents( '.form-field' ).hide();
-                        $field.trigger( 'change' );
-                    } else {
-                        $field.parents( '.form-field' ).show();
-                        $field.trigger( 'change' );
+                        if ( isHidden ) {
+                            $field.parents( '.form-field' ).hide();
+                            $field.trigger( 'change' );
+                        } else {
+                            $field.parents( '.form-field' ).show();
+                            $field.trigger( 'change' );
+                        }
                     }
                 }
             } );

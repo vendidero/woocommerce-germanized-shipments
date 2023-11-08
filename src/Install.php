@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments;
 
+use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 
 defined( 'ABSPATH' ) || exit;
@@ -24,6 +25,119 @@ class Install {
 		update_option( 'woocommerce_gzd_shipments_db_version', Package::get_version() );
 
 		do_action( 'woocommerce_flush_rewrite_rules' );
+	}
+
+	public static function maybe_migrate_to_configuration_sets() {
+		// Make sure shipping zones are loaded
+		include_once WC_ABSPATH . 'includes/class-wc-shipping-zones.php';
+
+		foreach ( \WC_Shipping_Zones::get_zones() as $zone_data ) {
+			if ( $zone = \WC_Shipping_Zones::get_zone( $zone_data['id'] ) ) {
+				foreach( $zone->get_shipping_methods() as $method ) {
+					if ( $shipment_method = MethodHelper::get_provider_method( $method ) ) {
+						if ( $shipment_method->is_placeholder() || ! $shipment_method->get_method()->supports( 'instance-settings' ) ) {
+							continue;
+						}
+
+						$shipment_method->get_method()->init_instance_settings();
+
+						$settings = $shipment_method->get_method()->instance_settings;
+
+						if ( isset( $settings['configuration_sets'] ) && ! empty( $settings['configuration_sets'] ) ) {
+							continue;
+						}
+
+						if ( isset( $settings['shipping_provider'] ) && ! empty( $settings['shipping_provider'] ) ) {
+							$provider_name   = $settings['shipping_provider'];
+
+							if ( $provider = wc_gzd_get_shipping_provider( $provider_name ) ) {
+								$settings_prefix = "{$provider_name}_";
+								$services        = array();
+								$products        = array();
+								$service_meta    = array();
+
+								foreach( $settings as $setting_name => $value ) {
+									if ( $settings_prefix === substr( $setting_name, 0, strlen( $settings_prefix ) ) ) {
+										$setting_name = substr( $setting_name, strlen( $settings_prefix ) );
+										$is_service   = 'label_service_' === substr( $setting_name, 0, strlen( 'label_service_' ) );
+
+										if ( empty( $value ) ) {
+											continue;
+										}
+
+										if ( 'label_default_product_dom' === $setting_name ) {
+											$products['dom'] = $value;
+										} elseif ( 'label_default_product_eu' === $setting_name ) {
+											$products['eu'] = $value;
+										} elseif ( 'label_default_product_int' === $setting_name ) {
+											$products['int'] = $value;
+										} elseif ( $is_service ) {
+											$service_name = substr( $setting_name, strlen( 'label_service_' ) );
+
+											if ( 'no' !== $value ) {
+												$services[ $service_name ] = $value;
+											}
+										} elseif ( 'label_visual_min_age' === $setting_name ) {
+											$service_name = 'VisualCheckOfAge';
+											$services[ $service_name ] = 'yes';
+
+											$service_meta[ $service_name ] = array(
+												'min_age' => $value,
+											);
+										} elseif ( 'label_ident_min_age' === $setting_name ) {
+											$service_name   = 'IdentCheck';
+											$services[ $service_name ] = 'yes';
+
+											$service_meta[ $service_name ] = array(
+												'min_age' => $value,
+											);
+										}
+									}
+								}
+
+								foreach( $products as $zone => $product ) {
+									$config_set = $shipment_method->get_or_create_configuration_set( array(
+										'shipping_provider_name' => $provider->get_name(),
+										'shipment_type'          => 'simple',
+										'zone'                   => $zone,
+									) );
+
+									$config_set->update_product( $product );
+
+									foreach( $services as $service_name => $value ) {
+										if ( $p_service = $provider->get_service( $service_name ) ) {
+											if ( $p_service->supports( array( 'product_id' => $product, 'zone' => $zone, 'shipment_type' => 'simple' ) ) ) {
+												$config_set->update_service( $service_name, $value );
+
+												if ( array_key_exists( $service_name, $service_meta ) ) {
+													foreach( $service_meta[ $service_name ] as $k => $v ) {
+														$config_set->update_service_meta( $service_name, $k, $v );
+													}
+												}
+											}
+										}
+									}
+								}
+
+								$configuration_sets = $shipment_method->get_configuration_sets();
+
+								if ( ! empty( $configuration_sets ) ) {
+									$current_settings = $shipment_method->get_method()->instance_settings;
+
+									if ( ! empty( $current_settings ) ) {
+										update_option( $shipment_method->get_method()->get_instance_option_key(), apply_filters( 'woocommerce_shipping_' . $shipment_method->get_method()->id . '_instance_settings_values', $current_settings, $shipment_method->get_method() ), 'yes' );
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	public static function get_excluded_methods() {
+		return apply_filters( 'woocommerce_gzd_shipments_get_methods_excluded_from_provider_settings', array( 'pr_dhl_paket', 'flexible_shipping_info' ) );
 	}
 
 	private static function update_providers() {

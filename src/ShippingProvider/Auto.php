@@ -582,13 +582,15 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				}
 			}
 
-			$service_fields[] = array(
-				'type'         => 'services_start',
-				'hide_default' => $has_default_service ? false : true,
-				'id'           => '',
-			);
+			if ( ! empty( $service_settings ) ) {
+				$service_fields[] = array(
+					'type'         => 'services_start',
+					'hide_default' => $has_default_service ? false : true,
+					'id'           => '',
+				);
 
-			$service_fields = array_merge( $service_fields, $service_settings );
+				$service_fields = array_merge( $service_fields, $service_settings );
+			}
 		}
 
 		return $service_fields;
