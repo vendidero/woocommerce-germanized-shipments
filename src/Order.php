@@ -1013,7 +1013,6 @@ class Order {
 
 	public function save() {
 		if ( ! empty( $this->shipments_to_delete ) ) {
-
 			foreach ( $this->shipments_to_delete as $shipment ) {
 				$shipment->delete( true );
 			}

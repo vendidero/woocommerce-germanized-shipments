@@ -14,11 +14,54 @@ class Validation {
 	private static $current_refund_parent_order = false;
 
 	public static function init() {
-		add_action( 'woocommerce_update_order_item', array( __CLASS__, 'update_order_item' ), 10, 2 );
 		add_action( 'woocommerce_new_order_item', array( __CLASS__, 'create_order_item' ), 10, 3 );
 		add_action( 'woocommerce_before_delete_order_item', array( __CLASS__, 'delete_order_item' ), 10, 1 );
+		add_action( 'woocommerce_update_order_item', array( __CLASS__, 'update_order_item' ), 10, 2 );
 
-		add_action( 'woocommerce_update_order', array( __CLASS__, 'update_order' ), 10, 1 );
+		add_action(
+			'woocommerce_before_order_object_save',
+			function( $order ) {
+				$changes               = $order->get_changes();
+				$screen                = is_admin() ? get_current_screen() : false;
+				$is_edit_order_request = $screen ? in_array( $screen->id, array( 'woocommerce_page_wc-orders' ), true ) : false;
+				$skip_validation       = false;
+
+				/**
+				 * Try to detect a edit-lock only save request and skip validation
+				 */
+				if ( $is_edit_order_request && 1 === count( $changes ) && array_key_exists( 'date_modified', $changes ) ) {
+					$skip_validation = true;
+				}
+
+				if ( ! $skip_validation ) {
+					add_action(
+						'woocommerce_update_order',
+						function( $order_id ) use ( $order ) {
+							if ( $order_id === $order->get_id() ) {
+								self::update_order( $order_id );
+							}
+						},
+						10,
+						1
+					);
+				}
+
+				/**
+				 * Prevent additional validation from happening while saving order items.
+				 */
+				add_action(
+					'woocommerce_update_order_item',
+					function( $order_item_id, $order_item ) use ( $order ) {
+						if ( $order_item->get_order_id() === $order->get_id() ) {
+							remove_action( 'woocommerce_update_order_item', array( __CLASS__, 'update_order_item' ), 10 );
+						}
+					},
+					5,
+					2
+				);
+			},
+			10
+		);
 
 		add_action(
 			'woocommerce_new_order',
@@ -231,7 +274,6 @@ class Validation {
 	public static function update_order_item( $order_item_id, $order_item ) {
 		if ( ! self::is_admin_save_order_request() ) {
 			if ( is_callable( array( $order_item, 'get_order_id' ) ) ) {
-
 				if ( $order_shipment = wc_gzd_get_shipment_order( $order_item->get_order_id() ) ) {
 					$order_shipment->validate_shipments();
 				}
