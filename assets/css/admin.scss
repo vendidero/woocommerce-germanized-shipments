@@ -386,7 +386,7 @@ table.wc-gzd-shipments-shipping-rules {
     display: table-cell !important;
 
     &.conditions {
-      width: 35%;
+      width: 45%;
     }
 
     &.actions {
@@ -446,10 +446,37 @@ table.wc-gzd-shipments-shipping-rules {
         }
       }
 
+      p.form-field {
+        margin: 0;
+        position: relative;
+        top: -6px;
+      }
+
       &.conditions {
+        .inner-conditions {
+          width: 100%;
+          border-spacing: 0;
+
+          tbody {
+            tr {
+              td {
+                padding: 0 !important;
+                padding-bottom: .25em !important;
+              }
+
+              &:last-child {
+                td {
+                  padding-bottom: 0 !important;
+                }
+              }
+            }
+          }
+        }
+
         .conditions-columns {
           display: flex;
           flex-wrap: wrap;
+          align-items: baseline;
 
           .shipping-rules-type-container {
             input {
@@ -465,6 +492,14 @@ table.wc-gzd-shipments-shipping-rules {
 
               select {
                 width: 100%;
+              }
+            }
+
+            &.conditions-actions {
+              margin-left: auto;
+
+              .button {
+                margin-top: 0;
               }
             }
           }

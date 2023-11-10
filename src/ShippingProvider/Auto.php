@@ -25,6 +25,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	protected $extra_data = array(
 		'label_default_shipment_weight'      => '',
 		'label_minimum_shipment_weight'      => '',
+		'label_print_format'                 => '',
 		'label_auto_enable'                  => false,
 		'label_auto_shipment_status'         => 'gzd-processing',
 		'label_return_auto_enable'           => false,
@@ -115,6 +116,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return $this->get_prop( 'label_return_auto_enable', $context );
 	}
 
+	public function get_label_print_format( $context = 'view' ) {
+		return $this->get_prop( 'label_print_format', $context );
+	}
+
 	public function get_label_return_auto_shipment_status( $context = 'view' ) {
 		return $this->get_prop( 'label_return_auto_shipment_status', $context );
 	}
@@ -145,6 +150,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	public function set_label_return_auto_enable( $enable ) {
 		$this->set_prop( 'label_return_auto_enable', wc_string_to_bool( $enable ) );
+	}
+
+	public function set_label_print_format( $format ) {
+		$this->set_prop( 'label_print_format', $format );
 	}
 
 	public function set_label_return_auto_shipment_status( $status ) {
@@ -529,8 +538,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 		foreach( $this->get_supported_shipment_types() as $shipment_type ) {
 			$section_title = 'simple' === $shipment_type ? _x( 'Labels', 'shipments', 'woocommerce-germanized-shipments' ) : sprintf( _x( '%1$s labels', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label_title( $shipment_type ) );
-
-			$sections = array_merge( $sections, array(
+			$sections      = array_merge( $sections, array(
 				'config_set_' . $shipment_type . '_label' => $section_title,
 			) );
 		}
@@ -978,10 +986,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	public function get_default_label_print_format( $shipment ) {
 		$product_id = $this->get_default_label_product( $shipment );
 
-		if ( $this->get_setting( "print_format_{$product_id}" ) ) {
-			return $this->get_setting( "print_format_{$product_id}" );
-		} elseif ( $this->get_setting( "print_format" ) ) {
-			return $this->get_setting( "print_format" );
+		if ( $this->get_setting( "label_print_format_{$product_id}" ) ) {
+			return $this->get_setting( "label_print_format_{$product_id}" );
+		} elseif ( $this->get_label_print_format() ) {
+			return $this->get_label_print_format();
 		} else {
 			return $this->get_default_label_default_print_format();
 		}

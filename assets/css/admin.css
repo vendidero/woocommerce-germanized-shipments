@@ -253,7 +253,7 @@ table.wc-gzd-shipments-shipping-rules th, table.wc-gzd-shipments-shipping-rules 
   background: #fff;
   display: table-cell !important; }
   table.wc-gzd-shipments-shipping-rules th.conditions, table.wc-gzd-shipments-shipping-rules td.conditions {
-    width: 35%; }
+    width: 45%; }
   table.wc-gzd-shipments-shipping-rules th.actions, table.wc-gzd-shipments-shipping-rules td.actions {
     text-align: right; }
 
@@ -292,9 +292,24 @@ table.wc-gzd-shipments-shipping-rules tbody td.sort {
     height: 100%;
     line-height: 24px; }
 
+table.wc-gzd-shipments-shipping-rules tbody td p.form-field {
+  margin: 0;
+  position: relative;
+  top: -6px; }
+
+table.wc-gzd-shipments-shipping-rules tbody td.conditions .inner-conditions {
+  width: 100%;
+  border-spacing: 0; }
+  table.wc-gzd-shipments-shipping-rules tbody td.conditions .inner-conditions tbody tr td {
+    padding: 0 !important;
+    padding-bottom: .25em !important; }
+  table.wc-gzd-shipments-shipping-rules tbody td.conditions .inner-conditions tbody tr:last-child td {
+    padding-bottom: 0 !important; }
+
 table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns {
   display: flex;
-  flex-wrap: wrap; }
+  flex-wrap: wrap;
+  align-items: baseline; }
   table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns .shipping-rules-type-container input {
     max-width: 80px; }
   table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns .conditions-column {
@@ -303,6 +318,10 @@ table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns {
       width: 30%; }
       table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns .conditions-column.conditions-when select {
         width: 100%; }
+    table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns .conditions-column.conditions-actions {
+      margin-left: auto; }
+      table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns .conditions-column.conditions-actions .button {
+        margin-top: 0; }
 
 table.wc-gzd-shipments-shipping-rules tbody td.costs p.form-field input {
   max-width: 110px; }

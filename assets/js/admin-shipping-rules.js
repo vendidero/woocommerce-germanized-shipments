@@ -4,6 +4,7 @@
         var $tbody            = $( '.wc-gzd-shipments-shipping-rules-rows' ),
             $table            = $( '.wc-gzd-shipments-shipping-rules' ),
             $row_template     = wp.template( 'wc-gzd-shipments-shipping-rules-row' ),
+            $condition_row_template = wp.template( 'wc-gzd-shipments-shipping-rules-condition-row' ),
             $packaging_info   = wp.template( 'wc-gzd-shipments-shipping-rules-packaging-info' ),
             shippingRuleViews = {},
 
@@ -17,21 +18,54 @@
                     var currentRules = { ...this.get( 'rules' ) };
                     currentRules[ String( packaging ) ] = rules;
 
+                    console.log(currentRules);
+
+                    this.set( 'rules', currentRules );
+                },
+                updateConditions: function( conditions, packaging, ruleId ) {
+                    if ( 0 === Object.keys( conditions ).length ) {
+                        conditions = {};
+                    }
+
+                    const theRuleId = 'rule_' === String( ruleId ).substring( 0, 5 ) ? ruleId : 'rule_' + String( ruleId );
+                    const rule = { ...this.getRule( packaging, ruleId ) };
+                    var currentRules = { ...this.get( 'rules' ) };
+
+                    rule['conditions'] = conditions;
+                    currentRules[ String( packaging ) ][ theRuleId ] = rule;
+
+                    console.log(currentRules);
+
                     this.set( 'rules', currentRules );
                 },
                 getRulesByPackaging: function( packaging ) {
                     var rules = { ...this.get( 'rules' ) };
 
                     return rules.hasOwnProperty( String( packaging ) ) ? rules[ String( packaging ) ] : {};
+                },
+                getRule: function( packaging, ruleId ) {
+                    const rules = this.getRulesByPackaging( packaging );
+                    const theRuleId = 'rule_' === String( ruleId ).substring( 0, 5 ) ? ruleId : 'rule_' + String( ruleId );
+
+                    return rules.hasOwnProperty( theRuleId ) ? rules[ theRuleId ] : {};
+                },
+                getConditionsByRuleId: function( packaging, ruleId ) {
+                    const rule = this.getRule( packaging, ruleId );
+
+                    return rule.hasOwnProperty( 'conditions' ) ? rule['conditions'] : {};
                 }
             } ),
 
             // Backbone view
             ShippingRuleView = Backbone.View.extend({
                 rowTemplate: $row_template,
+                conditionViews: {},
                 packaging: '',
+
                 initialize: function() {
                     this.packaging = String( $( this.el ).data( 'packaging' ) );
+                    this.conditionViews = {};
+
                     $( this.el ).on( 'change', { view: this }, this.updateModelOnChange );
                 },
                 block: function() {
@@ -66,6 +100,20 @@
                 renderRow: function( rowData ) {
                     var view = this;
                     view.$el.append( view.rowTemplate( rowData ) );
+
+                    var $tr = view.$el.find( 'tr[data-id="' + rowData.rule_id + '"]');
+
+                    var condition = new ConditionRowView({
+                        model: view.model,
+                        el: $tr.find( '.wc-gzd-shipments-shipping-rules-condition-rows' )[0]
+                    } );
+
+                    condition.ruleId     = rowData.rule_id;
+                    condition.packaging  = view.packaging;
+                    condition.parentView = view;
+
+                    condition.render();
+
                     view.initRow( rowData );
                 },
                 initRow: function( rowData ) {
@@ -78,13 +126,6 @@
                         var attribute = $( this ).data( 'attribute' );
                         $( this ).find( 'option[value="' + rowData[ attribute ] + '"]' ).prop( 'selected', true );
                     } );
-
-                    // Make the rows function
-                    $tr.find( '.shipping-rules-type-container' ).hide();
-                    $tr.find( '.conditions-column:not(.conditions-when)' ).hide();
-
-                    $tr.find( '.shipping-rules-type' ).on( 'change', { view: this }, this.onChangeRuleType );
-                    $tr.find( '.shipping-rules-type' ).trigger( 'change' );
 
                     $tr.find( 'input.decimal' ).on( 'change', { view: this }, this.onChangeDecimal );
                     $tr.find( 'input.wc_input_price' ).on( 'change', { view: this }, this.onChangePrice );
@@ -125,15 +166,6 @@
 
                     $input.val( $input.val().replace( '.', data.price_decimal_separator ) );
                 },
-                onChangeRuleType: function( event ) {
-                    var $tr     = $( this ).closest( 'tr' ),
-                        rule    = $( this ).val();
-
-                    $tr.find( '.shipping-rules-type-container' ).hide();
-                    $tr.find( '.conditions-column:not(.conditions-when)' ).hide();
-                    $tr.find( '.shipping-rules-type-container-' + rule ).show();
-                    $tr.find( '.shipping-rules-type-container-' + rule ).parents( '.conditions-column' ).show();
-                },
                 onDeleteRow: function( event ) {
                     var view       = event.data.view,
                         model      = view.model,
@@ -149,8 +181,8 @@
 
                     view.render();
 
-                    if ( view.$el.find( 'tr:last' ).length > 0 ) {
-                        view.$el.find( 'tr:last' ).addClass( 'current' );
+                    if ( view.$el.find( 'tr.shipping-rule:last' ).length > 0 ) {
+                        view.$el.find( 'tr.shipping-rule:last' ).addClass( 'current' );
                     }
 
                     return false;
@@ -165,13 +197,25 @@
                         newRow       = _.extend( {}, current_rule, {
                             rule_id: 'new-' + _.size( rules ) + '-' + Date.now(),
                             newRow : true,
+                            conditions: {},
                             costs: '',
                         } );
 
-                    if ( -1 !== $.inArray( newRow.type, ['weight', 'total'] ) ) {
-                        newRow[newRow.type + '_from'] = newRow[newRow.type + '_to'];
-                        newRow[newRow.type + '_to'] = '';
-                    }
+                    var index = 0;
+
+                    $.each( current_rule['conditions'], function( conditionId, conditionData ) {
+                        var newConditionId = 'new-c-' + Date.now() + index;
+
+                        newRow['conditions']['condition_' + newConditionId] = _.extend( {}, conditionData, {
+                            condition_id: newConditionId,
+                            rule_id: newRow.rule_id,
+                            newRow : true
+                        } );
+
+                        index++;
+                    } );
+
+                    console.log(newRow);
 
                     rules[ 'rule_' + newRow.rule_id ] = newRow;
                     model.updateRules( rules, view.packaging );
@@ -191,6 +235,10 @@
                         value      = $target.val(),
                         rules      = view.getRules();
 
+                    if ( $target.parents( '.wc-gzd-shipments-shipping-rules-condition-rows' ).length > 0 ) {
+                        return false;
+                    }
+
                     if ( ! $target.is( ':visible' ) ) {
                         return false;
                     }
@@ -202,6 +250,8 @@
                     } else if ( value && $target.hasClass( 'wc_input_price' ) ) {
                         value = parseFloat( value.replace( data.price_decimal_separator, '.' ) );
                     }
+
+                    console.log(attribute);
 
                     if ( ! rules[ rule_index ] || String( rules[ rule_index ][ attribute ] ) !== String( value ) ) {
                         rules[ rule_index ][ attribute ] = value;
@@ -224,10 +274,172 @@
                         }
                     }
                 }
-            } ),
-            shippingRule = new ShippingRule({
-                rules: data.rules
-            } );
+            }
+        ),
+
+        shippingRule = new ShippingRule({
+            rules: data.rules
+        } ),
+
+        // Backbone view
+        ConditionRowView = ShippingRuleView.extend({
+            rowTemplate: $condition_row_template,
+            ruleId    : 0,
+            packaging: '',
+            parentView: false,
+
+            initialize: function() {
+                $( this.el ).on( 'change', { view: this }, this.updateModelOnChange );
+            },
+            getRules: function() {
+                return this.model.getConditionsByRuleId( this.packaging, this.ruleId );
+            },
+            render: function() {
+                var rules = this.getRules(),
+                    view  = this;
+
+                this.$el.empty();
+
+                if ( _.size( rules ) ) {
+                    // Populate $tbody with the current classes
+                    $.each( rules, function( id, rowData ) {
+                        view.renderRow( rowData );
+                    } );
+                }
+            },
+            renderRow: function( rowData ) {
+                var view = this;
+                view.$el.append( view.rowTemplate( rowData ) );
+
+                view.initRow( rowData );
+            },
+            initRow: function( rowData ) {
+                var view = this,
+                    $tr = view.$el.find( 'tr[data-condition="' + rowData.condition_id + '"]'),
+                    $tbody = $tr.parents( 'tbody' );
+
+                // Support select boxes
+                $tr.find( 'select' ).each( function() {
+                    var attribute = $( this ).data( 'attribute' );
+                    $( this ).find( 'option[value="' + rowData[ attribute ] + '"]' ).prop( 'selected', true );
+                } );
+
+                if ( 0 === $tr.index() ) {
+                    $tr.find( '.condition-remove' ).hide();
+                }
+
+                // Make the rows function
+                $tr.find( '.shipping-rules-type-container' ).hide();
+                $tr.find( '.conditions-column:not(.conditions-when,.conditions-actions)' ).hide();
+
+                $tr.find( '.shipping-rules-type' ).on( 'change', { view: this }, this.onChangeRuleType );
+                $tr.find( '.shipping-rules-type' ).trigger( 'change' );
+
+                $tr.find( 'input.decimal' ).on( 'change', { view: this }, this.onChangeDecimal );
+                $tr.find( 'input.wc_input_price' ).on( 'change', { view: this }, this.onChangePrice );
+                $tr.find( 'input.decimal, input.wc_input_price' ).trigger( 'change' );
+
+                $tr.find( '.condition-remove' ).on( 'click', { view: this }, this.onDeleteRow );
+                $tr.find( '.condition-add' ).on( 'click', { view: this }, this.onAddRow );
+
+                $( document.body ).trigger( 'wc-enhanced-select-init' );
+                $( document.body ).trigger( 'init_tooltips' );
+            },
+            onChangeRuleType: function( event ) {
+                var $tr     = $( this ).closest( 'tr' ),
+                    rule    = $( this ).val(),
+                    view    = event.data.view;
+
+                $tr.find( '.shipping-rules-type-container' ).hide();
+                $tr.find( '.conditions-column:not(.conditions-when,.conditions-actions)' ).hide();
+                $tr.find( '.shipping-rules-type-container-' + rule ).show();
+
+                if ( $tr.find( '.shipping-rules-type-container-' + rule + '.shipping-rule-type-operator :input' ).length > 0 ) {
+                    $tr.find( '.shipping-rules-type-container-' + rule + '.shipping-rule-type-operator :input' ).trigger( 'change' );
+                } else {
+                    view.updateModel( $tr.data( 'condition' ), 'operator', '' );
+                }
+
+                $tr.find( '.shipping-rules-type-container-' + rule + '.shipping-rule-type-operator :input' ).trigger( 'change' );
+                $tr.find( '.shipping-rules-type-container-' + rule ).parents( '.conditions-column' ).show();
+            },
+            updateModel: function( conditionId, attribute, value ) {
+                var model      = this.model,
+                    conditionIndex = "condition_" + conditionId,
+                    conditions      = this.getRules();
+
+                if ( ! conditions[ conditionIndex ] || String( conditions[ conditionIndex ][ attribute ] ) !== String( value ) ) {
+                    conditions[ conditionIndex ][ attribute ] = value;
+
+                    model.updateConditions( conditions, this.packaging, this.ruleId );
+                }
+            },
+            updateModelOnChange: function( event ) {
+                var view       = event.data.view,
+                    $target    = $( event.target ),
+                    conditionId    = $target.closest( 'tr' ).data( 'condition' ),
+                    attribute  = $target.data( 'attribute' ),
+                    value      = $target.val();
+
+                if ( ! $target.is( ':visible' ) ) {
+                    return false;
+                }
+
+                if ( $target.is( ':checkbox' ) ) {
+                    value = $target.is( ':checked' ) ? value : '';
+                } else if ( value && $target.hasClass( 'decimal' ) ) {
+                    value = parseFloat( value.replace( data.decimal_separator , '.' ) );
+                } else if ( value && $target.hasClass( 'wc_input_price' ) ) {
+                    value = parseFloat( value.replace( data.price_decimal_separator, '.' ) );
+                }
+
+                view.updateModel( conditionId, attribute, value );
+            },
+            onDeleteRow: function( event ) {
+                var view       = event.data.view,
+                    model      = view.model,
+                    conditions  = view.getRules(),
+                    $tr         = $( this ).closest( 'tr' ),
+                    condition_id = $tr.data( 'condition' ),
+                    condition_index = "condition_" + condition_id;
+
+                if ( conditions[ condition_index ] && 0 !== $tr.index() ) {
+                    delete conditions[ condition_index ];
+
+                    model.updateConditions( conditions, view.packaging, view.ruleId );
+                }
+
+                view.render();
+
+                return false;
+            },
+            onAddRow: function( event ) {
+                var view         = event.data.view,
+                    model        = view.model,
+                    conditions   = view.getRules(),
+                    conditionId      = $( this ).closest( 'tr' ).data( 'condition' ),
+                    conditionIndex   = "condition_" + conditionId,
+                    currentCondition = conditions[ conditionIndex ],
+
+                    newCondition       = _.extend( {}, currentCondition, {
+                        condition_id: 'new-c-' + _.size( conditions ) + '-' + Date.now(),
+                        newRow : true,
+                        costs: '',
+                    } );
+
+                if ( -1 !== $.inArray( newCondition.type, ['weight', 'total'] ) ) {
+                    newCondition[newCondition.type + '_from'] = newCondition[newCondition.type + '_to'];
+                    newCondition[newCondition.type + '_to'] = '';
+                }
+
+                conditions[ 'condition_' + newCondition.condition_id ] = newCondition;
+                model.updateConditions( conditions, view.packaging, view.ruleId );
+
+                view.renderRow( newCondition );
+
+                return false;
+            }
+        } );
 
         $tbody.each( function() {
             var view = new ShippingRuleView({
@@ -236,6 +448,7 @@
             } );
 
             view.render();
+
             shippingRuleViews[ $( this ).data( 'packaging' ) ] = view;
 
             // Sorting
@@ -280,6 +493,15 @@
                 newRow  = _.extend( {}, data.default_shipping_rule, {
                     rule_id: 'new-' + _.size( rules ) + '-' + Date.now(),
                     packaging: packagingId,
+                    newRow : true
+                } ),
+                conditionId = 'new-c-' + Date.now(),
+                defaultCondition = newRow['conditions'][0];
+
+                newRow['conditions'] = {};
+                newRow['conditions']['condition_' + conditionId] = _.extend( {}, defaultCondition, {
+                    condition_id: conditionId,
+                    rule_id: newRow.rule_id,
                     newRow : true
                 } );
 
@@ -394,7 +616,7 @@
 
         $( document ).on( 'focus click', '.wc-gzd-shipments-shipping-rules input, .wc-gzd-shipments-shipping-rules tr', function (e) {
             $( this ).parents( 'table' ).find( 'tr' ).removeClass( 'current' );
-            $( this ).closest( 'tr:not(.wc-gzd-shipments-shipping-rules-packaging-info)' ).addClass( 'current' );
+            $( this ).closest( 'tr.shipping-rule' ).addClass( 'current' );
         } );
     });
 })( jQuery, wc_gzd_admin_shipping_rules_params, wp, ajaxurl );

@@ -155,6 +155,7 @@ class ConfigurationSet {
 
 	public function update_product( $value ) {
 		$this->product = $value;
+		$this->update();
 	}
 
 	protected function current_product_supports_service( $id ) {
