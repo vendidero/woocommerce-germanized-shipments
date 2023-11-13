@@ -243,24 +243,28 @@ class ShippingMethod extends \WC_Shipping_Method {
 	}
 
     public function get_rule_conditional_operators() {
-	    return apply_filters( 'woocommerce_gzd_shipping_method_rule_conditional_operators', array(
+	    return apply_filters( 'woocommerce_gzd_shipping_rule_condition_operators', array(
 		    'is' => array(
-			    'label' => _x( 'is', 'shipments', 'woocommerce-germanized-shipments' ),
+			    'label'       => _x( 'is', 'shipments', 'woocommerce-germanized-shipments' ),
+                'is_negation' => false,
 		    ),
 		    'is_not' => array(
-			    'label' => _x( 'is not', 'shipments', 'woocommerce-germanized-shipments' ),
+			    'label'       => _x( 'is not', 'shipments', 'woocommerce-germanized-shipments' ),
+			    'is_negation' => true,
 		    ),
-		    'any' => array(
-			    'label' => _x( 'any', 'shipments', 'woocommerce-germanized-shipments' ),
+		    'any_of' => array(
+			    'label'       => _x( 'any of', 'shipments', 'woocommerce-germanized-shipments' ),
+			    'is_negation' => false,
 		    ),
-		    'none' => array(
-			    'label' => _x( 'none', 'shipments', 'woocommerce-germanized-shipments' ),
+		    'none_of' => array(
+			    'label'       => _x( 'none of', 'shipments', 'woocommerce-germanized-shipments' ),
+			    'is_negation' => true,
 		    ),
 	    ) );
     }
 
-    public function get_rule_types() {
-        return apply_filters( 'woocommerce_gzd_shipping_method_rule_types', array(
+    public function get_condition_types() {
+        return apply_filters( 'woocommerce_gzd_shipping_rule_condition_types', array(
 	        'always' => array(
 		        'label' => _x( 'Always', 'shipments', 'woocommerce-germanized-shipments' ),
 		        'fields' => array(),
@@ -302,7 +306,34 @@ class ShippingMethod extends \WC_Shipping_Method {
 	            ),
 	            'operators' => array( 'is', 'is_not' ),
             ),
+	        'shipping_class' => array(
+		        'label' => _x( 'Shipping Class', 'shipments', 'woocommerce-germanized-shipments' ),
+		        'fields' => array(
+			        'classes' => array(
+				        'type' => 'multiselect',
+				        'data_type' => 'array',
+                        'class' => 'wc-enhanced-select',
+				        'label' => _x( 'Class', 'shipments', 'woocommerce-germanized-shipments' ),
+                        'options' => function() {
+	                        $term_args = array(
+		                        'taxonomy'     => 'product_shipping_class',
+		                        'hide_empty'   => 0,
+		                        'orderby'      => 'name',
+		                        'hierarchical' => 0,
+		                        'fields'       => 'id=>name',
+	                        );
+
+                            return get_terms( $term_args );
+                        }
+			        ),
+		        ),
+		        'operators' => array( 'any_of', 'none_of' ),
+	        ),
         ) );
+    }
+
+    public function get_condition_type_options( $type ) {
+
     }
 
     public function get_conditional_operator( $operator ) {
@@ -315,11 +346,11 @@ class ShippingMethod extends \WC_Shipping_Method {
 	    return false;
     }
 
-    public function get_rule_type( $type ) {
-        $rule_types = $this->get_rule_types();
+    public function get_condition_type( $type ) {
+        $condition_types = $this->get_condition_types();
 
-        if ( array_key_exists( $type, $rule_types ) ) {
-            return $rule_types[ $type ];
+        if ( array_key_exists( $type, $condition_types ) ) {
+            return $condition_types[ $type ];
         }
 
         return false;
@@ -386,6 +417,7 @@ class ShippingMethod extends \WC_Shipping_Method {
                     $total        = 0;
                     $subtotal     = 0;
                     $products     = array();
+                    $shipping_classes = array();
 
                     foreach( $items as $item ) {
                         $cart_item = $item->getItem();
@@ -395,11 +427,16 @@ class ShippingMethod extends \WC_Shipping_Method {
 
                         if ( $product && ! array_key_exists( $product->get_id(), $products ) ) {
                             $products[ $product->get_id() ] = $product;
+
+                            if ( ! empty( $product->get_shipping_class_id() ) ) {
+	                            $shipping_classes[] = $product->get_shipping_class_id();
+                            }
                         }
                     }
 
-                    $total    = wc_remove_number_precision( $total );
-                    $subtotal = wc_remove_number_precision( $subtotal );
+                    $total            = wc_remove_number_precision( $total );
+                    $subtotal         = wc_remove_number_precision( $subtotal );
+                    $shipping_classes = array_unique( $shipping_classes );
 
                     $packaging_rules = $this->get_shipping_rules_by_packaging( $packaging->get_id() );
                     $package_data    = array(
@@ -410,6 +447,7 @@ class ShippingMethod extends \WC_Shipping_Method {
                         'item_count'   => $item_count,
                         'packaging_id' => $packaging->get_id(),
                         'products'     => $products,
+                        'shipping_classes' => $shipping_classes,
                     );
 
                     $package_applied_rules = array();
@@ -422,6 +460,21 @@ class ShippingMethod extends \WC_Shipping_Method {
                         if ( $rule_applies ) {
                             $applicable_rule_costs[] = $rule['costs'];
                             $package_applied_rules[] = $rule['rule_id'];
+                        }
+
+	                    /**
+	                     * In case a free shipping option is detected, stop + reset.
+	                     */
+                        if ( $rule_applies && 0.0 === $rule['costs'] ) {
+	                        $applicable_rule_costs = array(
+		                        $rule['costs']
+                            );
+
+	                        $package_applied_rules = array(
+		                        $rule['rule_id']
+                            );
+
+                            break;
                         }
                     }
 
@@ -505,11 +558,11 @@ class ShippingMethod extends \WC_Shipping_Method {
 
 	protected function parse_rule( $rule ) {
 	    $rule = wp_parse_args( $rule, array(
-		    'rule_id'   => '',
-		    'packaging' => '',
-		    'type'      => 'always',
-		    'costs'     => 0.0,
-		    'meta'      => array(),
+		    'rule_id'    => '',
+		    'packaging'  => '',
+		    'conditions' => array(),
+		    'costs'      => 0.0,
+		    'meta'       => array(),
 	    ) );
 
         $rule['costs'] = (float) wc_format_decimal( $rule['costs'] );
@@ -517,38 +570,87 @@ class ShippingMethod extends \WC_Shipping_Method {
         return $rule;
     }
 
+	protected function parse_rule_condition( $condition ) {
+		$condition = wp_parse_args( $condition, array(
+			'rule_id'      => '',
+            'condition_id' => '',
+			'type'         => '',
+            'operator'     => ''
+		) );
+
+		$condition['type']     = sanitize_key( $condition['type'] );
+		$condition['operator'] = sanitize_key( $condition['operator'] );
+
+		return $condition;
+	}
+
     protected function rule_applies( $rule, $package_data ) {
-        $rule_applies = false;
+        $rule_applies = true;
         $rule         = $this->parse_rule( $rule );
-        $package_data = wp_parse_args( $package_data, array(
-            'weight'    => 0.0,
-            'volume'    => 0.0,
-            'total'     => 0.0,
-            'subtotal'  => 0.0,
-            'products'  => array(),
-        ) );
+	    $package_data = wp_parse_args( $package_data, array(
+		    'weight'    => 0.0,
+		    'volume'    => 0.0,
+		    'total'     => 0.0,
+		    'subtotal'  => 0.0,
+		    'products'  => array(),
+	    ) );
 
-        if ( $rule_type = $this->get_rule_type( $rule['type'] ) ) {
-            $rule_type_name = sanitize_key( $rule['type'] );
+        foreach( $rule['conditions'] as $condition ) {
+            $condition         = $this->parse_rule_condition( $condition );
+            $condition_applies = false;
 
-            if ( has_filter( "woocommerce_gzd_shipping_rule_{$rule_type_name}_applies" ) ) {
-                $rule_applies = apply_filters( "woocommerce_gzd_shipping_rule_{$rule_type_name}_applies", $package_data, $rule );
-            } elseif ( 'always' === $rule_type_name ) {
-                $rule_applies = true;
-            } elseif ( 'weight' === $rule_type_name ) {
-                $from = isset( $rule['weight_from'] ) && ! empty( $rule['weight_from'] ) ? (float) wc_format_decimal( $rule['weight_from'] ) : 0.0;
-	            $to   = isset( $rule['weight_to'] ) && ! empty( $rule['weight_to'] ) ? (float) wc_format_decimal( $rule['weight_to'] ) : 0.0;
+	        if ( $condition_type = $this->get_condition_type( $condition['type'] ) ) {
+		        $condition_type_name = $condition['type'];
+                $operator_name       = $condition['operator'];
 
-                if ( $package_data['weight'] >= $from && ( $package_data['weight'] < $to || 0.0 === $to ) ) {
-                    $rule_applies = true;
+                if ( $operator = $this->get_conditional_operator( $operator_name ) ) {
+                    if ( $operator['is_negation'] ) {
+                        $condition_applies = true;
+                    }
                 }
-            } elseif ( 'total' === $rule_type_name ) {
-	            $from = isset( $rule['total_from'] ) && ! empty( $rule['total_from'] ) ? (float) wc_format_decimal( $rule['total_from'] ) : 0.0;
-	            $to   = isset( $rule['total_to'] ) && ! empty( $rule['total_to'] ) ? (float) wc_format_decimal( $rule['total_to'] ) : 0.0;
 
-	            if ( $package_data['total'] >= $from && ( $package_data['total'] < $to || 0.0 === $to ) ) {
-		            $rule_applies = true;
-	            }
+		        if ( has_filter( "woocommerce_gzd_shipping_rule_condition_{$condition_type_name}_applies" ) ) {
+			        $condition_applies = apply_filters( "woocommerce_gzd_shipping_rule_condition_{$condition_type_name}_applies", $package_data, $rule, $condition, $this );
+		        } elseif ( 'always' === $condition_type_name ) {
+			        $condition_applies = true;
+		        } elseif ( 'weight' === $condition_type_name ) {
+			        $from = isset( $condition['weight_from'] ) && ! empty( $condition['weight_from'] ) ? (float) wc_format_decimal( $condition['weight_from'] ) : 0.0;
+			        $to   = isset( $condition['weight_to'] ) && ! empty( $condition['weight_to'] ) ? (float) wc_format_decimal( $condition['weight_to'] ) : 0.0;
+
+			        if ( $package_data['weight'] >= $from && ( $package_data['weight'] < $to || 0.0 === $to ) ) {
+                        if ( 'is' === $operator_name ) {
+	                        $condition_applies = true;
+                        } elseif ( 'is_not' === $operator_name ) {
+                            $condition_applies = false;
+                        }
+			        }
+		        } elseif ( 'total' === $condition_type_name ) {
+			        $from = isset( $condition['total_from'] ) && ! empty( $condition['total_from'] ) ? (float) wc_format_decimal( $condition['total_from'] ) : 0.0;
+			        $to   = isset( $condition['total_to'] ) && ! empty( $condition['total_to'] ) ? (float) wc_format_decimal( $condition['total_to'] ) : 0.0;
+
+			        if ( $package_data['total'] >= $from && ( $package_data['total'] < $to || 0.0 === $to ) ) {
+				        if ( 'is' === $operator_name ) {
+					        $condition_applies = true;
+				        } elseif ( 'is_not' === $operator_name ) {
+					        $condition_applies = false;
+				        }
+			        }
+		        } elseif ( 'shipping_class' === $condition_type_name ) {
+			        $classes = isset( $condition['classes'] ) && ! empty( $condition['classes'] ) ? array_map( 'absint', (array) $condition['classes'] ) : array();
+
+                    if ( array_intersect( $package_data['shipping_classes'], $classes ) ) {
+	                    if ( 'any_of' === $operator_name ) {
+		                    $condition_applies = true;
+	                    } elseif ( 'none_of' === $operator_name ) {
+		                    $condition_applies = false;
+	                    }
+                    }
+                }
+	        }
+
+            if ( ! $condition_applies ) {
+                $rule_applies = false;
+                break;
             }
         }
 
@@ -614,7 +716,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 
 		$ids          = array_keys( $option_value['costs'] );
 		$rules        = array();
-		$rule_types   = $this->get_rule_types();
+		$condition_types = $this->get_condition_types();
 		$index        = 0;
 
 		foreach( $ids as $id ) {
@@ -634,40 +736,40 @@ class ShippingMethod extends \WC_Shipping_Method {
             $condition_index = 0;
 
             foreach( $conditions as $condition ) {
-                $rule_type = isset( $condition['type'] ) ? wc_clean( $condition['type'] ) : '';
+                $condition_type = isset( $condition['type'] ) ? wc_clean( $condition['type'] ) : '';
 
-                if ( ! array_key_exists( $rule_type, $rule_types ) ) {
+                if ( ! array_key_exists( $condition_type, $condition_types ) ) {
                     continue;
                 }
 
-	            $rule_type_data      = $rule_types[ $rule_type ];
-                $available_operators = $rule_type_data['operators'];
-                $operator            = isset( $condition['operator'][ $rule_type ] ) ? wc_clean( $condition['operator'][ $rule_type ] ) : '';
+	            $condition_type_data      = $condition_types[ $condition_type ];
+                $available_operators = $condition_type_data['operators'];
+                $operator            = isset( $condition['operator'][ $condition_type ] ) ? wc_clean( $condition['operator'][ $condition_type ] ) : '';
 	            $condition_id        = $condition_index++;
                 $default_operator    = empty( $available_operators ) ? '' : $available_operators[0];
 
 	            $new_condition = array(
 	                'rule_id'      => $rule_id,
-                    'type'         => $rule_type,
+                    'type'         => $condition_type,
                     'condition_id' => $condition_id,
                     'operator'     => in_array( $operator, $available_operators, true ) ? $operator : $default_operator,
                 );
 
-	            foreach( $rule_type_data['fields'] as $field_name => $field ) {
+	            foreach( $condition_type_data['fields'] as $field_name => $field ) {
 		            $field = wp_parse_args( $field, array(
 			            'type'            => '',
 			            'data_type'       => '',
 			            'data_validation' => '',
 		            ) );
 
-		            $validation_type     = empty( $field['data_validation'] ) ? $rule_type : $field['data_validation'];
+		            $validation_type     = empty( $field['data_validation'] ) ? $condition_type : $field['data_validation'];
 		            $rule[ $field_name ] = isset( $field['default'] ) ? $field['default'] : '';
 
 		            if ( isset( $condition[ $field_name ] ) ) {
 			            $value = wc_clean( $condition[ $field_name ] );
 
 			            if ( has_filter( "woocommerce_gzd_shipping_rule_validate_{$validation_type}" ) ) {
-				            $value = apply_filters( "woocommerce_gzd_shipping_rule_validate_{$validation_type}", $value, $field );
+				            $value = apply_filters( "woocommerce_gzd_shipping_rule_validate_{$validation_type}", $value, $field, $condition_type, $this );
 			            } else if ( 'weight' === $validation_type ) {
 				            $unit = get_option( 'woocommerce_weight_unit', 'kg' );
 
@@ -686,7 +788,9 @@ class ShippingMethod extends \WC_Shipping_Method {
 				            $value = wc_format_decimal( $value, wc_get_price_decimals(), true );
 			            } else if ( 'decimal' === $field['data_type'] ) {
 				            $value = wc_format_decimal( $value );
-			            }
+			            } else if ( 'array' === $field['data_type'] ) {
+                            $value = (array) $value;
+                        }
 
 			            $new_condition[ $field_name ] = $value;
 		            }
@@ -708,7 +812,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 	protected function generate_shipping_rules_html( $option_name, $option ) {
         ob_start();
         $field_key  = $this->get_field_key( 'shipping_rules' );
-        $rule_types = $this->get_rule_types();
+        $condition_types = $this->get_condition_types();
 		?>
 		<table class="widefat wc-gzd-shipments-shipping-rules">
 			<thead>
@@ -791,7 +895,7 @@ class ShippingMethod extends \WC_Shipping_Method {
         </script>
         <script type="text/html" id="tmpl-wc-gzd-shipments-shipping-rules-condition-row">
 	        <?php
-	        $rule_type_columns = array();
+	        $condition_type_columns = array();
 	        ?>
             <tr data-condition="{{ data.condition_id }}" class="rule-condition">
                 <td>
@@ -799,23 +903,23 @@ class ShippingMethod extends \WC_Shipping_Method {
                     <div class="conditions-column conditions-when">
                         <p class="form-field">
                             <label><?php echo esc_html_x( 'When', 'shipments', 'woocommerce-germanized-shipments' ); ?></label>
-                            <select name="<?php echo esc_attr( $field_key ); ?>[conditions][{{ data.rule_id }}][{{ data.condition_id }}][type]" class="shipping-rules-type" data-attribute="type">
-                                <?php foreach( $rule_types as $rule_type => $rule_type_data ) : ?>
-                                    <option value="<?php echo esc_attr( $rule_type ); ?>"><?php echo esc_html( $rule_type_data['label'] ); ?></option>
+                            <select name="<?php echo esc_attr( $field_key ); ?>[conditions][{{ data.rule_id }}][{{ data.condition_id }}][type]" class="shipping-rules-condition-type" data-attribute="type">
+                                <?php foreach( $condition_types as $condition_type => $condition_type_data ) : ?>
+                                    <option value="<?php echo esc_attr( $condition_type ); ?>"><?php echo esc_html( $condition_type_data['label'] ); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </p>
                     </div>
 
-	                <?php foreach( $rule_types as $rule_type => $rule_type_data ) :
-                        $operators = $rule_type_data['operators'];
+	                <?php foreach( $condition_types as $condition_type => $condition_type_data ) :
+                        $operators = $condition_type_data['operators'];
                         ?>
                         <?php if ( ! empty( $operators ) ) : ?>
                             <div class="conditions-column">
-                                <div class="shipping-rule-type-operator shipping-rules-type-container shipping-rules-type-container-<?php echo esc_attr( $rule_type ); ?>" data-rule-type="<?php echo esc_attr( $rule_type ); ?>">
+                                <div class="shipping-rule-condition-type-operator shipping-rules-condition-type-container shipping-rules-condition-type-container-<?php echo esc_attr( $condition_type ); ?>" data-condition-type="<?php echo esc_attr( $condition_type ); ?>">
                                     <p class="form-field">
                                         <label>&nbsp;</label>
-                                        <select name="<?php echo esc_attr( $field_key ); ?>[conditions][{{ data.rule_id }}][{{ data.condition_id }}][operator][<?php echo esc_attr( $rule_type ); ?>]" class="shipping-rules-operator" data-attribute="operator">
+                                        <select name="<?php echo esc_attr( $field_key ); ?>[conditions][{{ data.rule_id }}][{{ data.condition_id }}][operator][<?php echo esc_attr( $condition_type ); ?>]" class="shipping-rules-condition-operator" data-attribute="operator">
                                             <?php foreach( $operators as $operator ) : ?>
                                                 <option value="<?php echo esc_attr( $operator ); ?>"><?php echo esc_html( $this->get_conditional_operator( $operator )['label'] ); ?></option>
                                             <?php endforeach; ?>
@@ -827,25 +931,25 @@ class ShippingMethod extends \WC_Shipping_Method {
                         <?php
                         $index = 0;
 
-                        foreach( $rule_type_data['fields'] as $field_name => $field ) {
+                        foreach( $condition_type_data['fields'] as $field_name => $field ) {
                             $column_key = ++$index;
                             $column_key = isset( $field['column'] ) ? $field['column'] : $column_key;
 
-                            if ( ! isset( $rule_type_columns[ $column_key ] ) ) {
-                                $rule_type_columns[ $column_key ] = array();
+                            if ( ! isset( $condition_type_columns[ $column_key ] ) ) {
+	                            $condition_type_columns[ $column_key ] = array();
                             }
 
-                            if ( ! isset( $rule_type_columns[ $column_key ][ $rule_type ] ) ) {
-                                $rule_type_columns[ $column_key ][ $rule_type ] = array();
+                            if ( ! isset( $condition_type_columns[ $column_key ][ $condition_type ] ) ) {
+	                            $condition_type_columns[ $column_key ][ $condition_type ] = array();
                             }
 
-                            $rule_type_columns[ $column_key ][ $rule_type ][ $field_name ] = $field;
+	                        $condition_type_columns[ $column_key ][ $condition_type ][ $field_name ] = $field;
                         }
                     endforeach; ?>
 
-	                <?php foreach( $rule_type_columns as $column ) : ?>
+	                <?php foreach( $condition_type_columns as $column ) : ?>
                         <div class="conditions-column">
-                            <?php foreach( $column as $column_rule_type => $fields ) : ?>
+                            <?php foreach( $column as $column_condition_type => $fields ) : ?>
                                 <?php foreach( $fields as $field_name => $field ) :
                                     $data_type = isset( $field['data_type'] ) ? $field['data_type'] : '';
                                     $data_type_class = $data_type;
@@ -860,14 +964,28 @@ class ShippingMethod extends \WC_Shipping_Method {
                                         'custom_attributes' => array(),
                                         'type' => 'text',
                                         'class' => '',
+                                        'options' => array(),
                                         'value' => '{{data.' . $field_name . '}}',
                                     ) );
                                     $field['data_type'] = '';
                                     $field['class'] = $field['class'] . ' ' . $data_type_class;
                                     $field['custom_attributes'] = array_merge( $field['custom_attributes'], array( 'data-attribute' => $field_name ) );
                                     ?>
-                                    <div class="shipping-rules-type-container shipping-rules-type-container-<?php echo esc_attr( $column_rule_type ); ?>" data-rule-type="<?php echo esc_attr( $column_rule_type ); ?>">
-                                        <?php woocommerce_wp_text_input( $field ); ?>
+                                    <div class="shipping-rules-condition-type-container shipping-rules-condition-type-container-<?php echo esc_attr( $column_condition_type ); ?>" data-condition-type="<?php echo esc_attr( $column_condition_type ); ?>">
+                                        <?php
+                                            if ( 'text' === $field['type'] ) {
+	                                            woocommerce_wp_text_input( $field );
+                                            } elseif ( in_array( $field['type'], array( 'select', 'multiselect' ), true ) ) {
+                                                $field['options'] = is_callable( $field['options'] ) ? call_user_func( $field['options'] ) : (array) $field['options'];
+
+                                                if ( 'multiselect' === $field['type'] ) {
+                                                    $field['custom_attributes']['multiple'] = 'multiple';
+	                                                $field['name'] .= '[]';
+                                                }
+
+	                                            woocommerce_wp_select( $field );
+                                            }
+                                        ?>
                                     </div>
                                 <?php endforeach; ?>
                             <?php endforeach; ?>

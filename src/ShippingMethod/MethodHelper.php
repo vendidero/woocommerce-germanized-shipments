@@ -67,7 +67,7 @@ class MethodHelper {
 			$items = array();
 
 			foreach( $content['contents'] as $content_key => $data ) {
-				$cart_item     = new CartItem( $data );
+				$cart_item     = new CartItem( $data, wc()->cart->display_prices_including_tax() );
 				$product_group = '';
 
 				if ( $product = $cart_item->get_product() ) {

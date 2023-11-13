@@ -478,7 +478,7 @@ table.wc-gzd-shipments-shipping-rules {
           flex-wrap: wrap;
           align-items: baseline;
 
-          .shipping-rules-type-container {
+          .shipping-rules-condition-type-container {
             input {
               max-width: 80px;
             }
@@ -500,6 +500,23 @@ table.wc-gzd-shipments-shipping-rules {
 
               .button {
                 margin-top: 0;
+              }
+            }
+
+            .select2-container {
+              min-width: 180px;
+              min-height: 28px;
+
+              .select2-search__field {
+                height: 28px;
+              }
+
+              .select2-search--inline {
+                margin: 0;
+              }
+
+              .select2-selection--multiple ul.select2-selection__rendered {
+                display: block;
               }
             }
           }

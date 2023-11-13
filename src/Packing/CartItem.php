@@ -30,10 +30,11 @@ class CartItem implements PackingItem {
 	 * Box constructor.
 	 *
 	 * @param array $item
+	 * @param boolean $incl_taxes
 	 *
 	 * @throws \Exception
 	 */
-	public function __construct( $item ) {
+	public function __construct( $item, $incl_taxes = false ) {
 		$this->item = $item;
 
 		if ( ! isset( $this->item['data'] ) || ! is_a( $this->item['data'], 'WC_Product' ) ) {
@@ -55,8 +56,16 @@ class CartItem implements PackingItem {
 		$weight       = empty( $this->product->get_weight() ) ? 0 : wc_format_decimal( $this->product->get_weight() );
 		$this->weight = (int) wc_get_weight( $weight, 'g' );
 
-		$this->total    = $this->item['quantity'] > 0 ? (float) wc_add_number_precision( $this->item['line_total'] ) / (float) $this->item['quantity'] : 0;
-		$this->subtotal = $this->item['quantity'] > 0 ? (float) wc_add_number_precision( $this->item['line_subtotal'] ) / (float) $this->item['quantity'] : 0;
+		$line_total    = (float) wc_add_number_precision( $this->item['line_total'] );
+		$line_subtotal = (float) wc_add_number_precision( $this->item['line_subtotal'] );
+
+		if ( $incl_taxes ) {
+			$line_total    += (float) wc_add_number_precision( $this->item['line_tax'] );
+			$line_subtotal += (float) wc_add_number_precision( $this->item['line_subtotal_tax'] );
+		}
+
+		$this->total    = $this->item['quantity'] > 0 ? $line_total / (float) $this->item['quantity'] : 0;
+		$this->subtotal = $this->item['quantity'] > 0 ? $line_subtotal / (float) $this->item['quantity'] : 0;
 	}
 
 	/**

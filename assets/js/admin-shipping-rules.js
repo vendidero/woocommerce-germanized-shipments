@@ -18,8 +18,6 @@
                     var currentRules = { ...this.get( 'rules' ) };
                     currentRules[ String( packaging ) ] = rules;
 
-                    console.log(currentRules);
-
                     this.set( 'rules', currentRules );
                 },
                 updateConditions: function( conditions, packaging, ruleId ) {
@@ -33,8 +31,6 @@
 
                     rule['conditions'] = conditions;
                     currentRules[ String( packaging ) ][ theRuleId ] = rule;
-
-                    console.log(currentRules);
 
                     this.set( 'rules', currentRules );
                 },
@@ -116,20 +112,43 @@
 
                     view.initRow( rowData );
                 },
-                initRow: function( rowData ) {
-                    var view = this,
-                        $tr = view.$el.find( 'tr[data-id="' + rowData.rule_id + '"]'),
-                        $tbody = $tr.parents( 'tbody' );
+                initFields: function( $tr, rowData ) {
+                    $( document.body ).trigger( 'wc-enhanced-select-init' );
 
-                    // Support select boxes
+                    // Support select2 select boxes
                     $tr.find( 'select' ).each( function() {
                         var attribute = $( this ).data( 'attribute' );
-                        $( this ).find( 'option[value="' + rowData[ attribute ] + '"]' ).prop( 'selected', true );
+
+                        if ( ! rowData[ attribute ] ) {
+                            return;
+                        }
+
+                        var selected  = Array.isArray( rowData[ attribute ] ) ? rowData[ attribute ] : Array( String( rowData[ attribute ] ) ),
+                            $select = $( this );
+
+                        $.each( selected, function( i, sel ) {
+                            $isSelected = $select.find( 'option[value="' + String( sel ) + '"]' );
+
+                            if ( $isSelected.length > 0 ) {
+                                $isSelected.prop( 'selected', true );
+                            }
+                        } );
+
+                        if ( $select.hasClass( 'enhanced' ) ) {
+                            $select.trigger( 'change' );
+                        }
                     } );
 
                     $tr.find( 'input.decimal' ).on( 'change', { view: this }, this.onChangeDecimal );
                     $tr.find( 'input.wc_input_price' ).on( 'change', { view: this }, this.onChangePrice );
                     $tr.find( 'input.decimal, input.wc_input_price' ).trigger( 'change' );
+                },
+                initRow: function( rowData ) {
+                    var view = this,
+                        $tr = view.$el.find( 'tr[data-id="' + rowData.rule_id + '"]'),
+                        $tbody = $tr.parents( 'tbody' );
+
+                    view.initFields( $tr, rowData );
 
                     $tr.find( '.shipping-rule-remove' ).on( 'click', { view: this }, this.onDeleteRow );
                     $tr.find( '.shipping-rule-add' ).on( 'click', { view: this }, this.onAddRow );
@@ -151,7 +170,6 @@
                         }
                     }
 
-                    $( document.body ).trigger( 'wc-enhanced-select-init' );
                     $( document.body ).trigger( 'init_tooltips' );
                 },
                 onChangeDecimal: function( event ) {
@@ -215,8 +233,6 @@
                         index++;
                     } );
 
-                    console.log(newRow);
-
                     rules[ 'rule_' + newRow.rule_id ] = newRow;
                     model.updateRules( rules, view.packaging );
 
@@ -250,8 +266,6 @@
                     } else if ( value && $target.hasClass( 'wc_input_price' ) ) {
                         value = parseFloat( value.replace( data.price_decimal_separator, '.' ) );
                     }
-
-                    console.log(attribute);
 
                     if ( ! rules[ rule_index ] || String( rules[ rule_index ][ attribute ] ) !== String( value ) ) {
                         rules[ rule_index ][ attribute ] = value;
@@ -318,11 +332,7 @@
                     $tr = view.$el.find( 'tr[data-condition="' + rowData.condition_id + '"]'),
                     $tbody = $tr.parents( 'tbody' );
 
-                // Support select boxes
-                $tr.find( 'select' ).each( function() {
-                    var attribute = $( this ).data( 'attribute' );
-                    $( this ).find( 'option[value="' + rowData[ attribute ] + '"]' ).prop( 'selected', true );
-                } );
+                view.initFields( $tr, rowData );
 
                 if ( 0 === $tr.index() ) {
                     $tr.find( '.condition-remove' ).hide();
@@ -332,17 +342,12 @@
                 $tr.find( '.shipping-rules-type-container' ).hide();
                 $tr.find( '.conditions-column:not(.conditions-when,.conditions-actions)' ).hide();
 
-                $tr.find( '.shipping-rules-type' ).on( 'change', { view: this }, this.onChangeRuleType );
-                $tr.find( '.shipping-rules-type' ).trigger( 'change' );
-
-                $tr.find( 'input.decimal' ).on( 'change', { view: this }, this.onChangeDecimal );
-                $tr.find( 'input.wc_input_price' ).on( 'change', { view: this }, this.onChangePrice );
-                $tr.find( 'input.decimal, input.wc_input_price' ).trigger( 'change' );
+                $tr.find( '.shipping-rules-condition-type' ).on( 'change', { view: this }, this.onChangeRuleType );
+                $tr.find( '.shipping-rules-condition-type' ).trigger( 'change' );
 
                 $tr.find( '.condition-remove' ).on( 'click', { view: this }, this.onDeleteRow );
                 $tr.find( '.condition-add' ).on( 'click', { view: this }, this.onAddRow );
 
-                $( document.body ).trigger( 'wc-enhanced-select-init' );
                 $( document.body ).trigger( 'init_tooltips' );
             },
             onChangeRuleType: function( event ) {
@@ -350,18 +355,18 @@
                     rule    = $( this ).val(),
                     view    = event.data.view;
 
-                $tr.find( '.shipping-rules-type-container' ).hide();
+                $tr.find( '.shipping-rules-condition-type-container' ).hide();
                 $tr.find( '.conditions-column:not(.conditions-when,.conditions-actions)' ).hide();
-                $tr.find( '.shipping-rules-type-container-' + rule ).show();
+                $tr.find( '.shipping-rules-condition-type-container-' + rule ).show();
 
-                if ( $tr.find( '.shipping-rules-type-container-' + rule + '.shipping-rule-type-operator :input' ).length > 0 ) {
-                    $tr.find( '.shipping-rules-type-container-' + rule + '.shipping-rule-type-operator :input' ).trigger( 'change' );
+                if ( $tr.find( '.shipping-rules-condition-type-container-' + rule + '.shipping-rule-condition-type-operator :input' ).length > 0 ) {
+                    $tr.find( '.shipping-rules-condition-type-container-' + rule + '.shipping-rule-condition-type-operator :input' ).trigger( 'change' );
                 } else {
                     view.updateModel( $tr.data( 'condition' ), 'operator', '' );
                 }
 
-                $tr.find( '.shipping-rules-type-container-' + rule + '.shipping-rule-type-operator :input' ).trigger( 'change' );
-                $tr.find( '.shipping-rules-type-container-' + rule ).parents( '.conditions-column' ).show();
+                $tr.find( '.shipping-rules-condition-type-container-' + rule + '.shipping-rule-condition-type-operator :input' ).trigger( 'change' );
+                $tr.find( '.shipping-rules-condition-type-container-' + rule ).parents( '.conditions-column' ).show();
             },
             updateModel: function( conditionId, attribute, value ) {
                 var model      = this.model,
