@@ -87,7 +87,7 @@ class Admin {
 	 * @param array $metas
 	 */
 	public static function set_order_meta_hidden( $metas ) {
-		array_push( $metas, 'shipping_provider' );
+		$metas = array_merge( $metas, array( 'shipping_provider', '_shipping_provider' ) );
 
 		return $metas;
 	}

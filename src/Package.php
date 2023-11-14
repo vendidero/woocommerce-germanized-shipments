@@ -73,7 +73,7 @@ class Package {
 
 	public static function manipulate_shipping_rates( $args, $method ) {
 		if ( $method = wc_gzd_get_shipping_provider_method( $method ) ) {
-			$args['meta_data']['shipping_provider'] = $method->get_provider();
+			$args['meta_data']['_shipping_provider'] = $method->get_provider();
 		}
 
 		return $args;
