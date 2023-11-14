@@ -308,16 +308,22 @@ table.wc-gzd-shipments-shipping-rules tbody td.conditions .inner-conditions {
 
 table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: baseline; }
   table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns .shipping-rules-condition-type-container input {
     max-width: 80px; }
   table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns .conditions-column {
-    margin-right: 5px; }
+    padding-right: .75em; }
     table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns .conditions-column.conditions-when {
       width: 30%; }
-      table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns .conditions-column.conditions-when select {
-        width: 100%; }
+    table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns .conditions-column.conditions-operator {
+      width: 15%; }
+    table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns .conditions-column p.form-field input {
+      width: 100%;
+      margin: 0; }
+    table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns .conditions-column p.form-field select {
+      width: 100%;
+      max-width: 100%; }
     table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns .conditions-column.conditions-actions {
       margin-left: auto; }
       table.wc-gzd-shipments-shipping-rules tbody td.conditions .conditions-columns .conditions-column.conditions-actions .button {

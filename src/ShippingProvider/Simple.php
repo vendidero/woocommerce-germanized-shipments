@@ -1208,7 +1208,7 @@ class Simple extends WC_Data implements ShippingProvider {
 				$this->products->add( new Product( $this, $args ) );
 
 				return true;
-			} catch( Exception $e ) {
+			} catch ( Exception $e ) {
 				return new \WP_Error( 'register-product', $e->getMessage() );
 			}
 		}
@@ -1265,7 +1265,7 @@ class Simple extends WC_Data implements ShippingProvider {
 				$this->print_formats->add( new PrintFormat( $this, $args ) );
 
 				return true;
-			} catch( Exception $e ) {
+			} catch ( Exception $e ) {
 				return new \WP_Error( 'register-print-format', $e->getMessage() );
 			}
 		}
@@ -1325,7 +1325,7 @@ class Simple extends WC_Data implements ShippingProvider {
 				$this->services->add( new Service( $this, $args ) );
 
 				return true;
-			} catch( Exception $e ) {
+			} catch ( Exception $e ) {
 				return new \WP_Error( 'register-service', $e->getMessage() );
 			}
 		}

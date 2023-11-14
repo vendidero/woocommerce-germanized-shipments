@@ -54,21 +54,21 @@ class Install {
 					$services[ $service_name ] = $value;
 				}
 			} elseif ( 'label_visual_min_age' === $setting_name ) {
-				$service_name = 'VisualCheckOfAge';
+				$service_name              = 'VisualCheckOfAge';
 				$services[ $service_name ] = 'yes';
 
 				$service_meta[ $service_name ] = array(
 					'min_age' => $value,
 				);
 			} elseif ( 'label_ident_min_age' === $setting_name ) {
-				$service_name   = 'IdentCheck';
+				$service_name              = 'IdentCheck';
 				$services[ $service_name ] = 'yes';
 
 				$service_meta[ $service_name ] = array(
 					'min_age' => $value,
 				);
 			} elseif ( 'label_auto_inlay_return_label' === $setting_name ) {
-				$service_name   = 'dhlRetoure';
+				$service_name              = 'dhlRetoure';
 				$services[ $service_name ] = 'yes';
 			}
 		}
@@ -90,22 +90,30 @@ class Install {
 	 * @throws \Exception
 	 */
 	protected static function create_configuration_set_from_migration_data( $config_set_data, $handler, $provider, $shipment_type = 'simple' ) {
-		foreach( $config_set_data['products'] as $zone => $product ) {
-			$config_set = $handler->get_or_create_configuration_set( array(
-				'shipping_provider_name' => $provider->get_name(),
-				'shipment_type'          => $shipment_type,
-				'zone'                   => $zone,
-			) );
+		foreach ( $config_set_data['products'] as $zone => $product ) {
+			$config_set = $handler->get_or_create_configuration_set(
+				array(
+					'shipping_provider_name' => $provider->get_name(),
+					'shipment_type'          => $shipment_type,
+					'zone'                   => $zone,
+				)
+			);
 
 			$config_set->update_product( $product );
 
-			foreach( $config_set_data['services'] as $service_name => $value ) {
+			foreach ( $config_set_data['services'] as $service_name => $value ) {
 				if ( $p_service = $provider->get_service( $service_name ) ) {
-					if ( $p_service->supports( array( 'product_id' => $product, 'zone' => $zone, 'shipment_type' => 'simple' ) ) ) {
+					if ( $p_service->supports(
+						array(
+							'product_id'    => $product,
+							'zone'          => $zone,
+							'shipment_type' => 'simple',
+						)
+					) ) {
 						$config_set->update_service( $service_name, $value );
 
 						if ( array_key_exists( $service_name, $config_set_data['service_meta'] ) ) {
-							foreach( $config_set_data['service_meta'][ $service_name ] as $k => $v ) {
+							foreach ( $config_set_data['service_meta'][ $service_name ] as $k => $v ) {
 								$config_set->update_service_meta( $service_name, $k, $v );
 							}
 						}
@@ -125,7 +133,7 @@ class Install {
 				if ( is_callable( array( $provider, 'get_configuration_sets' ) ) ) {
 					$config_data = array();
 
-					foreach( $provider->get_meta_data() as $meta ) {
+					foreach ( $provider->get_meta_data() as $meta ) {
 						$setting_name = $meta->key;
 						$value        = $meta->value;
 
@@ -147,7 +155,7 @@ class Install {
 
 		foreach ( \WC_Shipping_Zones::get_zones() as $zone_data ) {
 			if ( $zone = \WC_Shipping_Zones::get_zone( $zone_data['id'] ) ) {
-				foreach( $zone->get_shipping_methods() as $method ) {
+				foreach ( $zone->get_shipping_methods() as $method ) {
 					if ( $shipment_method = MethodHelper::get_provider_method( $method ) ) {
 						if ( $shipment_method->is_placeholder() || ! $shipment_method->get_method()->supports( 'instance-settings' ) ) {
 							continue;
@@ -168,8 +176,8 @@ class Install {
 								$settings_prefix = "{$provider_name}_";
 								$config_data     = array();
 
-								foreach( $settings as $setting_name => $value ) {
-									if ( $settings_prefix === substr( $setting_name, 0, strlen( $settings_prefix ) ) ) {
+								foreach ( $settings as $setting_name => $value ) {
+									if ( substr( $setting_name, 0, strlen( $settings_prefix ) ) === $settings_prefix ) {
 										$setting_name = substr( $setting_name, strlen( $settings_prefix ) );
 										$config_data  = array_replace_recursive( $config_data, self::get_configuration_set_data( $setting_name, $value ) );
 									}

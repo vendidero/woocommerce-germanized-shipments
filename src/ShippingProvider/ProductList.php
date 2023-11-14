@@ -19,7 +19,7 @@ class ProductList implements \Countable, \ArrayAccess, \Iterator {
 	public function __construct( $products = array() ) {
 		$this->position = 0;
 
-		foreach( $products as $product ) {
+		foreach ( $products as $product ) {
 			$this->add( $product );
 		}
 	}
@@ -30,7 +30,7 @@ class ProductList implements \Countable, \ArrayAccess, \Iterator {
 	 * @return void
 	 */
 	public function add( $product ) {
-		$this->list[ $product->get_id() ] = $product;
+		$this->list[ $product->get_id() ]                     = $product;
 		$this->internal_id_map[ $product->get_internal_id() ] = $product->get_id();
 	}
 
@@ -103,7 +103,7 @@ class ProductList implements \Countable, \ArrayAccess, \Iterator {
 	public function filter( $filter_args = array() ) {
 		$products = new ProductList();
 
-		foreach( $this->list as $product_id => $product ) {
+		foreach ( $this->list as $product_id => $product ) {
 			$include_product = $product->supports( $filter_args );
 
 			if ( $include_product ) {
@@ -117,7 +117,7 @@ class ProductList implements \Countable, \ArrayAccess, \Iterator {
 	public function as_options() {
 		$options = array();
 
-		foreach( $this->list as $product_id => $product ) {
+		foreach ( $this->list as $product_id => $product ) {
 			$options[ $product_id ] = $product->get_label();
 		}
 

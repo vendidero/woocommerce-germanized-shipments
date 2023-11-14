@@ -55,17 +55,17 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 	 * @var array
 	 */
 	protected $data = array(
-		'date_created'       => null,
-		'weight'             => 0,
-		'max_content_weight' => 0,
-		'width'              => 0,
-		'height'             => 0,
-		'length'             => 0,
-		'order'              => 0,
-		'type'               => '',
-		'description'        => '',
+		'date_created'                => null,
+		'weight'                      => 0,
+		'max_content_weight'          => 0,
+		'width'                       => 0,
+		'height'                      => 0,
+		'length'                      => 0,
+		'order'                       => 0,
+		'type'                        => '',
+		'description'                 => '',
 		'available_shipping_provider' => array(),
-		'configuration_sets' => array(),
+		'configuration_sets'          => array(),
 	);
 
 	/**

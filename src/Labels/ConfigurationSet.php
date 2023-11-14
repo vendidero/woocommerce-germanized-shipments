@@ -39,27 +39,30 @@ class ConfigurationSet {
 	 * @param LabelConfigurationSet|null $handler
 	 */
 	public function __construct( $args = array(), $handler = null ) {
-		$args = wp_parse_args( $args, array(
-			'shipping_provider_name' => '',
-			'shipment_type' => 'simple',
-			'setting_type' => 'shipping_provider',
-			'zone' => 'dom',
-			'product'    => '',
-			'services'   => array(),
-			'additional' => array(),
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'shipping_provider_name' => '',
+				'shipment_type'          => 'simple',
+				'setting_type'           => 'shipping_provider',
+				'zone'                   => 'dom',
+				'product'                => '',
+				'services'               => array(),
+				'additional'             => array(),
+			)
+		);
 
-		$this->handler                = is_a( $handler, '\Vendidero\Germanized\Shipments\Interfaces\LabelConfigurationSet' ) ? $handler : null;
+		$this->handler       = is_a( $handler, '\Vendidero\Germanized\Shipments\Interfaces\LabelConfigurationSet' ) ? $handler : null;
 		$this->shipment_type = $args['shipment_type'];
-		$this->setting_type = $args['setting_type'];
-		$this->zone = $args['zone'];
+		$this->setting_type  = $args['setting_type'];
+		$this->zone          = $args['zone'];
 
 		$this->product    = $args['product'];
 		$this->services   = $args['services'];
 		$this->additional = $args['additional'];
 
 		if ( is_a( $args['shipping_provider_name'], '\Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
-			$this->shipping_provider = $args['shipping_provider_name'];
+			$this->shipping_provider      = $args['shipping_provider_name'];
 			$this->shipping_provider_name = $this->shipping_provider->get_name();
 		} else {
 			$this->shipping_provider_name = $args['shipping_provider_name'];
@@ -94,7 +97,7 @@ class ConfigurationSet {
 
 	public function set_shipping_provider_name( $provider_name ) {
 		$this->shipping_provider_name = $provider_name;
-		$this->shipping_provider = null;
+		$this->shipping_provider      = null;
 	}
 
 	public function get_shipping_provider() {
@@ -216,11 +219,14 @@ class ConfigurationSet {
 		}
 
 		if ( array_key_exists( $service, $this->services ) ) {
-			return wp_parse_args( $this->services[ $service ], array(
-				'id'    => '',
-				'name'  => '',
-				'value' => null,
-			) );
+			return wp_parse_args(
+				$this->services[ $service ],
+				array(
+					'id'    => '',
+					'name'  => '',
+					'value' => null,
+				)
+			);
 		}
 
 		return false;
@@ -304,8 +310,8 @@ class ConfigurationSet {
 	}
 
 	public function get_setting( $id, $default = null, $group = '' ) {
-		$details    = $this->get_setting_details( $id );
-		$settings   = $this->get_settings();
+		$details  = $this->get_setting_details( $id );
+		$settings = $this->get_settings();
 
 		if ( '' === $group && ! empty( $details['group'] ) ) {
 			$group = $details['group'];
@@ -367,13 +373,13 @@ class ConfigurationSet {
 
 	public function get_data() {
 		return array(
-			'product' => $this->product,
-			'services' => $this->services,
-			'additional' => $this->additional,
-			'shipment_type' => $this->get_shipment_type(),
+			'product'                => $this->product,
+			'services'               => $this->services,
+			'additional'             => $this->additional,
+			'shipment_type'          => $this->get_shipment_type(),
 			'shipping_provider_name' => $this->get_shipping_provider_name(),
-			'zone' => $this->get_zone(),
-			'setting_type' => $this->get_setting_type()
+			'zone'                   => $this->get_zone(),
+			'setting_type'           => $this->get_setting_type(),
 		);
 	}
 }

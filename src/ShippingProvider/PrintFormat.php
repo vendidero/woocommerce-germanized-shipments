@@ -26,20 +26,23 @@ class PrintFormat {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		if ( is_a( $shipping_provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
-			$this->shipping_provider = $shipping_provider;
+			$this->shipping_provider      = $shipping_provider;
 			$this->shipping_provider_name = $shipping_provider->get_name();
 		} else {
 			$this->shipping_provider_name = $shipping_provider;
 		}
 
-		$args = wp_parse_args( $args, array(
-			'id'          => '',
-			'name'        => '',
-			'label'       => '',
-			'description' => '',
-			'products'    => null,
-			'supported_shipment_types' => wc_gzd_get_shipment_types(),
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'id'                       => '',
+				'name'                     => '',
+				'label'                    => '',
+				'description'              => '',
+				'products'                 => null,
+				'supported_shipment_types' => wc_gzd_get_shipment_types(),
+			)
+		);
 
 		if ( empty( $args['id'] ) ) {
 			$args['id'] = sanitize_key( $args['label'] );
@@ -49,10 +52,10 @@ class PrintFormat {
 			throw new \Exception( _x( 'A print format needs an id.', 'shipments', 'woocommerce-germanized-shipments' ), 500 );
 		}
 
-		$this->id          = $args['id'];
-		$this->label       = $args['label'];
-		$this->description = $args['description'];
-		$this->products    = is_null( $args['products'] ) ? null: array_filter( (array) $args['products'] );
+		$this->id                       = $args['id'];
+		$this->label                    = $args['label'];
+		$this->description              = $args['description'];
+		$this->products                 = is_null( $args['products'] ) ? null : array_filter( (array) $args['products'] );
 		$this->supported_shipment_types = array_filter( (array) $args['supported_shipment_types'] );
 	}
 
@@ -100,13 +103,16 @@ class PrintFormat {
 	}
 
 	public function supports( $filter_args = array() ) {
-		$filter_args = wp_parse_args( $filter_args, array(
-			'shipment'      => false,
-			'shipment_type' => '',
-			'product'       => '',
-			'products'      => array(),
-			'product_id'    => '',
-		) );
+		$filter_args = wp_parse_args(
+			$filter_args,
+			array(
+				'shipment'      => false,
+				'shipment_type' => '',
+				'product'       => '',
+				'products'      => array(),
+				'product_id'    => '',
+			)
+		);
 
 		if ( ! empty( $filter_args['product_id'] ) ) {
 			$filter_args['products'] = array_merge( $filter_args['products'], (array) $filter_args['product_id'] );
@@ -121,7 +127,7 @@ class PrintFormat {
 		if ( $include && ! empty( $filter_args['shipment'] ) && ( $shipment = wc_gzd_get_shipment( $filter_args['shipment'] ) ) ) {
 			$include = $this->supports_shipment( $shipment );
 
-			$filter_args['shipment_type']  = '';
+			$filter_args['shipment_type'] = '';
 		}
 
 		if ( $include && ! empty( $filter_args['shipment_type'] ) && ! $this->supports_shipment_type( $filter_args['shipment_type'] ) ) {
@@ -131,7 +137,7 @@ class PrintFormat {
 		if ( $include && ! empty( $filter_args['products'] ) ) {
 			$supports_product = false;
 
-			foreach( $filter_args['products'] as $product_id ) {
+			foreach ( $filter_args['products'] as $product_id ) {
 				if ( $this->supports_product( $product_id ) ) {
 					$supports_product = true;
 					break;

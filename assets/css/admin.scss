@@ -475,7 +475,7 @@ table.wc-gzd-shipments-shipping-rules {
 
         .conditions-columns {
           display: flex;
-          flex-wrap: wrap;
+          flex-wrap: nowrap;
           align-items: baseline;
 
           .shipping-rules-condition-type-container {
@@ -485,13 +485,25 @@ table.wc-gzd-shipments-shipping-rules {
           }
 
           .conditions-column {
-            margin-right: 5px;
+            padding-right: .75em;
 
             &.conditions-when {
               width: 30%;
+            }
+
+            &.conditions-operator {
+              width: 15%;
+            }
+
+            p.form-field {
+              input {
+                width: 100%;
+                margin: 0;
+              }
 
               select {
                 width: 100%;
+                max-width: 100%;
               }
             }
 

@@ -22,19 +22,25 @@ trait ConfigurationSetTrait {
 
 	protected function get_configuration_set_default_args( $args ) {
 		if ( is_array( $args ) ) {
-			$args = wp_parse_args( $args, array(
-				'shipping_provider_name' => '',
-				'shipment_type'          => 'simple',
-				'zone'                   => 'dom',
-				'setting_type'           => $this->get_configuration_set_setting_type(),
-			) );
+			$args = wp_parse_args(
+				$args,
+				array(
+					'shipping_provider_name' => '',
+					'shipment_type'          => 'simple',
+					'zone'                   => 'dom',
+					'setting_type'           => $this->get_configuration_set_setting_type(),
+				)
+			);
 		} elseif ( is_a( $args, 'Vendidero\Germanized\Shipments\Shipment' ) ) {
-			$args = wp_parse_args( $args, array(
-				'shipping_provider_name' => $args->get_shipping_provider(),
-				'shipment_type'          => $args->get_type(),
-				'zone'                   => $args->get_shipping_zone(),
-				'setting_type'           => $this->get_configuration_set_setting_type(),
-			) );
+			$args = wp_parse_args(
+				$args,
+				array(
+					'shipping_provider_name' => $args->get_shipping_provider(),
+					'shipment_type'          => $args->get_type(),
+					'zone'                   => $args->get_shipping_zone(),
+					'setting_type'           => $this->get_configuration_set_setting_type(),
+				)
+			);
 		} else {
 			$args = $this->get_configuration_set_args_by_id( $args );
 		}
@@ -130,11 +136,13 @@ trait ConfigurationSetTrait {
 	 */
 	public function update_configuration_set( $set ) {
 		$configuration_sets = $this->get_configuration_sets( 'edit' );
-		$set_id             = $this->get_configuration_set_id( array(
-			'shipping_provider_name' => $set->get_shipping_provider_name(),
-			'shipment_type'          => $set->get_shipment_type(),
-			'zone'                   => $set->get_zone(),
-		) );
+		$set_id             = $this->get_configuration_set_id(
+			array(
+				'shipping_provider_name' => $set->get_shipping_provider_name(),
+				'shipment_type'          => $set->get_shipment_type(),
+				'zone'                   => $set->get_zone(),
+			)
+		);
 
 		$configuration_sets[ $set_id ] = $set->get_data();
 
@@ -196,15 +204,18 @@ trait ConfigurationSetTrait {
 	}
 
 	public function reset_configuration_sets( $args ) {
-		$args = wp_parse_args( $args, array(
-			'shipping_provider_name' => '',
-			'shipment_type'          => '',
-			'zone'                   => '',
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'shipping_provider_name' => '',
+				'shipment_type'          => '',
+				'zone'                   => '',
+			)
+		);
 
 		$id_prefix = '';
 
-		foreach( $args as $arg => $value ) {
+		foreach ( $args as $arg => $value ) {
 			if ( empty( $value ) ) {
 				continue;
 			}
@@ -223,8 +234,8 @@ trait ConfigurationSetTrait {
 		} else {
 			$configuration_sets = $this->get_configuration_sets( 'edit' );
 
-			foreach( $configuration_sets as $set_id => $set ) {
-				if ( $id_prefix === substr( $set_id, 0, strlen( $id_prefix ) ) ) {
+			foreach ( $configuration_sets as $set_id => $set ) {
+				if ( substr( $set_id, 0, strlen( $id_prefix ) ) === $id_prefix ) {
 					unset( $configuration_sets[ $set_id ] );
 				}
 			}

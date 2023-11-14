@@ -220,7 +220,7 @@ class Helper {
 		if ( is_null( $this->available_shipping_providers ) || is_null( $this->shipping_providers ) ) {
 			$this->available_shipping_providers = array();
 
-			foreach( $this->get_shipping_providers() as $name => $shipping_provider ) {
+			foreach ( $this->get_shipping_providers() as $name => $shipping_provider ) {
 				if ( $shipping_provider->is_activated() ) {
 					$this->available_shipping_providers[ $name ] = $shipping_provider;
 				}

@@ -18,7 +18,4 @@ defined( 'ABSPATH' ) || exit;
  * @author      Vendidero
  */
 class ProviderMethodPlaceholder extends ProviderMethod {
-	public function __construct( $args ) {
-		parent::__construct( $args );
-	}
 }

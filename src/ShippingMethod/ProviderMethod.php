@@ -40,10 +40,13 @@ class ProviderMethod implements LabelConfigurationSet {
 			$this->id          = $this->method->id;
 			$this->instance_id = $this->method->get_instance_id();
 		} elseif ( is_array( $method ) ) {
-			$method = wp_parse_args( $method, array(
-				'id'          => '',
-				'instance_id' => 0,
-			) );
+			$method = wp_parse_args(
+				$method,
+				array(
+					'id'          => '',
+					'instance_id' => 0,
+				)
+			);
 
 			$this->is_placeholder = true;
 			$this->id             = $method['id'];

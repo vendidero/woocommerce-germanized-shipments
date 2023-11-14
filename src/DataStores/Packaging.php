@@ -503,9 +503,9 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 	 * @return \Vendidero\Germanized\Shipments\Packaging[]
 	 */
 	public function get_packaging_list( $args = array() ) {
-		$the_list      = $this->get_all_packaging();
-		$all_types     = array_keys( wc_gzd_get_packaging_types() );
-		$args          = wp_parse_args(
+		$the_list  = $this->get_all_packaging();
+		$all_types = array_keys( wc_gzd_get_packaging_types() );
+		$args      = wp_parse_args(
 			$args,
 			array(
 				'type'              => $all_types,

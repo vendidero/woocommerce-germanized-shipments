@@ -72,10 +72,13 @@ class Automation {
 	 * @param boolean $is_hook
 	 */
 	protected static function init_automation( $shipment, $args = array() ) {
-		$args = wp_parse_args( $args, array(
-			'is_hook'             => true,
-			'allow_deferred_sync' => wc_gzd_shipments_allow_deferred_sync( 'label' ),
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'is_hook'             => true,
+				'allow_deferred_sync' => wc_gzd_shipments_allow_deferred_sync( 'label' ),
+			)
+		);
 
 		$disable = false;
 
@@ -106,9 +109,14 @@ class Automation {
 				$status = str_replace( 'gzd-', '', $auto_status );
 
 				if ( $args['is_hook'] ) {
-					add_action( $hook_prefix . $status, function( $shipment_id, $shipment ) use( $args ) {
-						self::maybe_create_label( $shipment_id, $shipment, $args );
-					}, 5, 2 );
+					add_action(
+						$hook_prefix . $status,
+						function( $shipment_id, $shipment ) use ( $args ) {
+							self::maybe_create_label( $shipment_id, $shipment, $args );
+						},
+						5,
+						2
+					);
 				} elseif ( $shipment->has_status( $status ) ) {
 					self::maybe_create_label( $shipment->get_id(), $shipment, $args );
 				}
@@ -151,15 +159,22 @@ class Automation {
 	}
 
 	protected static function maybe_create_label( $shipment_id, $shipment = false, $args = array() ) {
-		$args = wp_parse_args( $args, array(
-			'allow_deferred_sync' => wc_gzd_shipments_allow_deferred_sync( 'label' ),
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'allow_deferred_sync' => wc_gzd_shipments_allow_deferred_sync( 'label' ),
+			)
+		);
 
 		// Make sure that MetaBox is saved before we process automation
 		if ( \Vendidero\Germanized\Shipments\Automation::is_admin_edit_order_request() ) {
-			add_action( 'woocommerce_process_shop_order_meta', function() use ( $shipment_id, $shipment ) {
-				self::create_label( $shipment_id, $shipment );
-			}, 75 );
+			add_action(
+				'woocommerce_process_shop_order_meta',
+				function() use ( $shipment_id, $shipment ) {
+					self::create_label( $shipment_id, $shipment );
+				},
+				75
+			);
 		} else {
 			if ( $args['allow_deferred_sync'] ) {
 				Package::log( 'Deferring shipment #' . $shipment_id . ' label sync' );

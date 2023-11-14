@@ -71,6 +71,13 @@ class PackagingBox implements PackingBox {
 	}
 
 	/**
+	 * @return Packaging
+	 */
+	public function getPackaging() {
+		return $this->packaging;
+	}
+
+	/**
 	 * Outer length in mm.
 	 */
 	public function getOuterLength(): int {

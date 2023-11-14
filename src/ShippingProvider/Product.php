@@ -49,24 +49,27 @@ class Product {
 			$this->shipping_provider_name = $shipping_provider;
 		}
 
-		$args = wp_parse_args( $args, array(
-			'id'                       => '',
-			'internal_id'              => 0,
-			'parent_id'                => 0,
-			'label'                    => '',
-			'description'              => '',
-			'supported_shipment_types' => array( 'simple' ),
-			'supported_countries'      => null,
-			'supported_zones'          => array_keys( wc_gzd_get_shipping_label_zones() ),
-			'price'                    => 0.0,
-			'weight'                   => null,
-			'length'                   => null,
-			'width'                    => null,
-			'height'                   => null,
-			'dimension_unit'           => get_option( 'woocommerce_dimension_unit' ),
-			'weight_unit'              => get_option( 'woocommerce_weight_unit' ),
-			'meta'                     => array(),
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'id'                       => '',
+				'internal_id'              => 0,
+				'parent_id'                => 0,
+				'label'                    => '',
+				'description'              => '',
+				'supported_shipment_types' => array( 'simple' ),
+				'supported_countries'      => null,
+				'supported_zones'          => array_keys( wc_gzd_get_shipping_label_zones() ),
+				'price'                    => 0.0,
+				'weight'                   => null,
+				'length'                   => null,
+				'width'                    => null,
+				'height'                   => null,
+				'dimension_unit'           => get_option( 'woocommerce_dimension_unit' ),
+				'weight_unit'              => get_option( 'woocommerce_weight_unit' ),
+				'meta'                     => array(),
+			)
+		);
 
 		if ( empty( $args['id'] ) ) {
 			$args['id'] = sanitize_key( $args['label'] );
@@ -91,10 +94,10 @@ class Product {
 			}
 		}
 
-		$this->supported_zones          = array_filter( (array) $args['supported_zones'] );
-		$this->price                    = (float) wc_format_decimal( $args['price'] );
-		$this->dimension_unit           = $args['dimension_unit'];
-		$this->weight_unit              = $args['weight_unit'];
+		$this->supported_zones = array_filter( (array) $args['supported_zones'] );
+		$this->price           = (float) wc_format_decimal( $args['price'] );
+		$this->dimension_unit  = $args['dimension_unit'];
+		$this->weight_unit     = $args['weight_unit'];
 
 		$this->set_min_max_prop( 'weight', $args['weight'] );
 		$this->set_min_max_prop( 'length', $args['length'] );
@@ -104,10 +107,13 @@ class Product {
 
 	private function set_min_max_prop( $prop, $default = null ) {
 		if ( ! is_null( $default ) ) {
-			$default = wp_parse_args( (array) $default, array(
-				'min' => null,
-				'max' => null,
-			) );
+			$default = wp_parse_args(
+				(array) $default,
+				array(
+					'min' => null,
+					'max' => null,
+				)
+			);
 
 			if ( is_null( $default['min'] ) && is_null( $default['max'] ) ) {
 				$this->{$prop} = null;
@@ -115,7 +121,10 @@ class Product {
 				$default['min'] = is_null( $default['min'] ) ? null : (float) wc_format_decimal( $default['min'] );
 				$default['max'] = is_null( $default['max'] ) ? null : (float) wc_format_decimal( $default['max'] );
 
-				$this->{$prop} = array( 'min' => $default['min'], 'max' => $default['max'] );
+				$this->{$prop} = array(
+					'min' => $default['min'],
+					'max' => $default['max'],
+				);
 			}
 		}
 	}
@@ -260,7 +269,7 @@ class Product {
 			}
 
 			if ( ! is_null( $max ) ) {
-				$formatted_dimension .= ( empty( $formatted_dimension ) ? sprintf( _x( 'until %s', 'dhl', 'woocommerce-germanized-dhl' ), wc_format_localized_decimal( $max ) ) : '-' . wc_format_localized_decimal( $max ) );
+				$formatted_dimension .= ( empty( $formatted_dimension ) ? sprintf( _x( 'until %s', 'dhl', 'woocommerce-germanized-shipments' ), wc_format_localized_decimal( $max ) ) : '-' . wc_format_localized_decimal( $max ) );
 			}
 
 			if ( ! empty( $formatted_dimension ) ) {
@@ -276,19 +285,22 @@ class Product {
 	}
 
 	public function supports( $filter_args = array() ) {
-		$filter_args = wp_parse_args( $filter_args, array(
-			'country'        => '',
-			'zone'           => '',
-			'shipment'       => false,
-			'shipment_type'  => '',
-			'weight'         => null,
-			'weight_unit'    => '',
-			'length'         => null,
-			'width'          => null,
-			'height'         => null,
-			'dimension_unit' => '',
-			'parent_id'      => null,
-		) );
+		$filter_args = wp_parse_args(
+			$filter_args,
+			array(
+				'country'        => '',
+				'zone'           => '',
+				'shipment'       => false,
+				'shipment_type'  => '',
+				'weight'         => null,
+				'weight_unit'    => '',
+				'length'         => null,
+				'width'          => null,
+				'height'         => null,
+				'dimension_unit' => '',
+				'parent_id'      => null,
+			)
+		);
 
 		$include_product = true;
 

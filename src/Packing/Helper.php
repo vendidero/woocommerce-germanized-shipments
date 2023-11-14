@@ -42,7 +42,7 @@ class Helper {
 				if ( is_a( $first_val, '\Vendidero\Germanized\Shipments\Packaging' ) ) {
 					$packaging_boxes = array();
 
-					foreach( $id as $packaging ) {
+					foreach ( $id as $packaging ) {
 						if ( array_key_exists( $packaging->get_id(), self::$packaging ) ) {
 							$packaging_boxes[ $packaging->get_id() ] = self::$packaging[ $packaging->get_id() ];
 						}
@@ -121,7 +121,7 @@ class Helper {
 		self::$items_too_large = $packer->get_unpacked_items();
 
 		if ( self::$items_too_large->count() > 0 ) {
-			foreach( self::$items_too_large as $item_too_large ) {
+			foreach ( self::$items_too_large as $item_too_large ) {
 				Package::log( sprintf( _x( 'Item %1$s did not fit the available packaging.', 'shipments', 'woocommerce-germanized-shipments' ), $item_too_large->getDescription() ), 'info', 'packing' );
 			}
 		}

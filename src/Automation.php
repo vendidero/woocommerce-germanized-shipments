@@ -217,16 +217,21 @@ class Automation {
 
 			if ( $order_shipment->needs_shipping() ) {
 				if ( $order_shipment->has_auto_packing() ) {
-					$items_to_pack       = $order_shipment->get_items_to_pack_left_for_shipping();
-					$available_packaging = wc_gzd_get_packaging_list();
+					$items_to_pack = $order_shipment->get_items_to_pack_left_for_shipping();
 
-					if ( $provider = wc_gzd_get_order_shipping_provider( $order ) ) {
-						$available_packaging = wc_gzd_get_packaging_list( array( 'shipping_provider' => $provider->get_name() ) );
+					if ( $method = $order_shipment->get_builtin_shipping_method() ) {
+						$packaging_boxes = $method->get_method()->get_available_packaging_boxes();
+					} else {
+						$available_packaging = wc_gzd_get_packaging_list();
+
+						if ( $provider = wc_gzd_get_order_shipping_provider( $order ) ) {
+							$available_packaging = wc_gzd_get_packaging_list( array( 'shipping_provider' => $provider->get_name() ) );
+						}
+
+						$packaging_boxes = Helper::get_packaging_boxes( $available_packaging );
 					}
 
-					$packaging_boxes = Helper::get_packaging_boxes( $available_packaging );
-
-					foreach( $items_to_pack as $group => $items ) {
+					foreach ( $items_to_pack as $group => $items ) {
 						$packed_boxes = Helper::pack( $items, $packaging_boxes, 'order' );
 
 						foreach ( $packed_boxes as $box ) {
@@ -291,9 +296,12 @@ class Automation {
 	}
 
 	public static function maybe_create_shipments( $order_id, $args = array() ) {
-		$args = wp_parse_args( (array) $args, array(
-			'allow_deferred_sync' => wc_gzd_shipments_allow_deferred_sync( 'shipments' ),
-		) );
+		$args = wp_parse_args(
+			(array) $args,
+			array(
+				'allow_deferred_sync' => wc_gzd_shipments_allow_deferred_sync( 'shipments' ),
+			)
+		);
 
 		$statuses   = self::get_auto_statuses();
 		$has_status = empty( $statuses ) ? true : false;
@@ -307,9 +315,13 @@ class Automation {
 		if ( $has_status ) {
 			// Make sure that MetaBox is saved before we process automation
 			if ( self::is_admin_edit_order_request() ) {
-				add_action( 'woocommerce_process_shop_order_meta', function( $order_id ) {
-					self::create_shipments( $order_id );
-				}, 70 );
+				add_action(
+					'woocommerce_process_shop_order_meta',
+					function( $order_id ) {
+						self::create_shipments( $order_id );
+					},
+					70
+				);
 			} else {
 				if ( $args['allow_deferred_sync'] ) {
 					Package::log( 'Deferring order #' . $order_id . ' shipments sync' );

@@ -48,28 +48,31 @@ class Service {
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		if ( is_a( $shipping_provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
-			$this->shipping_provider = $shipping_provider;
+			$this->shipping_provider      = $shipping_provider;
 			$this->shipping_provider_name = $shipping_provider->get_name();
 		} else {
 			$this->shipping_provider_name = $shipping_provider;
 		}
 
-		$args = wp_parse_args( $args, array(
-			'id'          => '',
-			'internal_id' => '',
-			'label'       => '',
-			'description' => '',
-			'long_description' => '',
-			'option_type' => 'checkbox',
-			'default_value' => 'no',
-			'excluded_locations' => array(),
-			'options'     => array(),
-			'products'    => null,
-			'supported_shipment_types' => array( 'simple' ),
-			'supported_countries' => null,
-			'supported_zones' => array_keys( wc_gzd_get_shipping_label_zones() ),
-			'allow_default_booking' => true,
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'id'                       => '',
+				'internal_id'              => '',
+				'label'                    => '',
+				'description'              => '',
+				'long_description'         => '',
+				'option_type'              => 'checkbox',
+				'default_value'            => 'no',
+				'excluded_locations'       => array(),
+				'options'                  => array(),
+				'products'                 => null,
+				'supported_shipment_types' => array( 'simple' ),
+				'supported_countries'      => null,
+				'supported_zones'          => array_keys( wc_gzd_get_shipping_label_zones() ),
+				'allow_default_booking'    => true,
+			)
+		);
 
 		if ( empty( $args['id'] ) ) {
 			$args['id'] = sanitize_key( $args['label'] );
@@ -79,18 +82,18 @@ class Service {
 			throw new \Exception( _x( 'A service needs an id.', 'shipments', 'woocommerce-germanized-shipments' ), 500 );
 		}
 
-		$this->id          = $args['id'];
-		$this->internal_id = empty( $args['internal_id'] ) ? $this->id : $args['internal_id'];
-		$this->label       = $args['label'];
-		$this->description = $args['description'];
-		$this->long_description = $args['long_description'];
-		$this->option_type = $args['option_type'];
-		$this->default_value = $args['default_value'];
-		$this->options      = array_filter( (array) $args['options'] );
-		$this->locations = array_diff( wc_gzd_get_shipping_provider_service_locations(), array_filter( (array) $args['excluded_locations'] ) );
-		$this->products      = is_null( $args['products'] ) ? null: array_filter( (array) $args['products'] );
+		$this->id                       = $args['id'];
+		$this->internal_id              = empty( $args['internal_id'] ) ? $this->id : $args['internal_id'];
+		$this->label                    = $args['label'];
+		$this->description              = $args['description'];
+		$this->long_description         = $args['long_description'];
+		$this->option_type              = $args['option_type'];
+		$this->default_value            = $args['default_value'];
+		$this->options                  = array_filter( (array) $args['options'] );
+		$this->locations                = array_diff( wc_gzd_get_shipping_provider_service_locations(), array_filter( (array) $args['excluded_locations'] ) );
+		$this->products                 = is_null( $args['products'] ) ? null : array_filter( (array) $args['products'] );
 		$this->supported_shipment_types = array_filter( (array) $args['supported_shipment_types'] );
-		$this->supported_countries = is_null( $args['supported_countries'] ) ? null : array_filter( (array) $args['supported_countries'] );
+		$this->supported_countries      = is_null( $args['supported_countries'] ) ? null : array_filter( (array) $args['supported_countries'] );
 
 		if ( ! empty( $this->supported_countries ) ) {
 			if ( 1 === count( $this->supported_countries ) && Package::get_base_country() === $this->supported_countries[0] ) {
@@ -98,7 +101,7 @@ class Service {
 			}
 		}
 
-		$this->supported_zones = array_filter( (array) $args['supported_zones'] );
+		$this->supported_zones       = array_filter( (array) $args['supported_zones'] );
 		$this->allow_default_booking = wc_string_to_bool( $args['allow_default_booking'] );
 	}
 
@@ -137,7 +140,7 @@ class Service {
 	public function get_setting_id( $args = array(), $service_meta = '' ) {
 		if ( is_a( $args, 'Vendidero\Germanized\Shipments\Shipment' ) ) {
 			$args = array(
-				'zone' => $args->get_shipping_zone(),
+				'zone'          => $args->get_shipping_zone(),
 				'shipment_type' => $args->get_type(),
 			);
 		} elseif ( is_a( $args, 'Vendidero\Germanized\Shipments\Labels\ConfigurationSet' ) ) {
@@ -147,14 +150,17 @@ class Service {
 			return $args->get_setting_id( $setting_id, $group );
 		}
 
-		$args = wp_parse_args( $args, array(
-			'zone' => 'dom',
-			'shipment_type' => 'simple',
-			'shipment' => false,
-		) );
+		$args = wp_parse_args(
+			$args,
+			array(
+				'zone'          => 'dom',
+				'shipment_type' => 'simple',
+				'shipment'      => false,
+			)
+		);
 
 		if ( is_a( $args['shipment'], 'Vendidero\Germanized\Shipments\Shipment' ) ) {
-			$args['zone'] = $args['shipment']->get_shipping_zone();
+			$args['zone']          = $args['shipment']->get_shipping_zone();
 			$args['shipment_type'] = $args['shipment']->get_type();
 		}
 
@@ -162,7 +168,7 @@ class Service {
 		$prefix = $args['shipment_type'] . '_' . $args['zone'];
 
 		if ( ! empty( $service_meta ) ) {
-			$suffix = $suffix . "_" . $service_meta;
+			$suffix = $suffix . '_' . $service_meta;
 		}
 
 		return $prefix . "_label_service_{$suffix}";
@@ -218,15 +224,18 @@ class Service {
 	}
 
 	public function supports( $filter_args = array() ) {
-		$filter_args = wp_parse_args( $filter_args, array(
-			'country'       => '',
-			'zone'          => '',
-			'location'      => '',
-			'product'       => '',
-			'product_id'    => '',
-			'shipment'      => false,
-			'shipment_type' => '',
-		) );
+		$filter_args = wp_parse_args(
+			$filter_args,
+			array(
+				'country'       => '',
+				'zone'          => '',
+				'location'      => '',
+				'product'       => '',
+				'product_id'    => '',
+				'shipment'      => false,
+				'shipment_type' => '',
+			)
+		);
 
 		if ( ! empty( $filter_args['product_id'] ) ) {
 			$filter_args['product'] = $filter_args['product_id'];
@@ -342,7 +351,7 @@ class Service {
 					'type'    => $option_type,
 				),
 			),
-			$this->get_additional_setting_fields( $configuration_set ),
+			$this->get_additional_setting_fields( $configuration_set )
 		);
 	}
 
@@ -427,19 +436,22 @@ class Service {
 
 		$option_type = $this->get_option_type();
 
-		return array_merge( array(
+		return array_merge(
 			array(
-				'label'   => $this->get_label(),
-				'description' => $this->get_description(),
-				'desc_tip' => true,
-				'wrapper_class' => 'form-field-' . $option_type,
-				'id'      => $this->get_label_field_id(),
-				'value'   => $this->allow_default_booking() ? $this->get_value( $shipment ) : $this->get_default_value(),
-				'options' => $this->options,
-				'type'    => $option_type,
-				'custom_attributes' => $this->get_show_if_attributes()
+				array(
+					'label'             => $this->get_label(),
+					'description'       => $this->get_description(),
+					'desc_tip'          => true,
+					'wrapper_class'     => 'form-field-' . $option_type,
+					'id'                => $this->get_label_field_id(),
+					'value'             => $this->allow_default_booking() ? $this->get_value( $shipment ) : $this->get_default_value(),
+					'options'           => $this->options,
+					'type'              => $option_type,
+					'custom_attributes' => $this->get_show_if_attributes(),
+				),
 			),
-		), $this->get_additional_label_fields( $shipment ) );
+			$this->get_additional_label_fields( $shipment )
+		);
 	}
 
 	protected function get_additional_label_fields( $shipment ) {

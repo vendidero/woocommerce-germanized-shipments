@@ -6,6 +6,9 @@ use DVDoug\BoxPacker\ItemList;
 use Exception;
 use Vendidero\Germanized\Shipments\Packing\Helper;
 use Vendidero\Germanized\Shipments\Packing\OrderItem;
+use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
+use Vendidero\Germanized\Shipments\ShippingMethod\ProviderMethod;
+use Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod;
 use WC_DateTime;
 use DateTimeZone;
 use WC_Order;
@@ -941,6 +944,25 @@ class Order {
 		return $has_pickup;
 	}
 
+	/**
+	 * @return ProviderMethod|false
+	 */
+	public function get_builtin_shipping_method() {
+		$method = false;
+
+		if ( Package::is_packing_supported() ) {
+			$shipping_method_id = wc_gzd_get_shipment_order_shipping_method_id( $this->get_order() );
+
+			if ( 'shipping_provider_' === substr( $shipping_method_id, 0, 18 ) ) {
+				if ( $method = MethodHelper::get_provider_method( $shipping_method_id ) ) {
+					return $method;
+				}
+			}
+		}
+
+		return $method;
+	}
+
 	public function has_auto_packing() {
 		$has_auto_packing = false;
 
@@ -948,13 +970,8 @@ class Order {
 			$has_auto_packing = Helper::enable_auto_packing();
 
 			if ( ! $has_auto_packing ) {
-				$shipping_methods = $this->get_order()->get_shipping_methods();
-
-				foreach ( $shipping_methods as $shipping_method ) {
-					if ( 'shipping_provider_' === substr( $shipping_method->get_method_id(), 0, 18 ) ) {
-						$has_auto_packing = true;
-						break;
-					}
+				if ( self::get_builtin_shipping_method() ) {
+					$has_auto_packing = true;
 				}
 			}
 		}
@@ -1063,7 +1080,6 @@ class Order {
 	 * @return bool|mixed
 	 */
 	public function __call( $method, $args ) {
-
 		if ( method_exists( $this->order, $method ) ) {
 			return call_user_func_array( array( $this->order, $method ), $args );
 		}

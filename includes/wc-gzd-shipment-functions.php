@@ -65,11 +65,14 @@ function wc_gzd_get_shipment_label_title( $type, $plural = false ) {
 }
 
 function wc_gzd_get_shipping_label_zones() {
-	return apply_filters( 'woocommerce_gzd_shipments_shipping_label_zones', array(
-		'dom' => _x( 'Domestic', 'shipments', 'woocommerce-germanized-shipments' ),
-		'eu' => _x( 'EU', 'shipments', 'woocommerce-germanized-shipments' ),
-		'int' => _x( 'International', 'shipments', 'woocommerce-germanized-shipments' )
-	) );
+	return apply_filters(
+		'woocommerce_gzd_shipments_shipping_label_zones',
+		array(
+			'dom' => _x( 'Domestic', 'shipments', 'woocommerce-germanized-shipments' ),
+			'eu'  => _x( 'EU', 'shipments', 'woocommerce-germanized-shipments' ),
+			'int' => _x( 'International', 'shipments', 'woocommerce-germanized-shipments' ),
+		)
+	);
 }
 
 function wc_gzd_get_shipping_label_zone_title( $zone ) {
@@ -846,8 +849,8 @@ function wc_gzd_get_shipment_order_shipping_method( $order ) {
 	$method  = false;
 
 	if ( ! empty( $methods ) ) {
-		$method_vals = array_values( $methods );
-		$method      = array_shift( $method_vals );
+		$method_data = array_values( $methods );
+		$method      = array_shift( $method_data );
 
 		if ( ! $method ) {
 			$method = false;

@@ -1055,7 +1055,7 @@ class ShipmentsController extends \WC_REST_Controller {
 				$meta = wc_clean( wp_unslash( $meta ) );
 
 				if ( isset( $meta['key'] ) ) {
-					$value = isset( $meta['value'] ) ? $meta['value'] : null;
+					$value                = isset( $meta['value'] ) ? $meta['value'] : null;
 					$args[ $meta['key'] ] = $value;
 				}
 			}
@@ -1246,30 +1246,30 @@ class ShipmentsController extends \WC_REST_Controller {
 	 */
 	public static function prepare_label( $label, $context = 'view', $dp = false ) {
 		$label_data = array(
-			'id'                    => $label->get_id(),
-			'date_created'          => wc_rest_prepare_date_response( $label->get_date_created( $context ), false ),
-			'date_created_gmt'      => wc_rest_prepare_date_response( $label->get_date_created( $context ) ),
-			'weight'                => wc_format_decimal( $label->get_weight( $context ), $dp ),
-			'net_weight'            => wc_format_decimal( $label->get_net_weight( $context ), $dp ),
-			'dimensions'            => array(
+			'id'                                      => $label->get_id(),
+			'date_created'                            => wc_rest_prepare_date_response( $label->get_date_created( $context ), false ),
+			'date_created_gmt'                        => wc_rest_prepare_date_response( $label->get_date_created( $context ) ),
+			'weight'                                  => wc_format_decimal( $label->get_weight( $context ), $dp ),
+			'net_weight'                              => wc_format_decimal( $label->get_net_weight( $context ), $dp ),
+			'dimensions'                              => array(
 				'length' => wc_format_decimal( $label->get_length( $context ), $dp ),
 				'width'  => wc_format_decimal( $label->get_width( $context ), $dp ),
 				'height' => wc_format_decimal( $label->get_height( $context ), $dp ),
 			),
-			'shipment_id'           => $label->get_shipment_id( $context ),
-			'parent_id'             => $label->get_parent_id( $context ),
-			'product_id'            => $label->get_product_id( $context ),
-			'number'                => $label->get_number( $context ),
-			'type'                  => $label->get_type(),
-			'print_format'          => $label->get_print_format(),
-			'shipping_provider'     => $label->get_shipping_provider( $context ),
-			'created_via'           => $label->get_created_via( $context ),
-			'services'              => $label->get_services( $context ),
-			'additional_file_types' => array(),
-			'files'                 => array( self::get_label_file( $label ) ),
-			'is_trackable'          => $label->is_trackable(),
+			'shipment_id'                             => $label->get_shipment_id( $context ),
+			'parent_id'                               => $label->get_parent_id( $context ),
+			'product_id'                              => $label->get_product_id( $context ),
+			'number'                                  => $label->get_number( $context ),
+			'type'                                    => $label->get_type(),
+			'print_format'                            => $label->get_print_format(),
+			'shipping_provider'                       => $label->get_shipping_provider( $context ),
+			'created_via'                             => $label->get_created_via( $context ),
+			'services'                                => $label->get_services( $context ),
+			'additional_file_types'                   => array(),
+			'files'                                   => array( self::get_label_file( $label ) ),
+			'is_trackable'                            => $label->is_trackable(),
 			'supports_third_party_email_notification' => $label->supports_third_party_email_notification(),
-			'meta_data'             => $label->get_meta_data(),
+			'meta_data'                               => $label->get_meta_data(),
 		);
 
 		foreach ( $label->get_additional_file_types() as $file_type ) {
@@ -1885,72 +1885,72 @@ class ShipmentsController extends \WC_REST_Controller {
 			'readonly'    => false,
 			'type'        => 'object',
 			'properties'  => array(
-				'id'                    => array(
+				'id'                                      => array(
 					'description' => _x( 'Label ID.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'date_created'          => array(
+				'date_created'                            => array(
 					'description' => _x( "The date the label was created, in the site's timezone.", 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'date_created_gmt'      => array(
+				'date_created_gmt'                        => array(
 					'description' => _x( 'The date the label was created, as GMT.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'date-time',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'shipment_id'           => array(
+				'shipment_id'                             => array(
 					'description' => _x( 'Shipment id.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'parent_id'             => array(
+				'parent_id'                               => array(
 					'description' => _x( 'Parent id.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'integer',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'product_id'            => array(
+				'product_id'                              => array(
 					'description' => _x( 'Label product id.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'print_format'            => array(
+				'print_format'                            => array(
 					'description' => _x( 'Label print format.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'number'                => array(
+				'number'                                  => array(
 					'description' => _x( 'Label number.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'shipping_provider'     => array(
+				'shipping_provider'                       => array(
 					'description' => _x( 'Shipping provider.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'weight'                => array(
+				'weight'                                  => array(
 					'description' => _x( 'Weight.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'net_weight'            => array(
+				'net_weight'                              => array(
 					'description' => _x( 'Net weight.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'created_via'           => array(
+				'created_via'                             => array(
 					'description' => _x( 'Created via.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 				),
-				'is_trackable'          => array(
+				'is_trackable'                            => array(
 					'description' => _x( 'Is trackable?', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'boolean',
 					'context'     => array( 'view', 'edit' ),
@@ -1962,7 +1962,7 @@ class ShipmentsController extends \WC_REST_Controller {
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'additional_file_types' => array(
+				'additional_file_types'                   => array(
 					'description' => _x( 'Additional file types', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),
@@ -1971,7 +1971,7 @@ class ShipmentsController extends \WC_REST_Controller {
 						'type' => 'string',
 					),
 				),
-				'files'                 => array(
+				'files'                                   => array(
 					'description' => _x( 'Label file data.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),
@@ -2008,13 +2008,13 @@ class ShipmentsController extends \WC_REST_Controller {
 						),
 					),
 				),
-				'type'                  => array(
+				'type'                                    => array(
 					'description' => _x( 'Label type, e.g. simple or return.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'dimensions'            => array(
+				'dimensions'                              => array(
 					'description' => _x( 'Label dimensions.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'object',
 					'context'     => array( 'view', 'edit' ),
@@ -2036,7 +2036,7 @@ class ShipmentsController extends \WC_REST_Controller {
 						),
 					),
 				),
-				'services'              => array(
+				'services'                                => array(
 					'description' => _x( 'Label services.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),
@@ -2044,7 +2044,7 @@ class ShipmentsController extends \WC_REST_Controller {
 						'type' => 'string',
 					),
 				),
-				'meta_data'             => array(
+				'meta_data'                               => array(
 					'description' => _x( 'Label meta data.', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'        => 'array',
 					'context'     => array( 'view', 'edit' ),

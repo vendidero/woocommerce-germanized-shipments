@@ -544,7 +544,7 @@ class Package {
 		}
 
 		Ajax::init();
-        MethodHelper::init();
+		MethodHelper::init();
 		Automation::init();
 		Labels\Automation::init();
 		Labels\DownloadHandler::init();
@@ -700,10 +700,10 @@ class Package {
 			'meta'                   => '',
 		);
 
-		$data = preg_split( '/-([a-z]-[a-zA-Z_0-9]+)-{0,1}/', $id, -1, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY );
+		$data = preg_split( '/-([a-z]-[a-zA-Z_0-9]+)-{0,1}/', $id, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY );
 
 		if ( false !== $data ) {
-			foreach( $data as $d ) {
+			foreach ( $data as $d ) {
 				$arg = substr( $d, 0, 2 );
 				$val = substr( $d, 2 );
 
@@ -713,11 +713,11 @@ class Package {
 					$args['shipment_type'] = $val;
 				} elseif ( 'z-' === $arg ) {
 					$args['zone'] = $val;
-				} elseif ( 'g-' == $arg ) {
+				} elseif ( 'g-' === $arg ) {
 					$args['setting_group'] = $val;
-				} elseif ( 'n-' == $arg ) {
+				} elseif ( 'n-' === $arg ) {
 					$args['setting_name'] = $val;
-				} elseif ( 'm-' == $arg ) {
+				} elseif ( 'm-' === $arg ) {
 					$args['meta'] = $val;
 				}
 			}

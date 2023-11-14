@@ -19,7 +19,7 @@ class ServiceList implements \Countable, \ArrayAccess, \Iterator {
 	public function __construct( $services = array() ) {
 		$this->position = 0;
 
-		foreach( $services as $service ) {
+		foreach ( $services as $service ) {
 			$this->add( $service );
 		}
 	}
@@ -30,7 +30,7 @@ class ServiceList implements \Countable, \ArrayAccess, \Iterator {
 	 * @return void
 	 */
 	public function add( $service ) {
-		$this->list[ $service->get_id() ] = $service;
+		$this->list[ $service->get_id() ]                     = $service;
 		$this->internal_id_map[ $service->get_internal_id() ] = $service->get_id();
 	}
 
@@ -103,7 +103,7 @@ class ServiceList implements \Countable, \ArrayAccess, \Iterator {
 	public function filter( $filter_args = array() ) {
 		$services = new ServiceList();
 
-		foreach( $this->list as $service_id => $service ) {
+		foreach ( $this->list as $service_id => $service ) {
 			$include_service = $service->supports( $filter_args );
 
 			if ( $include_service ) {
@@ -117,7 +117,7 @@ class ServiceList implements \Countable, \ArrayAccess, \Iterator {
 	public function as_options() {
 		$options = array();
 
-		foreach( $this->list as $service_id => $service ) {
+		foreach ( $this->list as $service_id => $service ) {
 			$options[ $service_id ] = $service->get_label();
 		}
 

@@ -19,7 +19,7 @@ class PrintFormatList implements \Countable, \ArrayAccess, \Iterator {
 	public function __construct( $print_formats = array() ) {
 		$this->position = 0;
 
-		foreach( $print_formats as $print_format ) {
+		foreach ( $print_formats as $print_format ) {
 			$this->add( $print_format );
 		}
 	}
@@ -88,7 +88,7 @@ class PrintFormatList implements \Countable, \ArrayAccess, \Iterator {
 	public function filter( $filter_args = array() ) {
 		$print_formats = new PrintFormatList();
 
-		foreach( $this->list as $print_format_id => $print_format ) {
+		foreach ( $this->list as $print_format_id => $print_format ) {
 			$include_print_format = $print_format->supports( $filter_args );
 
 			if ( $include_print_format ) {
@@ -102,7 +102,7 @@ class PrintFormatList implements \Countable, \ArrayAccess, \Iterator {
 	public function as_options() {
 		$options = array();
 
-		foreach( $this->list as $print_format_id => $print_format ) {
+		foreach ( $this->list as $print_format_id => $print_format ) {
 			$options[ $print_format_id ] = $print_format->get_label();
 		}
 
