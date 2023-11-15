@@ -419,7 +419,6 @@ class Order {
 			$quantity_left = $this->get_shippable_item_quantity( $order_item );
 
 			foreach ( $this->get_shipments() as $shipment ) {
-
 				if ( $args['sent_only'] && ! $shipment->is_shipped() ) {
 					continue;
 				}
@@ -1060,7 +1059,6 @@ class Order {
 
 	public function save() {
 		if ( ! empty( $this->shipments_to_delete ) ) {
-
 			foreach ( $this->shipments_to_delete as $shipment ) {
 				$shipment->delete( true );
 			}

@@ -497,6 +497,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'shipment_type' => $configuration_set->get_shipment_type(),
 			)
 		);
+
 		$services = $this->get_services(
 			array(
 				'zone'          => $configuration_set->get_zone(),

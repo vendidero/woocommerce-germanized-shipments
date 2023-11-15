@@ -92,6 +92,11 @@ class Product {
 			if ( 1 === count( $this->supported_countries ) && Package::get_base_country() === $this->supported_countries[0] ) {
 				$args['supported_zones'] = array( 'dom' );
 			}
+
+			if ( in_array( 'ALL_EU', $this->supported_countries, true ) ) {
+				$this->supported_countries = array_diff( $this->supported_countries, array( 'ALL_EU' ) );
+				$this->supported_countries = array_replace( WC()->countries->get_european_union_countries(), $this->supported_countries );
+			}
 		}
 
 		$this->supported_zones = array_filter( (array) $args['supported_zones'] );

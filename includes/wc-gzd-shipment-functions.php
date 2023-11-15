@@ -53,6 +53,8 @@ function wc_gzd_get_shipment_order( $order ) {
 			wc_caught_exception( $e, __FUNCTION__, array( $order ) );
 			return false;
 		}
+	} elseif ( is_a( $order, 'Vendidero\Germanized\Shipments\Order' ) ) {
+		return $order;
 	}
 
 	return false;

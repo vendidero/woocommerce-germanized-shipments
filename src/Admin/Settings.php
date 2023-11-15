@@ -94,7 +94,6 @@ class Settings {
 	}
 
 	protected static function get_general_settings() {
-
 		$statuses = array_diff_key( wc_gzd_get_shipment_statuses(), array_flip( array( 'gzd-requested' ) ) );
 
 		$settings = array(

@@ -1092,7 +1092,7 @@ class Admin {
 				$report_action = 'gzd_created_shipments';
 
 				if ( $order ) {
-					Automation::create_shipments( $id, false );
+					Automation::create_shipments( $id );
 					$changed++;
 				}
 			}

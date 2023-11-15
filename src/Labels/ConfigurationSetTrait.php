@@ -203,7 +203,7 @@ trait ConfigurationSetTrait {
 		return false;
 	}
 
-	public function reset_configuration_sets( $args ) {
+	public function reset_configuration_sets( $args = array() ) {
 		$args = wp_parse_args(
 			$args,
 			array(

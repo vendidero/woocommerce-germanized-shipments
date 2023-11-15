@@ -175,13 +175,21 @@ class Automation {
 		}
 	}
 
+	/**
+	 * @param $order
+	 *
+	 * @return Shipment[]|\WP_Error
+	 */
 	public static function create_shipments( $order ) {
+		$shipments_created = array();
+		$errors            = new \WP_Error();
+
 		if ( is_numeric( $order ) ) {
 			$order = wc_get_order( $order );
 		}
 
 		if ( ! $order ) {
-			return;
+			return $shipments_created;
 		}
 
 		$shipment_status = Package::get_setting( 'auto_default_status' );
@@ -201,7 +209,7 @@ class Automation {
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		if ( ! apply_filters( 'woocommerce_gzd_auto_create_shipments_for_order', true, $order->get_id(), $order ) ) {
-			return;
+			return $shipments_created;
 		}
 
 		if ( $order_shipment = wc_gzd_get_shipment_order( $order ) ) {
@@ -262,6 +270,17 @@ class Automation {
 
 							if ( ! is_wp_error( $shipment ) ) {
 								$order_shipment->add_shipment( $shipment );
+
+								$shipments_created[ $shipment->get_id() ] = $shipment;
+							} else {
+								foreach ( $shipments_created as $id => $shipment_created ) {
+									$shipment_created->delete( true );
+									$order_shipment->remove_shipment( $id );
+								}
+
+								foreach ( $shipment->get_error_messages() as $code => $message ) {
+									$errors->add( $code, $message );
+								}
 							}
 						}
 					}
@@ -270,12 +289,23 @@ class Automation {
 
 					if ( ! is_wp_error( $shipment ) ) {
 						$order_shipment->add_shipment( $shipment );
+						$shipments_created[ $shipment->get_id() ] = $shipment;
+					} else {
+						foreach ( $shipment->get_error_messages() as $code => $message ) {
+							$errors->add( $code, $message );
+						}
 					}
 				}
 			}
 
-			do_action( 'woocommerce_gzd_after_auto_create_shipments_for_order', $order->get_id(), $shipment_status, $order );
+			do_action( 'woocommerce_gzd_after_auto_create_shipments_for_order', $order->get_id(), $shipment_status, $order, $shipments_created );
 		}
+
+		if ( wc_gzd_shipment_wp_error_has_errors( $errors ) ) {
+			return $errors;
+		}
+
+		return $shipments_created;
 	}
 
 	protected static function get_auto_statuses() {
