@@ -256,6 +256,17 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 		return $classes;
 	}
 
+	public function supports_shipping_class( $shipping_class ) {
+		$classes  = $this->get_available_shipping_classes( 'edit' );
+		$supports = false;
+
+		if ( empty( $classes ) || in_array( $shipping_class, $classes, true ) ) {
+			$supports = true;
+		}
+
+		return $supports;
+	}
+
 	public function supports_shipping_provider( $provider ) {
 		if ( is_a( $provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
 			$provider = $provider->get_name();
@@ -373,7 +384,7 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 	 * @param array $classes The shipping classes
 	 */
 	public function set_available_shipping_classes( $classes ) {
-		$this->set_prop( 'available_shipping_classes', array_filter( (array) $classes ) );
+		$this->set_prop( 'available_shipping_classes', array_filter( array_map( 'absint', (array) $classes ) ) );
 	}
 
 	/**

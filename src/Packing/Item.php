@@ -46,12 +46,10 @@ abstract class Item implements PackingItem {
 		);
 
 		if ( $product = $this->get_product() ) {
-			$shipping_class = (string) $product->get_shipping_class_id();
+			$shipping_class = $product->get_shipping_class_id();
 
 			if ( ! empty( $shipping_class ) ) {
-				$shipping_classes_available = $box->get_packaging()->get_available_shipping_classes();
-
-				if ( ! in_array( $shipping_class, $shipping_classes_available, true ) ) {
+				if ( ! $box->get_packaging()->supports_shipping_class( $shipping_class ) ) {
 					$fits = false;
 				}
 			}
