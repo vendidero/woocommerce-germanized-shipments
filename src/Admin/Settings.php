@@ -373,7 +373,7 @@ class Settings {
 	protected static function get_packaging_settings() {
 		$settings = array(
 			array(
-				'title' => _x( 'Available packaging', 'shipments', 'woocommerce-germanized-shipments' ),
+				'title' => '',
 				'type'  => 'title',
 				'id'    => 'packaging_list_options',
 			),
@@ -476,6 +476,7 @@ class Settings {
 						'id'                => 'woocommerce_gzd_shipments_packing_inner_fixed_buffer',
 						'default'           => '5',
 						'type'              => 'number',
+						'row_class'         => 'with-suffix',
 						'css'               => 'max-width: 60px',
 						'custom_attributes' => array(
 							'data-show_if_woocommerce_gzd_shipments_enable_auto_packing' => '',
@@ -490,6 +491,7 @@ class Settings {
 						'id'                => 'woocommerce_gzd_shipments_packing_inner_percentage_buffer',
 						'default'           => '0.5',
 						'type'              => 'number',
+						'row_class'         => 'with-suffix',
 						'css'               => 'max-width: 60px',
 						'custom_attributes' => array(
 							'data-show_if_woocommerce_gzd_shipments_enable_auto_packing' => '',

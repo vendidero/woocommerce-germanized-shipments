@@ -7,6 +7,10 @@
   font-size: 14px;
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1); }
 
+.form-table tr.wc-settings-row-with-suffix p.description {
+  display: inline-block;
+  margin-top: 5px; }
+
 .woocommerce_page_wc-settings .wc-modal-shipping-method-settings .form-table td .wc-gzd-additional-desc {
   background: #efefef; }
 
@@ -66,20 +70,6 @@
       max-height: 100%; }
       .wc-gzd-shipping-provider-method-tab-content .wc-gzd-shipping-provider-override-wrapper .wc-gzd-shipping-provider-override-inner-wrapper.has-override::after {
         display: none; }
-
-.wc-gzd-admin-settings-germanized-shipments-packaging #packaging_list_wrapper {
-  padding-left: 0;
-  padding-right: 0; }
-
-.wc-gzd-admin-settings-germanized-shipments-packaging td.wc-gzd-shipments-packaging-shipping-provider-select select {
-  visibility: hidden;
-  min-width: 300px;
-  max-width: 300px;
-  height: 40px; }
-
-.wc-gzd-admin-settings-germanized-shipments-packaging td.wc-gzd-shipments-packaging-shipping-provider-select .select2-container {
-  min-width: 300px !important;
-  max-width: 300px !important; }
 
 .wc-gzd-admin-settings-germanized-shipments-packaging td.actions {
   text-align: center; }

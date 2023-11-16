@@ -65,6 +65,7 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 		'type'                        => '',
 		'description'                 => '',
 		'available_shipping_provider' => array(),
+		'available_shipping_classes'  => array(),
 		'configuration_sets'          => array(),
 	);
 
@@ -239,6 +240,22 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 		return $provider_names;
 	}
 
+	/**
+	 * Returns the available shipping classes.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return array
+	 */
+	public function get_available_shipping_classes( $context = 'view' ) {
+		$classes = $this->get_prop( 'available_shipping_classes', $context );
+
+		if ( 'view' === $context && empty( $classes ) ) {
+			$classes = array_keys( Package::get_shipping_classes() );
+		}
+
+		return $classes;
+	}
+
 	public function supports_shipping_provider( $provider ) {
 		if ( is_a( $provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
 			$provider = $provider->get_name();
@@ -348,6 +365,15 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 	 */
 	public function set_available_shipping_provider( $provider_names ) {
 		$this->set_prop( 'available_shipping_provider', array_filter( (array) $provider_names ) );
+	}
+
+	/**
+	 * Set packaging shipping classes
+	 *
+	 * @param array $classes The shipping classes
+	 */
+	public function set_available_shipping_classes( $classes ) {
+		$this->set_prop( 'available_shipping_classes', array_filter( (array) $classes ) );
 	}
 
 	/**

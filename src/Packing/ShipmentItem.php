@@ -2,21 +2,12 @@
 
 namespace Vendidero\Germanized\Shipments\Packing;
 
-use Vendidero\Germanized\Shipments\Interfaces\PackingItem;
-
 defined( 'ABSPATH' ) || exit;
 
 /**
  * An item to be packed.
  */
-class ShipmentItem implements PackingItem {
-
-	/**
-	 * @var \Vendidero\Germanized\Shipments\ShipmentItem
-	 */
-	protected $item = null;
-
-	protected $product = null;
+class ShipmentItem extends Item {
 
 	protected $dimensions = array();
 
@@ -56,11 +47,15 @@ class ShipmentItem implements PackingItem {
 	 * @return \Vendidero\Germanized\Shipments\ShipmentItem
 	 */
 	public function get_shipment_item() {
-		return $this->item;
+		return $this->get_reference();
 	}
 
 	public function get_id() {
 		return $this->item->get_id();
+	}
+
+	protected function load_product() {
+		$this->product = $this->item->get_product();
 	}
 
 	/**
@@ -100,12 +95,5 @@ class ShipmentItem implements PackingItem {
 	 */
 	public function getWeight(): int {
 		return $this->weight;
-	}
-
-	/**
-	 * Does this item need to be kept flat / packed "this way up"?
-	 */
-	public function getKeepFlat(): bool {
-		return false;
 	}
 }

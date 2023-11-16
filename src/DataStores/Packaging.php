@@ -53,6 +53,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 	 */
 	protected $internal_meta_keys = array(
 		'_available_shipping_provider',
+		'_available_shipping_classes',
 		'_configuration_sets',
 	);
 

@@ -13,5 +13,5 @@ interface PackingBox extends Box {
 	/**
 	 * @return Packaging
 	 */
-	public function getPackaging();
+	public function get_packaging();
 }

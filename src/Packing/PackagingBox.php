@@ -73,7 +73,7 @@ class PackagingBox implements PackingBox {
 	/**
 	 * @return Packaging
 	 */
-	public function getPackaging() {
+	public function get_packaging() {
 		return $this->packaging;
 	}
 

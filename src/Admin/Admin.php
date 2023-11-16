@@ -216,54 +216,37 @@ class Admin {
 				return;
 			}
 
-			$auto_shipping_providers = array();
-			$current_provider_name   = isset( $_GET['provider'] ) ? wc_clean( wp_unslash( $_GET['provider'] ) ) : false; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$current_shipment_type   = isset( $_GET['section'] ) ? wc_clean( wp_unslash( $_GET['section'] ) ) : 'simple'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-
-			foreach ( $packaging->get_available_shipping_provider() as $provider_name ) {
-				if ( $provider = wc_gzd_get_shipping_provider( $provider_name ) ) {
-					if ( $provider->is_activated() && ! $provider->is_manual_integration() ) {
-						$auto_shipping_providers[ $provider_name ] = $provider;
-
-						if ( false === $current_provider_name ) {
-							$current_provider_name = $provider_name;
-						}
-					}
-				}
-			}
-
-			if ( ! array_key_exists( $current_provider_name, $auto_shipping_providers ) ) {
-				$current_provider_name = false;
-			}
-
-			if ( ! $current_provider_name ) {
-				return;
-			}
-
-			$current_provider = $auto_shipping_providers[ $current_provider_name ];
-			$all_settings     = $current_provider->get_packaging_label_settings( $packaging );
-			$current_settings = isset( $all_settings[ $current_shipment_type ] ) ? $all_settings[ $current_shipment_type ] : array();
+			$current_tab      = isset( $_GET['tab'] ) ? wc_clean( wp_unslash( $_GET['tab'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$current_section  = isset( $_GET['section'] ) ? wc_clean( wp_unslash( $_GET['section'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$current_settings = PackagingSettings::get_settings( $packaging, $current_tab, $current_section );
 			?>
-			<div class="wrap woocommerce wc-gzd-shipments-packaging packaging-<?php echo esc_attr( $packaging->get_id() ); ?>">
+			<div class="wrap woocommerce woocommerce_page_wc-settings wc-gzd-shipments-packaging packaging-<?php echo esc_attr( $packaging->get_id() ); ?>">
 				<h1 class="wp-heading-inline"><?php echo esc_html( $packaging->get_title() ); ?></h1>
 				<a class="page-title-action" href="<?php echo esc_url( Settings::get_settings_url( 'packaging' ) ); ?>"><?php echo esc_html_x( 'All packaging', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 				<hr class="wp-header-end" />
 
 				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" enctype="multipart/form-data">
 					<nav class="nav-tab-wrapper woo-nav-tab-wrapper">
-						<?php foreach ( $auto_shipping_providers as $loop_provider_name => $provider ) : ?>
-							<a href="<?php echo esc_url( self::get_packaging_admin_url( $packaging->get_id(), $loop_provider_name ) ); ?>" class="nav-tab <?php echo esc_attr( $loop_provider_name === $current_provider_name ? 'nav-tab-active' : '' ); ?>"><?php echo esc_html( $provider->get_title() ); ?></a>
+						<?php foreach ( PackagingSettings::get_tabs( $packaging ) as $tab => $title ) : ?>
+							<a href="<?php echo esc_url( PackagingSettings::get_settings_url( $packaging_id, $tab ) ); ?>" class="nav-tab <?php echo esc_attr( $current_tab === $tab ? 'nav-tab-active' : '' ); ?>"><?php echo esc_html( $title ); ?></a>
 						<?php endforeach; ?>
 					</nav>
 
 					<ul class="subsubsub">
-						<?php foreach ( array_keys( $all_settings ) as $shipment_type ) : ?>
-							<li><a href="<?php echo esc_url( self::get_packaging_admin_url( $packaging->get_id(), $current_provider_name, $shipment_type ) ); ?>" class="<?php echo esc_attr( $current_shipment_type === $shipment_type ? 'current' : '' ); ?>"><?php echo esc_html( wc_gzd_get_shipment_label_title( $shipment_type, true ) ); ?></a></li>
+						<?php foreach ( PackagingSettings::get_sections( $packaging, $current_tab ) as $section => $title ) : ?>
+							<li><a href="<?php echo esc_url( PackagingSettings::get_settings_url( $packaging->get_id(), $current_tab, $section ) ); ?>" class="<?php echo esc_attr( $current_section === $section ? 'current' : '' ); ?>"><?php echo esc_html( $title ); ?></a></li>
 						<?php endforeach; ?>
 					</ul>
 
-					<?php if ( ! empty( $current_settings ) ) : ?>
-						<?php foreach ( $current_settings as $zone_name => $settings ) : ?>
+					<?php
+					if ( ! empty( $current_settings ) ) :
+						$current_settings_to_print = $current_settings;
+
+						if ( ! PackagingSettings::is_provider( $current_tab ) ) {
+							$current_settings_to_print = array( $current_settings_to_print );
+						}
+						?>
+						<?php foreach ( $current_settings_to_print as $settings ) : ?>
 							<?php \WC_Admin_Settings::output_fields( $settings ); ?>
 						<?php endforeach; ?>
 					<?php endif; ?>
@@ -271,15 +254,15 @@ class Admin {
 					<?php if ( ! empty( $current_settings ) ) : ?>
 						<p class="submit">
 							<input type="hidden" name="action" value="woocommerce_gzd_save_packaging_settings" />
-							<input type="hidden" name="shipment_type" value="<?php echo esc_attr( $current_shipment_type ); ?>" />
-							<input type="hidden" name="shipping_provider" value="<?php echo esc_attr( $current_provider_name ); ?>" />
+							<input type="hidden" name="section" value="<?php echo esc_attr( $current_section ); ?>" />
+							<input type="hidden" name="tab" value="<?php echo esc_attr( $current_tab ); ?>" />
 							<input type="hidden" name="packaging_id" value="<?php echo esc_attr( $packaging->get_id() ); ?>" />
 
 							<button name="save" class="button-primary woocommerce-save-button" type="submit" value="<?php echo esc_attr_x( 'Save changes', 'shipments', 'woocommerce-germanized-shipments' ); ?>"><?php echo esc_html_x( 'Save changes', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
 							<?php wp_nonce_field( 'woocommerce-gzd-packaging-settings' ); ?>
 						</p>
 					<?php else : ?>
-						<div class="notice notice-warning inline"><p><?php echo sprintf( esc_html_x( 'This provider does not support adjusting settings related to %1$s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_shipment_label_title( $current_shipment_type, true ) ) ); ?></p></div>
+						<div class="notice notice-warning inline"><p><?php echo sprintf( esc_html_x( 'This provider does not support adjusting settings related to %1$s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_shipment_label_title( $current_section, true ) ) ); ?></p></div>
 					<?php endif; ?>
 				</form>
 			</div>
@@ -296,53 +279,15 @@ class Admin {
 			wp_die( '', 400 );
 		}
 
-		$provider      = isset( $_POST['shipping_provider'] ) ? wc_clean( wp_unslash( $_POST['shipping_provider'] ) ) : '';
-		$shipment_type = isset( $_POST['shipment_type'] ) ? wc_clean( wp_unslash( $_POST['shipment_type'] ) ) : 'simple';
-		$packaging_id  = isset( $_POST['packaging_id'] ) ? absint( wp_unslash( $_POST['packaging_id'] ) ) : 0;
+		$tab          = isset( $_POST['tab'] ) ? wc_clean( wp_unslash( $_POST['tab'] ) ) : '';
+		$section      = isset( $_POST['section'] ) ? wc_clean( wp_unslash( $_POST['section'] ) ) : '';
+		$packaging_id = isset( $_POST['packaging_id'] ) ? absint( wp_unslash( $_POST['packaging_id'] ) ) : 0;
 
-		$shipping_provider = wc_gzd_get_shipping_provider( $provider );
-		$packaging         = wc_gzd_get_packaging( $packaging_id );
-
-		if ( ! $shipping_provider || ! $packaging ) {
+		if ( ! $packaging = wc_gzd_get_packaging( $packaging_id ) ) {
 			wp_die( '', 400 );
 		}
 
-		$all_settings     = $shipping_provider->get_packaging_label_settings( $packaging );
-		$current_settings = isset( $all_settings[ $shipment_type ] ) ? $all_settings[ $shipment_type ] : array();
-
-		$packaging->reset_configuration_sets(
-			array(
-				'shipping_provider_name' => $shipping_provider->get_name(),
-				'shipment_type'          => $shipment_type,
-			)
-		);
-
-		add_filter(
-			'woocommerce_admin_settings_sanitize_option',
-			function( $value, $setting, $raw_value ) use ( $packaging ) {
-				$setting_id = $setting['id'];
-				$args       = $packaging->get_configuration_set_args_by_id( $setting_id );
-				$value      = wc_clean( $value );
-
-				if ( 'override' === $args['setting_name'] && wc_string_to_bool( $value ) ) {
-					if ( $config_set = $packaging->get_or_create_configuration_set( $args ) ) {
-						$config_set->update_setting( $setting_id, $value );
-					}
-				} elseif ( $config_set = $packaging->get_configuration_set( $args ) ) {
-					$config_set->update_setting( $setting_id, $value );
-				}
-			},
-			1001,
-			3
-		);
-
-		foreach ( $current_settings as $location => $settings ) {
-			\WC_Admin_Settings::save_fields( $settings );
-		}
-
-		remove_all_filters( 'woocommerce_admin_settings_sanitize_option', 1001 );
-
-		$packaging->save();
+		PackagingSettings::save_settings( $packaging, $tab, $section );
 
 		wp_safe_redirect( esc_url_raw( wp_get_referer() ? wp_get_referer() : admin_url( 'admin.php?page=wc-gzd-shipments' ) ) );
 	}
@@ -915,7 +860,8 @@ class Admin {
 		ob_start();
 		?>
 		<tr valign="top">
-			<td class="forminp" id="packaging_list_wrapper" colspan="2">
+			<th scope="row" class="titledesc"><?php echo esc_html_x( 'Available packaging', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
+			<td class="forminp" id="packaging_list_wrapper">
 				<div class="wc_input_table_wrapper">
 					<style>
 						tbody.packaging_list tr td {
@@ -942,7 +888,6 @@ class Admin {
 							<th style="width: 5ch;"><?php echo sprintf( esc_html_x( 'Weight (%s)', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_packaging_weight_unit() ) ); ?> <?php echo wc_help_tip( _x( 'The weight of the packaging.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
 							<th style="width: 15ch;"><?php echo sprintf( esc_html_x( 'Dimensions (LxWxH, %s)', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_packaging_dimension_unit() ) ); ?></th>
 							<th style="width: 5ch;"><?php echo esc_html_x( 'Load capacity (kg)', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'The maximum weight this packaging can hold. Leave empty to not restrict maximum weight.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
-							<th style="width: 10ch;"><?php echo esc_html_x( 'Shipping Provider', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'Choose which shipping provider support the packaging.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
 							<th style="width: 5ch;"><?php echo esc_html_x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
 						</tr>
 						</thead>
@@ -977,15 +922,8 @@ class Admin {
 								<td style="width: 5ch;">
 									<input class="wc_input_decimal" type="text" name="packaging[<?php echo esc_attr( $count ); ?>][max_content_weight]" value="<?php echo esc_attr( wc_format_localized_decimal( $packaging->get_max_content_weight() ) ); ?>" placeholder="0" />
 								</td>
-								<td style="width: 10ch;" class="wc-gzd-shipments-packaging-shipping-provider-select">
-									<select multiple="multiple" data-placeholder="<?php echo esc_attr_x( 'All shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>" class="multiselect wc-enhanced-select wc-gzd-shipments-packaging-provider-select" name="packaging[<?php echo esc_attr( $count ); ?>][available_shipping_provider][]">
-										<?php foreach ( wc_gzd_get_shipping_provider_select( false ) as $provider => $provider_title ) : ?>
-											<option value="<?php echo esc_attr( $provider ); ?>" <?php selected( in_array( (string) $provider, $packaging->get_available_shipping_provider( 'edit' ), true ), true ); ?>><?php echo esc_html( $provider_title ); ?></option>
-										<?php endforeach; ?>
-									</select>
-								</td>
 								<td class="actions" style="width: 5ch;">
-									<a class="button wc-gzd-shipment-action-button wc-gzd-packaging-label-edit edit tip" aria-label="<?php echo esc_html_x( 'Edit packaging configuration', 'shipments', 'woocommerce-germanized-shipments' ); ?>" href="<?php echo esc_url( self::get_packaging_admin_url( $packaging->get_id() ) ); ?>"><?php echo esc_html_x( 'Edit packaging configuration', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+									<a class="button wc-gzd-shipment-action-button wc-gzd-packaging-label-edit edit tip" aria-label="<?php echo esc_html_x( 'Edit packaging configuration', 'shipments', 'woocommerce-germanized-shipments' ); ?>" href="<?php echo esc_url( PackagingSettings::get_settings_url( $packaging->get_id() ) ); ?>"><?php echo esc_html_x( 'Edit packaging configuration', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 								</td>
 							</tr>
 							<?php
@@ -995,7 +933,7 @@ class Admin {
 						</tbody>
 						<tfoot>
 						<tr>
-							<th colspan="8"><a href="#" class="add button"><?php echo esc_html_x( '+ Add packaging', 'shipments', 'woocommerce-germanized-shipments' ); ?></a> <a href="#" class="remove_rows button"><?php echo esc_html_x( 'Remove selected packaging', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></th>
+							<th colspan="7"><a href="#" class="add button"><?php echo esc_html_x( '+ Add packaging', 'shipments', 'woocommerce-germanized-shipments' ); ?></a> <a href="#" class="remove_rows button"><?php echo esc_html_x( 'Remove selected packaging', 'shipments', 'woocommerce-germanized-shipments' ); ?></a></th>
 						</tr>
 						</tfoot>
 					</table>
@@ -1031,16 +969,6 @@ class Admin {
 									</td>\
 									<td style="width: 5ch;">\
 										<input class="wc_input_decimal" type="text" name="packaging[' + size + '][max_content_weight]" placeholder="0" />\
-									</td>\
-									<td style="width: 15ch;" class="wc-gzd-shipments-packaging-shipping-provider-select">\
-										<select multiple="multiple" data-placeholder="<?php echo esc_attr_x( 'All shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>" class="multiselect wc-enhanced-select wc-gzd-shipments-packaging-provider-select" name="packaging[' + size + '][available_shipping_provider][]">\
-											<?php
-											foreach ( wc_gzd_get_shipping_provider_select( false ) as $provider => $provider_title ) :
-												?>
-											\
-											<option value="<?php echo esc_attr( $provider ); ?>"><?php echo esc_html( $provider_title ); ?></option>\
-											<?php endforeach; ?>\
-										</select>\
 									</td>\
 									<td style="width: 5ch;">\
 									</td>\

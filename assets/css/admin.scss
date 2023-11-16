@@ -12,6 +12,11 @@ $layout-spacing: 1rem;
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
 }
 
+.form-table tr.wc-settings-row-with-suffix p.description {
+  display: inline-block;
+  margin-top: 5px;
+}
+
 .woocommerce_page_wc-settings .wc-modal-shipping-method-settings .form-table td .wc-gzd-additional-desc {
   background: #efefef;
 }
@@ -115,24 +120,6 @@ $layout-spacing: 1rem;
 }
 
 .wc-gzd-admin-settings-germanized-shipments-packaging {
-  #packaging_list_wrapper {
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  td.wc-gzd-shipments-packaging-shipping-provider-select {
-    select {
-      visibility: hidden;
-      min-width: 300px;
-      max-width: 300px;
-      height: 40px;
-    }
-    .select2-container {
-      min-width: 300px !important;
-      max-width: 300px !important;
-    }
-  }
-
   td.actions {
     text-align: center;
 

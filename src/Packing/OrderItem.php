@@ -2,21 +2,12 @@
 
 namespace Vendidero\Germanized\Shipments\Packing;
 
-use Vendidero\Germanized\Shipments\Interfaces\PackingItem;
-
 defined( 'ABSPATH' ) || exit;
 
 /**
  * An item to be packed.
  */
-class OrderItem implements PackingItem {
-
-	/**
-	 * @var \WC_Order_Item_Product
-	 */
-	protected $item = null;
-
-	protected $product = null;
+class OrderItem extends Item {
 
 	protected $dimensions = array();
 
@@ -36,12 +27,10 @@ class OrderItem implements PackingItem {
 			throw new \Exception( 'Invalid item' );
 		}
 
-		if ( $product = $this->item->get_product() ) {
-			$this->product = $product;
-
-			$width  = empty( $this->product->get_width() ) ? 0 : wc_format_decimal( $this->product->get_width() );
-			$length = empty( $this->product->get_length() ) ? 0 : wc_format_decimal( $this->product->get_length() );
-			$depth  = empty( $this->product->get_height() ) ? 0 : wc_format_decimal( $this->product->get_height() );
+		if ( $product = $this->get_product() ) {
+			$width  = empty( $product->get_width() ) ? 0 : wc_format_decimal( $product->get_width() );
+			$length = empty( $product->get_length() ) ? 0 : wc_format_decimal( $product->get_length() );
+			$depth  = empty( $product->get_height() ) ? 0 : wc_format_decimal( $product->get_height() );
 
 			$this->dimensions = array(
 				'width'  => (int) wc_get_dimension( $width, 'mm' ),
@@ -49,13 +38,15 @@ class OrderItem implements PackingItem {
 				'depth'  => (int) wc_get_dimension( $depth, 'mm' ),
 			);
 
-			$weight       = empty( $this->product->get_weight() ) ? 0 : wc_format_decimal( $this->product->get_weight() );
+			$weight       = empty( $product->get_weight() ) ? 0 : wc_format_decimal( $product->get_weight() );
 			$this->weight = (int) wc_get_weight( $weight, 'g' );
-		}
-
-		if ( ! $product ) {
+		} else {
 			throw new \Exception( 'Missing product' );
 		}
+	}
+
+	protected function load_product() {
+		$this->product = $this->item->get_product();
 	}
 
 	public function get_id() {
@@ -66,15 +57,15 @@ class OrderItem implements PackingItem {
 	 * @return \WC_Order_Item_Product
 	 */
 	public function get_order_item() {
-		return $this->item;
+		return $this->get_reference();
 	}
 
 	/**
 	 * Item SKU etc.
 	 */
 	public function getDescription(): string {
-		if ( $this->product->get_sku() ) {
-			return $this->product->get_sku();
+		if ( $this->get_product()->get_sku() ) {
+			return $this->get_product()->get_sku();
 		}
 
 		return $this->item->get_id();
@@ -106,12 +97,5 @@ class OrderItem implements PackingItem {
 	 */
 	public function getWeight(): int {
 		return $this->weight;
-	}
-
-	/**
-	 * Does this item need to be kept flat / packed "this way up"?
-	 */
-	public function getKeepFlat(): bool {
-		return false;
 	}
 }

@@ -2,6 +2,7 @@
 namespace Vendidero\Germanized\Shipments\ShippingMethod;
 
 use Vendidero\Germanized\Shipments\Admin\Admin;
+use Vendidero\Germanized\Shipments\Admin\PackagingSettings;
 use Vendidero\Germanized\Shipments\Admin\Settings;
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
 use Vendidero\Germanized\Shipments\Package;
@@ -327,15 +328,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 							'class'     => 'wc-enhanced-select',
 							'label'     => _x( 'Class', 'shipments', 'woocommerce-germanized-shipments' ),
 							'options'   => function() {
-								$term_args = array(
-									'taxonomy'     => 'product_shipping_class',
-									'hide_empty'   => 0,
-									'orderby'      => 'name',
-									'hierarchical' => 0,
-									'fields'       => 'id=>name',
-								);
-
-								return get_terms( $term_args );
+								return Package::get_shipping_classes();
 							},
 						),
 					),
@@ -415,7 +408,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 			$packaging_ids   = array_diff( $packaging_ids, array( 'all' ) );
 
 			foreach ( $packaging_boxes as $id => $box ) {
-				if ( $box->getPackaging()->supports_shipping_provider( $this->get_shipping_provider() ) ) {
+				if ( $box->get_packaging()->supports_shipping_provider( $this->get_shipping_provider() ) ) {
 					$packaging_ids[] = $id;
 				}
 			}
@@ -441,9 +434,8 @@ class ShippingMethod extends \WC_Shipping_Method {
 				$packed_boxes = Helper::pack( $items_to_pack, $boxes, 'cart' );
 
 				foreach ( $packed_boxes as $box ) {
-					$packaging = $box->getBox();
-					$items     = $box->getItems();
-
+					$packaging        = $box->getBox();
+					$items            = $box->getItems();
 					$total_weight     = wc_get_weight( $items->getWeight(), strtolower( get_option( 'woocommerce_weight_unit' ) ), 'g' );
 					$volume           = wc_get_dimension( $items->getVolume(), strtolower( get_option( 'woocommerce_dimension_unit' ) ), 'mm' );
 					$item_count       = $items->count();
@@ -744,7 +736,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 	}
 
 	protected function get_packaging_edit_url( $packaging ) {
-		$url = Admin::get_packaging_admin_url( $packaging );
+		$url = PackagingSettings::get_settings_url( $packaging );
 
 		if ( 'all' === $packaging ) {
 			$url = Settings::get_settings_url( 'packaging' );

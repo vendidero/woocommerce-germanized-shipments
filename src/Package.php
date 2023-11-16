@@ -153,6 +153,18 @@ class Package {
 		return version_compare( phpversion(), '7.1', '>=' ) && apply_filters( 'woocommerce_gzd_enable_rucksack_packaging', true );
 	}
 
+	public static function get_shipping_classes() {
+		$term_args = array(
+			'taxonomy'     => 'product_shipping_class',
+			'hide_empty'   => 0,
+			'orderby'      => 'name',
+			'hierarchical' => 0,
+			'fields'       => 'id=>name',
+		);
+
+		return get_terms( $term_args );
+	}
+
 	public static function is_hpos_enabled() {
 		if ( ! is_callable( array( '\Automattic\WooCommerce\Utilities\OrderUtil', 'custom_orders_table_usage_is_enabled' ) ) ) {
 			return false;
