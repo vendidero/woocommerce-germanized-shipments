@@ -5,6 +5,7 @@ namespace Vendidero\Germanized\Shipments\ShippingProvider;
 use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Germanized\Shipments\ShipmentError;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -32,11 +33,11 @@ class Service {
 
 	protected $default_value = '';
 
-	protected $supported_countries = null;
+	protected $countries = null;
 
-	protected $supported_zones = array();
+	protected $zones = array();
 
-	protected $supported_shipment_types = array();
+	protected $shipment_types = array();
 
 	protected $setting_id = '';
 
@@ -57,20 +58,20 @@ class Service {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'id'                       => '',
-				'internal_id'              => '',
-				'label'                    => '',
-				'description'              => '',
-				'long_description'         => '',
-				'option_type'              => 'checkbox',
-				'default_value'            => 'no',
-				'excluded_locations'       => array(),
-				'options'                  => array(),
-				'products'                 => null,
-				'supported_shipment_types' => array( 'simple' ),
-				'supported_countries'      => null,
-				'supported_zones'          => array_keys( wc_gzd_get_shipping_label_zones() ),
-				'allow_default_booking'    => true,
+				'id'                    => '',
+				'internal_id'           => '',
+				'label'                 => '',
+				'description'           => '',
+				'long_description'      => '',
+				'option_type'           => 'checkbox',
+				'default_value'         => 'no',
+				'excluded_locations'    => array(),
+				'options'               => array(),
+				'products'              => null,
+				'shipment_types'        => array( 'simple' ),
+				'countries'             => null,
+				'zones'                 => array_keys( wc_gzd_get_shipping_label_zones() ),
+				'allow_default_booking' => true,
 			)
 		);
 
@@ -82,31 +83,31 @@ class Service {
 			throw new \Exception( _x( 'A service needs an id.', 'shipments', 'woocommerce-germanized-shipments' ), 500 );
 		}
 
-		$this->id                       = $args['id'];
-		$this->internal_id              = empty( $args['internal_id'] ) ? $this->id : $args['internal_id'];
-		$this->label                    = $args['label'];
-		$this->description              = $args['description'];
-		$this->long_description         = $args['long_description'];
-		$this->option_type              = $args['option_type'];
-		$this->default_value            = $args['default_value'];
-		$this->options                  = array_filter( (array) $args['options'] );
-		$this->locations                = array_diff( wc_gzd_get_shipping_provider_service_locations(), array_filter( (array) $args['excluded_locations'] ) );
-		$this->products                 = is_null( $args['products'] ) ? null : array_filter( (array) $args['products'] );
-		$this->supported_shipment_types = array_filter( (array) $args['supported_shipment_types'] );
-		$this->supported_countries      = is_null( $args['supported_countries'] ) ? null : array_filter( (array) $args['supported_countries'] );
+		$this->id               = $args['id'];
+		$this->internal_id      = empty( $args['internal_id'] ) ? $this->id : $args['internal_id'];
+		$this->label            = $args['label'];
+		$this->description      = $args['description'];
+		$this->long_description = $args['long_description'];
+		$this->option_type      = $args['option_type'];
+		$this->default_value    = $args['default_value'];
+		$this->options          = array_filter( (array) $args['options'] );
+		$this->locations        = array_diff( wc_gzd_get_shipping_provider_service_locations(), array_filter( (array) $args['excluded_locations'] ) );
+		$this->products         = is_null( $args['products'] ) ? null : array_filter( (array) $args['products'] );
+		$this->shipment_types   = array_filter( (array) $args['shipment_types'] );
+		$this->countries        = is_null( $args['countries'] ) ? null : array_filter( (array) $args['countries'] );
 
-		if ( ! empty( $this->supported_countries ) ) {
-			if ( 1 === count( $this->supported_countries ) && Package::get_base_country() === $this->supported_countries[0] ) {
-				$args['supported_zones'] = array( 'dom' );
+		if ( ! empty( $this->countries ) ) {
+			if ( 1 === count( $this->countries ) && Package::get_base_country() === $this->countries[0] ) {
+				$args['zones'] = array( 'dom' );
 			}
 
-			if ( in_array( 'ALL_EU', $this->supported_countries, true ) ) {
-				$this->supported_countries = array_diff( $this->supported_countries, array( 'ALL_EU' ) );
-				$this->supported_countries = array_replace( WC()->countries->get_european_union_countries(), $this->supported_countries );
+			if ( in_array( 'ALL_EU', $this->countries, true ) ) {
+				$this->countries = array_diff( $this->countries, array( 'ALL_EU' ) );
+				$this->countries = array_replace( WC()->countries->get_european_union_countries(), $this->countries );
 			}
 		}
 
-		$this->supported_zones       = array_filter( (array) $args['supported_zones'] );
+		$this->zones                 = array_filter( (array) $args['zones'] );
 		$this->allow_default_booking = wc_string_to_bool( $args['allow_default_booking'] );
 	}
 
@@ -202,30 +203,30 @@ class Service {
 	}
 
 	public function supports_zone( $zone ) {
-		return in_array( $zone, $this->supported_zones, true );
+		return in_array( $zone, $this->zones, true );
 	}
 
-	public function get_supported_zones() {
-		return $this->supported_zones;
+	public function get_zones() {
+		return $this->zones;
 	}
 
 	public function supports_country( $country, $postcode = '' ) {
 		$supports_country = true;
 
-		if ( is_array( $this->supported_countries ) ) {
+		if ( is_array( $this->countries ) ) {
 			// Northern Ireland
 			if ( 'GB' === $country && 'BT' === strtoupper( substr( trim( $postcode ), 0, 2 ) ) ) {
 				$country = 'IX';
 			}
 
-			$supports_country = in_array( $country, $this->supported_countries, true );
+			$supports_country = in_array( $country, $this->countries, true );
 		}
 
 		return $supports_country;
 	}
 
 	public function supports_shipment_type( $type ) {
-		return in_array( $type, $this->supported_shipment_types, true );
+		return in_array( $type, $this->shipment_types, true );
 	}
 
 	public function supports( $filter_args = array() ) {
@@ -376,6 +377,37 @@ class Service {
 	 * @return true|\WP_Error
 	 */
 	public function validate_label_request( $props, $shipment ) {
+		$error = new ShipmentError();
+
+		foreach ( $this->get_additional_label_fields( $shipment ) as $field ) {
+			$field = wp_parse_args(
+				$field,
+				array(
+					'label'       => '',
+					'id'          => '',
+					'type'        => '',
+					'is_required' => false,
+					'data_type'   => '',
+				)
+			);
+
+			if ( true === $field['is_required'] ) {
+				$value = isset( $props[ $field['id'] ] ) ? $props[ $field['id'] ] : null;
+
+				if ( in_array( $field['data_type'], array( 'price', 'decimal' ), true ) ) {
+					$value = (float) wc_format_decimal( $value );
+				}
+
+				if ( empty( $value ) ) {
+					$error->add( 500, sprintf( _x( 'Please choose a valid value for the service %1$s: %2$s.', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_label(), $field['label'] ) );
+				}
+			}
+		}
+
+		if ( wc_gzd_shipment_wp_error_has_errors( $error ) ) {
+			return $error;
+		}
+
 		return true;
 	}
 

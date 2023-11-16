@@ -17,11 +17,11 @@ class Product {
 
 	protected $shipping_provider_name = '';
 
-	protected $supported_countries = null;
+	protected $countries = null;
 
-	protected $supported_zones = array();
+	protected $zones = array();
 
-	protected $supported_shipment_types = array();
+	protected $shipment_types = array();
 
 	protected $price = 0.0;
 
@@ -52,22 +52,22 @@ class Product {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'id'                       => '',
-				'internal_id'              => 0,
-				'parent_id'                => 0,
-				'label'                    => '',
-				'description'              => '',
-				'supported_shipment_types' => array( 'simple' ),
-				'supported_countries'      => null,
-				'supported_zones'          => array_keys( wc_gzd_get_shipping_label_zones() ),
-				'price'                    => 0.0,
-				'weight'                   => null,
-				'length'                   => null,
-				'width'                    => null,
-				'height'                   => null,
-				'dimension_unit'           => get_option( 'woocommerce_dimension_unit' ),
-				'weight_unit'              => get_option( 'woocommerce_weight_unit' ),
-				'meta'                     => array(),
+				'id'             => '',
+				'internal_id'    => 0,
+				'parent_id'      => 0,
+				'label'          => '',
+				'description'    => '',
+				'shipment_types' => array( 'simple' ),
+				'countries'      => null,
+				'zones'          => array_keys( wc_gzd_get_shipping_label_zones() ),
+				'price'          => 0.0,
+				'weight'         => null,
+				'length'         => null,
+				'width'          => null,
+				'height'         => null,
+				'dimension_unit' => get_option( 'woocommerce_dimension_unit' ),
+				'weight_unit'    => get_option( 'woocommerce_weight_unit' ),
+				'meta'           => array(),
 			)
 		);
 
@@ -79,30 +79,30 @@ class Product {
 			throw new \Exception( _x( 'A product needs an id.', 'shipments', 'woocommerce-germanized-shipments' ), 500 );
 		}
 
-		$this->id                       = $args['id'];
-		$this->internal_id              = ! empty( $args['internal_id'] ) ? $args['internal_id'] : $this->id;
-		$this->parent_id                = $args['parent_id'];
-		$this->label                    = $args['label'];
-		$this->description              = $args['description'];
-		$this->meta                     = (array) $args['meta'];
-		$this->supported_shipment_types = array_filter( (array) $args['supported_shipment_types'] );
-		$this->supported_countries      = is_null( $args['supported_countries'] ) ? null : array_filter( (array) $args['supported_countries'] );
+		$this->id             = $args['id'];
+		$this->internal_id    = ! empty( $args['internal_id'] ) ? $args['internal_id'] : $this->id;
+		$this->parent_id      = $args['parent_id'];
+		$this->label          = $args['label'];
+		$this->description    = $args['description'];
+		$this->meta           = (array) $args['meta'];
+		$this->shipment_types = array_filter( (array) $args['shipment_types'] );
+		$this->countries      = is_null( $args['countries'] ) ? null : array_filter( (array) $args['countries'] );
 
-		if ( ! empty( $this->supported_countries ) ) {
-			if ( 1 === count( $this->supported_countries ) && Package::get_base_country() === $this->supported_countries[0] ) {
-				$args['supported_zones'] = array( 'dom' );
+		if ( ! empty( $this->countries ) ) {
+			if ( 1 === count( $this->countries ) && Package::get_base_country() === $this->countries[0] ) {
+				$args['zones'] = array( 'dom' );
 			}
 
-			if ( in_array( 'ALL_EU', $this->supported_countries, true ) ) {
-				$this->supported_countries = array_diff( $this->supported_countries, array( 'ALL_EU' ) );
-				$this->supported_countries = array_replace( WC()->countries->get_european_union_countries(), $this->supported_countries );
+			if ( in_array( 'ALL_EU', $this->countries, true ) ) {
+				$this->countries = array_diff( $this->countries, array( 'ALL_EU' ) );
+				$this->countries = array_replace( WC()->countries->get_european_union_countries(), $this->countries );
 			}
 		}
 
-		$this->supported_zones = array_filter( (array) $args['supported_zones'] );
-		$this->price           = (float) wc_format_decimal( $args['price'] );
-		$this->dimension_unit  = $args['dimension_unit'];
-		$this->weight_unit     = $args['weight_unit'];
+		$this->zones          = array_filter( (array) $args['zones'] );
+		$this->price          = (float) wc_format_decimal( $args['price'] );
+		$this->dimension_unit = $args['dimension_unit'];
+		$this->weight_unit    = $args['weight_unit'];
 
 		$this->set_min_max_prop( 'weight', $args['weight'] );
 		$this->set_min_max_prop( 'length', $args['length'] );
@@ -167,7 +167,7 @@ class Product {
 	}
 
 	public function supports_zone( $zone ) {
-		return in_array( $zone, $this->supported_zones, true );
+		return in_array( $zone, $this->zones, true );
 	}
 
 	public function get_meta( $prop = null, $default = false ) {
@@ -183,20 +183,20 @@ class Product {
 	public function supports_country( $country, $postcode = '' ) {
 		$supports_country = true;
 
-		if ( is_array( $this->supported_countries ) ) {
+		if ( is_array( $this->countries ) ) {
 			// Northern Ireland
 			if ( 'GB' === $country && 'BT' === strtoupper( substr( trim( $postcode ), 0, 2 ) ) ) {
 				$country = 'IX';
 			}
 
-			$supports_country = in_array( $country, $this->supported_countries, true );
+			$supports_country = in_array( $country, $this->countries, true );
 		}
 
 		return $supports_country;
 	}
 
 	public function supports_shipment_type( $type ) {
-		return in_array( $type, $this->supported_shipment_types, true );
+		return in_array( $type, $this->shipment_types, true );
 	}
 
 	protected function supports_min_max_dimension( $value, $dim = 'length', $unit = '' ) {

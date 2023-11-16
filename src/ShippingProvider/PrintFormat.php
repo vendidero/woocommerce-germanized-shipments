@@ -22,7 +22,7 @@ class PrintFormat {
 
 	protected $products = null;
 
-	protected $supported_shipment_types = array();
+	protected $shipment_types = array();
 
 	public function __construct( $shipping_provider, $args = array() ) {
 		if ( is_a( $shipping_provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
@@ -35,12 +35,12 @@ class PrintFormat {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'id'                       => '',
-				'name'                     => '',
-				'label'                    => '',
-				'description'              => '',
-				'products'                 => null,
-				'supported_shipment_types' => wc_gzd_get_shipment_types(),
+				'id'             => '',
+				'name'           => '',
+				'label'          => '',
+				'description'    => '',
+				'products'       => null,
+				'shipment_types' => wc_gzd_get_shipment_types(),
 			)
 		);
 
@@ -52,11 +52,11 @@ class PrintFormat {
 			throw new \Exception( _x( 'A print format needs an id.', 'shipments', 'woocommerce-germanized-shipments' ), 500 );
 		}
 
-		$this->id                       = $args['id'];
-		$this->label                    = $args['label'];
-		$this->description              = $args['description'];
-		$this->products                 = is_null( $args['products'] ) ? null : array_filter( (array) $args['products'] );
-		$this->supported_shipment_types = array_filter( (array) $args['supported_shipment_types'] );
+		$this->id             = $args['id'];
+		$this->label          = $args['label'];
+		$this->description    = $args['description'];
+		$this->products       = is_null( $args['products'] ) ? null : array_filter( (array) $args['products'] );
+		$this->shipment_types = array_filter( (array) $args['shipment_types'] );
 	}
 
 	public function get_id() {
@@ -75,8 +75,8 @@ class PrintFormat {
 		return is_null( $this->products ) ? array() : $this->products;
 	}
 
-	public function get_supported_shipment_types() {
-		return $this->supported_shipment_types;
+	public function get_shipment_types() {
+		return $this->shipment_types;
 	}
 
 	public function supports_product( $product ) {
@@ -84,7 +84,7 @@ class PrintFormat {
 	}
 
 	public function supports_shipment_type( $type ) {
-		return in_array( $type, $this->supported_shipment_types, true );
+		return in_array( $type, $this->shipment_types, true );
 	}
 
 	/**
