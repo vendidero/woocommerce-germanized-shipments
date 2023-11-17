@@ -2,6 +2,14 @@
 
 $layout-spacing: 1rem;
 
+#order_data .order_data_column {
+  .wc-gzd-shipment-order-meta-data {
+    float: left;
+    clear: both;
+    width: 100%;
+  }
+}
+
 .woocommerce_page_wc-settings .form-table td .wc-gzd-additional-desc {
   margin-top: 1em;
   line-height: 1.5em;
