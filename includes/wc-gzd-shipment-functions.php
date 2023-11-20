@@ -1313,6 +1313,15 @@ function wc_gzd_get_order_shipping_provider( $order ) {
 		$provider = $method->get_shipping_provider_instance();
 	}
 
+	if ( ! $provider ) {
+		foreach ( array_reverse( wc_gzd_get_shipment_order( $order )->get_shipments() ) as $shipment ) {
+			if ( $shipment->get_shipping_provider_instance() ) {
+				$provider = $shipment->get_shipping_provider_instance();
+				break;
+			}
+		}
+	}
+
 	/**
 	 * Filters the shipping provider detected for a specific order.
 	 *

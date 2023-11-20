@@ -209,12 +209,19 @@ class ShippingMethod extends \WC_Shipping_Method {
 				'default'     => $this->method_title,
 				'desc_tip'    => true,
 			),
+			'free_title'                               => array(
+				'title'       => _x( 'Title (free shipping)', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'        => 'text',
+				'description' => _x( 'This controls the title which the user sees during checkout in case a free shipping option is available.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'default'     => sprintf( _x( 'Free shipping (via %1$s)', 'shipments', 'woocommerce-germanized-shipments' ), $this->method_title ),
+				'desc_tip'    => true,
+			),
 			'shipping_rules_title'                     => array(
 				'title'       => _x( 'Shipping Rules', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'        => 'title',
 				'id'          => 'shipping_rules_title',
 				'default'     => '',
-				'description' => sprintf( _x( 'Configure shipping costs per packaging option. Within cart, a rucksack algorithm will automatically fit the items in the packaging option(s) available and calculate it\'s cost.<br/> Some important hints on the calculation logic: <ol><li>The <i>from</i> value (e.g. 3) is expected to be inclusive (greater or equal 3). The <i>to</i> value (e.g. 5) is expected to be exclusive (smaller than 5).</li><li>Leave the <i>to</i> value empty for your last packaging rule to match all subsequent values.</li><li>In case a free shipping rule is available, the conditional logic automatically stops.</li><li>The <i>all remaining packaging</i> rules will be used for available packaging options without custom rules and serve as fallback in case no applicable rule was found.</li><li>In case no <i>all remaining packaging</i> rule exists, only packaging options with custom rules will be used for packing.</li></ol>', 'shipments', 'woocommerce-germanized-shipments' ) ),
+				'description' => sprintf( _x( 'Configure shipping costs per packaging option. Within cart, a rucksack algorithm will automatically fit the items in the packaging option(s) available and calculate it\'s cost.<br/> Some important hints on the calculation logic: <ol><li>The <i>from</i> value (e.g. 3) is expected to be inclusive (greater or equal 3). The <i>to</i> value (e.g. 5) is expected to be exclusive (smaller than 5).</li><li>Leave the <i>to</i> value empty for your last packaging rule to match all subsequent values.</li><li>All conditions must be met for the shipping rule to apply.</li><li>In case a free shipping rule is available, the conditional logic automatically stops.</li><li>The <i>all remaining packaging</i> rules will be used for available packaging options without custom rules and serve as fallback in case no applicable rule was found.</li><li>In case no <i>all remaining packaging</i> rule exists, only packaging options with custom rules will be used for packing.</li></ol>', 'shipments', 'woocommerce-germanized-shipments' ) ),
 			),
 			'multiple_shipments_cost_calculation_mode' => array(
 				'title'    => _x( 'Multiple packages', 'shipments', 'woocommerce-germanized-shipments' ),
@@ -363,10 +370,10 @@ class ShippingMethod extends \WC_Shipping_Method {
 	}
 
 	public function get_rate_label( $costs ) {
-		$label = $this->get_method_title();
+		$label = $this->get_title();
 
 		if ( 0.0 === $costs ) {
-			$label = sprintf( _x( 'Free Shipping (via %1$s)', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_shipping_provider()->get_title() );
+			$label = $this->get_instance_option( 'free_title', sprintf( _x( 'Free shipping (via %1$s)', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_method_title() ) );
 		}
 
 		return $label;

@@ -235,7 +235,7 @@ trait ConfigurationSetTrait {
 			$configuration_sets = $this->get_configuration_sets( 'edit' );
 
 			foreach ( $configuration_sets as $set_id => $set ) {
-				if ( substr( $set_id, 0, strlen( $id_prefix ) ) === $id_prefix ) {
+				if ( strstr( $set_id, $id_prefix ) ) {
 					unset( $configuration_sets[ $set_id ] );
 				}
 			}

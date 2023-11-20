@@ -561,13 +561,22 @@ class Simple extends WC_Data implements ShippingProvider {
 		$this->set_prop( 'supports_guest_returns', wc_string_to_bool( $supports ) );
 	}
 
+	protected function setting_supports_default_update( $setting ) {
+		$type = isset( $setting['type'] ) ? $setting['type'] : 'title';
+
+		if ( in_array( $type, array( 'title', 'sectionend', 'html' ), true ) || ! isset( $setting['id'] ) || empty( $setting['id'] ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
 	public function update_settings_with_defaults() {
 		foreach ( $this->get_all_settings() as $section => $settings ) {
 			foreach ( $settings as $setting ) {
-				$type    = isset( $setting['type'] ) ? $setting['type'] : 'title';
 				$default = isset( $setting['default'] ) ? $setting['default'] : null;
 
-				if ( in_array( $type, array( 'title', 'sectionend', 'html' ), true ) || ! isset( $setting['id'] ) || empty( $setting['id'] ) ) {
+				if ( ! $this->setting_supports_default_update( $setting ) ) {
 					continue;
 				}
 
@@ -828,7 +837,7 @@ class Simple extends WC_Data implements ShippingProvider {
 		}
 	}
 
-	protected function get_general_settings( $for_shipping_method = false ) {
+	protected function get_general_settings() {
 		$settings = array(
 			array(
 				'title' => '',
@@ -994,15 +1003,15 @@ class Simple extends WC_Data implements ShippingProvider {
 		}
 	}
 
-	public function get_settings( $section = '', $for_shipping_method = false ) {
+	public function get_settings( $section = '' ) {
 		$settings = array();
 
 		if ( '' === $section || 'general' === $section ) {
-			$settings = $this->get_general_settings( $for_shipping_method );
+			$settings = $this->get_general_settings();
 		} elseif ( 'returns' === $section ) {
-			$settings = $this->get_return_settings( $for_shipping_method );
+			$settings = $this->get_return_settings();
 		} elseif ( is_callable( array( $this, "get_{$section}_settings" ) ) ) {
-			$settings = $this->{"get_{$section}_settings"}( $for_shipping_method );
+			$settings = $this->{"get_{$section}_settings"}();
 		}
 
 		/**
@@ -1019,10 +1028,10 @@ class Simple extends WC_Data implements ShippingProvider {
 		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( $this->get_hook_prefix() . 'settings', $settings, $section, $this, $for_shipping_method );
+		return apply_filters( $this->get_hook_prefix() . 'settings', $settings, $section, $this );
 	}
 
-	protected function get_return_settings( $for_shipping_method = false ) {
+	protected function get_return_settings() {
 		$settings = array(
 			array(
 				'title' => '',
@@ -1098,12 +1107,12 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $settings;
 	}
 
-	protected function get_all_settings( $for_shipping_method = false ) {
+	protected function get_all_settings() {
 		$settings = array();
 		$sections = array_keys( $this->get_setting_sections() );
 
 		foreach ( $sections as $section ) {
-			$settings[ $section ] = $this->get_settings( $section, $for_shipping_method );
+			$settings[ $section ] = $this->get_settings( $section );
 		}
 
 		return $settings;

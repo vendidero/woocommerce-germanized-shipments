@@ -302,7 +302,12 @@ class ConfigurationSet {
 			$id = $details['suffix'] . '_' . $details['service_meta'];
 		}
 
-		if ( array_key_exists( $id, $this->get_settings() ) ) {
+		$all_settings = $this->get_settings();
+		$the_setting  = array_key_exists( $id, $all_settings ) ? $all_settings[ $id ] : null;
+
+		if ( 'product' === $id && '' === $the_setting ) {
+			return false;
+		} elseif ( ! is_null( $the_setting ) ) {
 			return true;
 		}
 

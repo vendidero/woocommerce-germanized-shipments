@@ -153,6 +153,12 @@ class Package {
 		return version_compare( phpversion(), '7.1', '>=' ) && apply_filters( 'woocommerce_gzd_enable_rucksack_packaging', true );
 	}
 
+	public static function is_integration() {
+		$gzd_installed = class_exists( 'WooCommerce_Germanized' );
+
+		return $gzd_installed;
+	}
+
 	/**
 	 * @return int[]
 	 */

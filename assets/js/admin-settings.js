@@ -10,7 +10,7 @@ window.germanized.admin = window.germanized.admin || {};
             self.params = wc_gzd_admin_shipment_settings_params;
 
             $( document )
-                .on( 'click', 'a.woocommerce-gzd-input-toggle-trigger', self.onInputToggleClick )
+                .on( 'click', 'a.woocommerce-gzd-shipment-input-toggle-trigger', self.onInputToggleClick )
                 .on( 'change gzd_shipments_show_or_hide_fields', 'table.form-table :input[id]', self.onChangeInput );
 
             $( 'table.form-table :input[id]' ).trigger( 'gzd_shipments_show_or_hide_fields' );

@@ -22,7 +22,7 @@ class Install {
 		self::maybe_create_return_reasons();
 
 		if ( ! is_null( $current_version ) && version_compare( $current_version, '3.0.0', '<' ) ) {
-			self::maybe_migrate_to_configuration_sets();
+			self::migrate_to_configuration_sets();
 		}
 
 		self::maybe_create_packaging();
@@ -125,11 +125,14 @@ class Install {
 		return true;
 	}
 
-	public static function maybe_migrate_to_configuration_sets() {
-		$providers = Helper::instance()->get_shipping_providers();
+	public static function migrate_to_configuration_sets( $providers_to_migrate = array() ) {
+		$providers    = empty( $providers_to_migrate ) ? Helper::instance()->get_shipping_providers() : $providers_to_migrate;
+		$provider_ids = array();
 
 		foreach ( $providers as $provider ) {
 			if ( is_a( $provider, '\Vendidero\Germanized\Shipments\ShippingProvider\Auto' ) ) {
+				$provider_ids[] = $provider->get_id();
+
 				if ( is_callable( array( $provider, 'get_configuration_sets' ) ) ) {
 					$config_data = array();
 
@@ -173,6 +176,10 @@ class Install {
 							$provider_name = $settings['shipping_provider'];
 
 							if ( $provider = wc_gzd_get_shipping_provider( $provider_name ) ) {
+								if ( ! in_array( $provider->get_id(), $provider_ids, true ) ) {
+									continue;
+								}
+
 								$settings_prefix = "{$provider_name}_";
 								$config_data     = array();
 
@@ -200,10 +207,6 @@ class Install {
 				}
 			}
 		}
-	}
-
-	public static function get_excluded_methods() {
-		return apply_filters( 'woocommerce_gzd_shipments_get_methods_excluded_from_provider_settings', array( 'pr_dhl_paket', 'flexible_shipping_info' ) );
 	}
 
 	private static function update_providers() {

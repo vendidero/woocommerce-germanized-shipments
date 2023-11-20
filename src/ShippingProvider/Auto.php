@@ -23,8 +23,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	use ConfigurationSetTrait;
 
 	protected $extra_data = array(
-		'label_default_shipment_weight'      => '',
-		'label_minimum_shipment_weight'      => '',
 		'label_print_format'                 => '',
 		'label_auto_enable'                  => false,
 		'label_auto_shipment_status'         => 'gzd-processing',
@@ -35,17 +33,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	);
 
 	public function get_label_default_shipment_weight( $context = 'view' ) {
-		$weight = $this->get_prop( 'label_default_shipment_weight', $context );
-
-		if ( 'view' === $context && '' === $weight ) {
-			$weight = $this->get_default_label_default_shipment_weight();
-		}
-
-		return $weight;
-	}
-
-	protected function get_default_label_default_shipment_weight() {
-		return 0;
+		return apply_filters( "{$this->get_hook_prefix()}label_default_shipment_weight", 0.5, $this );
 	}
 
 	protected function get_default_label_default_print_format() {
@@ -53,17 +41,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	}
 
 	public function get_label_minimum_shipment_weight( $context = 'view' ) {
-		$weight = $this->get_prop( 'label_minimum_shipment_weight', $context );
-
-		if ( 'view' === $context && '' === $weight ) {
-			$weight = $this->get_default_label_minimum_shipment_weight();
-		}
-
-		return $weight;
-	}
-
-	protected function get_default_label_minimum_shipment_weight() {
-		return 0.5;
+		return apply_filters( "{$this->get_hook_prefix()}label_minimum_shipment_weight", 0.01, $this );
 	}
 
 	/**
@@ -126,14 +104,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	public function is_sandbox() {
 		return false;
-	}
-
-	public function set_label_default_shipment_weight( $weight ) {
-		$this->set_prop( 'label_default_shipment_weight', ( '' === $weight ? '' : wc_format_decimal( $weight ) ) );
-	}
-
-	public function set_label_minimum_shipment_weight( $weight ) {
-		$this->set_prop( 'label_minimum_shipment_weight', ( '' === $weight ? '' : wc_format_decimal( $weight ) ) );
 	}
 
 	public function set_label_auto_enable( $enable ) {
@@ -232,10 +202,9 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	protected function get_printing_settings() {
 		$settings = array(
 			array(
-				'title'          => _x( 'Label Format', 'shipments', 'woocommerce-germanized-shipments' ),
-				'allow_override' => true,
-				'type'           => 'title',
-				'id'             => 'shipping_provider_label_format_options',
+				'title' => _x( 'Label Format', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'  => 'title',
+				'id'    => 'shipping_provider_label_format_options',
 			),
 		);
 
@@ -286,13 +255,12 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return $settings;
 	}
 
-	protected function get_automation_settings( $for_shipping_method = false ) {
+	protected function get_automation_settings() {
 		$settings = array(
 			array(
-				'title'          => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ),
-				'allow_override' => true,
-				'type'           => 'title',
-				'id'             => 'shipping_provider_label_auto_options',
+				'title' => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'  => 'title',
+				'id'    => 'shipping_provider_label_auto_options',
 			),
 		);
 
@@ -422,50 +390,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return $this->get_label_settings_by_shipment_type( 'return' );
 	}
 
-	protected function get_label_settings( $for_shipping_method = false ) {
-		$settings = array();
-
-		$settings = array_merge(
-			$settings,
-			array(
-				array(
-					'title' => '',
-					'type'  => 'title',
-					'id'    => 'shipping_provider_label_options',
-				),
-
-				array(
-					'title'    => _x( 'Default content weight (kg)', 'shipments', 'woocommerce-germanized-shipments' ),
-					'type'     => 'text',
-					'desc'     => _x( 'Choose a default shipment content weight to be used for labels if no weight has been applied to the shipment.', 'shipments', 'woocommerce-germanized-shipments' ),
-					'desc_tip' => true,
-					'id'       => 'label_default_shipment_weight',
-					'css'      => 'max-width: 60px;',
-					'class'    => 'wc_input_decimal',
-					'default'  => $this->get_default_label_default_shipment_weight(),
-					'value'    => wc_format_localized_decimal( $this->get_setting( 'label_default_shipment_weight' ) ),
-				),
-
-				array(
-					'title'    => _x( 'Minimum weight (kg)', 'shipments', 'woocommerce-germanized-shipments' ),
-					'type'     => 'text',
-					'desc'     => _x( 'Choose a minimum weight to be used for labels e.g. to prevent low shipment weight errors.', 'shipments', 'woocommerce-germanized-shipments' ),
-					'desc_tip' => true,
-					'id'       => 'label_minimum_shipment_weight',
-					'css'      => 'max-width: 60px;',
-					'class'    => 'wc_input_decimal',
-					'default'  => $this->get_default_label_minimum_shipment_weight(),
-					'value'    => wc_format_localized_decimal( $this->get_setting( 'label_minimum_shipment_weight' ) ),
-				),
-
-				array(
-					'type' => 'sectionend',
-					'id'   => 'shipping_provider_label_options',
-				),
-			)
-		);
-
-		return $settings;
+	protected function get_label_settings() {
+		return array();
 	}
 
 	/**
@@ -518,7 +444,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 						'type'                  => 'select',
 						'id'                    => $product_setting_id,
 						'default'               => 'shipping_provider' === $configuration_set->get_setting_type() ? $default_product : $this->get_setting( $product_setting_id, $default_product ),
-						'value'                 => $configuration_set->get_product() ? $configuration_set->get_product() : $default_product,
+						'value'                 => $configuration_set->get_product() ? $configuration_set->get_product() : null,
 						'desc'                  => sprintf( _x( 'Select the default service for %1$s shipments.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_label_zone_title( $configuration_set->get_zone() ) ),
 						'options'               => $select,
 						'class'                 => 'wc-enhanced-select',

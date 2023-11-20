@@ -89,6 +89,108 @@ class Admin {
 				add_filter( 'bulk_actions-' . ( 'shop_order' === self::get_order_screen_id() ? 'edit-shop_order' : self::get_order_screen_id() ), array( __CLASS__, 'define_order_bulk_actions' ), 10, 1 );
 			}
 		);
+
+		add_action( 'woocommerce_admin_field_gzd_toggle', array( __CLASS__, 'register_toggle_field' ), 30 );
+		add_filter( 'woocommerce_admin_settings_sanitize_option', array( __CLASS__, 'sanitize_toggle_field' ), 10, 3 );
+	}
+
+	public static function sanitize_toggle_field( $value, $option, $raw_value ) {
+		if ( Package::is_integration() ) {
+			return $value;
+		}
+
+		$option = wp_parse_args(
+			$option,
+			array(
+				'type' => '',
+			)
+		);
+
+		if ( 'gzd_toggle' === $option['type'] ) {
+			$value = '1' === $raw_value || 'yes' === $raw_value ? 'yes' : 'no';
+		}
+
+		return $value;
+	}
+
+	public static function register_toggle_field( $value ) {
+		if ( Package::is_integration() ) {
+			return;
+		}
+
+		// Description handling.
+		$field_description_data = \WC_Admin_Settings::get_field_description( $value );
+
+		if ( ! isset( $value['value'] ) ) {
+			$value['value'] = \WC_Admin_Settings::get_option( $value['id'], $value['default'] );
+		}
+
+		if ( ! isset( $value['checkboxgroup'] ) || 'start' === $value['checkboxgroup'] ) {
+			?>
+			<tr valign="top">
+			<th scope="row" class="titledesc">
+				<span class="wc-gzd-label-wrap"><?php echo esc_html( $value['title'] ); ?><?php echo wp_kses_post( $field_description_data['tooltip_html'] ); ?></span>
+			</th>
+			<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
+			<fieldset>
+			<?php
+		} else {
+			?>
+			<fieldset>
+			<?php
+		}
+		?>
+		<?php self::render_toggle( $value ); ?>
+		</fieldset>
+		<?php
+		if ( ! isset( $value['checkboxgroup'] ) || 'end' === $value['checkboxgroup'] ) {
+			?>
+			</td>
+			</tr>
+			<?php
+		}
+	}
+
+	public static function render_toggle( $args ) {
+		$args          = wp_parse_args(
+			$args,
+			array(
+				'id'                => '',
+				'css'               => '',
+				'value'             => '',
+				'class'             => '',
+				'name'              => '',
+				'suffix'            => '',
+				'desc_tip'          => false,
+				'desc'              => '',
+				'custom_attributes' => array(),
+			)
+		);
+		$args['value'] = wc_bool_to_string( $args['value'] );
+		$args['name']  = empty( $args['name'] ) ? $args['id'] : $args['name'];
+		// Description handling.
+		$field_description_data = \WC_Admin_Settings::get_field_description( $args );
+		?>
+		<a href="#" class="woocommerce-gzd-shipment-input-toggle-trigger">
+			<span id="<?php echo esc_attr( $args['id'] ); ?>-toggle" class="woocommerce-gzd-input-toggle woocommerce-input-toggle woocommerce-input-toggle--<?php echo esc_attr( 'yes' === $args['value'] ? 'enabled' : 'disabled' ); ?>"><?php echo ( ( 'yes' === $args['value'] ) ? esc_html_x( 'Yes', 'shipments', 'woocommerce-germanized-shipments' ) : esc_html_x( 'No', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></span>
+		</a>
+		<input
+		name="<?php echo esc_attr( $args['name'] ); ?>"
+		id="<?php echo esc_attr( $args['id'] ); ?>"
+		type="checkbox"
+		style="display: none; <?php echo esc_attr( $args['css'] ); ?>"
+		value="1"
+		class="<?php echo esc_attr( $args['class'] ); ?>"
+		<?php checked( $args['value'], 'yes' ); ?>
+		<?php
+		if ( ! empty( $args['custom_attributes'] ) && is_array( $args['custom_attributes'] ) ) {
+			foreach ( $args['custom_attributes'] as $attribute => $attribute_value ) {
+				echo esc_attr( $attribute ) . '="' . esc_attr( $attribute_value ) . '" ';
+			}
+		}
+		?>
+		/><?php echo esc_html( $args['suffix'] ); ?><?php echo wp_kses_post( $field_description_data['description'] ); ?>
+		<?php
 	}
 
 	public static function register_admin_connected_pages( $is_connected, $current_page ) {
