@@ -1554,7 +1554,7 @@ class Admin {
 
 			foreach ( $handlers as $key => $handler ) {
 
-				if ( is_object( $handler ) && is_a( $handler, get_class( $handler ) ) ) {
+				if ( is_object( $handler ) && is_a( $handler, 'Vendidero\Germanized\Shipments\Admin\BulkActionHandler' ) ) {
 					self::$bulk_handlers[ $key ] = $handler;
 					continue;
 				}
