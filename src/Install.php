@@ -130,7 +130,11 @@ class Install {
 		$provider_ids = array();
 
 		foreach ( $providers as $provider ) {
-			if ( is_a( $provider, '\Vendidero\Germanized\Shipments\ShippingProvider\Auto' ) ) {
+			if ( ! is_a( $provider, '\Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
+				$provider = wc_gzd_get_shipping_provider( $provider );
+			}
+
+			if ( is_a( $provider, '\Vendidero\Germanized\Shipments\ShippingProvider\Auto' ) && $provider->is_activated() ) {
 				$provider_ids[] = $provider->get_id();
 
 				if ( is_callable( array( $provider, 'get_configuration_sets' ) ) ) {
@@ -147,7 +151,10 @@ class Install {
 						}
 					}
 
-					self::create_configuration_set_from_migration_data( $config_data, $provider, $provider );
+					if ( isset( $config_data['products'] ) ) {
+						self::create_configuration_set_from_migration_data( $config_data, $provider, $provider );
+					}
+
 					$provider->save();
 				}
 			}
@@ -190,15 +197,17 @@ class Install {
 									}
 								}
 
-								self::create_configuration_set_from_migration_data( $config_data, $shipment_method, $provider );
+								if ( isset( $config_data['products'] ) ) {
+									self::create_configuration_set_from_migration_data( $config_data, $shipment_method, $provider );
 
-								$configuration_sets = $shipment_method->get_configuration_sets();
+									$configuration_sets = $shipment_method->get_configuration_sets();
 
-								if ( ! empty( $configuration_sets ) ) {
-									$current_settings = $shipment_method->get_method()->instance_settings;
+									if ( ! empty( $configuration_sets ) ) {
+										$current_settings = $shipment_method->get_method()->instance_settings;
 
-									if ( ! empty( $current_settings ) ) {
-										update_option( $shipment_method->get_method()->get_instance_option_key(), apply_filters( 'woocommerce_shipping_' . $shipment_method->get_method()->id . '_instance_settings_values', $current_settings, $shipment_method->get_method() ), 'yes' );
+										if ( ! empty( $current_settings ) ) {
+											update_option( $shipment_method->get_method()->get_instance_option_key(), apply_filters( 'woocommerce_shipping_' . $shipment_method->get_method()->id . '_instance_settings_values', $current_settings, $shipment_method->get_method() ), 'yes' );
+										}
 									}
 								}
 							}

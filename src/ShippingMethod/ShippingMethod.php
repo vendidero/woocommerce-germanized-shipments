@@ -43,7 +43,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 		$this->id                 = 'shipping_provider_' . $this->shipping_provider->get_name();
 		$this->instance_id        = absint( $instance_id );
 		$this->method_title       = $this->shipping_provider->get_title();
-		$this->method_description = sprintf( _x( 'Apply rule-based shipping costs for shipments handled by %1$s based on your available packaging options. Learn <a href="%2$s">how to configure →</a>', 'shipments', 'woocommerce-germanized-shipments' ), $this->shipping_provider->get_title(), 'https://vendidero.de' );
+		$this->method_description = sprintf( _x( 'Apply rule-based shipping costs for shipments handled by %1$s based on your available packaging options. Learn <a href="%2$s">how to configure →</a>', 'shipments', 'woocommerce-germanized-shipments' ), $this->shipping_provider->get_title(), 'https://vendidero.de/dokument/versandregeln-erstellen' );
 		$this->title              = $this->method_title;
 		$this->supports           = array(
 			'shipping-zones',
@@ -153,51 +153,6 @@ class ShippingMethod extends \WC_Shipping_Method {
 		}
 
 		return false;
-	}
-
-	public function get_label_zones() {
-		$zones           = array();
-		$base_country    = Package::get_base_country();
-		$base_continent  = WC()->countries->get_continent_code_for_country( $base_country );
-		$available_zones = array( 'international', 'eu', 'domestic' );
-
-		if ( $zone = $this->get_zone() ) {
-			foreach ( $zone->get_zone_locations() as $location ) {
-				if ( 'continent' === $location->type ) {
-					$zones = array(
-						'international',
-					);
-
-					if ( $base_continent === $location->code ) {
-						$zones = array_merge( $zones, array( 'domestic' ) );
-					}
-
-					if ( 'EU' === $location->code ) {
-						$zones = array_merge( $zones, array( 'eu' ) );
-					}
-				} elseif ( 'country' === $location->type || 'state' === $location->type ) {
-					$location_data = wc_format_country_state_string( $location->code );
-
-					if ( ! empty( $location_data['country'] ) ) {
-						if ( Package::is_shipping_domestic( $location_data['country'] ) ) {
-							$zones = array_merge( $zones, array( 'domestic' ) );
-						} elseif ( Package::is_shipping_inner_eu_country( $location_data['country'] ) ) {
-							$zones = array_merge( $zones, array( 'eu' ) );
-						} else {
-							$zones = array_merge( $zones, array( 'international' ) );
-						}
-					}
-				}
-
-				$zones = array_unique( $zones );
-
-				if ( count( $available_zones ) === count( $zones ) ) {
-					break;
-				}
-			}
-		}
-
-		return $zones;
 	}
 
 	public function init_form_fields() {
@@ -343,10 +298,6 @@ class ShippingMethod extends \WC_Shipping_Method {
 				),
 			)
 		);
-	}
-
-	public function get_condition_type_options( $type ) {
-
 	}
 
 	public function get_conditional_operator( $operator ) {
