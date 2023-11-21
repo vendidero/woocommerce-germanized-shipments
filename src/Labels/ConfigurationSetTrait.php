@@ -25,7 +25,7 @@ trait ConfigurationSetTrait {
 			$args = wp_parse_args(
 				$args,
 				array(
-					'shipping_provider_name' => '',
+					'shipping_provider_name' => is_a( $this, '\Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ? $this->get_name() : '',
 					'shipment_type'          => 'simple',
 					'zone'                   => 'dom',
 					'setting_type'           => $this->get_configuration_set_setting_type(),
