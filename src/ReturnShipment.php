@@ -97,6 +97,18 @@ class ReturnShipment extends Shipment {
 		return false;
 	}
 
+	public function hide_return_address() {
+		$hide_return_address = ! $this->has_status( 'processing' );
+
+		if ( $provider = $this->get_shipping_provider_instance() ) {
+			if ( $provider->hide_return_address() ) {
+				$hide_return_address = true;
+			}
+		}
+
+		return apply_filters( "{$this->get_general_hook_prefix()}hide_return_address", $hide_return_address, $this );
+	}
+
 	/**
 	 * Returns the address of the sender e.g. customer.
 	 *

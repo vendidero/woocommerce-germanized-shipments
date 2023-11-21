@@ -33,14 +33,16 @@ class OrderItem extends Item {
 			$depth  = empty( $product->get_height() ) ? 0 : wc_format_decimal( $product->get_height() );
 
 			$this->dimensions = array(
-				'width'  => (int) wc_get_dimension( $width, 'mm' ),
-				'length' => (int) wc_get_dimension( $length, 'mm' ),
-				'depth'  => (int) wc_get_dimension( $depth, 'mm' ),
+				'width'  => (int) ceil( (float) wc_get_dimension( $width, 'mm' ) ),
+				'length' => (int) ceil( (float) wc_get_dimension( $length, 'mm' ) ),
+				'depth'  => (int) ceil( (float) wc_get_dimension( $depth, 'mm' ) ),
 			);
 
-			$weight       = empty( $product->get_weight() ) ? 0 : wc_format_decimal( $product->get_weight() );
-			$this->weight = (int) wc_get_weight( $weight, 'g' );
-		} else {
+			$weight       = empty( $this->product->get_weight() ) ? 0 : wc_format_decimal( $this->product->get_weight() );
+			$this->weight = (int) ceil( (float) wc_get_weight( $weight, 'g' ) );
+		}
+
+		if ( ! $product ) {
 			throw new \Exception( 'Missing product' );
 		}
 	}

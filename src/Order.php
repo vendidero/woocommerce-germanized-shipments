@@ -429,7 +429,7 @@ class Order {
 
 				if ( $item = $shipment->get_item_by_order_item_id( $order_item->get_id() ) ) {
 					if ( 'return' === $shipment->get_type() ) {
-						if ( $shipment->is_shipped() ) {
+						if ( ! $args['sent_only'] && $shipment->is_shipped() ) {
 							$quantity_left += absint( $item->get_quantity() );
 						}
 					} else {

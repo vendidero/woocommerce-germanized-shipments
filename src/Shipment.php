@@ -1240,6 +1240,15 @@ abstract class Shipment extends WC_Data {
 		} else {
 			$key   = "woocommerce_gzd_shipments_shipper_address_{$prop}";
 			$value = get_option( $key, '' );
+
+			if ( 'country' === $prop ) {
+				$value = wc_format_country_state_string( $value )['country'];
+			} elseif ( 'state' === $prop ) {
+				$key   = 'woocommerce_gzd_shipments_shipper_address_country';
+				$value = get_option( $key, '' );
+
+				$value = wc_format_country_state_string( $value )['state'];
+			}
 		}
 
 		if ( 'view' === $context ) {

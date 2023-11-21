@@ -166,11 +166,9 @@ class Emails {
 	 * @param string $email
 	 */
 	public static function email_address( $shipment, $sent_to_admin = false, $plain_text = false, $email = '' ) {
-		if ( 'return' === $shipment->get_type() || in_array( $email, array( 'customer_return_shipment_delivered' ), true ) ) {
-			if ( $provider = $shipment->get_shipping_provider_instance() ) {
-				if ( $provider->hide_return_address() ) {
-					return;
-				}
+		if ( is_a( $shipment, 'Vendidero\Germanized\Shipments\ReturnShipment' ) ) {
+			if ( $shipment->hide_return_address() ) {
+				return;
 			}
 		}
 

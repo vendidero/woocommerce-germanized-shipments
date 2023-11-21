@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Vendidero/Germanized/Shipments/Templates
- * @version 3.1.1
+ * @version 3.2.0
  */
 use Vendidero\Germanized\Shipments\Shipment;
 
@@ -29,11 +29,9 @@ $show_receiver_details = is_user_logged_in() && $order && $order->get_user_id() 
 $show_tracking         = $show_receiver_details && $shipment->has_tracking();
 $shipment_items        = $shipment->get_items();
 
-if ( 'return' === $shipment->get_type() ) {
-	if ( $provider = $shipment->get_shipping_provider_instance() ) {
-		if ( $provider->hide_return_address() ) {
-			$show_receiver_details = false;
-		}
+if ( is_a( $shipment, 'Vendidero\Germanized\Shipments\ReturnShipment' ) ) {
+	if ( $shipment->hide_return_address() ) {
+		$show_receiver_details = false;
 	}
 }
 ?>
