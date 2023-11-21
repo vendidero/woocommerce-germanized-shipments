@@ -31,7 +31,7 @@ class Settings {
 		$pointers = array();
 
 		if ( '' === $section ) {
-            $next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=packaging&tutorial=yes' );
+			$next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=packaging&tutorial=yes' );
 			$pointers = array(
 				'pointers' => array(
 					'menu'    => array(
@@ -89,10 +89,10 @@ class Settings {
 				),
 			);
 		} elseif ( 'packaging' === $section ) {
-            $next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&tutorial=yes' );
-            $pointers = array(
+			$next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&tutorial=yes' );
+			$pointers = array(
 				'pointers' => array(
-					'packaging-edit'    => array(
+					'packaging-edit' => array(
 						'target'       => 'tbody.packaging_list .wc-gzd-shipment-action-button:last',
 						'next'         => 'packaging-add',
 						'next_url'     => '',
@@ -105,7 +105,7 @@ class Settings {
 							),
 						),
 					),
-                    'packaging-add'    => array(
+					'packaging-add'  => array(
 						'target'       => '#packaging_list_wrapper a.add',
 						'next'         => 'auto',
 						'next_url'     => '',
@@ -118,7 +118,7 @@ class Settings {
 							),
 						),
 					),
-                    'auto' => array(
+					'auto'           => array(
 						'target'       => '#woocommerce_gzd_shipments_enable_auto_packing-toggle',
 						'next'         => 'auto',
 						'next_url'     => $next_url,
@@ -130,9 +130,9 @@ class Settings {
 								'align' => 'left',
 							),
 						),
-					)
-                )
-            );
+					),
+				),
+			);
 		}
 
 		return $pointers;

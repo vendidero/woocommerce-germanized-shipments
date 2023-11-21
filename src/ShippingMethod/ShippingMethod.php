@@ -905,7 +905,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 				</td>
 				<td class="costs">
 					<p class="form-field">
-						<label>Rule cost is</label>
+						<label><?php echo esc_html_x( 'Rule cost is', 'shipments', 'woocommerce-germanized-shipments' ); ?></label>
 						<input type="text" class="short wc_input_price" name="<?php echo esc_attr( $field_key ); ?>[costs][{{ data.rule_id }}]" value="{{ data.costs }}" data-attribute="costs">
 						<span class="description"><?php echo wp_kses_post( get_woocommerce_currency_symbol() ); ?></span>
 					</p>
