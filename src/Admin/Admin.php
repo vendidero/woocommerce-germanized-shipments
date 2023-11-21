@@ -1553,6 +1553,12 @@ class Admin {
 			);
 
 			foreach ( $handlers as $key => $handler ) {
+
+				if ( is_object( $handler ) && is_a( $handler, get_class( $handler ) ) ) {
+					self::$bulk_handlers[ $key ] = $handler;
+					continue;
+				}
+
 				self::$bulk_handlers[ $key ] = new $handler();
 			}
 		}
