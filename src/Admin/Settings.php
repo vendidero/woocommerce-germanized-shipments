@@ -29,9 +29,9 @@ class Settings {
 
 	public static function get_pointers( $section ) {
 		$pointers = array();
-		$next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&tutorial=yes' );
 
 		if ( '' === $section ) {
+            $next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipments&section=packaging&tutorial=yes' );
 			$pointers = array(
 				'pointers' => array(
 					'menu'    => array(
@@ -88,6 +88,51 @@ class Settings {
 					),
 				),
 			);
+		} elseif ( 'packaging' === $section ) {
+            $next_url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&tutorial=yes' );
+            $pointers = array(
+				'pointers' => array(
+					'packaging-edit'    => array(
+						'target'       => 'tbody.packaging_list .wc-gzd-shipment-action-button:last',
+						'next'         => 'packaging-add',
+						'next_url'     => '',
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Edit packaging', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3><p>' . esc_html_x( 'Adjust additional options such as custom label configurations per shipping provider by using the edit link.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
+							'position' => array(
+								'edge'  => 'right',
+								'align' => 'left',
+							),
+						),
+					),
+                    'packaging-add'    => array(
+						'target'       => '#packaging_list_wrapper a.add',
+						'next'         => 'auto',
+						'next_url'     => '',
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Add packaging', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3><p>' . esc_html_x( 'Add all your available packaging options to make sure the packing algorithm knows about it.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+                    'auto' => array(
+						'target'       => '#woocommerce_gzd_shipments_enable_auto_packing-toggle',
+						'next'         => 'auto',
+						'next_url'     => $next_url,
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Automated packing', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3><p>' . esc_html_x( 'Shipments will be created automatically based on your available packaging options.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					)
+                )
+            );
 		}
 
 		return $pointers;
