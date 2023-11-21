@@ -26,6 +26,13 @@ class Helper {
 	public $shipping_providers = null;
 
 	/**
+	 * Stores shipping providers loaded.
+	 *
+	 * @var Simple[]|null
+	 */
+	private $available_shipping_providers = null;
+
+	/**
 	 * Main Helper Instance.
 	 *
 	 * Ensures only one instance of the Shipping Provider Helper is loaded or can be loaded.
@@ -202,6 +209,25 @@ class Helper {
 		}
 
 		return $this->shipping_providers;
+	}
+
+	/**
+	 * Returns all available shipping providers for usage.
+	 *
+	 * @return Simple|Auto|ShippingProvider[]
+	 */
+	public function get_available_shipping_providers() {
+		if ( is_null( $this->available_shipping_providers ) || is_null( $this->shipping_providers ) ) {
+			$this->available_shipping_providers = array();
+
+			foreach ( $this->get_shipping_providers() as $name => $shipping_provider ) {
+				if ( $shipping_provider->is_activated() ) {
+					$this->available_shipping_providers[ $name ] = $shipping_provider;
+				}
+			}
+		}
+
+		return $this->available_shipping_providers;
 	}
 
 	/**

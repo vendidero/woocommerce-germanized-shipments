@@ -1,6 +1,6 @@
 <?php
 
-namespace Vendidero\Germanized\Shipments\ShippingProvider;
+namespace Vendidero\Germanized\Shipments\ShippingMethod;
 
 use Exception;
 use WC_Order;
@@ -17,8 +17,5 @@ defined( 'ABSPATH' ) || exit;
  * @version     1.0.0
  * @author      Vendidero
  */
-class MethodPlaceholder extends Method {
-	public function __construct( $id ) {
-		parent::__construct( $id, true );
-	}
+class ProviderMethodPlaceholder extends ProviderMethod {
 }

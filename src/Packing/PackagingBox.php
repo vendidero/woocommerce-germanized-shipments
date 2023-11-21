@@ -2,12 +2,12 @@
 
 namespace Vendidero\Germanized\Shipments\Packing;
 
+use Vendidero\Germanized\Shipments\Interfaces\PackingBox;
 use Vendidero\Germanized\Shipments\Packaging;
-use DVDoug\BoxPacker\Box;
 
 defined( 'ABSPATH' ) || exit;
 
-class PackagingBox implements Box {
+class PackagingBox implements PackingBox {
 
 	/**
 	 * @var Packaging
@@ -71,6 +71,13 @@ class PackagingBox implements Box {
 	}
 
 	/**
+	 * @return Packaging
+	 */
+	public function get_packaging() {
+		return $this->packaging;
+	}
+
+	/**
 	 * Outer length in mm.
 	 */
 	public function getOuterLength(): int {
@@ -100,15 +107,17 @@ class PackagingBox implements Box {
 	 * @return float
 	 */
 	public function get_inner_dimension_buffer( $value, $type = 'width' ) {
-		if ( apply_filters( 'woocommerce_gzd_packaging_inner_dimension_use_percentage_buffer', false, $type, $this ) ) {
-			$percentage_buffer = apply_filters( 'woocommerce_gzd_packaging_inner_dimension_percentage_buffer', 0.5, $type, $this ) / 100;
+		if ( apply_filters( 'woocommerce_gzd_packaging_inner_dimension_use_percentage_buffer', ( 'percentage' === get_option( 'woocommerce_gzd_shipments_packing_inner_buffer_type' ) ), $type, $this ) ) {
+			$buffer            = (float) wc_format_decimal( get_option( 'woocommerce_gzd_shipments_packing_inner_percentage_buffer', '0.5' ), 2 );
+			$percentage_buffer = apply_filters( 'woocommerce_gzd_packaging_inner_dimension_percentage_buffer', $buffer, $type, $this ) / 100;
 			$value             = $value - ( $value * $percentage_buffer );
 		} else {
-			$fixed_buffer = apply_filters( 'woocommerce_gzd_packaging_inner_dimension_fixed_buffer_mm', 5, $type, $this );
+			$buffer       = absint( get_option( 'woocommerce_gzd_shipments_packing_inner_fixed_buffer', 5 ) );
+			$fixed_buffer = apply_filters( 'woocommerce_gzd_packaging_inner_dimension_fixed_buffer_mm', $buffer, $type, $this );
 			$value        = $value - $fixed_buffer;
 		}
 
-		return max( $value, 0 );
+		return (float) max( $value, 0 );
 	}
 
 	/**

@@ -45,6 +45,21 @@ class Simple extends WC_Data implements ShippingProvider {
 	protected $cache_group = 'shipping_provider';
 
 	/**
+	 * @var ServiceList
+	 */
+	protected $services = null;
+
+	/**
+	 * @var ProductList
+	 */
+	protected $products = null;
+
+	/**
+	 * @var PrintFormatList
+	 */
+	protected $print_formats = null;
+
+	/**
 	 * Stores provider data.
 	 *
 	 * @var array
@@ -546,13 +561,22 @@ class Simple extends WC_Data implements ShippingProvider {
 		$this->set_prop( 'supports_guest_returns', wc_string_to_bool( $supports ) );
 	}
 
+	protected function setting_supports_default_update( $setting ) {
+		$type = isset( $setting['type'] ) ? $setting['type'] : 'title';
+
+		if ( in_array( $type, array( 'title', 'sectionend', 'html' ), true ) || ! isset( $setting['id'] ) || empty( $setting['id'] ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
 	public function update_settings_with_defaults() {
 		foreach ( $this->get_all_settings() as $section => $settings ) {
 			foreach ( $settings as $setting ) {
-				$type    = isset( $setting['type'] ) ? $setting['type'] : 'title';
 				$default = isset( $setting['default'] ) ? $setting['default'] : null;
 
-				if ( in_array( $type, array( 'title', 'sectionend', 'html' ), true ) || ! isset( $setting['id'] ) || empty( $setting['id'] ) ) {
+				if ( ! $this->setting_supports_default_update( $setting ) ) {
 					continue;
 				}
 
@@ -813,7 +837,7 @@ class Simple extends WC_Data implements ShippingProvider {
 		}
 	}
 
-	protected function get_general_settings( $for_shipping_method = false ) {
+	protected function get_general_settings() {
 		$settings = array(
 			array(
 				'title' => '',
@@ -895,19 +919,9 @@ class Simple extends WC_Data implements ShippingProvider {
 	public function get_shipment_setting( $shipment, $key, $default = null ) {
 		$value = $this->get_setting( $key, $default );
 
-		if ( $method = $shipment->get_shipping_method_instance() ) {
-			$prefixed_key = $this->get_name() . '_' . $key;
-
-			/**
-			 * Do only allow overriding settings in case the shipping provider
-			 * selected for the shipping method matches the current shipping provider.
-			 */
-			if ( $method->get_provider() === $this->get_name() && $method->has_option( $prefixed_key ) ) {
-				$method_value = $method->get_option( $prefixed_key );
-
-				if ( ! is_null( $method_value ) && $value !== $method_value ) {
-					$value = $method_value;
-				}
+		if ( $config_set = $shipment->get_label_configuration_set() ) {
+			if ( $config_set->has_setting( $key ) ) {
+				$value = $config_set->get_setting( $key, $default );
 			}
 		}
 
@@ -921,6 +935,10 @@ class Simple extends WC_Data implements ShippingProvider {
 
 		if ( is_callable( array( $this, $getter ) ) ) {
 			$value = $this->$getter( $context );
+
+			if ( '' === $value && 'view' === $context && ! is_null( $default ) ) {
+				$value = $default;
+			}
 		} elseif ( $this->meta_exists( $clean_key ) ) {
 			$value = $this->get_meta( $clean_key, true, $context );
 		}
@@ -985,15 +1003,15 @@ class Simple extends WC_Data implements ShippingProvider {
 		}
 	}
 
-	public function get_settings( $section = '', $for_shipping_method = false ) {
+	public function get_settings( $section = '' ) {
 		$settings = array();
 
 		if ( '' === $section || 'general' === $section ) {
-			$settings = $this->get_general_settings( $for_shipping_method );
+			$settings = $this->get_general_settings();
 		} elseif ( 'returns' === $section ) {
-			$settings = $this->get_return_settings( $for_shipping_method );
+			$settings = $this->get_return_settings();
 		} elseif ( is_callable( array( $this, "get_{$section}_settings" ) ) ) {
-			$settings = $this->{"get_{$section}_settings"}( $for_shipping_method );
+			$settings = $this->{"get_{$section}_settings"}();
 		}
 
 		/**
@@ -1010,10 +1028,10 @@ class Simple extends WC_Data implements ShippingProvider {
 		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( $this->get_hook_prefix() . 'settings', $settings, $section, $this, $for_shipping_method );
+		return apply_filters( $this->get_hook_prefix() . 'settings', $settings, $section, $this );
 	}
 
-	protected function get_return_settings( $for_shipping_method = false ) {
+	protected function get_return_settings() {
 		$settings = array(
 			array(
 				'title' => '',
@@ -1089,106 +1107,19 @@ class Simple extends WC_Data implements ShippingProvider {
 		return $settings;
 	}
 
-	protected function get_all_settings( $for_shipping_method = false ) {
+	protected function get_all_settings() {
 		$settings = array();
 		$sections = array_keys( $this->get_setting_sections() );
 
 		foreach ( $sections as $section ) {
-			$settings[ $section ] = $this->get_settings( $section, $for_shipping_method );
+			$settings[ $section ] = $this->get_settings( $section );
 		}
 
 		return $settings;
 	}
 
 	public function get_shipping_method_settings() {
-		$settings = $this->get_all_settings( true );
-		$sections = $this->get_setting_sections();
-
-		$method_settings         = array();
-		$include_current_section = false;
-
-		foreach ( $settings as $section => $section_settings ) {
-			$global_settings_url = $this->get_edit_link( $section );
-			$default_title       = $sections[ $section ];
-
-			foreach ( $section_settings as $setting ) {
-				$include = false;
-				$setting = wp_parse_args(
-					$setting,
-					array(
-						'allow_override'    => ( $include_current_section && ! in_array( $setting['type'], array( 'title', 'sectionend' ), true ) ) ? true : false,
-						'type'              => '',
-						'id'                => '',
-						'value'             => '',
-						'title_method'      => '',
-						'title'             => '',
-						'custom_attributes' => array(),
-					)
-				);
-
-				if ( true === $setting['allow_override'] ) {
-					$include = true;
-
-					if ( 'title' === $setting['type'] ) {
-						$include_current_section = true;
-					}
-				} elseif ( $include_current_section && ! in_array( $setting['type'], array( 'title', 'sectionend' ), true ) && false !== $setting['allow_override'] ) {
-					$include = true;
-				} elseif ( in_array( $setting['type'], array( 'title', 'sectionend' ), true ) ) {
-					$include_current_section = false;
-				}
-
-				if ( $include ) {
-					$new_setting                      = array();
-					$new_setting['id']                = $this->get_name() . '_' . $setting['id'];
-					$new_setting['type']              = str_replace( 'gzd_toggle', 'checkbox', $setting['type'] );
-					$new_setting['default']           = $setting['value'];
-					$new_setting['custom_attributes'] = array();
-
-					if ( ! empty( $setting['custom_attributes'] ) ) {
-						foreach ( $setting['custom_attributes'] as $attr => $val ) {
-							$new_attr = $attr;
-
-							if ( 'data-show_if_' === substr( $attr, 0, 13 ) ) {
-								$new_attr = 'data-show_if_' . $this->get_name() . '_' . substr( $attr, 13, strlen( $attr ) );
-							}
-
-							$new_setting['custom_attributes'][ $new_attr ] = $val;
-						}
-					}
-
-					if ( 'checkbox' === $new_setting['type'] ) {
-						$new_setting['label'] = $setting['desc'];
-					} elseif ( isset( $setting['desc'] ) ) {
-						$new_setting['description'] = $setting['desc'];
-					}
-
-					$copy = array( 'options', 'title', 'desc_tip' );
-
-					foreach ( $copy as $cp ) {
-						if ( isset( $setting[ $cp ] ) ) {
-							$new_setting[ $cp ] = $setting[ $cp ];
-						}
-					}
-
-					if ( 'title' === $new_setting['type'] ) {
-						$new_setting['description'] = sprintf( _x( 'These settings override your <a href="%1$s">global %2$s options</a>. Do only adjust these settings in case you would like to specifically adjust them for this specific shipping method.', 'shipments', 'woocommerce-germanized-shipments' ), esc_url( $global_settings_url ), $this->get_title() );
-
-						if ( empty( $setting['title'] ) ) {
-							$new_setting['title'] = $default_title;
-						}
-
-						if ( ! empty( $setting['title_method'] ) ) {
-							$new_setting['title'] = $setting['title_method'];
-						}
-					}
-
-					$method_settings[ $new_setting['id'] ] = $new_setting;
-				}
-			}
-		}
-
-		return $method_settings;
+		return array();
 	}
 
 	public function get_setting_sections() {
@@ -1227,5 +1158,191 @@ class Simple extends WC_Data implements ShippingProvider {
 		$result = new ShipmentError( 'shipping-provider', _x( 'This shipping provider does not support creating labels.', 'shipments', 'woocommerce-germanized-shipments' ) );
 
 		return $result;
+	}
+
+	/**
+	 * @param $filter_args
+	 *
+	 * @return ProductList
+	 */
+	public function get_products( $filter_args = array() ) {
+		if ( is_null( $this->products ) ) {
+			$this->products = new ProductList();
+			$this->register_products();
+		}
+
+		$products = $this->products;
+
+		if ( ! empty( $filter_args ) ) {
+			return $products->filter( $filter_args );
+		}
+
+		return $products;
+	}
+
+	/**
+	 * @param $id
+	 *
+	 * @return false|Product
+	 */
+	public function get_product( $id ) {
+		$products = $this->get_products();
+
+		return $products->get( $id );
+	}
+
+	protected function register_products() {
+
+	}
+
+	protected function register_product( $id, $args = array() ) {
+		if ( is_null( $this->products ) ) {
+			$this->products = new ProductList();
+		}
+
+		if ( is_a( $id, 'Vendidero\Germanized\Shipments\ShippingProvider\Product' ) ) {
+			$this->products->add( $id );
+
+			return true;
+		} else {
+			$args['id'] = $id;
+
+			try {
+				$this->products->add( new Product( $this, $args ) );
+
+				return true;
+			} catch ( Exception $e ) {
+				return new \WP_Error( 'register-product', $e->getMessage() );
+			}
+		}
+	}
+
+	/**
+	 * @param $filter_args
+	 *
+	 * @return PrintFormatList
+	 */
+	public function get_print_formats( $filter_args = array() ) {
+		if ( is_null( $this->print_formats ) ) {
+			$this->print_formats = new PrintFormatList();
+			$this->register_print_formats();
+		}
+
+		$print_formats = $this->print_formats;
+
+		if ( ! empty( $filter_args ) ) {
+			return $print_formats->filter( $filter_args );
+		}
+
+		return $print_formats;
+	}
+
+	/**
+	 * @param $id
+	 *
+	 * @return false|PrintFormat
+	 */
+	public function get_print_format( $id ) {
+		$print_formats = $this->get_print_formats();
+
+		return $print_formats->get( $id );
+	}
+
+	protected function register_print_formats() {
+
+	}
+
+	protected function register_print_format( $id, $args = array() ) {
+		if ( is_null( $this->print_formats ) ) {
+			$this->print_formats = new PrintFormatList();
+		}
+
+		if ( is_a( $id, 'Vendidero\Germanized\Shipments\ShippingProvider\PrintFormat' ) ) {
+			$this->print_formats->add( $id );
+
+			return true;
+		} else {
+			$args['id'] = $id;
+
+			try {
+				$this->print_formats->add( new PrintFormat( $this, $args ) );
+
+				return true;
+			} catch ( Exception $e ) {
+				return new \WP_Error( 'register-print-format', $e->getMessage() );
+			}
+		}
+	}
+
+	/**
+	 * @return ServiceList
+	 * @param array $filter_args
+	 */
+	public function get_services( $filter_args = array() ) {
+		if ( is_null( $this->services ) ) {
+			$this->services = new ServiceList();
+			$this->register_services();
+		}
+
+		$services = $this->services;
+
+		if ( ! empty( $filter_args ) ) {
+			return $services->filter( $filter_args );
+		}
+
+		return $services;
+	}
+
+	/**
+	 * @param $id
+	 *
+	 * @return false|Service
+	 */
+	public function get_service( $id ) {
+		return $this->get_services()->get( $id );
+	}
+
+	protected function register_services() {
+
+	}
+
+	/**
+	 * @param string|Service $id
+	 * @param $args
+	 *
+	 * @return true|\WP_Error
+	 */
+	protected function register_service( $id, $args = array() ) {
+		if ( is_null( $this->services ) ) {
+			$this->services = new ServiceList();
+		}
+
+		if ( is_a( $id, 'Vendidero\Germanized\Shipments\ShippingProvider\Service' ) ) {
+			$this->services->add( $id );
+
+			return true;
+		} else {
+			$args['id'] = $id;
+
+			try {
+				$this->services->add( new Service( $this, $args ) );
+
+				return true;
+			} catch ( Exception $e ) {
+				return new \WP_Error( 'register-service', $e->getMessage() );
+			}
+		}
+	}
+
+	public function get_supported_shipment_types() {
+		$shipment_types = array();
+
+		foreach ( wc_gzd_get_shipment_types() as $shipment_type ) {
+			if ( $this->supports_labels( $shipment_type ) ) {
+				$shipment_types[] = $shipment_type;
+			}
+		}
+
+		return $shipment_types;
 	}
 }

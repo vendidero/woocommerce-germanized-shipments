@@ -2,8 +2,13 @@
 
 namespace Vendidero\Germanized\Shipments;
 
+use DVDoug\BoxPacker\ItemList;
 use Exception;
+use Vendidero\Germanized\Shipments\Packing\Helper;
 use Vendidero\Germanized\Shipments\Packing\OrderItem;
+use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
+use Vendidero\Germanized\Shipments\ShippingMethod\ProviderMethod;
+use Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod;
 use WC_DateTime;
 use DateTimeZone;
 use WC_Order;
@@ -116,6 +121,22 @@ class Order {
 		}
 
 		return apply_filters( 'woocommerce_gzd_shipment_order_shipping_status', $status, $this );
+	}
+
+	public function supports_third_party_email_transmission() {
+		$supports_email_transmission = function_exists( 'wc_gzd_order_supports_parcel_delivery_reminder' ) ? wc_gzd_order_supports_parcel_delivery_reminder( $this->get_order() ) : 'yes' === $this->get_order()->get_meta( '_parcel_delivery_opted_in' );
+
+		/**
+		 * Filter to adjust whether the email address may be transmitted to third-parties, e.g.
+		 * the shipping provider (via label requests) or not.
+		 *
+		 * @param boolean $supports_email_transmission Whether the order supports email transmission or not.
+		 * @param Order   $order The order instance.
+		 *
+		 * @since 3.0.0
+		 * @package Vendidero/Germanized/Shipments
+		 */
+		return apply_filters( 'woocommerce_gzd_shipment_order_supports_email_transmission', $supports_email_transmission, $this );
 	}
 
 	public function has_shipped_shipments() {
@@ -288,9 +309,7 @@ class Order {
 	 * @return Shipment[] Shipments
 	 */
 	public function get_shipments() {
-
 		if ( is_null( $this->shipments ) ) {
-
 			$this->shipments = wc_gzd_get_shipments(
 				array(
 					'order_id' => $this->get_order()->get_id(),
@@ -521,11 +540,11 @@ class Order {
 	}
 
 	/**
-	 * @param false $group_by_shipping_class
+	 * @param false $legacy_group_by_product_group
 	 *
 	 * @return OrderItem[]
 	 */
-	public function get_items_to_pack_left_for_shipping( $group_by_shipping_class = false ) {
+	public function get_items_to_pack_left_for_shipping( $legacy_group_by_product_group = null ) {
 		$items              = $this->get_available_items_for_shipment();
 		$items_to_be_packed = array();
 
@@ -534,29 +553,21 @@ class Order {
 				continue;
 			}
 
-			$shipping_class = '';
+			$product_group = '';
 
-			if ( $group_by_shipping_class ) {
-				if ( $product = $order_item->get_product() ) {
-					$shipping_class = $product->get_shipping_class();
-				}
+			if ( $product = $order_item->get_product() ) {
+				$product_group = Helper::get_product_packing_group( $product );
 			}
 
-			for ( $i = 0; $i < $item['max_quantity']; $i++ ) {
-				try {
-					$box_item = new Packing\OrderItem( $order_item );
-
-					if ( ! isset( $items_to_be_packed[ $shipping_class ] ) ) {
-						$items_to_be_packed[ $shipping_class ] = array();
-					}
-
-					$items_to_be_packed[ $shipping_class ][] = $box_item;
-				} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
-				}
+			if ( ! array_key_exists( $product_group, $items_to_be_packed ) ) {
+				$items_to_be_packed[ $product_group ] = new ItemList();
 			}
+
+			$box_item = new Packing\OrderItem( $order_item );
+			$items_to_be_packed[ $product_group ]->insert( $box_item, $item['max_quantity'] );
 		}
 
-		return apply_filters( 'woocommerce_gzd_shipment_order_items_to_pack_left_for_shipping', $items_to_be_packed, $group_by_shipping_class );
+		return apply_filters( 'woocommerce_gzd_shipment_order_items_to_pack_left_for_shipping', $items_to_be_packed );
 	}
 
 	/**
@@ -933,6 +944,41 @@ class Order {
 	}
 
 	/**
+	 * @return ProviderMethod|false
+	 */
+	public function get_builtin_shipping_method() {
+		$method = false;
+
+		if ( Package::is_packing_supported() ) {
+			$shipping_method_id = wc_gzd_get_shipment_order_shipping_method_id( $this->get_order() );
+
+			if ( 'shipping_provider_' === substr( $shipping_method_id, 0, 18 ) ) {
+				if ( $method = MethodHelper::get_provider_method( $shipping_method_id ) ) {
+					return $method;
+				}
+			}
+		}
+
+		return $method;
+	}
+
+	public function has_auto_packing() {
+		$has_auto_packing = false;
+
+		if ( Package::is_packing_supported() ) {
+			$has_auto_packing = Helper::enable_auto_packing();
+
+			if ( ! $has_auto_packing ) {
+				if ( self::get_builtin_shipping_method() ) {
+					$has_auto_packing = true;
+				}
+			}
+		}
+
+		return apply_filters( 'woocommerce_gzd_shipment_order_has_auto_packing', $has_auto_packing, $this->get_order(), $this );
+	}
+
+	/**
 	 * Checks whether the order needs shipping or not by checking quantity
 	 * for every line item.
 	 *
@@ -1032,7 +1078,6 @@ class Order {
 	 * @return bool|mixed
 	 */
 	public function __call( $method, $args ) {
-
 		if ( method_exists( $this->order, $method ) ) {
 			return call_user_func_array( array( $this->order, $method ), $args );
 		}

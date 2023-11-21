@@ -7,6 +7,9 @@
  */
 namespace Vendidero\Germanized\Shipments;
 
+use Vendidero\Germanized\Shipments\Interfaces\LabelConfigurationSet;
+use Vendidero\Germanized\Shipments\Labels\ConfigurationSetTrait;
+use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
@@ -17,7 +20,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Packaging Class.
  */
-class Packaging extends WC_Data {
+class Packaging extends WC_Data implements LabelConfigurationSet {
+
+	use ConfigurationSetTrait;
 
 	/**
 	 * This is the name of this object type.
@@ -50,15 +55,18 @@ class Packaging extends WC_Data {
 	 * @var array
 	 */
 	protected $data = array(
-		'date_created'       => null,
-		'weight'             => 0,
-		'max_content_weight' => 0,
-		'width'              => 0,
-		'height'             => 0,
-		'length'             => 0,
-		'order'              => 0,
-		'type'               => '',
-		'description'        => '',
+		'date_created'                => null,
+		'weight'                      => 0,
+		'max_content_weight'          => 0,
+		'width'                       => 0,
+		'height'                      => 0,
+		'length'                      => 0,
+		'order'                       => 0,
+		'type'                        => '',
+		'description'                 => '',
+		'available_shipping_provider' => array(),
+		'available_shipping_classes'  => array(),
+		'configuration_sets'          => array(),
 	);
 
 	/**
@@ -216,6 +224,57 @@ class Packaging extends WC_Data {
 		return $this->get_prop( 'height', $context );
 	}
 
+	/**
+	 * Returns the available shipping provider names.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return array
+	 */
+	public function get_available_shipping_provider( $context = 'view' ) {
+		$provider_names = $this->get_prop( 'available_shipping_provider', $context );
+
+		if ( 'view' === $context && empty( $provider_names ) ) {
+			$provider_names = array_keys( Helper::instance()->get_available_shipping_providers() );
+		}
+
+		return $provider_names;
+	}
+
+	/**
+	 * Returns the available shipping classes.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return array
+	 */
+	public function get_available_shipping_classes( $context = 'view' ) {
+		$classes = $this->get_prop( 'available_shipping_classes', $context );
+
+		if ( 'view' === $context && empty( $classes ) ) {
+			$classes = array_keys( Package::get_shipping_classes() );
+		}
+
+		return $classes;
+	}
+
+	public function supports_shipping_class( $shipping_class ) {
+		$classes  = $this->get_available_shipping_classes( 'edit' );
+		$supports = false;
+
+		if ( empty( $classes ) || in_array( $shipping_class, $classes, true ) ) {
+			$supports = true;
+		}
+
+		return $supports;
+	}
+
+	public function supports_shipping_provider( $provider ) {
+		if ( is_a( $provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
+			$provider = $provider->get_name();
+		}
+
+		return apply_filters( "{$this->get_general_hook_prefix()}supports_shipping_provider", in_array( $provider, $this->get_available_shipping_provider(), true ), $provider, $this );
+	}
+
 	public function has_dimensions() {
 		$width  = $this->get_width();
 		$length = $this->get_length();
@@ -311,6 +370,24 @@ class Packaging extends WC_Data {
 	}
 
 	/**
+	 * Set packaging shipping providers
+	 *
+	 * @param array $provider_names The provider names
+	 */
+	public function set_available_shipping_provider( $provider_names ) {
+		$this->set_prop( 'available_shipping_provider', array_filter( (array) $provider_names ) );
+	}
+
+	/**
+	 * Set packaging shipping classes
+	 *
+	 * @param array $classes The shipping classes
+	 */
+	public function set_available_shipping_classes( $classes ) {
+		$this->set_prop( 'available_shipping_classes', array_filter( array_map( 'absint', (array) $classes ) ) );
+	}
+
+	/**
 	 * Set packaging width in cm.
 	 *
 	 * @param string $width The width.
@@ -335,5 +412,9 @@ class Packaging extends WC_Data {
 	 */
 	public function set_height( $height ) {
 		$this->set_prop( 'height', empty( $height ) ? 0 : wc_format_decimal( $height, 1, true ) );
+	}
+
+	protected function get_configuration_set_setting_type() {
+		return 'packaging';
 	}
 }

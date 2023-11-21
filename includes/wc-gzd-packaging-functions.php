@@ -31,9 +31,9 @@ function wc_gzd_get_packaging_types() {
 /**
  * @return \Vendidero\Germanized\Shipments\Packaging[] $packaging_list
  */
-function wc_gzd_get_packaging_list() {
+function wc_gzd_get_packaging_list( $args = array() ) {
 	$data_store = \WC_Data_Store::load( 'packaging' );
-	$list       = $data_store->get_packaging_list();
+	$list       = $data_store->get_packaging_list( $args );
 
 	return $list;
 }
@@ -46,8 +46,8 @@ function wc_gzd_get_packaging_dimension_unit() {
 	return apply_filters( 'woocommerce_gzd_packaging_dimension_unit', 'cm' );
 }
 
-function wc_gzd_get_packaging_select() {
-	$list   = wc_gzd_get_packaging_list();
+function wc_gzd_get_packaging_select( $args = array() ) {
+	$list   = wc_gzd_get_packaging_list( $args );
 	$select = array(
 		'' => _x( 'None', 'shipments-packaging', 'woocommerce-germanized-shipments' ),
 	);

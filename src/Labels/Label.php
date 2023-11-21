@@ -67,6 +67,7 @@ class Label extends WC_Data implements ShipmentLabel {
 		'path'              => '',
 		'created_via'       => '',
 		'services'          => array(),
+		'print_format'      => '',
 	);
 
 	public function __construct( $data = 0 ) {
@@ -183,6 +184,10 @@ class Label extends WC_Data implements ShipmentLabel {
 		return $this->get_prop( 'number', $context );
 	}
 
+	public function get_print_format( $context = 'view' ) {
+		return $this->get_prop( 'print_format', $context );
+	}
+
 	public function has_number() {
 		$number = $this->get_number();
 
@@ -271,6 +276,26 @@ class Label extends WC_Data implements ShipmentLabel {
 		return ( in_array( $service, $this->get_services(), true ) );
 	}
 
+	/**
+	 * Retrieve additional data for a certain service, e.g.
+	 * retrieve the min_age for the DHL VisualCheckOfAge service.
+	 *
+	 * @param $service
+	 * @param $prop
+	 * @param $default
+	 *
+	 * @return mixed
+	 */
+	public function get_service_prop( $service, $prop, $default = null, $context = 'view' ) {
+		$meta_key = "service_{$service}_{$prop}";
+
+		if ( $this->get_meta( $meta_key, true, $context ) ) {
+			return $this->get_meta( $meta_key, true, $context );
+		} else {
+			return $default;
+		}
+	}
+
 	public function get_shipment() {
 		if ( is_null( $this->shipment ) ) {
 			$this->shipment = ( $this->get_shipment_id() > 0 ? wc_gzd_get_shipment( $this->get_shipment_id() ) : false );
@@ -301,6 +326,10 @@ class Label extends WC_Data implements ShipmentLabel {
 
 	public function set_product_id( $number ) {
 		$this->set_prop( 'product_id', $number );
+	}
+
+	public function set_print_format( $format ) {
+		$this->set_prop( 'print_format', $format );
 	}
 
 	public function set_shipping_provider( $slug ) {
@@ -613,7 +642,7 @@ class Label extends WC_Data implements ShipmentLabel {
 		$supports_email_notification = false;
 
 		if ( ( $shipment = $this->get_shipment() ) && ( $order = $shipment->get_order() ) ) {
-			$supports_email_notification = wc_gzd_order_supports_parcel_delivery_reminder( $order );
+			$supports_email_notification = wc_gzd_get_shipment_order( $order )->supports_third_party_email_transmission();
 		}
 
 		return apply_filters( "{$this->get_general_hook_prefix()}supports_third_party_email_notification", $supports_email_notification, $this );

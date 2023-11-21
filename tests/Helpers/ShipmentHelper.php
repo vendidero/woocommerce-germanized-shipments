@@ -25,7 +25,6 @@ class ShipmentHelper {
 	 * @return \Vendidero\Germanized\Shipments\Shipment|\WP_Error
 	 */
 	public static function create_simple_shipment( $props = array(), $items = array() ) {
-
 		$order = WC_Helper_Order::create_order();
 		$order->set_shipping_first_name( 'Max' );
 		$order->set_shipping_last_name( 'Mustermann' );
@@ -36,7 +35,7 @@ class ShipmentHelper {
 
 		$order->save();
 
-		$props = wp_parse_args( array(
+		$props = wp_parse_args( $props, array(
 			'order_id' => $order->get_id(),
 		) );
 

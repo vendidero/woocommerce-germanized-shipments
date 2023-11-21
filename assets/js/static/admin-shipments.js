@@ -344,17 +344,77 @@ window.germanized.admin = window.germanized.admin || {};
 
             $fields.each( function() {
                 var $field    = $( this ),
-                    isHidden  = true,
-                    supported = $field.data( 'products-supported' ).split( ',' );
+                    supported = $field.data( 'products-supported' );
 
-                if ( $.inArray( productId, supported ) !== -1 ) {
-                    isHidden = false;
-                }
+                if ( supported.length > 0 ) {
+                    if ( supported.indexOf( '&' ) > -1 && $field.is( 'select' ) ) {
+                        var supportedData = supported.split( '&' ).filter( Boolean ),
+                            needsReset = false;
 
-                if ( isHidden ) {
-                    $field.parents( '.form-field' ).hide();
-                } else {
-                    $field.parents( '.form-field' ).show();
+                        $.each( supportedData, function( i, d ) {
+                            var innerData = d.split( '=' ).filter( Boolean );
+
+                            if ( innerData.length > 1 ) {
+                                var optionKey = innerData[0];
+                                var supportedProducts = innerData[1].split( ',' );
+                                var isHidden = true;
+                                var $option = $field.find( 'option[value="' + optionKey + '"]' );
+
+                                if ( $option.length > 0 ) {
+                                    if ( $.inArray( productId, supportedProducts ) !== -1 ) {
+                                        isHidden = false;
+                                    }
+
+                                    if ( isHidden ) {
+                                        if ( $option.is( ':selected' ) ) {
+                                            needsReset = true;
+                                        }
+
+                                        $option.hide();
+                                    } else {
+                                        $option.show();
+                                    }
+                                }
+                            }
+                        } );
+
+                        var isFieldHidden = true;
+
+                        $field.find( 'option' ).each( function () {
+                            if ( $( this ).css( 'display' ) !== 'none' ) {
+                                if ( needsReset ) {
+                                    $( this ).prop("selected", true );
+                                }
+                                isFieldHidden = false;
+                                return false;
+                            }
+                        });
+
+                        if ( isFieldHidden ) {
+                            $field.parents( '.form-field' ).hide();
+                            $field.trigger( 'change' );
+                        } else {
+                            $field.parents( '.form-field' ).show();
+                            $field.trigger( 'change' );
+                        }
+
+                        $field.trigger( 'change' );
+                    } else {
+                        var supportedProducts = supported.split( ',' ).filter( Boolean ),
+                            isHidden = supportedProducts.length > 0 ? true : false;
+
+                        if ( $.inArray( productId, supportedProducts ) !== -1 ) {
+                            isHidden = false;
+                        }
+
+                        if ( isHidden ) {
+                            $field.parents( '.form-field' ).hide();
+                            $field.trigger( 'change' );
+                        } else {
+                            $field.parents( '.form-field' ).show();
+                            $field.trigger( 'change' );
+                        }
+                    }
                 }
             } );
         },

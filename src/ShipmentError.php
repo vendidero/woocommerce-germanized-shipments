@@ -85,4 +85,35 @@ class ShipmentError extends \WP_Error {
 
 		return $error;
 	}
+
+	/**
+	 * Merges the errors in the given error object into this one.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param \WP_Error|ShipmentError $error Error object to merge.
+	 */
+	public function merge_from( $error ) {
+		static::copy_errors( $error, $this );
+	}
+
+	/**
+	 * Copies errors from one WP_Error instance to another.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param \WP_Error $from The WP_Error to copy from.
+	 * @param \WP_Error $to   The WP_Error to copy to.
+	 */
+	protected static function copy_errors( $from, $to ) {
+		foreach ( $from->get_error_codes() as $code ) {
+			foreach ( $from->get_error_messages( $code ) as $error_message ) {
+				$to->add( $code, $error_message );
+			}
+
+			foreach ( $from->get_all_error_data( $code ) as $data ) {
+				$to->add_data( $data, $code );
+			}
+		}
+	}
 }

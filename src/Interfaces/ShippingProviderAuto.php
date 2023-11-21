@@ -1,6 +1,8 @@
 <?php
 namespace Vendidero\Germanized\Shipments\Interfaces;
 
+use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
+
 /**
  * Shipment Label Interface
  *
@@ -14,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * ShipmentLabel class.
  */
-interface ShippingProviderAuto extends ShippingProvider {
+interface ShippingProviderAuto extends ShippingProvider, LabelConfigurationSet {
 
 	public function get_label_classname( $type );
 

@@ -28,7 +28,7 @@ $active_shipment = isset( $active_shipment ) ? $active_shipment : false;
 			<div class="order-shipments-actions">
 				<div class="shipment-actions-left">
 					<div class="order-shipment-add">
-						<a class="button button-secondary add-shipment" id="order-shipment-add" href="#"><?php echo esc_html_x( 'Add shipment', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+						<a class="button button-secondary add-shipment" id="order-shipment-add" href="#"><?php echo esc_html_x( 'Create shipment(s)', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 					</div>
 
 					<div class="order-return-shipment-add">

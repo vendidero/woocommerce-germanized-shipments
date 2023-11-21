@@ -2,6 +2,9 @@
 
 namespace Vendidero\Germanized\Shipments;
 
+use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
+use Vendidero\Germanized\Shipments\Labels\ConfigurationSetTrait;
+use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,6 +20,11 @@ class Install {
 		self::create_upload_dir();
 		self::create_tables();
 		self::maybe_create_return_reasons();
+
+		if ( ! is_null( $current_version ) && version_compare( $current_version, '3.0.0', '<' ) ) {
+			self::migrate_to_configuration_sets();
+		}
+
 		self::maybe_create_packaging();
 		self::update_providers();
 
@@ -24,6 +32,181 @@ class Install {
 		update_option( 'woocommerce_gzd_shipments_db_version', Package::get_version() );
 
 		do_action( 'woocommerce_flush_rewrite_rules' );
+	}
+
+	protected static function get_configuration_set_data( $setting_name, $value ) {
+		$is_service   = 'label_service_' === substr( $setting_name, 0, strlen( 'label_service_' ) );
+		$services     = array();
+		$products     = array();
+		$service_meta = array();
+
+		if ( ! empty( $value ) ) {
+			if ( 'label_default_product_dom' === $setting_name ) {
+				$products['dom'] = $value;
+			} elseif ( 'label_default_product_eu' === $setting_name ) {
+				$products['eu'] = $value;
+			} elseif ( 'label_default_product_int' === $setting_name ) {
+				$products['int'] = $value;
+			} elseif ( $is_service ) {
+				$service_name = substr( $setting_name, strlen( 'label_service_' ) );
+
+				if ( 'no' !== $value ) {
+					$services[ $service_name ] = $value;
+				}
+			} elseif ( 'label_visual_min_age' === $setting_name ) {
+				$service_name              = 'VisualCheckOfAge';
+				$services[ $service_name ] = 'yes';
+
+				$service_meta[ $service_name ] = array(
+					'min_age' => $value,
+				);
+			} elseif ( 'label_ident_min_age' === $setting_name ) {
+				$service_name              = 'IdentCheck';
+				$services[ $service_name ] = 'yes';
+
+				$service_meta[ $service_name ] = array(
+					'min_age' => $value,
+				);
+			} elseif ( 'label_auto_inlay_return_label' === $setting_name ) {
+				$service_name              = 'dhlRetoure';
+				$services[ $service_name ] = 'yes';
+			}
+		}
+
+		return array(
+			'products'     => $products,
+			'services'     => $services,
+			'service_meta' => $service_meta,
+		);
+	}
+
+	/**
+	 * @param array $config_set_data
+	 * @param ConfigurationSetTrait $handler
+	 * @param ShippingProvider $provider
+	 * @param string $shipment_type
+	 *
+	 * @return boolean
+	 * @throws \Exception
+	 */
+	protected static function create_configuration_set_from_migration_data( $config_set_data, $handler, $provider, $shipment_type = 'simple' ) {
+		foreach ( $config_set_data['products'] as $zone => $product ) {
+			$config_set = $handler->get_or_create_configuration_set(
+				array(
+					'shipping_provider_name' => $provider->get_name(),
+					'shipment_type'          => $shipment_type,
+					'zone'                   => $zone,
+				)
+			);
+
+			$config_set->update_product( $product );
+
+			foreach ( $config_set_data['services'] as $service_name => $value ) {
+				if ( $p_service = $provider->get_service( $service_name ) ) {
+					if ( $p_service->supports(
+						array(
+							'product_id'    => $product,
+							'zone'          => $zone,
+							'shipment_type' => 'simple',
+						)
+					) ) {
+						$config_set->update_service( $service_name, $value );
+
+						if ( array_key_exists( $service_name, $config_set_data['service_meta'] ) ) {
+							foreach ( $config_set_data['service_meta'][ $service_name ] as $k => $v ) {
+								$config_set->update_service_meta( $service_name, $k, $v );
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return true;
+	}
+
+	public static function migrate_to_configuration_sets( $providers_to_migrate = array() ) {
+		$providers    = empty( $providers_to_migrate ) ? Helper::instance()->get_shipping_providers() : $providers_to_migrate;
+		$provider_ids = array();
+
+		foreach ( $providers as $provider ) {
+			if ( is_a( $provider, '\Vendidero\Germanized\Shipments\ShippingProvider\Auto' ) ) {
+				$provider_ids[] = $provider->get_id();
+
+				if ( is_callable( array( $provider, 'get_configuration_sets' ) ) ) {
+					$config_data = array();
+
+					foreach ( $provider->get_meta_data() as $meta ) {
+						$setting_name = $meta->key;
+						$value        = $meta->value;
+
+						if ( 'label_default_page_format' === $setting_name ) {
+							$provider->set_label_print_format( $value );
+						} else {
+							$config_data = array_replace_recursive( $config_data, self::get_configuration_set_data( $setting_name, $value ) );
+						}
+					}
+
+					self::create_configuration_set_from_migration_data( $config_data, $provider, $provider );
+					$provider->save();
+				}
+			}
+		}
+
+		// Make sure shipping zones are loaded
+		include_once WC_ABSPATH . 'includes/class-wc-shipping-zones.php';
+
+		foreach ( \WC_Shipping_Zones::get_zones() as $zone_data ) {
+			if ( $zone = \WC_Shipping_Zones::get_zone( $zone_data['id'] ) ) {
+				foreach ( $zone->get_shipping_methods() as $method ) {
+					if ( $shipment_method = MethodHelper::get_provider_method( $method ) ) {
+						if ( $shipment_method->is_placeholder() || ! $shipment_method->get_method()->supports( 'instance-settings' ) ) {
+							continue;
+						}
+
+						$shipment_method->get_method()->init_instance_settings();
+
+						$settings = $shipment_method->get_method()->instance_settings;
+
+						if ( isset( $settings['configuration_sets'] ) && ! empty( $settings['configuration_sets'] ) ) {
+							continue;
+						}
+
+						if ( isset( $settings['shipping_provider'] ) && ! empty( $settings['shipping_provider'] ) ) {
+							$provider_name = $settings['shipping_provider'];
+
+							if ( $provider = wc_gzd_get_shipping_provider( $provider_name ) ) {
+								if ( ! in_array( $provider->get_id(), $provider_ids, true ) ) {
+									continue;
+								}
+
+								$settings_prefix = "{$provider_name}_";
+								$config_data     = array();
+
+								foreach ( $settings as $setting_name => $value ) {
+									if ( substr( $setting_name, 0, strlen( $settings_prefix ) ) === $settings_prefix ) {
+										$setting_name = substr( $setting_name, strlen( $settings_prefix ) );
+										$config_data  = array_replace_recursive( $config_data, self::get_configuration_set_data( $setting_name, $value ) );
+									}
+								}
+
+								self::create_configuration_set_from_migration_data( $config_data, $shipment_method, $provider );
+
+								$configuration_sets = $shipment_method->get_configuration_sets();
+
+								if ( ! empty( $configuration_sets ) ) {
+									$current_settings = $shipment_method->get_method()->instance_settings;
+
+									if ( ! empty( $current_settings ) ) {
+										update_option( $shipment_method->get_method()->get_instance_option_key(), apply_filters( 'woocommerce_shipping_' . $shipment_method->get_method()->id . '_instance_settings_values', $current_settings, $shipment_method->get_method() ), 'yes' );
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	private static function update_providers() {

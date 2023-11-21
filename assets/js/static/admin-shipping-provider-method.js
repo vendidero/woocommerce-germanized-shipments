@@ -18,7 +18,8 @@ window.germanized.admin = window.germanized.admin || {};
 
             $( document )
                 .on( 'change', 'select[id$=shipping_provider]', self.showOrHideAll )
-                .on( 'change', ':input:visible[id]', self.onChangeField );
+                .on( 'click', '.wc-gzd-shipping-provider-method-tabs .nav-tab-wrapper a.nav-tab', self.onChangeTab )
+                .on( 'change', '.override-checkbox :input', self.onChangeOverride );
 
             $( document.body ).on( 'wc_backbone_modal_loaded', self.onShippingMethodOpen );
 
@@ -31,27 +32,59 @@ window.germanized.admin = window.germanized.admin || {};
             return fieldId.replace( '[', '_' ).replace( ']', '' );
         },
 
-        onChangeField: function() {
-            var self     = germanized.admin.shipping_provider_method,
-                $wrapper = $( this ).parents( 'form' ),
-                fieldId  = self.parseFieldId( $( this ).attr( 'id' ) ),
-                val      = $( this ).val(),
-                currentProvider = self.currentProvider;
+        onChangeOverride: function() {
+            var self      = germanized.admin.shipping_provider_method,
+                $checkbox = $( this ),
+                isChecked = $checkbox.is( ':checked' ),
+                $parent   = $checkbox.parents( '.wc-gzd-shipping-provider-override-wrapper' );
 
-            if ( currentProvider && fieldId.toLowerCase().indexOf( '_' + currentProvider + '_' ) >= 0 ) {
-                // Remove the shipping method name prefix
-                var fieldIdClean = fieldId.substring( fieldId.lastIndexOf( currentProvider + '_' ), fieldId.length );
-
-                $wrapper.find( ':input[data-show_if_' + fieldIdClean + ']' ).parents( 'tr' ).hide();
-
-                if ( $( this ).is( ':checkbox' ) ) {
-                    if ( $( this ).is( ':checked' ) ) {
-                        $wrapper.find( ':input[data-show_if_' + fieldIdClean + ']' ).parents( 'tr' ).show();
-                    }
-                } else {
-                    $wrapper.find( ':input[data-show_if_' + fieldIdClean + '*="' + val + '"]' ).parents( 'tr' ).show();
-                }
+            if ( isChecked ) {
+                $parent.find( '.wc-gzd-shipping-provider-override-inner-wrapper' ).addClass( 'has-override' );
+            } else {
+                $parent.find( '.wc-gzd-shipping-provider-override-inner-wrapper' ).removeClass( 'has-override' );
             }
+        },
+
+        onChangeTab: function() {
+            var self     = germanized.admin.shipping_provider_method,
+                $navTab  = $( this ),
+                $wrapper = $navTab.parents( 'form' ),
+                tab      = $navTab.attr( 'href' ).replace( '#', '' ),
+                $tab     = $wrapper.find( '.wc-gzd-shipping-provider-method-tab-content[data-tab="' + tab + '"]' );
+
+            $navTab.parents( '.wc-gzd-shipping-provider-method-tabs' ).find( '.nav-tab-active' ).removeClass( 'nav-tab-active' );
+            $wrapper.find( '.wc-gzd-shipping-provider-method-tab-content' ).removeClass( 'tab-content-active' );
+
+            if ( $tab.length > 0 ) {
+                $navTab.addClass( 'nav-tab-active' );
+                $tab.addClass( 'tab-content-active' );
+                $tab.find( ':input:visible' ).trigger( 'change' );
+            }
+
+            return false;
+        },
+
+        /**
+         * Is being provided as callback for germanized.admin.shipment_settings.getCleanInputId().
+         *
+         * @param $mainInput
+         * @returns {*|boolean}
+         */
+        getCleanInputId: function( $mainInput ) {
+            var self            = germanized.admin.shipping_provider_method,
+                currentProvider = self.currentProvider,
+                fieldId         = $mainInput.attr( 'id' ) ? $mainInput.attr( 'id' ) : $mainInput.attr( 'name' );
+
+            if ( ! fieldId ) {
+                return false;
+            }
+
+            if ( currentProvider && fieldId.toLowerCase().indexOf( '-p-' + currentProvider + '-' ) >= 0 ) {
+                // Remove the shipping method name prefix
+                return fieldId.substring( fieldId.lastIndexOf( '-p-' + currentProvider + '-' ), fieldId.length );
+            }
+
+            return fieldId;
         },
 
         onShippingMethodOpen: function( e, t ) {
@@ -85,12 +118,18 @@ window.germanized.admin = window.germanized.admin || {};
                 }
             });
 
+            $form.find( '.wc-gzd-shipping-provider-method-tabs' ).hide();
+            $form.find( '.wc-gzd-shipping-provider-method-tab-content' ).removeClass( 'tab-content-active' );
+
             if ( self.currentProvider.length > 0 ) {
                 $form.find( 'table.form-table' ).each( function() {
                     if ( $( this ).find( ':input[id*=_' + self.currentProvider + '_]' ).length > 0 ) {
                         self.showTable( $( this ) );
                     }
                 });
+
+                $form.find( '.wc-gzd-shipping-provider-method-tabs[data-provider="' + self.currentProvider + '"]' ).show();
+                $form.find( '.wc-gzd-shipping-provider-method-tabs[data-provider="' + self.currentProvider + '"] .nav-tab-wrapper' ).find( 'a.nav-tab:first' ).trigger( 'click' );
 
                 // Trigger show/hide
                 $form.find( ':input[id*=_' + self.currentProvider + '_]:visible' ).trigger( 'change' );

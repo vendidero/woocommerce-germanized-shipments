@@ -7,9 +7,9 @@
  */
 namespace Vendidero\Germanized\Shipments;
 
+use DVDoug\BoxPacker\ItemList;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
-use Vendidero\Germanized\Shipments\ShippingProvider\Method;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
@@ -56,6 +56,8 @@ abstract class Shipment extends WC_Data {
 	 * @var string
 	 */
 	protected $cache_group = 'shipment';
+
+	protected $label_configuration_set = null;
 
 	/**
 	 * The contained ShipmentItems.
@@ -116,7 +118,7 @@ abstract class Shipment extends WC_Data {
 	protected $packaging = null;
 
 	/**
-	 * @var Method
+	 * @var ProviderMethod
 	 */
 	protected $shipping_method_instance = null;
 
@@ -243,6 +245,18 @@ abstract class Shipment extends WC_Data {
 		$shipment_prefix = 'simple' === $this->get_type() ? '' : $this->get_type() . '_';
 
 		return "woocommerce_gzd_{$shipment_prefix}shipment_";
+	}
+
+	public function get_shipping_zone() {
+		$zone = 'int';
+
+		if ( $this->is_shipping_domestic() ) {
+			$zone = 'dom';
+		} elseif ( $this->is_shipping_inner_eu() ) {
+			$zone = 'eu';
+		}
+
+		return apply_filters( "{$this->get_general_hook_prefix()}shipping_zone", $zone, $this );
 	}
 
 	public function is_shipping_domestic() {
@@ -376,6 +390,37 @@ abstract class Shipment extends WC_Data {
 	}
 
 	/**
+	 * @return false|Labels\ConfigurationSet
+	 */
+	public function get_label_configuration_set() {
+		if ( is_null( $this->label_configuration_set ) ) {
+			$this->label_configuration_set = false;
+
+			if ( $packaging = $this->get_packaging() ) {
+				if ( $method_set = $packaging->get_configuration_set( $this ) ) {
+					$this->label_configuration_set = $method_set;
+				}
+			}
+
+			if ( ! $this->label_configuration_set && ( $method = $this->get_shipping_method_instance() ) ) {
+				if ( $method_set = $method->get_configuration_set( $this ) ) {
+					$this->label_configuration_set = $method_set;
+				}
+			}
+
+			if ( ! $this->label_configuration_set && ( $provider = $this->get_shipping_provider_instance() ) ) {
+				if ( is_a( $provider, 'Vendidero\Germanized\Shipments\Interfaces\LabelConfigurationSet' ) ) {
+					if ( $provider_set = $provider->get_configuration_set( $this ) ) {
+						$this->label_configuration_set = $provider_set;
+					}
+				}
+			}
+		}
+
+		return apply_filters( "{$this->get_hook_prefix()}label_configuration_set", $this->label_configuration_set, $this );
+	}
+
+	/**
 	 * Returns the shipment weight. In case view context was chosen and weight is not yet set, returns the content weight.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
@@ -413,18 +458,19 @@ abstract class Shipment extends WC_Data {
 		return $weight;
 	}
 
+	/**
+	 * @return ShipmentItem[]|ItemList
+	 */
 	public function get_items_to_pack() {
 		if ( ! Package::is_packing_supported() ) {
 			return $this->get_items();
 		} else {
 			if ( is_null( $this->items_to_pack ) ) {
-				$this->items_to_pack = array();
+				$this->items_to_pack = new ItemList();
 
 				foreach ( $this->get_items() as $item ) {
-					for ( $i = 0; $i < $item->get_quantity(); $i++ ) { // phpcs:ignore Generic.CodeAnalysis.ForLoopWithTestFunctionCall.NotAllowed
-						$box_item              = new Packing\ShipmentItem( $item );
-						$this->items_to_pack[] = $box_item;
-					}
+					$box_item = new Packing\ShipmentItem( $item );
+					$this->items_to_pack->insert( $box_item, $item->get_quantity() );
 				}
 			}
 

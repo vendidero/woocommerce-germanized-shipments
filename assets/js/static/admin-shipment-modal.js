@@ -144,13 +144,37 @@ window.germanized.admin = window.germanized.admin || {};
         } else {
             $wrapper.find( ':input[data-show-if-' + fieldId + ']' ).parents( '.form-field' ).hide();
 
-            if ( $( this ).is( ':checkbox' ) ) {
-                if ( $( this ).is( ':checked' ) ) {
-                    $wrapper.find( ':input[data-show-if-' + fieldId + ']' ).parents( '.form-field' ).show();
+            if ( $( this ).is( ':visible' ) ) {
+                if ( $( this ).is( ':checkbox' ) ) {
+                    if ( $( this ).is( ':checked' ) ) {
+                        $wrapper.find( ':input[data-show-if-' + fieldId + ']' ).parents( '.form-field' ).show();
+                    }
+                } else {
+                    if ( '0' !== val && '' !== val ) {
+                        $wrapper.find( ':input[data-show-if-' + fieldId + '=""]' ).parents( '.form-field' ).show();
+                    }
+
+                    $wrapper.find( ':input[data-show-if-' + fieldId + '*="' + val + '"]' ).parents( '.form-field' ).show();
                 }
-            } else {
-                $wrapper.find( ':input[data-show-if-' + fieldId + '*="' + val + '"]' ).parents( '.form-field' ).show();
             }
+
+            /**
+             * Hide the show more trigger in case no visible field is found within the wrapper.
+             * Explicitly check for the display style as the wrapper may be in collapsed state.
+             */
+            $wrapper.find( '.show-more-wrapper' ).each( function() {
+                var $showMoreWrapper = $( this ),
+                    hasVisible = $showMoreWrapper.find( 'p.form-field' ).css( 'display' ) !== 'none',
+                    $trigger = $showMoreWrapper.data( 'trigger' ) ? $wrapper.find( $showMoreWrapper.data( 'trigger' ) ) : false;
+
+                if ( $trigger.length > 0 ) {
+                    if ( ! hasVisible ) {
+                        $trigger.hide();
+                    } else {
+                        $trigger.show();
+                    }
+                }
+            } );
         }
     };
 
@@ -306,7 +330,7 @@ window.germanized.admin = window.germanized.admin || {};
         self.$modal.on( 'keydown.gzd-modal-' + self.modalId, { adminShipmentModal: self }, self.onKeyDown );
 
         self.$modal.on( 'click.gzd-modal-' + self.modalId, '.notice .notice-dismiss', { adminShipmentModal: self }, self.onRemoveNotice );
-        self.$modal.on( 'change.gzd-modal-' + self.modalId, ':input:visible[id]', { adminShipmentModal: self }, self.onChangeField );
+        self.$modal.on( 'change.gzd-modal-' + self.modalId, ':input[id]', { adminShipmentModal: self }, self.onChangeField );
         self.$modal.on( 'click.gzd-modal-' + self.modalId, '.show-more', { adminShipmentModal: self }, self.onExpandMore );
         self.$modal.on( 'click.gzd-modal-' + self.modalId, '.show-fewer', { adminShipmentModal: self }, self.onHideMore );
 
@@ -392,7 +416,7 @@ window.germanized.admin = window.germanized.admin || {};
         var data = {}
 
         $form.find( '.show-more-wrapper' ).each( function() {
-            if ( ! $( this ) .is( ':visible' ) ) {
+            if ( ! $( this ).is( ':visible' ) ) {
                 $( this ).addClass( 'show-more-wrapper-force-show' ).show();
             }
         } );

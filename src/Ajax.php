@@ -662,24 +662,37 @@ class Ajax {
 			wp_send_json( $response_error );
 		}
 
-		$shipment = wc_gzd_create_shipment( $order_shipment );
+		$shipments = Automation::create_shipments( $order_shipment );
 
-		if ( is_wp_error( $shipment ) ) {
+		if ( is_wp_error( $shipments ) || empty( $shipments ) ) {
 			wp_send_json( $response_error );
 		}
 
-		$order_shipment->add_shipment( $shipment );
+		$html           = '';
+		$shipment_type  = 'simple';
+		$shipment_count = 0;
 
-		// Mark as active
-		$is_active = true;
+		foreach ( $shipments as $id => $shipment ) {
+			$shipment_count++;
+			$shipment_type = $shipment->get_type();
 
-		ob_start();
-		include Package::get_path() . '/includes/admin/views/html-order-shipment.php';
-		$html = ob_get_clean();
+			if ( 1 === $shipment_count ) {
+				// Mark as active
+				$is_active = true;
+			} else {
+				// Mark as active
+				$is_active = false;
+			}
+
+			ob_start();
+			include Package::get_path() . '/includes/admin/views/html-order-shipment.php';
+			$html .= ob_get_clean();
+		}
 
 		$response['new_shipment']      = $html;
-		$response['new_shipment_type'] = $shipment->get_type();
-		$response['fragments']         = array(
+		$response['new_shipment_type'] = $shipment_type;
+
+		$response['fragments'] = array(
 			'.order-shipping-status' => self::get_order_status_html( $order_shipment ),
 			'.order-return-status'   => self::get_order_return_status_html( $order_shipment ),
 		);
