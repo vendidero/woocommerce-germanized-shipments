@@ -76,22 +76,7 @@ class Helper {
 	}
 
 	/**
-	 * @param \WC_Product $product
-	 *
-	 * @return string
-	 */
-	public static function get_product_packing_group( $product ) {
-		$group = '';
-
-		if ( 'yes' === get_option( 'woocommerce_gzd_shipments_packing_group_by_shipping_class' ) ) {
-			$group = $product->get_shipping_class();
-		}
-
-		return apply_filters( 'woocommerce_gzd_product_packing_group', $group, $product );
-	}
-
-	/**
-	 * @param PackingItem[] $items
+	 * @param \Vendidero\Germanized\Shipments\Packing\ItemList $items
 	 * @param PackingBox[]|BoxList $boxes
 	 *
 	 * @return PackedBoxList

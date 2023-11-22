@@ -2,9 +2,9 @@
 
 namespace Vendidero\Germanized\Shipments\ShippingMethod;
 
-use DVDoug\BoxPacker\ItemList;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Packing\CartItem;
+use Vendidero\Germanized\Shipments\Packing\ItemList;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 
 defined( 'ABSPATH' ) || exit;
@@ -62,26 +62,16 @@ class MethodHelper {
 	}
 
 	public static function register_cart_items_to_pack( $cart_contents ) {
-		if ( ! Package::is_packing_supported() ) {
+		if ( ! Package::is_packing_supported() || apply_filters( 'woocommerce_gzd_shipments_disable_cart_packing', false ) ) {
 			return $cart_contents;
 		}
 
 		foreach ( $cart_contents as $index => $content ) {
-			$items = array();
+			$items = new ItemList();
 
 			foreach ( $content['contents'] as $content_key => $data ) {
-				$cart_item     = new CartItem( $data, wc()->cart->display_prices_including_tax() );
-				$product_group = '';
-
-				if ( $product = $cart_item->get_product() ) {
-					$product_group = \Vendidero\Germanized\Shipments\Packing\Helper::get_product_packing_group( $product );
-				}
-
-				if ( ! array_key_exists( $product_group, $items ) ) {
-					$items[ $product_group ] = new ItemList();
-				}
-
-				$items[ $product_group ]->insert( $cart_item, $data['quantity'] );
+				$cart_item = new CartItem( $data, wc()->cart->display_prices_including_tax() );
+				$items->insert( $cart_item, $data['quantity'] );
 			}
 
 			$cart_contents[ $index ]['items_to_pack'] = $items;

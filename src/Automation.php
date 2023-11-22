@@ -225,8 +225,6 @@ class Automation {
 
 			if ( $order_shipment->needs_shipping() ) {
 				if ( $order_shipment->has_auto_packing() ) {
-					$items_to_pack = $order_shipment->get_items_to_pack_left_for_shipping();
-
 					if ( $method = $order_shipment->get_builtin_shipping_method() ) {
 						$packaging_boxes = $method->get_method()->get_available_packaging_boxes();
 					} else {
@@ -239,48 +237,47 @@ class Automation {
 						$packaging_boxes = Helper::get_packaging_boxes( $available_packaging );
 					}
 
-					foreach ( $items_to_pack as $group => $items ) {
-						$packed_boxes = Helper::pack( $items, $packaging_boxes, 'order' );
+					$items        = $order_shipment->get_items_to_pack_left_for_shipping();
+					$packed_boxes = Helper::pack( $items, $packaging_boxes, 'order' );
 
-						foreach ( $packed_boxes as $box ) {
-							$packaging      = $box->getBox();
-							$items          = $box->getItems();
-							$shipment_items = array();
+					foreach ( $packed_boxes as $box ) {
+						$packaging      = $box->getBox();
+						$items          = $box->getItems();
+						$shipment_items = array();
 
-							foreach ( $items as $item ) {
-								$order_item = $item->getItem();
+						foreach ( $items as $item ) {
+							$order_item = $item->getItem();
 
-								if ( ! isset( $shipment_items[ $order_item->get_id() ] ) ) {
-									$shipment_items[ $order_item->get_id() ] = 1;
-								} else {
-									$shipment_items[ $order_item->get_id() ]++;
-								}
+							if ( ! isset( $shipment_items[ $order_item->get_id() ] ) ) {
+								$shipment_items[ $order_item->get_id() ] = 1;
+							} else {
+								$shipment_items[ $order_item->get_id() ]++;
+							}
+						}
+
+						$shipment = wc_gzd_create_shipment(
+							$order_shipment,
+							array(
+								'items' => $shipment_items,
+								'props' => array(
+									'packaging_id' => $packaging->get_id(),
+									'status'       => $shipment_status,
+								),
+							)
+						);
+
+						if ( ! is_wp_error( $shipment ) ) {
+							$order_shipment->add_shipment( $shipment );
+
+							$shipments_created[ $shipment->get_id() ] = $shipment;
+						} else {
+							foreach ( $shipments_created as $id => $shipment_created ) {
+								$shipment_created->delete( true );
+								$order_shipment->remove_shipment( $id );
 							}
 
-							$shipment = wc_gzd_create_shipment(
-								$order_shipment,
-								array(
-									'items' => $shipment_items,
-									'props' => array(
-										'packaging_id' => $packaging->get_id(),
-										'status'       => $shipment_status,
-									),
-								)
-							);
-
-							if ( ! is_wp_error( $shipment ) ) {
-								$order_shipment->add_shipment( $shipment );
-
-								$shipments_created[ $shipment->get_id() ] = $shipment;
-							} else {
-								foreach ( $shipments_created as $id => $shipment_created ) {
-									$shipment_created->delete( true );
-									$order_shipment->remove_shipment( $id );
-								}
-
-								foreach ( $shipment->get_error_messages() as $code => $message ) {
-									$errors->add( $code, $message );
-								}
+							foreach ( $shipment->get_error_messages() as $code => $message ) {
+								$errors->add( $code, $message );
 							}
 						}
 					}

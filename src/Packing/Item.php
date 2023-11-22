@@ -53,6 +53,21 @@ abstract class Item implements PackingItem {
 					$fits = false;
 				}
 			}
+
+			/**
+			 * In case grouping is activated make sure that a new item with a different shipping class
+			 * is not being packed within the same already existing package.
+			 */
+			if ( $fits && 'yes' === get_option( 'woocommerce_gzd_shipments_packing_group_by_shipping_class' ) ) {
+				$count     = $already_packed_items->count();
+				$last_item = $count > 0 ? $already_packed_items->getIterator()[ $count - 1 ]->getItem() : false;
+
+				if ( $last_item && ( $last_product = $last_item->get_product() ) ) {
+					if ( $last_product->get_shipping_class_id() !== $shipping_class ) {
+						$fits = false;
+					}
+				}
+			}
 		}
 
 		return apply_filters( 'woocommerce_gzd_shipments_item_fits_packaging', $fits, $this, $box->get_packaging(), $already_packed_items, $args );

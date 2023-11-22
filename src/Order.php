@@ -2,9 +2,9 @@
 
 namespace Vendidero\Germanized\Shipments;
 
-use DVDoug\BoxPacker\ItemList;
 use Exception;
 use Vendidero\Germanized\Shipments\Packing\Helper;
+use Vendidero\Germanized\Shipments\Packing\ItemList;
 use Vendidero\Germanized\Shipments\Packing\OrderItem;
 use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
 use Vendidero\Germanized\Shipments\ShippingMethod\ProviderMethod;
@@ -542,29 +542,38 @@ class Order {
 	/**
 	 * @param false $legacy_group_by_product_group
 	 *
-	 * @return OrderItem[]
+	 * @return ItemList|OrderItem[]
 	 */
 	public function get_items_to_pack_left_for_shipping( $legacy_group_by_product_group = null ) {
 		$items              = $this->get_available_items_for_shipment();
-		$items_to_be_packed = array();
+		$items_to_be_packed = ! is_null( $legacy_group_by_product_group ) ? array() : new ItemList();
 
 		foreach ( $items as $order_item_id => $item ) {
 			if ( ! $order_item = $this->get_order()->get_item( $order_item_id ) ) {
 				continue;
 			}
 
-			$product_group = '';
-
-			if ( $product = $order_item->get_product() ) {
-				$product_group = Helper::get_product_packing_group( $product );
-			}
-
-			if ( ! array_key_exists( $product_group, $items_to_be_packed ) ) {
-				$items_to_be_packed[ $product_group ] = new ItemList();
-			}
-
 			$box_item = new Packing\OrderItem( $order_item );
-			$items_to_be_packed[ $product_group ]->insert( $box_item, $item['max_quantity'] );
+
+			if ( ! is_null( $legacy_group_by_product_group ) ) {
+				$product_group = '';
+
+				if ( $product = $order_item->get_product() ) {
+					$product_group = '';
+
+					if ( 'yes' === get_option( 'woocommerce_gzd_shipments_packing_group_by_shipping_class' ) ) {
+						$product_group = $product->get_shipping_class();
+					}
+				}
+
+				if ( ! array_key_exists( $product_group, $items_to_be_packed ) ) {
+					$items_to_be_packed[ $product_group ] = new ItemList();
+				}
+
+				$items_to_be_packed[ $product_group ]->insert( $box_item, $item['max_quantity'] );
+			} else {
+				$items_to_be_packed->insert( $box_item, $item['max_quantity'] );
+			}
 		}
 
 		return apply_filters( 'woocommerce_gzd_shipment_order_items_to_pack_left_for_shipping', $items_to_be_packed );
