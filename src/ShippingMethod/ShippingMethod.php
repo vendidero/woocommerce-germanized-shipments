@@ -240,13 +240,13 @@ class ShippingMethod extends \WC_Shipping_Method {
 		return apply_filters(
 			'woocommerce_gzd_shipping_method_rule_condition_types',
 			array(
-				'always'         => array(
+				'always'                   => array(
 					'label'     => _x( 'Always', 'shipments', 'woocommerce-germanized-shipments' ),
 					'fields'    => array(),
 					'operators' => array(),
 				),
-				'weight'         => array(
-					'label'     => _x( 'Weight', 'shipments', 'woocommerce-germanized-shipments' ),
+				'package_weight'           => array(
+					'label'     => _x( 'Package weight', 'shipments', 'woocommerce-germanized-shipments' ),
 					'fields'    => array(
 						'weight_from' => array(
 							'type'            => 'text',
@@ -264,8 +264,27 @@ class ShippingMethod extends \WC_Shipping_Method {
 					),
 					'operators' => array( 'is', 'is_not' ),
 				),
-				'total'          => array(
-					'label'     => _x( 'Total', 'shipments', 'woocommerce-germanized-shipments' ),
+				'weight'                   => array(
+					'label'     => _x( 'Cart weight', 'shipments', 'woocommerce-germanized-shipments' ),
+					'fields'    => array(
+						'weight_from' => array(
+							'type'            => 'text',
+							'data_type'       => 'decimal',
+							'data_validation' => 'weight',
+							'label'           => _x( 'from', 'shipments', 'woocommerce-germanized-shipments' ),
+						),
+						'weight_to'   => array(
+							'type'            => 'text',
+							'data_type'       => 'decimal',
+							'data_validation' => 'weight',
+							'label'           => _x( 'to', 'shipments', 'woocommerce-germanized-shipments' ),
+							'description'     => class_exists( '\Automattic\WooCommerce\Utilities\I18nUtil' ) ? \Automattic\WooCommerce\Utilities\I18nUtil::get_weight_unit_label( get_option( 'woocommerce_weight_unit', 'kg' ) ) : get_option( 'woocommerce_weight_unit', 'kg' ),
+						),
+					),
+					'operators' => array( 'is', 'is_not' ),
+				),
+				'package_total'            => array(
+					'label'     => _x( 'Package total', 'shipments', 'woocommerce-germanized-shipments' ),
 					'fields'    => array(
 						'total_from' => array(
 							'type'      => 'text',
@@ -281,7 +300,24 @@ class ShippingMethod extends \WC_Shipping_Method {
 					),
 					'operators' => array( 'is', 'is_not' ),
 				),
-				'shipping_class' => array(
+				'total'                    => array(
+					'label'     => _x( 'Cart total', 'shipments', 'woocommerce-germanized-shipments' ),
+					'fields'    => array(
+						'total_from' => array(
+							'type'      => 'text',
+							'data_type' => 'price',
+							'label'     => _x( 'from', 'shipments', 'woocommerce-germanized-shipments' ),
+						),
+						'total_to'   => array(
+							'type'        => 'text',
+							'data_type'   => 'price',
+							'label'       => _x( 'to', 'shipments', 'woocommerce-germanized-shipments' ),
+							'description' => get_woocommerce_currency_symbol(),
+						),
+					),
+					'operators' => array( 'is', 'is_not' ),
+				),
+				'package_shipping_classes' => array(
 					'label'     => _x( 'Shipping Class', 'shipments', 'woocommerce-germanized-shipments' ),
 					'fields'    => array(
 						'classes' => array(
@@ -380,7 +416,8 @@ class ShippingMethod extends \WC_Shipping_Method {
 		$cost_calculation_mode           = $this->get_multiple_shipments_cost_calculation_mode();
 		$multiple_rules_calculation_mode = $this->get_multiple_rules_cost_calculation_mode();
 
-		if ( isset( $package['items_to_pack'] ) ) {
+		if ( isset( $package['items_to_pack'], $package['package_data'] ) ) {
+			$cart_data             = (array) $package['package_data'];
 			$total_cost            = 0.0;
 			$applied_rules         = array();
 			$rule_ids              = array();
@@ -418,15 +455,18 @@ class ShippingMethod extends \WC_Shipping_Method {
 				$total            = wc_remove_number_precision( $total );
 				$subtotal         = wc_remove_number_precision( $subtotal );
 				$shipping_classes = array_unique( $shipping_classes );
-				$package_data     = array(
-					'total'            => $total,
-					'subtotal'         => $subtotal,
-					'weight'           => $total_weight,
-					'volume'           => $volume,
-					'item_count'       => $item_count,
-					'packaging_id'     => $packaging->get_id(),
-					'products'         => $products,
-					'shipping_classes' => $shipping_classes,
+				$package_data     = array_merge(
+					$cart_data,
+					array(
+						'package_total'            => $total,
+						'package_subtotal'         => $subtotal,
+						'package_weight'           => $total_weight,
+						'package_volume'           => $volume,
+						'package_item_count'       => $item_count,
+						'packaging_id'             => $packaging->get_id(),
+						'package_products'         => $products,
+						'package_shipping_classes' => $shipping_classes,
+					)
 				);
 
 				$package_applied_rules = array();
@@ -606,11 +646,18 @@ class ShippingMethod extends \WC_Shipping_Method {
 		$package_data = wp_parse_args(
 			$package_data,
 			array(
-				'weight'   => 0.0,
-				'volume'   => 0.0,
-				'total'    => 0.0,
-				'subtotal' => 0.0,
-				'products' => array(),
+				'package_weight'           => 0.0,
+				'package_volume'           => 0.0,
+				'package_total'            => 0.0,
+				'package_subtotal'         => 0.0,
+				'package_products'         => array(),
+				'package_shipping_classes' => array(),
+				'weight'                   => 0.0,
+				'volume'                   => 0.0,
+				'total'                    => 0.0,
+				'subtotal'                 => 0.0,
+				'products'                 => array(),
+				'shipping_classes'         => array(),
 			)
 		);
 
@@ -632,32 +679,32 @@ class ShippingMethod extends \WC_Shipping_Method {
 					$condition_applies = apply_filters( "woocommerce_gzd_shipping_method_rule_condition_{$condition_type_name}_applies", $package_data, $rule, $condition, $this );
 				} elseif ( 'always' === $condition_type_name ) {
 					$condition_applies = true;
-				} elseif ( 'weight' === $condition_type_name ) {
+				} elseif ( 'weight' === $condition_type_name || 'package_weight' === $condition_type_name ) {
 					$from = isset( $condition['weight_from'] ) && ! empty( $condition['weight_from'] ) ? (float) wc_format_decimal( $condition['weight_from'] ) : 0.0;
 					$to   = isset( $condition['weight_to'] ) && ! empty( $condition['weight_to'] ) ? (float) wc_format_decimal( $condition['weight_to'] ) : 0.0;
 
-					if ( $package_data['weight'] >= $from && ( $package_data['weight'] < $to || 0.0 === $to ) ) {
+					if ( $package_data[ $condition_type_name ] >= $from && ( $package_data[ $condition_type_name ] < $to || 0.0 === $to ) ) {
 						if ( 'is' === $operator_name ) {
 							$condition_applies = true;
 						} elseif ( 'is_not' === $operator_name ) {
 							$condition_applies = false;
 						}
 					}
-				} elseif ( 'total' === $condition_type_name ) {
+				} elseif ( 'total' === $condition_type_name || 'package_total' === $condition_type_name ) {
 					$from = isset( $condition['total_from'] ) && ! empty( $condition['total_from'] ) ? (float) wc_format_decimal( $condition['total_from'] ) : 0.0;
 					$to   = isset( $condition['total_to'] ) && ! empty( $condition['total_to'] ) ? (float) wc_format_decimal( $condition['total_to'] ) : 0.0;
 
-					if ( $package_data['total'] >= $from && ( $package_data['total'] < $to || 0.0 === $to ) ) {
+					if ( $package_data[ $condition_type_name ] >= $from && ( $package_data[ $condition_type_name ] < $to || 0.0 === $to ) ) {
 						if ( 'is' === $operator_name ) {
 							$condition_applies = true;
 						} elseif ( 'is_not' === $operator_name ) {
 							$condition_applies = false;
 						}
 					}
-				} elseif ( 'shipping_class' === $condition_type_name ) {
+				} elseif ( 'package_shipping_classes' === $condition_type_name ) {
 					$classes = isset( $condition['classes'] ) && ! empty( $condition['classes'] ) ? array_map( 'absint', (array) $condition['classes'] ) : array();
 
-					if ( array_intersect( $package_data['shipping_classes'], $classes ) ) {
+					if ( array_intersect( $package_data[ $condition_type_name ], $classes ) ) {
 						if ( 'any_of' === $operator_name ) {
 							$condition_applies = true;
 						} elseif ( 'none_of' === $operator_name ) {

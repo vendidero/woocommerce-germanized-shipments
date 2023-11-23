@@ -67,13 +67,57 @@ class MethodHelper {
 		}
 
 		foreach ( $cart_contents as $index => $content ) {
+			$package_data = array(
+				'total'            => 0.0,
+				'subtotal'         => 0.0,
+				'weight'           => 0.0,
+				'volume'           => 0.0,
+				'products'         => array(),
+				'shipping_classes' => array(),
+				'item_count'       => 0,
+			);
+
 			$items = new ItemList();
 
-			foreach ( $content['contents'] as $content_key => $data ) {
-				$cart_item = new CartItem( $data, wc()->cart->display_prices_including_tax() );
-				$items->insert( $cart_item, $data['quantity'] );
+			foreach ( $content['contents'] as $content_key => $item ) {
+				$product = $item['data'];
+
+				if ( ! is_a( $product, 'WC_Product' ) ) {
+					continue;
+				}
+
+				$line_total    = (float) $item['line_total'];
+				$line_subtotal = (float) $item['line_subtotal'];
+
+				if ( wc()->cart->display_prices_including_tax() ) {
+					$line_total    += (float) $item['line_tax'];
+					$line_subtotal += (float) $item['line_subtotal_tax'];
+				}
+
+				$width  = ( empty( $product->get_width() ) ? 0 : wc_format_decimal( $product->get_width() ) ) * (int) ceil( (float) $item['quantity'] );
+				$length = ( empty( $product->get_length() ) ? 0 : wc_format_decimal( $product->get_length() ) ) * (int) ceil( (float) $item['quantity'] );
+				$height = ( empty( $product->get_height() ) ? 0 : wc_format_decimal( $product->get_height() ) ) * (int) ceil( (float) $item['quantity'] );
+				$weight = ( empty( $product->get_weight() ) ? 0 : wc_format_decimal( $product->get_weight() ) ) * (int) ceil( (float) $item['quantity'] );
+
+				$package_data['total']      += $line_total;
+				$package_data['subtotal']   += $line_subtotal;
+				$package_data['weight']     += $weight;
+				$package_data['volume']     += ( $width * $length * $height );
+				$package_data['item_count'] += (int) ceil( (float) $item['quantity'] );
+
+				if ( $product && ! array_key_exists( $product->get_id(), $package_data['products'] ) ) {
+					$package_data['products'][ $product->get_id() ] = $product;
+
+					if ( ! empty( $product->get_shipping_class_id() ) ) {
+						$package_data['shipping_classes'][] = $product->get_shipping_class_id();
+					}
+				}
+
+				$cart_item = new CartItem( $item, wc()->cart->display_prices_including_tax() );
+				$items->insert( $cart_item, (int) ceil( (float) $item['quantity'] ) );
 			}
 
+			$cart_contents[ $index ]['package_data']  = $package_data;
 			$cart_contents[ $index ]['items_to_pack'] = $items;
 		}
 
