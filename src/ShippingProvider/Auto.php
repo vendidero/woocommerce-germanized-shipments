@@ -360,7 +360,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 					$settings,
 					array(
 						array(
-							'title' => sprintf( _x( '%1$s shipments', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_label_zone_title( $zone ) ),
+							'title' => wc_gzd_get_shipping_shipments_label_zone_title( $zone ),
 							'type'  => 'title',
 							'id'    => $setting_id,
 						),
@@ -445,7 +445,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 						'id'                    => $product_setting_id,
 						'default'               => 'shipping_provider' === $configuration_set->get_setting_type() ? $default_product : $this->get_setting( $product_setting_id, $default_product ),
 						'value'                 => $configuration_set->get_product() ? $configuration_set->get_product() : null,
-						'desc'                  => sprintf( _x( 'Select the default service for %1$s shipments.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_label_zone_title( $configuration_set->get_zone() ) ),
+						'desc'                  => sprintf( _x( 'Select the default service for %1$s.', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_shipments_label_zone_title( $configuration_set->get_zone() ) ),
 						'options'               => $select,
 						'class'                 => 'wc-enhanced-select',
 						'provider'              => $this->get_name(),
@@ -908,7 +908,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 						'provider'      => $this->get_name(),
 						'shipment_zone' => $zone,
 						'shipment_type' => $shipment_type,
-						'title'         => sprintf( _x( '%s Shipments', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_label_zone_title( $zone ) ),
+						'title'         => wc_gzd_get_shipping_shipments_label_zone_title( $zone ),
 					);
 
 					$settings[ $shipment_type ][ $zone ] = array_merge( $settings[ $shipment_type ][ $zone ], $label_settings );
@@ -1027,7 +1027,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 							'provider'          => $this->get_name(),
 							'shipment_zone'     => $zone,
 							'shipment_type'     => $shipment_type,
-							'title'             => sprintf( _x( '%s Shipments', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipping_label_zone_title( $zone ) ),
+							'title'             => wc_gzd_get_shipping_shipments_label_zone_title( $zone ),
 						);
 					}
 

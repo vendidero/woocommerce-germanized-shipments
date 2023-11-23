@@ -84,6 +84,20 @@ function wc_gzd_get_shipping_label_zone_title( $zone ) {
 	return apply_filters( 'woocommerce_gzd_shipments_shipping_label_zone_title', $title, $zone );
 }
 
+function wc_gzd_get_shipping_shipments_label_zone_title( $zone ) {
+	$title = _x( '%1$s shipments', 'shipments-zone-title', 'woocommerce-germanized-shipments' );
+
+	$zones = array(
+		'dom' => _x( 'Domestic Shipments', 'shipments', 'woocommerce-germanized-shipments' ),
+		'eu'  => _x( 'EU Shipments', 'shipments', 'woocommerce-germanized-shipments' ),
+		'int' => _x( 'International Shipments', 'shipments', 'woocommerce-germanized-shipments' ),
+	);
+
+	$title = array_key_exists( $zone, $zones ) ? $zones[ $zone ] : $title;
+
+	return apply_filters( 'woocommerce_gzd_shipments_shipping_shipments_label_zone_title', $title, $zone );
+}
+
 function wc_gzd_get_shipment_types() {
 	return array_keys( wc_gzd_get_shipment_type_data( false ) );
 }
