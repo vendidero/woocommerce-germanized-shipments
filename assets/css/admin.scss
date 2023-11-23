@@ -472,6 +472,7 @@ table.wc-gzd-shipments-shipping-rules {
           display: flex;
           flex-wrap: nowrap;
           align-items: baseline;
+          width: 100%;
 
           .shipping-rules-condition-type-container {
             input {
@@ -490,10 +491,24 @@ table.wc-gzd-shipments-shipping-rules {
               width: 20%;
             }
 
+            &.conditions-actions {
+              min-width: 4.5em;
+              padding-right: 0;
+            }
+
             p.form-field {
+              position: relative;
+
               input {
                 width: 100%;
                 margin: 0;
+              }
+
+              .description {
+                top: 50%;
+                position: absolute;
+                margin-left: 4px;
+                vertical-align: middle;
               }
 
               select {
