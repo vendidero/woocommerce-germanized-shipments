@@ -15,6 +15,18 @@ abstract class Item implements PackingItem {
 
 	protected $product = null;
 
+	protected $dimensions = array(
+		'width'  => 0,
+		'length' => 0,
+		'depth'  => 0,
+	);
+
+	protected $weight = 0;
+
+	protected $total = 0;
+
+	protected $subtotal = 0;
+
 	public function get_reference() {
 		return $this->item;
 	}
@@ -77,6 +89,67 @@ abstract class Item implements PackingItem {
 	 * Does this item need to be kept flat / packed "this way up"?
 	 */
 	public function getKeepFlat(): bool {
-		return false;
+		return apply_filters( 'woocommerce_gzd_packing_item_keep_flat', false, $this );
+	}
+
+	/**
+	 * Item SKU etc.
+	 */
+	public function getDescription(): string {
+		$description = $this->get_id();
+
+		if ( $product = $this->get_product() ) {
+			if ( $product->get_sku() ) {
+				$description = $this->get_product()->get_sku();
+			}
+		}
+
+		return apply_filters( 'woocommerce_gzd_packing_item_description', $description, $this );
+	}
+
+	/**
+	 * Item width in mm.
+	 */
+	public function getWidth(): int {
+		return apply_filters( 'woocommerce_gzd_packing_item_width_in_mm', $this->dimensions['width'], $this );
+	}
+
+	/**
+	 * Item length in mm.
+	 */
+	public function getLength(): int {
+		return apply_filters( 'woocommerce_gzd_packing_item_length_in_mm', $this->dimensions['length'], $this );
+	}
+
+	/**
+	 * Item depth in mm.
+	 */
+	public function getDepth(): int {
+		return apply_filters( 'woocommerce_gzd_packing_item_depth_in_mm', $this->dimensions['depth'], $this );
+	}
+
+	/**
+	 * Item weight in g.
+	 */
+	public function getWeight(): int {
+		return apply_filters( 'woocommerce_gzd_packing_item_width_in_g', $this->weight, $this );
+	}
+
+	/**
+	 * Item total in cents.
+	 *
+	 * @return int
+	 */
+	public function get_total(): int {
+		return apply_filters( 'woocommerce_gzd_packing_item_total_in_cents', $this->total, $this );
+	}
+
+	/**
+	 * Item subtotal in cents.
+	 *
+	 * @return int
+	 */
+	public function get_subtotal(): int {
+		return apply_filters( 'woocommerce_gzd_packing_item_subtotal_in_cents', $this->subtotal, $this );
 	}
 }

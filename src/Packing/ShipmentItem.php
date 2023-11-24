@@ -9,10 +9,6 @@ defined( 'ABSPATH' ) || exit;
  */
 class ShipmentItem extends Item {
 
-	protected $dimensions = array();
-
-	protected $weight = 0;
-
 	/**
 	 * Box constructor.
 	 *
@@ -39,8 +35,14 @@ class ShipmentItem extends Item {
 			'depth'  => (int) ceil( (float) wc_get_dimension( $depth, 'mm', $dimension_unit ) ),
 		);
 
-		$weight       = empty( $this->item->get_weight() ) ? 0 : wc_format_decimal( $this->item->get_weight() );
-		$this->weight = (int) ceil( (float) wc_get_weight( $weight, 'g', $weight_unit ) );
+		$weight        = empty( $this->item->get_weight() ) ? 0 : wc_format_decimal( $this->item->get_weight() );
+		$quantity      = (int) ceil( (float) $item->get_quantity() );
+		$line_total    = (int) wc_add_number_precision( $this->item->get_total() );
+		$line_subtotal = (int) wc_add_number_precision( $this->item->get_subtotal() );
+
+		$this->weight   = (int) ceil( (float) wc_get_weight( $weight, 'g', $weight_unit ) );
+		$this->total    = $quantity > 0 ? $line_total / $quantity : 0;
+		$this->subtotal = $quantity > 0 ? $line_subtotal / $quantity : 0;
 	}
 
 	/**
@@ -56,44 +58,5 @@ class ShipmentItem extends Item {
 
 	protected function load_product() {
 		$this->product = $this->item->get_product();
-	}
-
-	/**
-	 * Item SKU etc.
-	 */
-	public function getDescription(): string {
-		if ( $this->item->get_sku() ) {
-			return $this->item->get_sku();
-		}
-
-		return $this->item->get_id();
-	}
-
-	/**
-	 * Item width in mm.
-	 */
-	public function getWidth(): int {
-		return $this->dimensions['width'];
-	}
-
-	/**
-	 * Item length in mm.
-	 */
-	public function getLength(): int {
-		return $this->dimensions['length'];
-	}
-
-	/**
-	 * Item depth in mm.
-	 */
-	public function getDepth(): int {
-		return $this->dimensions['depth'];
-	}
-
-	/**
-	 * Item weight in g.
-	 */
-	public function getWeight(): int {
-		return $this->weight;
 	}
 }

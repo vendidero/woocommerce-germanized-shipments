@@ -439,8 +439,8 @@ class ShippingMethod extends \WC_Shipping_Method {
 
 				foreach ( $items as $item ) {
 					$cart_item = $item->getItem();
-					$total    += $cart_item->getTotal();
-					$subtotal += $cart_item->getSubtotal();
+					$total    += $cart_item->get_total();
+					$subtotal += $cart_item->get_subtotal();
 					$product   = $cart_item->get_product();
 
 					if ( $product && ! array_key_exists( $product->get_id(), $products ) ) {

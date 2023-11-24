@@ -94,16 +94,17 @@ class MethodHelper {
 					$line_subtotal += (float) $item['line_subtotal_tax'];
 				}
 
-				$width  = ( empty( $product->get_width() ) ? 0 : wc_format_decimal( $product->get_width() ) ) * (int) ceil( (float) $item['quantity'] );
-				$length = ( empty( $product->get_length() ) ? 0 : wc_format_decimal( $product->get_length() ) ) * (int) ceil( (float) $item['quantity'] );
-				$height = ( empty( $product->get_height() ) ? 0 : wc_format_decimal( $product->get_height() ) ) * (int) ceil( (float) $item['quantity'] );
-				$weight = ( empty( $product->get_weight() ) ? 0 : wc_format_decimal( $product->get_weight() ) ) * (int) ceil( (float) $item['quantity'] );
+				$quantity = (int) ceil( (float) $item['quantity'] );
+				$width    = ( empty( $product->get_width() ) ? 0 : wc_format_decimal( $product->get_width() ) ) * $quantity;
+				$length   = ( empty( $product->get_length() ) ? 0 : wc_format_decimal( $product->get_length() ) ) * $quantity;
+				$height   = ( empty( $product->get_height() ) ? 0 : wc_format_decimal( $product->get_height() ) ) * $quantity;
+				$weight   = ( empty( $product->get_weight() ) ? 0 : wc_format_decimal( $product->get_weight() ) ) * $quantity;
 
 				$package_data['total']      += $line_total;
 				$package_data['subtotal']   += $line_subtotal;
 				$package_data['weight']     += $weight;
 				$package_data['volume']     += ( $width * $length * $height );
-				$package_data['item_count'] += (int) ceil( (float) $item['quantity'] );
+				$package_data['item_count'] += $quantity;
 
 				if ( $product && ! array_key_exists( $product->get_id(), $package_data['products'] ) ) {
 					$package_data['products'][ $product->get_id() ] = $product;
@@ -114,7 +115,7 @@ class MethodHelper {
 				}
 
 				$cart_item = new CartItem( $item, wc()->cart->display_prices_including_tax() );
-				$items->insert( $cart_item, (int) ceil( (float) $item['quantity'] ) );
+				$items->insert( $cart_item, $quantity );
 			}
 
 			$cart_contents[ $index ]['package_data']  = $package_data;

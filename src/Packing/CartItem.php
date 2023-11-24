@@ -9,14 +9,6 @@ defined( 'ABSPATH' ) || exit;
  */
 class CartItem extends Item {
 
-	protected $dimensions = array();
-
-	protected $weight = 0;
-
-	protected $total = 0;
-
-	protected $subtotal = 0;
-
 	/**
 	 * Box constructor.
 	 *
@@ -42,19 +34,19 @@ class CartItem extends Item {
 			'depth'  => (int) wc_get_dimension( $depth, 'mm' ),
 		);
 
-		$weight       = empty( $this->get_product()->get_weight() ) ? 0 : wc_format_decimal( $this->get_product()->get_weight() );
-		$this->weight = (int) wc_get_weight( $weight, 'g' );
-
-		$line_total    = (float) wc_add_number_precision( $this->item['line_total'] );
-		$line_subtotal = (float) wc_add_number_precision( $this->item['line_subtotal'] );
+		$weight        = empty( $this->get_product()->get_weight() ) ? 0 : wc_format_decimal( $this->get_product()->get_weight() );
+		$quantity      = (int) ceil( (float) $item['quantity'] );
+		$line_total    = (int) wc_add_number_precision( $this->item['line_total'] );
+		$line_subtotal = (int) wc_add_number_precision( $this->item['line_subtotal'] );
 
 		if ( $incl_taxes ) {
-			$line_total    += (float) wc_add_number_precision( $this->item['line_tax'] );
-			$line_subtotal += (float) wc_add_number_precision( $this->item['line_subtotal_tax'] );
+			$line_total    += (int) wc_add_number_precision( $this->item['line_tax'] );
+			$line_subtotal += (int) wc_add_number_precision( $this->item['line_subtotal_tax'] );
 		}
 
-		$this->total    = $this->item['quantity'] > 0 ? $line_total / (float) $this->item['quantity'] : 0;
-		$this->subtotal = $this->item['quantity'] > 0 ? $line_subtotal / (float) $this->item['quantity'] : 0;
+		$this->weight   = (int) wc_get_weight( $weight, 'g' );
+		$this->total    = $quantity > 0 ? $line_total / $quantity : 0;
+		$this->subtotal = $quantity > 0 ? $line_subtotal / $quantity : 0;
 	}
 
 	protected function load_product() {
@@ -70,52 +62,5 @@ class CartItem extends Item {
 
 	public function get_id() {
 		return $this->get_product()->get_id();
-	}
-
-	public function getTotal() {
-		return $this->total;
-	}
-
-	public function getSubtotal() {
-		return $this->subtotal;
-	}
-
-	/**
-	 * Item SKU etc.
-	 */
-	public function getDescription(): string {
-		if ( $this->get_product()->get_sku() ) {
-			return $this->get_product()->get_sku();
-		}
-
-		return $this->get_product()->get_id();
-	}
-
-	/**
-	 * Item width in mm.
-	 */
-	public function getWidth(): int {
-		return $this->dimensions['width'];
-	}
-
-	/**
-	 * Item length in mm.
-	 */
-	public function getLength(): int {
-		return $this->dimensions['length'];
-	}
-
-	/**
-	 * Item depth in mm.
-	 */
-	public function getDepth(): int {
-		return $this->dimensions['depth'];
-	}
-
-	/**
-	 * Item weight in g.
-	 */
-	public function getWeight(): int {
-		return $this->weight;
 	}
 }

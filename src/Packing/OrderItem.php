@@ -9,10 +9,6 @@ defined( 'ABSPATH' ) || exit;
  */
 class OrderItem extends Item {
 
-	protected $dimensions = array();
-
-	protected $weight = 0;
-
 	/**
 	 * Box constructor.
 	 *
@@ -42,9 +38,18 @@ class OrderItem extends Item {
 			$this->weight = (int) ceil( (float) wc_get_weight( $weight, 'g' ) );
 		}
 
-		if ( ! $product ) {
-			throw new \Exception( 'Missing product' );
+		$quantity      = (int) ceil( (float) $item->get_quantity() );
+		$incl_taxes    = $item->get_order() ? $item->get_order()->get_prices_include_tax() : wc_prices_include_tax();
+		$line_total    = (int) wc_add_number_precision( $this->item->get_total() );
+		$line_subtotal = (int) wc_add_number_precision( $this->item->get_subtotal() );
+
+		if ( $incl_taxes ) {
+			$line_total    += (int) wc_add_number_precision( $this->item->get_total_tax() );
+			$line_subtotal += (int) wc_add_number_precision( $this->item->get_subtotal_tax() );
 		}
+
+		$this->total    = $quantity > 0 ? $line_total / $quantity : 0;
+		$this->subtotal = $quantity > 0 ? $line_subtotal / $quantity : 0;
 	}
 
 	protected function load_product() {
@@ -60,44 +65,5 @@ class OrderItem extends Item {
 	 */
 	public function get_order_item() {
 		return $this->get_reference();
-	}
-
-	/**
-	 * Item SKU etc.
-	 */
-	public function getDescription(): string {
-		if ( $this->get_product()->get_sku() ) {
-			return $this->get_product()->get_sku();
-		}
-
-		return $this->item->get_id();
-	}
-
-	/**
-	 * Item width in mm.
-	 */
-	public function getWidth(): int {
-		return $this->dimensions['width'];
-	}
-
-	/**
-	 * Item length in mm.
-	 */
-	public function getLength(): int {
-		return $this->dimensions['length'];
-	}
-
-	/**
-	 * Item depth in mm.
-	 */
-	public function getDepth(): int {
-		return $this->dimensions['depth'];
-	}
-
-	/**
-	 * Item weight in g.
-	 */
-	public function getWeight(): int {
-		return $this->weight;
 	}
 }
