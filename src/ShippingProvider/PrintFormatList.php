@@ -109,6 +109,7 @@ class PrintFormatList implements \Countable, \ArrayAccess, \Iterator {
 		return $options;
 	}
 
+	#[\ReturnTypeWillChange]
 	public function count() {
 		return count( $this->list );
 	}
@@ -126,6 +127,7 @@ class PrintFormatList implements \Countable, \ArrayAccess, \Iterator {
 	 *
 	 * @return void
 	 */
+	#[\ReturnTypeWillChange]
 	public function offsetUnset( $index ) {
 		if ( $this->offsetExists( $index ) ) {
 			unset( $this->list[ $index ] );
@@ -138,6 +140,7 @@ class PrintFormatList implements \Countable, \ArrayAccess, \Iterator {
 	 *
 	 * @return void
 	 */
+	#[\ReturnTypeWillChange]
 	public function offsetSet( $index, $value ) {
 		if ( $this->offsetExists( $index ) ) {
 			$this->remove( $index );
@@ -145,6 +148,7 @@ class PrintFormatList implements \Countable, \ArrayAccess, \Iterator {
 		}
 	}
 
+	#[\ReturnTypeWillChange]
 	public function offsetGet( $index ) {
 		if ( $this->offsetExists( $index ) ) {
 			return $this->list[ $index ];
@@ -153,6 +157,7 @@ class PrintFormatList implements \Countable, \ArrayAccess, \Iterator {
 		return null;
 	}
 
+	#[\ReturnTypeWillChange]
 	public function offsetExists( $index ) {
 		if ( isset( $this->list[ $index ] ) ) {
 			return true;
@@ -165,22 +170,27 @@ class PrintFormatList implements \Countable, \ArrayAccess, \Iterator {
 		return $this->get( $name );
 	}
 
+	#[\ReturnTypeWillChange]
 	public function rewind() {
 		reset( $this->list );
 	}
 
+	#[\ReturnTypeWillChange]
 	public function current() {
 		return current( $this->list );
 	}
 
+	#[\ReturnTypeWillChange]
 	public function key() {
 		return key( $this->list );
 	}
 
+	#[\ReturnTypeWillChange]
 	public function next(): void {
 		next( $this->list );
 	}
 
+	#[\ReturnTypeWillChange]
 	public function valid(): bool {
 		return key( $this->list ) !== null;
 	}

@@ -124,7 +124,8 @@ class ProductList implements \Countable, \ArrayAccess, \Iterator {
 		return $options;
 	}
 
-	public function count() {
+	#[\ReturnTypeWillChange]
+	public function count(): int {
 		return count( $this->list );
 	}
 
@@ -141,6 +142,7 @@ class ProductList implements \Countable, \ArrayAccess, \Iterator {
 	 *
 	 * @return void
 	 */
+	#[\ReturnTypeWillChange]
 	public function offsetUnset( $index ) {
 		if ( $this->offsetExists( $index ) ) {
 			unset( $this->list[ $index ] );
@@ -153,6 +155,7 @@ class ProductList implements \Countable, \ArrayAccess, \Iterator {
 	 *
 	 * @return void
 	 */
+	#[\ReturnTypeWillChange]
 	public function offsetSet( $index, $value ) {
 		if ( $this->offsetExists( $index ) ) {
 			$this->remove( $index );
@@ -160,6 +163,7 @@ class ProductList implements \Countable, \ArrayAccess, \Iterator {
 		}
 	}
 
+	#[\ReturnTypeWillChange]
 	public function offsetGet( $index ) {
 		if ( $this->offsetExists( $index ) ) {
 			return $this->list[ $index ];
@@ -168,6 +172,7 @@ class ProductList implements \Countable, \ArrayAccess, \Iterator {
 		return null;
 	}
 
+	#[\ReturnTypeWillChange]
 	public function offsetExists( $index ) {
 		if ( isset( $this->list[ $index ] ) ) {
 			return true;
@@ -180,10 +185,12 @@ class ProductList implements \Countable, \ArrayAccess, \Iterator {
 		return $this->get( $name );
 	}
 
+	#[\ReturnTypeWillChange]
 	public function rewind() {
 		reset( $this->list );
 	}
 
+	#[\ReturnTypeWillChange]
 	public function current() {
 		return current( $this->list );
 	}
@@ -192,10 +199,12 @@ class ProductList implements \Countable, \ArrayAccess, \Iterator {
 		return key( $this->list );
 	}
 
+	#[\ReturnTypeWillChange]
 	public function next(): void {
 		next( $this->list );
 	}
 
+	#[\ReturnTypeWillChange]
 	public function valid(): bool {
 		return key( $this->list ) !== null;
 	}
