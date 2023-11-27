@@ -132,7 +132,7 @@ abstract class Item implements PackingItem {
 	 * Item weight in g.
 	 */
 	public function getWeight(): int {
-		return apply_filters( 'woocommerce_gzd_packing_item_width_in_g', $this->weight, $this );
+		return apply_filters( 'woocommerce_gzd_packing_item_weight_in_g', $this->weight, $this );
 	}
 
 	/**
