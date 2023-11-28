@@ -272,7 +272,7 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 			$provider = $provider->get_name();
 		}
 
-		return apply_filters( "{$this->get_general_hook_prefix()}supports_shipping_provider", in_array( $provider, $this->get_available_shipping_provider(), true ), $provider, $this );
+		return apply_filters( "{$this->get_general_hook_prefix()}supports_shipping_provider", ( in_array( $provider, $this->get_available_shipping_provider(), true ) || empty( $provider ) ), $provider, $this );
 	}
 
 	public function has_dimensions() {

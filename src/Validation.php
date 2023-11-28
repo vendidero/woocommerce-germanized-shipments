@@ -22,7 +22,7 @@ class Validation {
 			'woocommerce_before_order_object_save',
 			function( $order ) {
 				$changes               = $order->get_changes();
-				$screen                = is_admin() ? get_current_screen() : false;
+				$screen                = is_admin() && function_exists( 'get_current_screen' ) ? get_current_screen() : false;
 				$is_edit_order_request = $screen ? in_array( $screen->id, array( 'woocommerce_page_wc-orders' ), true ) : false;
 				$skip_validation       = false;
 

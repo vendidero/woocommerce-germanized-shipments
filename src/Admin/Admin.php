@@ -1514,7 +1514,7 @@ class Admin {
 	}
 
 	protected static function is_shipping_settings_request() {
-		$screen    = get_current_screen();
+		$screen    = function_exists( 'get_current_screen' ) ? get_current_screen() : false;
 		$screen_id = $screen ? $screen->id : '';
 
 		return 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
