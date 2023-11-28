@@ -156,9 +156,6 @@ class Install {
 						}
 					}
 
-					var_dump( $config_data );
-					exit();
-
 					if ( isset( $config_data['products'] ) ) {
 						self::create_configuration_set_from_migration_data( $config_data, $provider, $provider );
 					}
