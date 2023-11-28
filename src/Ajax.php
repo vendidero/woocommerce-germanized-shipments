@@ -662,7 +662,16 @@ class Ajax {
 			wp_send_json( $response_error );
 		}
 
-		$shipments = Automation::create_shipments( $order_shipment );
+		if ( empty( $order_shipment->get_shipments() ) ) {
+			$shipments = Automation::create_shipments( $order_shipment );
+		} else {
+			$shipments = wc_gzd_create_shipment( $order_shipment );
+
+			if ( ! is_wp_error( $shipments ) ) {
+				$order_shipment->add_shipment( $shipments );
+				$shipments = array( $shipments );
+			}
+		}
 
 		if ( is_wp_error( $shipments ) || empty( $shipments ) ) {
 			wp_send_json( $response_error );
@@ -1539,7 +1548,6 @@ class Ajax {
 	 * @param Shipment|bool $shipment
 	 */
 	private static function send_json_success( $response, $order_shipment, $current_shipment = false ) {
-
 		$available_items       = $order_shipment->get_available_items_for_shipment();
 		$response['shipments'] = array();
 
