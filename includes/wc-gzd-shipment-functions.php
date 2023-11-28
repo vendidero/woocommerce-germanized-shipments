@@ -1321,9 +1321,10 @@ function wc_gzd_get_order_shipping_provider( $order ) {
 		return false;
 	}
 
-	$provider = false;
+	$provider  = false;
+	$method_id = wc_gzd_get_shipment_order_shipping_method_id( $order );
 
-	if ( $method = wc_gzd_get_shipping_provider_method( wc_gzd_get_shipment_order_shipping_method_id( $order ) ) ) {
+	if ( $method = wc_gzd_get_shipping_provider_method( $method_id ) ) {
 		$provider = $method->get_shipping_provider_instance();
 	}
 

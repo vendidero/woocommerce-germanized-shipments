@@ -206,10 +206,6 @@ class MethodHelper {
 			$instance_id = absint( $original_id );
 		}
 
-		if ( empty( $method_id ) && empty( $instance_id ) ) {
-			return false;
-		}
-
 		$method_key = $method_id . '_' . $instance_id;
 
 		if ( array_key_exists( $method_key, self::$methods ) ) {

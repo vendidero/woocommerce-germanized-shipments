@@ -44,7 +44,10 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 	function test_get_shipment() {
 		wp_set_current_user( $this->user );
 
-		$shipment_initial = ShipmentHelper::create_simple_shipment( array( 'length' => 12, 'width' => 10, 'height' => 5 ) );
+		$shipment_initial = ShipmentHelper::create_simple_shipment();
+		$shipment_initial->set_packaging_id( 0 );
+		$shipment_initial->set_props( array( 'length' => 12, 'width' => 10, 'height' => 5 ) );
+		$shipment_initial->save();
 
 		$response = $this->server->dispatch( new WP_REST_Request( 'GET', '/wc/v3/shipments/' . $shipment_initial->get_id() ) );
 		$shipment_response = $response->get_data();
@@ -178,9 +181,20 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 	public function test_list_shipments() {
 		wp_set_current_user( $this->user );
 
-		ShipmentHelper::create_simple_shipment( array( 'length' => 12, 'width' => 10, 'height' => 5 ) );
-		ShipmentHelper::create_simple_shipment( array( 'length' => 12, 'width' => 10, 'height' => 5 ) );
-		ShipmentHelper::create_simple_shipment( array( 'length' => 12, 'width' => 10, 'height' => 5 ) );
+		$shipment = ShipmentHelper::create_simple_shipment();
+		$shipment->set_packaging_id( 0 );
+		$shipment->set_props( array( 'length' => 12, 'width' => 10, 'height' => 5 ) );
+		$shipment->save();
+
+		$shipment_1 = ShipmentHelper::create_simple_shipment();
+		$shipment_1->set_packaging_id( 0 );
+		$shipment_1->set_props( array( 'length' => 12, 'width' => 10, 'height' => 5 ) );
+		$shipment_1->save();
+
+		$shipment_2 = ShipmentHelper::create_simple_shipment();
+		$shipment_2->set_packaging_id( 0 );
+		$shipment_2->set_props( array( 'length' => 12, 'width' => 10, 'height' => 5 ) );
+		$shipment_2->save();
 
 		$response           = $this->server->dispatch( new WP_REST_Request( 'GET', '/wc/v3/shipments' ) );
 		$shipments_response = $response->get_data();
