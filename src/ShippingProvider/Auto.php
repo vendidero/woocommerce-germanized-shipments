@@ -680,7 +680,28 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 						if ( $setting['id'] === $service->get_label_field_id() && 'checkbox' === $setting['type'] ) {
 							continue;
 						} else {
-							$default[ $setting['id'] ] = $setting['value'];
+							$setting_id = $setting['id'];
+
+							/**
+							 * Support array input fields, e.g. return_address[name].
+							 * Automagically transform those values to associative arrays.
+							 */
+							if ( strstr( $setting_id, '[' ) ) {
+								parse_str( $setting_id, $setting_array );
+
+								foreach ( $setting_array as $setting_key => $inner_settings ) {
+									$inner_setting_name                                   = current( array_keys( $inner_settings ) );
+									$setting_array[ $setting_key ][ $inner_setting_name ] = $setting['value'];
+
+									if ( ! isset( $default[ $setting_key ] ) ) {
+										$default[ $setting_key ] = array();
+									}
+
+									$default[ $setting_key ] = array_replace_recursive( (array) $default[ $setting_key ], $setting_array[ $setting_key ] );
+								}
+							} else {
+								$default[ $setting['id'] ] = $setting['value'];
+							}
 						}
 					}
 				}

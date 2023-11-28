@@ -45,8 +45,6 @@ class Service {
 
 	protected $long_description = '';
 
-	protected $allow_default_booking = true;
-
 	public function __construct( $shipping_provider, $args = array() ) {
 		if ( is_a( $shipping_provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
 			$this->shipping_provider      = $shipping_provider;
@@ -58,20 +56,19 @@ class Service {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'id'                    => '',
-				'internal_id'           => '',
-				'label'                 => '',
-				'description'           => '',
-				'long_description'      => '',
-				'option_type'           => 'checkbox',
-				'default_value'         => 'no',
-				'excluded_locations'    => array(),
-				'options'               => array(),
-				'products'              => null,
-				'shipment_types'        => array( 'simple' ),
-				'countries'             => null,
-				'zones'                 => array_keys( wc_gzd_get_shipping_label_zones() ),
-				'allow_default_booking' => true,
+				'id'                 => '',
+				'internal_id'        => '',
+				'label'              => '',
+				'description'        => '',
+				'long_description'   => '',
+				'option_type'        => 'checkbox',
+				'default_value'      => 'no',
+				'excluded_locations' => array(),
+				'options'            => array(),
+				'products'           => null,
+				'shipment_types'     => array( 'simple' ),
+				'countries'          => null,
+				'zones'              => array_keys( wc_gzd_get_shipping_label_zones() ),
 			)
 		);
 
@@ -107,8 +104,7 @@ class Service {
 			}
 		}
 
-		$this->zones                 = array_filter( (array) $args['zones'] );
-		$this->allow_default_booking = wc_string_to_bool( $args['allow_default_booking'] );
+		$this->zones = array_filter( (array) $args['zones'] );
 	}
 
 	public function get_id() {
@@ -311,10 +307,6 @@ class Service {
 		return $this->options;
 	}
 
-	public function allow_default_booking() {
-		return $this->allow_default_booking;
-	}
-
 	public function get_shipping_provider() {
 		if ( is_null( $this->shipping_provider ) ) {
 			$this->shipping_provider = wc_gzd_get_shipping_provider( $this->shipping_provider_name );
@@ -438,29 +430,35 @@ class Service {
 
 		if ( $config_set ) {
 			if ( empty( $suffix ) ) {
-				$value = $config_set->get_service_value( $this->get_id() );
+				$value = $config_set->get_service_value( $this->get_id(), $value );
 			} else {
 				$value = $config_set->get_service_meta( $this->get_id(), $suffix, $value );
 			}
+		}
+
+		if ( 'no' === $value && true === $this->book_as_default( $shipment ) ) {
+			$value = 'yes';
 		}
 
 		return $value;
 	}
 
 	/**
-	 * @param Shipment $shipment
+	 * @param Shipment|ConfigurationSet $shipment
 	 *
 	 * @return boolean
 	 */
 	public function book_as_default( $shipment ) {
 		$book_as_default = false;
 
-		if ( $this->allow_default_booking ) {
-			if ( $config_set = $shipment->get_label_configuration_set() ) {
-				if ( $config_set->has_service( $this->get_id() ) ) {
-					$book_as_default = true;
-				}
-			}
+		if ( is_a( $shipment, 'Vendidero\Germanized\Shipments\Labels\ConfigurationSet' ) ) {
+			$config_set = $shipment;
+		} else {
+			$config_set = $shipment->get_label_configuration_set();
+		}
+
+		if ( $config_set && $config_set->has_service( $this->get_id() ) ) {
+			$book_as_default = true;
 		}
 
 		return $book_as_default;
@@ -481,7 +479,7 @@ class Service {
 					'desc_tip'          => true,
 					'wrapper_class'     => 'form-field-' . $option_type,
 					'id'                => $this->get_label_field_id(),
-					'value'             => $this->allow_default_booking() ? $this->get_value( $shipment ) : $this->get_default_value(),
+					'value'             => $this->get_value( $shipment ),
 					'options'           => $this->options,
 					'type'              => $option_type,
 					'custom_attributes' => $this->get_show_if_attributes(),
