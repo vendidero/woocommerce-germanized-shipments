@@ -436,7 +436,7 @@ class Service {
 			}
 		}
 
-		if ( 'no' === $value && true === $this->book_as_default( $shipment ) ) {
+		if ( 'no' === $value && is_a( $shipment, '\Vendidero\Germanized\Shipments\Shipment' ) && true === $this->book_as_default( $shipment ) ) {
 			$value = 'yes';
 		}
 
@@ -444,18 +444,13 @@ class Service {
 	}
 
 	/**
-	 * @param Shipment|ConfigurationSet $shipment
+	 * @param Shipment $shipment
 	 *
 	 * @return boolean
 	 */
 	public function book_as_default( $shipment ) {
 		$book_as_default = false;
-
-		if ( is_a( $shipment, 'Vendidero\Germanized\Shipments\Labels\ConfigurationSet' ) ) {
-			$config_set = $shipment;
-		} else {
-			$config_set = $shipment->get_label_configuration_set();
-		}
+		$config_set      = $shipment->get_label_configuration_set();
 
 		if ( $config_set && $config_set->has_service( $this->get_id() ) ) {
 			$book_as_default = true;

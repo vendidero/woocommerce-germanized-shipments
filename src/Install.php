@@ -21,8 +21,12 @@ class Install {
 		self::create_tables();
 		self::maybe_create_return_reasons();
 
-		if ( ! is_null( $current_version ) && version_compare( $current_version, '3.0.0', '<' ) ) {
-			self::migrate_to_configuration_sets();
+		if ( ! is_null( $current_version ) ) {
+			if ( version_compare( $current_version, '3.0.0', '<' ) ) {
+				self::migrate_to_configuration_sets();
+			} elseif ( version_compare( $current_version, '3.0.1', '<' ) ) {
+				self::migrate_to_configuration_sets( 'dhl' );
+			}
 		}
 
 		self::maybe_create_packaging();
@@ -68,8 +72,9 @@ class Install {
 					'min_age' => $value,
 				);
 			} elseif ( 'label_auto_inlay_return_label' === $setting_name ) {
-				$service_name              = 'dhlRetoure';
-				$services[ $service_name ] = 'yes';
+				if ( 'no' !== $value ) {
+					$services['dhlRetoure'] = 'yes';
+				}
 			}
 		}
 
@@ -126,7 +131,7 @@ class Install {
 	}
 
 	public static function migrate_to_configuration_sets( $providers_to_migrate = array() ) {
-		$providers    = empty( $providers_to_migrate ) ? Helper::instance()->get_shipping_providers() : $providers_to_migrate;
+		$providers    = empty( $providers_to_migrate ) ? Helper::instance()->get_shipping_providers() : (array) $providers_to_migrate;
 		$provider_ids = array();
 
 		foreach ( $providers as $provider ) {
@@ -150,6 +155,9 @@ class Install {
 							$config_data = array_replace_recursive( $config_data, self::get_configuration_set_data( $setting_name, $value ) );
 						}
 					}
+
+					var_dump( $config_data );
+					exit();
 
 					if ( isset( $config_data['products'] ) ) {
 						self::create_configuration_set_from_migration_data( $config_data, $provider, $provider );
