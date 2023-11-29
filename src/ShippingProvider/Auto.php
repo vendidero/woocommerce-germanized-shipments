@@ -743,6 +743,12 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			$props      = array_merge( $props, $dimensions );
 		}
 
+		$props = wp_parse_args( $props, array(
+			'services'     => array(),
+			'print_format' => '',
+			'product_id'   => '',
+		) );
+
 		/**
 		 * Neither allow invalid service configuration from automatic nor manual requests.
 		 */

@@ -211,6 +211,10 @@ class Admin {
 	}
 
 	public static function register_admin_breadcrumbs( $breadcrumbs, $current_page ) {
+		if ( ! function_exists( 'wc_admin_get_core_pages_to_connect' ) ) {
+			return $breadcrumbs;
+		}
+
 		if ( false === $current_page ) {
 			$screen = get_current_screen();
 

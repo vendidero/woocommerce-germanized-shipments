@@ -1048,7 +1048,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		$args                 = array();
 		$args['product_id']   = wc_clean( wp_unslash( $request['product_id'] ) );
 		$args['print_format'] = wc_clean( wp_unslash( $request['print_format'] ) );
-		$args['services']     = wc_clean( wp_unslash( $request['services'] ) );
+		$args['services']     = (array) wc_clean( wp_unslash( $request['services'] ) );
 
 		if ( isset( $request['meta_data'] ) && is_array( $request['meta_data'] ) ) {
 			foreach ( $request['meta_data'] as $meta ) {
