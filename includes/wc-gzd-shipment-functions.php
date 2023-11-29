@@ -1527,7 +1527,7 @@ if ( ! function_exists( 'wc_gzd_wp_theme_get_element_class_name' ) ) {
 function wc_gzd_shipments_allow_deferred_sync( $type = 'shipments' ) {
 	$allow_defer = true;
 
-	if ( 'shipments' === $type || 'label' === $type ) {
+	if ( 'shipments' === $type || 'label' === $type || 'return_label' === $type ) {
 		if ( is_admin() && current_user_can( 'manage_woocommerce' ) ) {
 			$allow_defer = false;
 		}

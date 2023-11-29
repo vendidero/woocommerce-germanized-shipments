@@ -326,7 +326,7 @@ class Admin {
 			}
 
 			$current_tab      = isset( $_GET['tab'] ) ? wc_clean( wp_unslash( $_GET['tab'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$current_section  = isset( $_GET['section'] ) ? wc_clean( wp_unslash( $_GET['section'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$current_section  = isset( $_GET['section'] ) ? wc_clean( wp_unslash( $_GET['section'] ) ) : 'simple'; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$current_settings = PackagingSettings::get_settings( $packaging, $current_tab, $current_section );
 			?>
 			<div class="wrap woocommerce woocommerce_page_wc-settings wc-gzd-shipments-packaging packaging-<?php echo esc_attr( $packaging->get_id() ); ?>">

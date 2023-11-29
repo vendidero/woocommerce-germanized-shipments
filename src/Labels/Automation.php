@@ -26,8 +26,45 @@ class Automation {
 
 		// After a label has been successfully created - maybe update shipment status
 		add_action( 'woocommerce_gzd_shipment_created_label', array( __CLASS__, 'maybe_adjust_shipment_status' ), 10 );
-
 		add_action( 'woocommerce_gzd_shipments_label_auto_sync_callback', array( __CLASS__, 'auto_sync_callback' ) );
+
+		// Make sure the return label is being created before sending the return email to the customer
+		add_filter( 'woocommerce_email_attachments', array( __CLASS__, 'maybe_force_return_email_attachments' ), 10, 4 );
+	}
+
+	/**
+	 * @param array $attachments
+	 * @param string $email_id
+	 * @param \WC_Order $order
+	 * @param \WC_GZD_Email_Customer_Return_Shipment $email
+	 *
+	 * @return array
+	 */
+	public static function maybe_force_return_email_attachments( $attachments, $email_id, $shipment, $email ) {
+		if ( 'customer_return_shipment' === $email_id ) {
+			$shipment = $email->shipment;
+
+			if ( ! $shipment->has_label() && $shipment->needs_label( false ) ) {
+				if ( $provider = $shipment->get_shipping_provider_instance() ) {
+					$auto_status = str_replace( 'gzd-', '', $provider->get_label_automation_shipment_status( $shipment ) );
+
+					if ( $provider->automatically_generate_label( $shipment ) && $auto_status === $shipment->get_status() ) {
+						self::cancel_deferred_sync( array( 'shipment_id' => $shipment->get_id() ) );
+						self::create_label( $shipment->get_id(), $shipment );
+
+						if ( $shipment->has_label() ) {
+							$label = $shipment->get_label();
+
+							if ( $file = $label->get_file() ) {
+								$attachments[] = $file;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return $attachments;
 	}
 
 	public static function auto_sync_callback( $shipment_id ) {
@@ -72,11 +109,13 @@ class Automation {
 	 * @param boolean $is_hook
 	 */
 	protected static function init_automation( $shipment, $args = array() ) {
+		$label_type = ( 'return' === $shipment->get_type() ? 'return_label' : 'label' );
+
 		$args = wp_parse_args(
 			$args,
 			array(
 				'is_hook'             => true,
-				'allow_deferred_sync' => wc_gzd_shipments_allow_deferred_sync( 'label' ),
+				'allow_deferred_sync' => wc_gzd_shipments_allow_deferred_sync( $label_type ),
 			)
 		);
 
