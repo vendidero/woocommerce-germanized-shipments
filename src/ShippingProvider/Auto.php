@@ -387,7 +387,14 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	}
 
 	protected function get_config_set_return_label_settings() {
-		return $this->get_label_settings_by_shipment_type( 'return' );
+		$settings = $this->get_label_settings();
+		$settings = array_merge( $settings, $this->get_label_settings_by_shipment_type( 'return' ) );
+
+		return $settings;
+	}
+
+	protected function get_return_label_settings() {
+		return array();
 	}
 
 	protected function get_label_settings() {
@@ -504,14 +511,18 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			'' => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' ),
 		);
 
-		foreach ( $this->get_supported_shipment_types() as $shipment_type ) {
-			$section_title = 'simple' === $shipment_type ? _x( 'Labels', 'shipments', 'woocommerce-germanized-shipments' ) : sprintf( _x( '%1$s labels', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label_title( $shipment_type ) );
-			$sections      = array_merge(
-				$sections,
-				array(
-					'config_set_' . $shipment_type . '_label' => $section_title,
-				)
-			);
+		foreach ( wc_gzd_get_shipment_types() as $shipment_type ) {
+			$settings = $this->{"get_config_set_{$shipment_type}_label_settings"}();
+
+			if ( ! empty( $settings ) ) {
+				$section_title = 'simple' === $shipment_type ? _x( 'Labels', 'shipments', 'woocommerce-germanized-shipments' ) : sprintf( _x( '%1$s labels', 'shipments', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label_title( $shipment_type ) );
+				$sections      = array_merge(
+					$sections,
+					array(
+						'config_set_' . $shipment_type . '_label' => $section_title,
+					)
+				);
+			}
 		}
 
 		if ( ! $this->get_print_formats()->empty() ) {
@@ -743,11 +754,14 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			$props      = array_merge( $props, $dimensions );
 		}
 
-		$props = wp_parse_args( $props, array(
-			'services'     => array(),
-			'print_format' => '',
-			'product_id'   => '',
-		) );
+		$props = wp_parse_args(
+			$props,
+			array(
+				'services'     => array(),
+				'print_format' => '',
+				'product_id'   => '',
+			)
+		);
 
 		/**
 		 * Neither allow invalid service configuration from automatic nor manual requests.
@@ -898,7 +912,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	public function get_packaging_label_settings( $packaging ) {
 		$settings = array();
 
-		foreach ( $this->get_supported_shipment_types() as $shipment_type ) {
+		foreach ( $this->get_supported_label_config_set_shipment_types() as $shipment_type ) {
 			$settings[ $shipment_type ] = array();
 
 			foreach ( $this->get_available_label_zones( $shipment_type ) as $zone ) {
@@ -1028,7 +1042,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	public function get_shipping_method_settings() {
 		$method_settings = array();
 
-		foreach ( $this->get_supported_shipment_types() as $shipment_type ) {
+		foreach ( $this->get_supported_label_config_set_shipment_types() as $shipment_type ) {
 			foreach ( $this->get_available_label_zones( $shipment_type ) as $zone ) {
 				$configuration_set = new ConfigurationSet(
 					array(
@@ -1163,5 +1177,9 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		} else {
 			parent::update_setting( $setting, $value );
 		}
+	}
+
+	public function get_supported_label_config_set_shipment_types() {
+		return $this->get_supported_shipment_types();
 	}
 }

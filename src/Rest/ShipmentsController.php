@@ -1045,10 +1045,22 @@ class ShipmentsController extends \WC_REST_Controller {
 
 		$request->set_param( 'context', 'edit' );
 
-		$args                 = array();
-		$args['product_id']   = wc_clean( wp_unslash( $request['product_id'] ) );
-		$args['print_format'] = wc_clean( wp_unslash( $request['print_format'] ) );
-		$args['services']     = (array) wc_clean( wp_unslash( $request['services'] ) );
+		$args         = array();
+		$product_id   = wc_clean( wp_unslash( $request['product_id'] ) );
+		$print_format = wc_clean( wp_unslash( $request['print_format'] ) );
+		$services     = (array) wc_clean( wp_unslash( $request['services'] ) );
+
+		if ( ! empty( $product_id ) ) {
+			$args['product_id'] = $product_id;
+		}
+
+		if ( ! empty( $print_format ) ) {
+			$args['print_format'] = $print_format;
+		}
+
+		if ( ! empty( $services ) ) {
+			$args['services'] = $services;
+		}
 
 		if ( isset( $request['meta_data'] ) && is_array( $request['meta_data'] ) ) {
 			foreach ( $request['meta_data'] as $meta ) {
@@ -1059,6 +1071,13 @@ class ShipmentsController extends \WC_REST_Controller {
 					$args[ $meta['key'] ] = $value;
 				}
 			}
+		}
+
+		/**
+		 * In case no custom data was provided, use default label configuration instead.
+		 */
+		if ( empty( $args ) ) {
+			$args = false;
 		}
 
 		$result = $shipment->create_label( $args );
