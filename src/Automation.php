@@ -6,7 +6,7 @@
  */
 namespace Vendidero\Germanized\Shipments;
 
-use Vendidero\Germanized\Shipments\Admin\MetaBox;
+use Vendidero\Germanized\Shipments\Admin\Settings;
 use Vendidero\Germanized\Shipments\Packing\Helper;
 use WC_Order;
 
@@ -240,44 +240,61 @@ class Automation {
 					$items        = $order_shipment->get_items_to_pack_left_for_shipping();
 					$packed_boxes = Helper::pack( $items, $packaging_boxes, 'order' );
 
-					foreach ( $packed_boxes as $box ) {
-						$packaging      = $box->getBox();
-						$items          = $box->getItems();
-						$shipment_items = array();
-
-						foreach ( $items as $item ) {
-							$order_item = $item->getItem();
-
-							if ( ! isset( $shipment_items[ $order_item->get_id() ] ) ) {
-								$shipment_items[ $order_item->get_id() ] = 1;
-							} else {
-								$shipment_items[ $order_item->get_id() ]++;
-							}
-						}
-
-						$shipment = wc_gzd_create_shipment(
-							$order_shipment,
-							array(
-								'items' => $shipment_items,
-								'props' => array(
-									'packaging_id' => $packaging->get_id(),
-									'status'       => $shipment_status,
-								),
-							)
-						);
+					if ( empty( $packaging_boxes ) && 0 === count( $packed_boxes ) ) {
+						$shipment = wc_gzd_create_shipment( $order_shipment, array( 'props' => array( 'status' => $shipment_status ) ) );
 
 						if ( ! is_wp_error( $shipment ) ) {
 							$order_shipment->add_shipment( $shipment );
-
 							$shipments_created[ $shipment->get_id() ] = $shipment;
 						} else {
-							foreach ( $shipments_created as $id => $shipment_created ) {
-								$shipment_created->delete( true );
-								$order_shipment->remove_shipment( $id );
-							}
-
 							foreach ( $shipment->get_error_messages() as $code => $message ) {
 								$errors->add( $code, $message );
+							}
+						}
+					} else {
+						if ( 0 === count( $packed_boxes ) ) {
+							$errors->add( 404, sprintf( _x( 'Seems like none of your <a href="%1$s">packaging options</a> is available for this order.', 'shipments', 'woocommerce-germanized-shipments' ), Settings::get_settings_url( 'packaging' ) ) );
+						} else {
+							foreach ( $packed_boxes as $box ) {
+								$packaging      = $box->getBox();
+								$items          = $box->getItems();
+								$shipment_items = array();
+
+								foreach ( $items as $item ) {
+									$order_item = $item->getItem();
+
+									if ( ! isset( $shipment_items[ $order_item->get_id() ] ) ) {
+										$shipment_items[ $order_item->get_id() ] = 1;
+									} else {
+										$shipment_items[ $order_item->get_id() ]++;
+									}
+								}
+
+								$shipment = wc_gzd_create_shipment(
+									$order_shipment,
+									array(
+										'items' => $shipment_items,
+										'props' => array(
+											'packaging_id' => $packaging->get_id(),
+											'status'       => $shipment_status,
+										),
+									)
+								);
+
+								if ( ! is_wp_error( $shipment ) ) {
+									$order_shipment->add_shipment( $shipment );
+
+									$shipments_created[ $shipment->get_id() ] = $shipment;
+								} else {
+									foreach ( $shipments_created as $id => $shipment_created ) {
+										$shipment_created->delete( true );
+										$order_shipment->remove_shipment( $id );
+									}
+
+									foreach ( $shipment->get_error_messages() as $code => $message ) {
+										$errors->add( $code, $message );
+									}
+								}
 							}
 						}
 					}

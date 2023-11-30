@@ -719,6 +719,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			}
 		}
 
+		if ( 'return' === $shipment->get_type() ) {
+			$default['sender_address'] = $shipment->get_sender_address();
+		}
+
 		return $default;
 	}
 
@@ -737,21 +741,11 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		if ( false === $props ) {
 			$props = $this->get_default_label_props( $shipment );
 		} elseif ( is_array( $props ) ) {
-			$props = wp_parse_args(
-				$props,
-				array(
-					'shipping_provider' => $this->get_name(),
-					'weight'            => wc_gzd_get_shipment_label_weight( $shipment ),
-					'net_weight'        => wc_gzd_get_shipment_label_weight( $shipment, true ),
-					'shipment_id'       => $shipment->get_id(),
-					'services'          => array(),
-					'product_id'        => $this->get_default_label_product( $shipment ),
-					'print_format'      => $this->get_default_label_print_format( $shipment ),
-				)
-			);
+			$default_props                 = $this->get_default_label_props( $shipment );
+			$default_props['services']     = array();
+			$default_props['print_format'] = '';
 
-			$dimensions = wc_gzd_get_shipment_label_dimensions( $shipment );
-			$props      = array_merge( $props, $dimensions );
+			$props = wp_parse_args( $props, $default_props );
 		}
 
 		$props = wp_parse_args(
@@ -768,26 +762,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		 */
 		foreach ( $this->get_services() as $service ) {
 			$label_field_id = $service->get_label_field_id();
-
-			if ( ! $service->supports(
-				array(
-					'shipment' => $shipment,
-					'product'  => $props['product_id'],
-				)
-			) ) {
-				$props['services'] = array_diff( $props['services'], array( $service->get_id() ) );
-
-				foreach ( $service->get_label_fields( $shipment ) as $setting ) {
-					if ( array_key_exists( $setting['id'], $props ) ) {
-						unset( $props[ $setting['id'] ] );
-					}
-				}
-
-				if ( array_key_exists( $label_field_id, $props ) ) {
-					unset( $props[ $label_field_id ] );
-					continue;
-				}
-			}
 
 			/**
 			 * Should only be the case for manual requests, e.g. form submits.
@@ -812,6 +786,36 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 						$props['services'] = array_diff( $props['services'], array( $service->get_id() ) );
 						unset( $props[ $label_field_id ] );
 					}
+				}
+			}
+
+			/**
+			 * Remove services + service meta in case the service is not available or not booked.
+			 */
+			if ( ! $service->supports(
+				array(
+					'shipment' => $shipment,
+					'product'  => $props['product_id'],
+				)
+			) || ! in_array( $service->get_id(), $props['services'], true ) ) {
+				$props['services'] = array_diff( $props['services'], array( $service->get_id() ) );
+
+				foreach ( $service->get_label_fields( $shipment ) as $setting ) {
+					$setting_id = $setting['id'];
+
+					if ( strstr( $setting_id, '[' ) ) {
+						$setting_parts = explode( '[', $setting_id );
+						$setting_id    = $setting_parts[0];
+					}
+
+					if ( array_key_exists( $setting_id, $props ) ) {
+						unset( $props[ $setting_id ] );
+					}
+				}
+
+				if ( array_key_exists( $label_field_id, $props ) ) {
+					unset( $props[ $label_field_id ] );
+					continue;
 				}
 			}
 

@@ -648,6 +648,9 @@ function wc_gzd_split_shipment_street( $street_str ) {
 	return $return;
 }
 
+/**
+ * @return ShippingProvider\Auto[]|ShippingProvider\Simple[]
+ */
 function wc_gzd_get_shipping_providers() {
 	return ShippingProvider\Helper::instance()->get_shipping_providers();
 }

@@ -50,6 +50,16 @@ class ReturnLabel extends Label implements ShipmentReturnLabel {
 		return $value;
 	}
 
+	/**
+	 * Returns the sender address first line.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
+	public function get_sender_address_1( $context = 'view' ) {
+		return $this->get_sender_address_prop( 'address_1', $context );
+	}
+
 	public function get_sender_address_2( $context = 'view' ) {
 		return $this->get_sender_address_prop( 'address_2', $context );
 	}
@@ -66,15 +76,39 @@ class ReturnLabel extends Label implements ShipmentReturnLabel {
 	}
 
 	public function get_sender_street( $context = 'view' ) {
-		return $this->get_sender_address_prop( 'street', $context );
+		$sender_address = $this->get_sender_address();
+
+		if ( array_key_exists( 'street', $sender_address ) ) {
+			return $this->get_sender_address_prop( 'street', $context );
+		}
+
+		$split = wc_gzd_split_shipment_street( $this->{'get_sender_address_1'}() );
+
+		return $split['street'];
 	}
 
 	public function get_sender_street_number( $context = 'view' ) {
-		return $this->get_sender_address_prop( 'street_number', $context );
+		$sender_address = $this->get_sender_address();
+
+		if ( array_key_exists( 'street_number', $sender_address ) ) {
+			return $this->get_sender_address_prop( 'street_number', $context );
+		}
+
+		$split = wc_gzd_split_shipment_street( $this->{'get_sender_address_1'}() );
+
+		return $split['number'];
 	}
 
 	public function get_sender_street_addition( $context = 'view' ) {
-		return $this->get_sender_address_prop( 'street_addition', $context );
+		$sender_address = $this->get_sender_address();
+
+		if ( array_key_exists( 'street_addition', $sender_address ) ) {
+			return $this->get_sender_address_prop( 'street_addition', $context );
+		}
+
+		$split = wc_gzd_split_shipment_street( $this->{'get_sender_address_1'}() );
+
+		return $split['addition'];
 	}
 
 	public function get_sender_company( $context = 'view' ) {
@@ -82,11 +116,29 @@ class ReturnLabel extends Label implements ShipmentReturnLabel {
 	}
 
 	public function get_sender_name( $context = 'view' ) {
-		return $this->get_sender_address_prop( 'name', $context );
+		$sender_address = $this->get_sender_address();
+
+		if ( array_key_exists( 'name', $sender_address ) ) {
+			return $this->get_sender_address_prop( 'name', $context );
+		}
+
+		return '';
+	}
+
+	public function get_sender_first_name( $context = 'view' ) {
+		return $this->get_sender_address_prop( 'first_name', $context );
+	}
+
+	public function get_sender_last_name( $context = 'view' ) {
+		return $this->get_sender_address_prop( 'last_name', $context );
 	}
 
 	public function get_sender_formatted_full_name() {
-		return sprintf( _x( '%1$s', 'shipments full name', 'woocommerce-germanized-shipments' ), $this->get_sender_name() ); // phpcs:ignore WordPress.WP.I18n.NoEmptyStrings
+		if ( empty( $this->get_sender_first_name() ) ) {
+			return $this->get_sender_name();
+		}
+
+		return sprintf( _x( '%1$s %2$s', 'full name', 'woocommerce-germanized-shipments' ), $this->get_sender_first_name(), $this->get_sender_last_name() );
 	}
 
 	public function get_sender_postcode( $context = 'view' ) {

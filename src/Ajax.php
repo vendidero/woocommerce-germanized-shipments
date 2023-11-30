@@ -674,6 +674,10 @@ class Ajax {
 		}
 
 		if ( is_wp_error( $shipments ) || empty( $shipments ) ) {
+			if ( is_wp_error( $shipments ) ) {
+				$response_error['message'] = $shipments->get_error_message();
+			}
+
 			wp_send_json( $response_error );
 		}
 

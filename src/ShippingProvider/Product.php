@@ -343,19 +343,50 @@ class Product {
 			$include_product = false;
 		}
 
-		if ( $include_product && ! is_null( $filter_args['length'] ) && ! $this->supports_length( $filter_args['length'], $filter_args['dimension_unit'] ) ) {
+		$dimensions = $this->get_real_dimensions( ( ! is_null( $filter_args['length'] ) ? $filter_args['length'] : 0 ), ( ! is_null( $filter_args['width'] ) ? $filter_args['width'] : 0 ), ( ! is_null( $filter_args['height'] ) ? $filter_args['height'] : 0 ) );
+
+		if ( $include_product && ! is_null( $filter_args['length'] ) && ! $this->supports_length( $dimensions['length'], $filter_args['dimension_unit'] ) ) {
 			$include_product = false;
 		}
 
-		if ( $include_product && ! is_null( $filter_args['width'] ) && ! $this->supports_length( $filter_args['width'], $filter_args['dimension_unit'] ) ) {
+		if ( $include_product && ! is_null( $filter_args['width'] ) && ! $this->supports_length( $dimensions['width'], $filter_args['dimension_unit'] ) ) {
 			$include_product = false;
 		}
 
-		if ( $include_product && ! is_null( $filter_args['height'] ) && ! $this->supports_length( $filter_args['height'], $filter_args['dimension_unit'] ) ) {
+		if ( $include_product && ! is_null( $filter_args['height'] ) && ! $this->supports_length( $dimensions['height'], $filter_args['dimension_unit'] ) ) {
 			$include_product = false;
 		}
 
 		return $include_product;
+	}
+
+	/**
+	 * This helper makes sure that we do always use/compare
+	 * the longest side as length.
+	 *
+	 * @param $length
+	 * @param $width
+	 * @param $height
+	 *
+	 * @return float[]
+	 */
+	private function get_real_dimensions( $length, $width, $height ) {
+		$length = (float) wc_format_decimal( $length );
+		$width  = (float) wc_format_decimal( $width );
+		$height = (float) wc_format_decimal( $height );
+
+		if ( $width > $length ) {
+			$tmp_length = $length;
+
+			$length = $width;
+			$width  = $tmp_length;
+		}
+
+		return array(
+			'length' => $length,
+			'width'  => $width,
+			'height' => $height,
+		);
 	}
 
 	/**
@@ -382,15 +413,17 @@ class Product {
 			$supports_shipment = false;
 		}
 
-		if ( $supports_shipment && ! $this->supports_length( $shipment->get_length(), $shipment->get_dimension_unit() ) ) {
+		$dimensions = $this->get_real_dimensions( $shipment->get_length(), $shipment->get_width(), $shipment->get_height() );
+
+		if ( $supports_shipment && ! $this->supports_length( $dimensions['length'], $shipment->get_dimension_unit() ) ) {
 			$supports_shipment = false;
 		}
 
-		if ( $supports_shipment && ! $this->supports_width( $shipment->get_width(), $shipment->get_dimension_unit() ) ) {
+		if ( $supports_shipment && ! $this->supports_width( $dimensions['width'], $shipment->get_dimension_unit() ) ) {
 			$supports_shipment = false;
 		}
 
-		if ( $supports_shipment && ! $this->supports_height( $shipment->get_height(), $shipment->get_dimension_unit() ) ) {
+		if ( $supports_shipment && ! $this->supports_height( $dimensions['height'], $shipment->get_dimension_unit() ) ) {
 			$supports_shipment = false;
 		}
 

@@ -310,8 +310,8 @@ class Install {
 				),
 				array(
 					'description'        => _x( 'Letter C4', 'shipments', 'woocommerce-germanized-shipments' ),
-					'length'             => 22.9,
-					'width'              => 32.4,
+					'length'             => 32.4,
+					'width'              => 22.9,
 					'height'             => 2,
 					'weight'             => 0.01,
 					'max_content_weight' => 1,
