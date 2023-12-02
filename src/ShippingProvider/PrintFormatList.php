@@ -17,8 +17,6 @@ class PrintFormatList implements \Countable, \ArrayAccess, \Iterator {
 	 * @param PrintFormat[] $print_formats
 	 */
 	public function __construct( $print_formats = array() ) {
-		$this->position = 0;
-
 		foreach ( $print_formats as $print_format ) {
 			$this->add( $print_format );
 		}

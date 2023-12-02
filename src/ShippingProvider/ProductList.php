@@ -17,8 +17,6 @@ class ProductList implements \Countable, \ArrayAccess, \Iterator {
 	 * @param Product[] $products
 	 */
 	public function __construct( $products = array() ) {
-		$this->position = 0;
-
 		foreach ( $products as $product ) {
 			$this->add( $product );
 		}
@@ -195,6 +193,7 @@ class ProductList implements \Countable, \ArrayAccess, \Iterator {
 		return current( $this->list );
 	}
 
+	#[\ReturnTypeWillChange]
 	public function key() {
 		return key( $this->list );
 	}

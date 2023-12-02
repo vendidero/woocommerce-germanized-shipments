@@ -17,8 +17,6 @@ class ServiceList implements \Countable, \ArrayAccess, \Iterator {
 	 * @param Service[] $services
 	 */
 	public function __construct( $services = array() ) {
-		$this->position = 0;
-
 		foreach ( $services as $service ) {
 			$this->add( $service );
 		}

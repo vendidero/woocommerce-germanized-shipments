@@ -41,6 +41,10 @@ class Product {
 
 	protected $parent_id = 0;
 
+	protected $internal_id = '';
+
+	protected $description = '';
+
 	public function __construct( $shipping_provider, $args = array() ) {
 		if ( is_a( $shipping_provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
 			$this->shipping_provider      = $shipping_provider;
