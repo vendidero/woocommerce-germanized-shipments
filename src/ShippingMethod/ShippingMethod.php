@@ -829,7 +829,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 						)
 					);
 
-                    $field_unique_id     = "{$condition_type}_{$field_name}";
+					$field_unique_id     = "{$condition_type}_{$field_name}";
 					$validation_type     = empty( $field['data_validation'] ) ? $condition_type : $field['data_validation'];
 					$rule[ $field_name ] = isset( $field['default'] ) ? $field['default'] : '';
 
@@ -1022,7 +1022,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 							<?php foreach ( $column as $column_condition_type => $fields ) : ?>
 								<?php
 								foreach ( $fields as $field_name => $field ) :
-                                    $field_unique_id = "{$column_condition_type}_{$field_name}";
+									$field_unique_id = "{$column_condition_type}_{$field_name}";
 									$data_type       = isset( $field['data_type'] ) ? $field['data_type'] : '';
 									$data_type_class = $data_type;
 
@@ -1030,7 +1030,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 										$data_type_class = 'wc_input_price';
 									}
 
-									$field = wp_parse_args(
+									$field                      = wp_parse_args(
 										$field,
 										array(
 											'name'    => $field_key . "[conditions][{{ data.rule_id }}][{{ data.condition_id }}][$field_unique_id]",

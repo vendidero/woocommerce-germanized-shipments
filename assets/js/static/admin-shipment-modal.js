@@ -422,9 +422,18 @@ window.germanized.admin = window.germanized.admin || {};
         } );
 
         /**
-         * Do only transmit data of visible label fields
+         * Do only transmit data of visible fields
          */
-        $.each( $form.find( ':input:visible' ).serializeArray(), function( index, item ) {
+        $.each( $form.find( ':input' ).serializeArray(), function( index, item ) {
+            var $item = $form.find( ':input[name="' + item.name + '"]' );
+
+            /**
+             * Skip invisible items except hidden inputs
+             */
+            if ( $item && ! $item.is( ':visible' ) && $item.attr( 'type' ) !== 'hidden' ) {
+                return true;
+            }
+
             if ( item.name.indexOf( '[]' ) !== -1 ) {
                 item.name = item.name.replace( '[]', '' );
                 data[ item.name ] = $.makeArray( data[ item.name ] );

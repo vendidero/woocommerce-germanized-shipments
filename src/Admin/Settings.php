@@ -706,6 +706,11 @@ class Settings {
 
 				woocommerce_wp_select( $setting );
 			} elseif ( 'checkbox' === $setting['type'] ) {
+				$field_name  = isset( $setting['name'] ) ? $setting['name'] : $setting['id'];
+				$field_value = isset( $setting['value'] ) ? $setting['value'] : 'no';
+
+				// Use a placeholder checkbox to force transmitting non-checked checkboxes with a no value to make sure default props are overridden.
+				echo ( ( 'yes' === $field_value ) ? '<input type="hidden" value="no" name="' . esc_attr( $field_name ) . '" />' : '' );
 				woocommerce_wp_checkbox( $setting );
 			} elseif ( 'textarea' === $setting['type'] ) {
 				woocommerce_wp_textarea_input( $setting );
