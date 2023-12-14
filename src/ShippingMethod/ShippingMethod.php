@@ -155,6 +155,21 @@ class ShippingMethod extends \WC_Shipping_Method {
 		return false;
 	}
 
+	/**
+	 * Return admin options as a html string.
+	 *
+	 * @return string
+	 */
+	public function get_admin_options_html() {
+		if ( $this->instance_id ) {
+			$settings_html = $this->generate_settings_html( $this->get_instance_form_fields(), false );
+		} else {
+			$settings_html = $this->generate_settings_html( $this->get_form_fields(), false );
+		}
+
+		return '<table class="form-table">' . $settings_html . '</table>';
+	}
+
 	public function init_form_fields() {
 		$this->instance_form_fields = array(
 			'title'                                    => array(

@@ -205,38 +205,38 @@ class Automation {
 			)
 		);
 
-		// Make sure that MetaBox is saved before we process automation
-		if ( \Vendidero\Germanized\Shipments\Automation::is_admin_edit_order_request() ) {
-			add_action(
-				'woocommerce_process_shop_order_meta',
-				function() use ( $shipment_id, $shipment ) {
-					self::create_label( $shipment_id, $shipment );
-				},
-				75
+		$defer_args = array(
+			'shipment_id' => $shipment_id,
+		);
+
+		/**
+		 * Cancel outstanding events and queue new.
+		 */
+		self::cancel_deferred_sync( $defer_args );
+
+		/**
+		 * In case the shipment has  automatically been created within the same request
+		 * and is already marked as shipped (e.g. due to default status set to shipped)
+		 * make sure to prevent a deferred sync as the label would not get attached to the email.
+		 */
+		if ( $the_shipment = wc_gzd_get_shipment( $shipment_id ) ) {
+			if ( $the_shipment->has_status( 'shipped' ) ) {
+				$args['allow_deferred_sync'] = false;
+			}
+		}
+
+		if ( $args['allow_deferred_sync'] ) {
+			Package::log( 'Deferring shipment #' . $shipment_id . ' label sync' );
+			$queue = WC()->queue();
+
+			$queue->schedule_single(
+				time() + 50,
+				'woocommerce_gzd_shipments_label_auto_sync_callback',
+				$defer_args,
+				'woocommerce-gzd-shipments-label-sync'
 			);
 		} else {
-			if ( $args['allow_deferred_sync'] ) {
-				Package::log( 'Deferring shipment #' . $shipment_id . ' label sync' );
-
-				$queue      = WC()->queue();
-				$defer_args = array(
-					'shipment_id' => $shipment_id,
-				);
-
-				/**
-				 * Cancel outstanding events and queue new.
-				 */
-				self::cancel_deferred_sync( $defer_args );
-
-				$queue->schedule_single(
-					time() + 50,
-					'woocommerce_gzd_shipments_label_auto_sync_callback',
-					$defer_args,
-					'woocommerce-gzd-shipments-label-sync'
-				);
-			} else {
-				self::create_label( $shipment_id, $shipment );
-			}
+			self::create_label( $shipment_id, $shipment );
 		}
 	}
 }

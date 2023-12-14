@@ -29,7 +29,7 @@ class Validation {
 				/**
 				 * Try to detect a edit-lock only save request and skip validation
 				 */
-				if ( $is_edit_order_request && 1 === count( $changes ) && array_key_exists( 'date_modified', $changes ) ) {
+				if ( $is_edit_order_request && ( empty( $changes ) || ( 1 === count( $changes ) && array_key_exists( 'date_modified', $changes ) ) ) ) {
 					$skip_validation = true;
 				}
 

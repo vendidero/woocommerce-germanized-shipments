@@ -199,6 +199,13 @@ class Automation {
 		}
 
 		/**
+		 * In case the order is already completed, e.g. while asynchronously creating shipments, make sure to update the shipment status.
+		 */
+		if ( 'yes' === Package::get_setting( 'auto_order_completed_shipped_enable' ) && apply_filters( 'woocommerce_gzd_shipments_order_completed_status', 'completed', $order->get_id() ) === $order->get_status() ) {
+			$shipment_status = 'shipped';
+		}
+
+		/**
 		 * Filter to disable automatically creating shipments for a specific order.
 		 *
 		 * @param string   $enable Whether to create or not create shipments.
@@ -213,6 +220,8 @@ class Automation {
 		}
 
 		if ( $order_shipment = wc_gzd_get_shipment_order( $order ) ) {
+			do_action( 'woocommerce_gzd_before_auto_create_shipments_for_order', $order->get_id(), $shipment_status, $order );
+
 			$shipments = $order_shipment->get_simple_shipments();
 
 			foreach ( $shipments as $shipment ) {
