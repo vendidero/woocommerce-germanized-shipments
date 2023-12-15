@@ -733,7 +733,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @return ShipmentError|true
 	 */
 	public function create_label( $shipment, $props = false ) {
-		$errors = new ShipmentError();
+		$errors    = new ShipmentError();
+		$org_props = $props;
 
 		/**
 		 * In case props is false this indicates an automatic (non-manual) request.
@@ -887,9 +888,29 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				$result = wc_gzd_get_shipment_error( $result );
 
 				if ( ! $result->is_soft_error() ) {
+					$code = absint( $result->get_error_code() );
+
+					/**
+					 * Server error and/or too many requests: retry
+					 */
+					if ( 500 === $code || 429 === $code ) {
+						$hits = false === get_transient( "{$this->get_general_hook_prefix()}label_rate_limit_hits" ) ? 0 : absint( get_transient( "{$this->get_general_hook_prefix()}label_rate_limit_hits" ) );
+
+						if ( $hits <= apply_filters( 'woocommerce_gzd_shipments_max_api_retries', 5 ) ) {
+							$hits++;
+
+							sleep( 0.25 * $hits );
+							set_transient( "{$this->get_general_hook_prefix()}label_rate_limit_hits", $hits, MINUTE_IN_SECONDS );
+
+							return $this->create_label( $shipment, $org_props );
+						}
+					}
+
 					return $result;
 				}
 			}
+
+			delete_transient( "{$this->get_general_hook_prefix()}label_rate_limit_hits" );
 
 			do_action( "{$this->get_general_hook_prefix()}created_label", $label, $this );
 			$label_id = $label->save();
