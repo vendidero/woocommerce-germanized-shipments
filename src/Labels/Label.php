@@ -711,7 +711,7 @@ class Label extends WC_Data implements ShipmentLabel {
 				 * Loop over the diff (one step/g a time) and distribute
 				 * the diff evenly for the items included. Respect min weight (1g).
 				 */
-				for ( $i = 0; $i < $diff_left; $i ++ ) {
+				for ( $i = 0; $i < $diff_left; $i++ ) {
 					if ( ! isset( $item_keys[ $current_item_index ] ) ) {
 						$current_item_index = 0;
 					}
@@ -741,21 +741,19 @@ class Label extends WC_Data implements ShipmentLabel {
 
 		$customs_items      = array();
 		$item_description   = '';
-		$total_weight       = $this->round_customs_item_weight( wc_add_number_precision( $this->get_net_weight() ) );
-		$total_gross_weight = $this->round_customs_item_weight( wc_add_number_precision( $this->get_weight() ) );
+		$total_weight       = (int) ceil( (float) wc_get_weight( $this->get_net_weight(), 'g', 'kg' ) );
+		$total_gross_weight = (int) ceil( (float) wc_get_weight( $this->get_weight(), 'g', 'kg' ) );
 		$item_weights       = array();
 		$shipment_items     = $shipment->get_items();
 		$order              = $shipment->get_order();
 
 		foreach ( $shipment_items as $key => $item ) {
-			$per_item_weight     = wc_format_decimal( floatval( wc_get_weight( $item->get_weight(), 'kg', $shipment->get_weight_unit() ) ), 2 );
-			$per_item_weight     = wc_add_number_precision( $per_item_weight );
+			$per_item_weight     = (int) ceil( (float) wc_get_weight( $item->get_weight(), 'g', $shipment->get_weight_unit() ) );
 			$per_item_weight     = $per_item_weight * $item->get_quantity();
 			$per_item_min_weight = 1 * $item->get_quantity();
 
 			/**
-			 * Set min weight to 0.01 to prevent missing weight error messages
-			 * for really small product weights.
+			 * Set min weight to 1g to prevent missing weight error messages.
 			 */
 			if ( $per_item_weight < $per_item_min_weight ) {
 				$per_item_weight = $per_item_min_weight;
@@ -766,6 +764,7 @@ class Label extends WC_Data implements ShipmentLabel {
 
 		$item_weights       = $this->get_per_item_weights( $total_weight, $item_weights, $shipment_items );
 		$item_gross_weights = $this->get_per_item_weights( $total_gross_weight, $item_weights, $shipment_items );
+
 		$total_weight       = 0;
 		$total_gross_weight = 0;
 		$total_value        = 0;
@@ -790,13 +789,13 @@ class Label extends WC_Data implements ShipmentLabel {
 			$item_description .= $single_item_description;
 
 			// Use total before discounts for customs
-			$product_total = floatval( (float) ( $use_subtotal ? $item->get_subtotal() : $item->get_total() ) / $item->get_quantity() );
+			$product_total = (float) ( $use_subtotal ? $item->get_subtotal() : $item->get_total() ) / $item->get_quantity();
 
 			if ( $product_total < 0.01 ) {
 				// Use the order item data as fallback
 				if ( ( $order_item = $item->get_order_item() ) && $order ) {
 					$order_item_total = $use_subtotal ? $order->get_line_subtotal( $order_item, true, false ) : $order->get_line_total( $order_item, true, false );
-					$product_total    = floatval( (float) $order_item_total / $item->get_quantity() );
+					$product_total    = (float) $order_item_total / $item->get_quantity();
 				}
 			}
 
@@ -811,26 +810,27 @@ class Label extends WC_Data implements ShipmentLabel {
 			$customs_items[ $key ] = apply_filters(
 				"{$this->get_general_hook_prefix()}customs_item",
 				array(
-					'description'            => apply_filters( "{$this->get_general_hook_prefix()}item_description", wc_clean( mb_substr( $single_item_description, 0, $max_desc_length ) ), $item, $this, $shipment ),
-					'category'               => apply_filters( "{$this->get_general_hook_prefix()}item_category", $category, $item, $this, $shipment ),
-					'origin_code'            => ( $shipment_product && $shipment_product->get_manufacture_country() ) ? $shipment_product->get_manufacture_country() : Package::get_base_country(),
-					'tariff_number'          => $shipment_product ? $shipment_product->get_hs_code() : '',
-					'quantity'               => intval( $item->get_quantity() ),
-					'weight_in_kg'           => wc_remove_number_precision( $item_weights[ $key ] ),
-					'single_weight_in_kg'    => $this->round_customs_item_weight( wc_remove_number_precision( $item_weights[ $key ] / $item->get_quantity() ), 2 ),
-					'weight_in_kg_raw'       => $item_weights[ $key ],
-					'gross_weight_in_kg'     => wc_remove_number_precision( $item_gross_weights[ $key ] ),
-					'gross_weight_in_kg_raw' => $item_gross_weights[ $key ],
-					'single_value'           => $product_value,
-					'value'                  => wc_format_decimal( $product_value * $item->get_quantity(), 2 ),
+					'description'         => apply_filters( "{$this->get_general_hook_prefix()}item_description", wc_clean( mb_substr( $single_item_description, 0, $max_desc_length ) ), $item, $this, $shipment ),
+					'category'            => apply_filters( "{$this->get_general_hook_prefix()}item_category", $category, $item, $this, $shipment ),
+					'origin_code'         => ( $shipment_product && $shipment_product->get_manufacture_country() ) ? $shipment_product->get_manufacture_country() : Package::get_base_country(),
+					'tariff_number'       => $shipment_product ? $shipment_product->get_hs_code() : '',
+					'quantity'            => intval( $item->get_quantity() ),
+					'weight_in_kg'        => $this->round_customs_item_weight( (float) wc_get_weight( $item_weights[ $key ], 'kg', 'g' ), 3 ),
+					'weight_in_g'         => $item_weights[ $key ],
+					'single_weight_in_kg' => $this->round_customs_item_weight( (float) wc_get_weight( $item_weights[ $key ] / $item->get_quantity(), 'kg', 'g' ), 3 ),
+					'single_weight_in_g'  => ceil( $item_weights[ $key ] / $item->get_quantity() ),
+					'gross_weight_in_kg'  => $this->round_customs_item_weight( (float) wc_get_weight( $item_gross_weights[ $key ], 'kg', 'g' ), 3 ),
+					'gross_weight_in_g'   => $item_gross_weights[ $key ],
+					'single_value'        => $product_value,
+					'value'               => wc_format_decimal( $product_value * $item->get_quantity(), 2 ),
 				),
 				$item,
 				$shipment,
 				$this
 			);
 
-			$total_weight       += (float) $customs_items[ $key ]['weight_in_kg'];
-			$total_gross_weight += (float) $customs_items[ $key ]['gross_weight_in_kg'];
+			$total_weight       += $customs_items[ $key ]['weight_in_g'];
+			$total_gross_weight += $customs_items[ $key ]['gross_weight_in_g'];
 			$total_value        += (float) $customs_items[ $key ]['value'];
 		}
 
@@ -848,8 +848,10 @@ class Label extends WC_Data implements ShipmentLabel {
 				// Customs UK VAT ID (HMRC) for totals <= 135 GBP
 				'sender_customs_uk_vat_id'      => $shipment->get_sender_customs_uk_vat_id(),
 				'items'                         => $customs_items,
-				'item_total_weight_in_kg'       => $total_weight,
-				'item_total_gross_weight_in_kg' => $total_gross_weight,
+				'item_total_weight_in_kg'       => $this->round_customs_item_weight( (float) wc_get_weight( $total_weight, 'kg', 'g' ), 3 ),
+				'item_total_weight_in_g'        => $total_weight,
+				'item_total_gross_weight_in_kg' => $this->round_customs_item_weight( (float) wc_get_weight( $total_gross_weight, 'kg', 'g' ), 3 ),
+				'item_total_gross_weight_in_g'  => $total_gross_weight,
 				'item_total_value'              => $total_value,
 				'currency'                      => $order ? $order->get_currency() : get_woocommerce_currency(),
 				'invoice_number'                => '',

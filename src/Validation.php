@@ -171,7 +171,6 @@ class Validation {
 
 	public static function before_delete_refund( $refund_id ) {
 		if ( $refund = wc_get_order( $refund_id ) ) {
-
 			if ( is_a( $refund, 'WC_Order_Refund' ) ) {
 				self::$current_refund_parent_order = $refund->get_parent_id();
 			}
@@ -180,7 +179,6 @@ class Validation {
 
 	public static function delete_refund_order( $refund_id ) {
 		if ( false !== self::$current_refund_parent_order ) {
-
 			if ( $order_shipment = wc_gzd_get_shipment_order( self::$current_refund_parent_order ) ) {
 				$order_shipment->validate_shipments();
 			}
@@ -201,9 +199,7 @@ class Validation {
 
 	public static function delete_order( $order_id ) {
 		if ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) {
-
 			foreach ( $order_shipment->get_shipments() as $shipment ) {
-
 				if ( $shipment->is_editable() ) {
 					$order_shipment->remove_shipment( $shipment->get_id() );
 				}
@@ -228,7 +224,6 @@ class Validation {
 	public static function delete_order_item( $order_item_id ) {
 		try {
 			if ( $order_id = wc_get_order_id_by_order_item_id( $order_item_id ) ) {
-
 				if ( $order_shipment = wc_gzd_get_shipment_order( $order_id ) ) {
 					foreach ( $order_shipment->get_shipments() as $shipment ) {
 

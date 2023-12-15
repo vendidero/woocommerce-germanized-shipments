@@ -40,8 +40,15 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return '';
 	}
 
+	/**
+	 * Returns the minimum weight applied to the label. Defaults to 1g.
+	 *
+	 * @param $context
+	 *
+	 * @return float
+	 */
 	public function get_label_minimum_shipment_weight( $context = 'view' ) {
-		return apply_filters( "{$this->get_hook_prefix()}label_minimum_shipment_weight", 0.01, $this );
+		return apply_filters( "{$this->get_hook_prefix()}label_minimum_shipment_weight", 0.001, $this );
 	}
 
 	/**
