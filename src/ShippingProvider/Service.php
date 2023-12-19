@@ -100,7 +100,7 @@ class Service {
 
 			if ( in_array( 'ALL_EU', $this->countries, true ) ) {
 				$this->countries = array_diff( $this->countries, array( 'ALL_EU' ) );
-				$this->countries = array_replace( WC()->countries->get_european_union_countries(), $this->countries );
+				$this->countries = array_unique( array_merge( WC()->countries->get_european_union_countries(), $this->countries ) );
 			}
 		}
 
