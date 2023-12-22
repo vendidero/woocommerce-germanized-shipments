@@ -270,7 +270,7 @@ class Validation {
 	 */
 	public static function update_order_item( $order_item_id, $order_item ) {
 		if ( ! self::is_admin_save_order_request() ) {
-			if ( is_callable( array( $order_item, 'get_order_id' ) ) ) {
+			if ( is_a( $order_item, 'WC_Order_Item' ) ) {
 				if ( $order_shipment = wc_gzd_get_shipment_order( $order_item->get_order_id() ) ) {
 					$order_shipment->validate_shipments();
 				}
