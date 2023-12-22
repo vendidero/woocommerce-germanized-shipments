@@ -52,8 +52,10 @@ class Validation {
 				add_action(
 					'woocommerce_update_order_item',
 					function( $order_item_id, $order_item ) use ( $order ) {
-						if ( $order_item->get_order_id() === $order->get_id() ) {
-							remove_action( 'woocommerce_update_order_item', array( __CLASS__, 'update_order_item' ), 10 );
+						if ( is_a( $order_item, 'WC_Order_Item' ) ) {
+							if ( $order_item->get_order_id() === $order->get_id() ) {
+								remove_action( 'woocommerce_update_order_item', array( __CLASS__, 'update_order_item' ), 10 );
+							}
 						}
 					},
 					5,
