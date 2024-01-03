@@ -1600,6 +1600,10 @@ abstract class Shipment extends WC_Data {
 		return wc_gzd_format_shipment_dimensions( $this->get_dimensions(), $this->get_dimension_unit() );
 	}
 
+	public function get_formatted_package_dimensions() {
+		return wc_gzd_format_shipment_dimensions( $this->get_package_dimensions(), $this->get_dimension_unit() );
+	}
+
 	/**
 	 * Returns whether the shipment is editable or not.
 	 *
