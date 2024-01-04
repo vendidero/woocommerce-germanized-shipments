@@ -662,16 +662,7 @@ class Ajax {
 			wp_send_json( $response_error );
 		}
 
-		if ( empty( $order_shipment->get_shipments() ) ) {
-			$shipments = Automation::create_shipments( $order_shipment );
-		} else {
-			$shipments = wc_gzd_create_shipment( $order_shipment );
-
-			if ( ! is_wp_error( $shipments ) ) {
-				$order_shipment->add_shipment( $shipments );
-				$shipments = array( $shipments );
-			}
-		}
+		$shipments = $order_shipment->create_shipments();
 
 		if ( is_wp_error( $shipments ) || empty( $shipments ) ) {
 			if ( is_wp_error( $shipments ) ) {

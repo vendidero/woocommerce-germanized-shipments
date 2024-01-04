@@ -554,7 +554,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			return false;
 		}
 
-		$weight           = (float) wc_format_decimal( empty( $shipment->get_content_weight() ) ? 0 : wc_get_weight( $shipment->get_content_weight(), wc_gzd_get_packaging_weight_unit(), $shipment->get_weight_unit() ), 1 );
+		$weight           = (float) wc_format_decimal( empty( $shipment->get_content_weight() ) ? 0 : wc_get_weight( $shipment->get_content_weight(), wc_gzd_get_packaging_weight_unit(), $shipment->get_weight_unit() ), 3 );
 		$volume           = (float) wc_format_decimal( empty( $shipment->get_content_volume() ) ? 0 : wc_gzd_get_volume_dimension( $shipment->get_content_volume(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );
 		$fits             = true;
 		$packaging_volume = (float) $packaging->get_length() * (float) $packaging->get_width() * (float) $packaging->get_height();
@@ -616,7 +616,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			} else {
 				global $wpdb;
 
-				$weight = wc_format_decimal( empty( $shipment->get_weight() ) ? 0 : wc_get_weight( $shipment->get_weight(), wc_gzd_get_packaging_weight_unit(), $shipment->get_weight_unit() ), 1 );
+				$weight = wc_format_decimal( empty( $shipment->get_weight() ) ? 0 : wc_get_weight( $shipment->get_weight(), wc_gzd_get_packaging_weight_unit(), $shipment->get_weight_unit() ), 3 );
 				$length = wc_format_decimal( empty( $shipment->get_length() ) ? 0 : wc_get_dimension( $shipment->get_length(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );
 				$width  = wc_format_decimal( empty( $shipment->get_width() ) ? 0 : wc_get_dimension( $shipment->get_width(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );
 				$height = wc_format_decimal( empty( $shipment->get_height() ) ? 0 : wc_get_dimension( $shipment->get_height(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );

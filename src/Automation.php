@@ -181,15 +181,14 @@ class Automation {
 	 * @return Shipment[]|\WP_Error
 	 */
 	public static function create_shipments( $order ) {
-		$shipments_created = array();
-		$errors            = new \WP_Error();
+		$result = array();
 
 		if ( is_numeric( $order ) ) {
 			$order = wc_get_order( $order );
 		}
 
 		if ( ! $order ) {
-			return $shipments_created;
+			return $result;
 		}
 
 		$shipment_status = Package::get_setting( 'auto_default_status' );
@@ -216,15 +215,14 @@ class Automation {
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		if ( ! apply_filters( 'woocommerce_gzd_auto_create_shipments_for_order', true, $order->get_id(), $order ) ) {
-			return $shipments_created;
+			return $result;
 		}
 
 		if ( $order_shipment = wc_gzd_get_shipment_order( $order ) ) {
-			do_action( 'woocommerce_gzd_before_auto_create_shipments_for_order', $order->get_id(), $shipment_status, $order );
-
-			$shipments = $order_shipment->get_simple_shipments();
-
-			foreach ( $shipments as $shipment ) {
+			/**
+			 * Sync existing shipments and items before creating new shipments
+			 */
+			foreach ( $order_shipment->get_simple_shipments() as $shipment ) {
 				if ( $shipment->is_editable() ) {
 					$shipment->sync();
 					$shipment->sync_items();
@@ -232,103 +230,18 @@ class Automation {
 				}
 			}
 
-			if ( $order_shipment->needs_shipping() ) {
-				if ( $order_shipment->has_auto_packing() ) {
-					if ( $method = $order_shipment->get_builtin_shipping_method() ) {
-						$packaging_boxes = $method->get_method()->get_available_packaging_boxes();
-					} else {
-						$available_packaging = wc_gzd_get_packaging_list();
+			do_action( 'woocommerce_gzd_before_auto_create_shipments_for_order', $order->get_id(), $shipment_status, $order );
 
-						if ( $provider = wc_gzd_get_order_shipping_provider( $order ) ) {
-							$available_packaging = wc_gzd_get_packaging_list( array( 'shipping_provider' => $provider->get_name() ) );
-						}
+			$result = $order_shipment->create_shipments( $shipment_status );
 
-						$packaging_boxes = Helper::get_packaging_boxes( $available_packaging );
-					}
-
-					$items        = $order_shipment->get_items_to_pack_left_for_shipping();
-					$packed_boxes = Helper::pack( $items, $packaging_boxes, 'order' );
-
-					if ( empty( $packaging_boxes ) && 0 === count( $packed_boxes ) ) {
-						$shipment = wc_gzd_create_shipment( $order_shipment, array( 'props' => array( 'status' => $shipment_status ) ) );
-
-						if ( ! is_wp_error( $shipment ) ) {
-							$order_shipment->add_shipment( $shipment );
-							$shipments_created[ $shipment->get_id() ] = $shipment;
-						} else {
-							foreach ( $shipment->get_error_messages() as $code => $message ) {
-								$errors->add( $code, $message );
-							}
-						}
-					} else {
-						if ( 0 === count( $packed_boxes ) ) {
-							$errors->add( 404, sprintf( _x( 'Seems like none of your <a href="%1$s">packaging options</a> is available for this order.', 'shipments', 'woocommerce-germanized-shipments' ), Settings::get_settings_url( 'packaging' ) ) );
-						} else {
-							foreach ( $packed_boxes as $box ) {
-								$packaging      = $box->getBox();
-								$items          = $box->getItems();
-								$shipment_items = array();
-
-								foreach ( $items as $item ) {
-									$order_item = $item->getItem();
-
-									if ( ! isset( $shipment_items[ $order_item->get_id() ] ) ) {
-										$shipment_items[ $order_item->get_id() ] = 1;
-									} else {
-										$shipment_items[ $order_item->get_id() ]++;
-									}
-								}
-
-								$shipment = wc_gzd_create_shipment(
-									$order_shipment,
-									array(
-										'items' => $shipment_items,
-										'props' => array(
-											'packaging_id' => $packaging->get_id(),
-											'status'       => $shipment_status,
-										),
-									)
-								);
-
-								if ( ! is_wp_error( $shipment ) ) {
-									$order_shipment->add_shipment( $shipment );
-
-									$shipments_created[ $shipment->get_id() ] = $shipment;
-								} else {
-									foreach ( $shipments_created as $id => $shipment_created ) {
-										$shipment_created->delete( true );
-										$order_shipment->remove_shipment( $id );
-									}
-
-									foreach ( $shipment->get_error_messages() as $code => $message ) {
-										$errors->add( $code, $message );
-									}
-								}
-							}
-						}
-					}
-				} else {
-					$shipment = wc_gzd_create_shipment( $order_shipment, array( 'props' => array( 'status' => $shipment_status ) ) );
-
-					if ( ! is_wp_error( $shipment ) ) {
-						$order_shipment->add_shipment( $shipment );
-						$shipments_created[ $shipment->get_id() ] = $shipment;
-					} else {
-						foreach ( $shipment->get_error_messages() as $code => $message ) {
-							$errors->add( $code, $message );
-						}
-					}
-				}
-			}
-
-			do_action( 'woocommerce_gzd_after_auto_create_shipments_for_order', $order->get_id(), $shipment_status, $order, $shipments_created );
+			do_action( 'woocommerce_gzd_after_auto_create_shipments_for_order', $order->get_id(), $shipment_status, $order, $result );
 		}
 
-		if ( wc_gzd_shipment_wp_error_has_errors( $errors ) ) {
-			return $errors;
+		if ( is_wp_error( $result ) ) {
+			return $result;
 		}
 
-		return $shipments_created;
+		return $result;
 	}
 
 	protected static function get_auto_statuses() {

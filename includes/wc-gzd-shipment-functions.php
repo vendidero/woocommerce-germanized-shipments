@@ -1318,6 +1318,8 @@ function wc_gzd_order_is_customer_returnable( $order, $check_date = true ) {
 function wc_gzd_get_order_shipping_provider( $order ) {
 	if ( is_numeric( $order ) ) {
 		$order = wc_get_order( $order );
+	} elseif ( is_a( $order, '\Vendidero\Germanized\Shipments\Order' ) ) {
+		$order = $order->get_order();
 	}
 
 	if ( ! $order ) {
