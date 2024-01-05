@@ -16,6 +16,8 @@ class PackagingBox implements PackingBox {
 
 	protected $dimensions = array();
 
+	protected $inner_dimensions = array();
+
 	protected $max_weight = 0;
 
 	protected $weight = 0;
@@ -37,6 +39,18 @@ class PackagingBox implements PackingBox {
 			'length' => (int) floor( (float) wc_get_dimension( $length, 'mm', wc_gzd_get_packaging_dimension_unit() ) ),
 			'depth'  => (int) floor( (float) wc_get_dimension( $depth, 'mm', wc_gzd_get_packaging_dimension_unit() ) ),
 		);
+
+		if ( $this->packaging->has_inner_dimensions() ) {
+			$inner_width  = empty( $this->packaging->get_inner_width() ) ? 0 : wc_format_decimal( $this->packaging->get_inner_width() );
+			$inner_length = empty( $this->packaging->get_inner_length() ) ? 0 : wc_format_decimal( $this->packaging->get_inner_length() );
+			$inner_depth  = empty( $this->packaging->get_inner_height() ) ? 0 : wc_format_decimal( $this->packaging->get_inner_height() );
+
+			$this->inner_dimensions = array(
+				'width'  => (int) floor( (float) wc_get_dimension( $inner_width, 'mm', wc_gzd_get_packaging_dimension_unit() ) ),
+				'length' => (int) floor( (float) wc_get_dimension( $inner_length, 'mm', wc_gzd_get_packaging_dimension_unit() ) ),
+				'depth'  => (int) floor( (float) wc_get_dimension( $inner_depth, 'mm', wc_gzd_get_packaging_dimension_unit() ) ),
+			);
+		}
 
 		$weight       = empty( $this->packaging->get_weight() ) ? 0 : wc_format_decimal( $this->packaging->get_weight() );
 		$this->weight = (int) floor( (float) wc_get_weight( $weight, 'g', wc_gzd_get_packaging_weight_unit() ) );
@@ -126,7 +140,11 @@ class PackagingBox implements PackingBox {
 	 * Inner width in mm.
 	 */
 	public function getInnerWidth(): int {
-		$width = $this->get_inner_dimension_buffer( $this->dimensions['width'], 'width' );
+		if ( ! empty( $this->inner_dimensions ) ) {
+			$width = $this->inner_dimensions['width'];
+		} else {
+			$width = $this->get_inner_dimension_buffer( $this->dimensions['width'], 'width' );
+		}
 
 		return $width;
 	}
@@ -135,7 +153,11 @@ class PackagingBox implements PackingBox {
 	 * Inner length in mm.
 	 */
 	public function getInnerLength(): int {
-		$length = $this->get_inner_dimension_buffer( $this->dimensions['length'], 'length' );
+		if ( ! empty( $this->inner_dimensions ) ) {
+			$length = $this->inner_dimensions['length'];
+		} else {
+			$length = $this->get_inner_dimension_buffer( $this->dimensions['length'], 'length' );
+		}
 
 		return $length;
 	}
@@ -144,7 +166,11 @@ class PackagingBox implements PackingBox {
 	 * Inner depth in mm.
 	 */
 	public function getInnerDepth(): int {
-		$depth = $this->get_inner_dimension_buffer( $this->dimensions['depth'], 'depth' );
+		if ( ! empty( $this->inner_dimensions ) ) {
+			$depth = $this->inner_dimensions['depth'];
+		} else {
+			$depth = $this->get_inner_dimension_buffer( $this->dimensions['depth'], 'depth' );
+		}
 
 		return $depth;
 	}

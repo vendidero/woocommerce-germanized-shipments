@@ -25,6 +25,40 @@ $layout-spacing: 1rem;
   margin-top: 5px;
 }
 
+.form-table td.forminp-dimensions {
+  display: flex;
+
+  .description {
+    display: inline-flex;
+    align-self: center;
+    margin-top: 15px;
+    margin-left: 5px;
+  }
+
+  .dimensions-fields {
+    display: flex;
+
+    .dimension-field {
+      max-width: 60px;
+      margin-right: 1em;
+
+      &:last-child {
+        margin-right: 0;
+      }
+
+      label {
+        display: block;
+        font-size: 10px;
+        padding-bottom: 2px;
+      }
+
+      input {
+        width: 100%;
+      }
+    }
+  }
+}
+
 .woocommerce_page_wc-settings .wc-modal-shipping-method-settings .form-table td .wc-gzd-additional-desc {
   background: #efefef;
 }

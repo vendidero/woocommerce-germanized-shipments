@@ -41,6 +41,9 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		'length',
 		'width',
 		'height',
+		'inner_length',
+		'inner_width',
+		'inner_height',
 		'description',
 		'order',
 	);
@@ -81,6 +84,9 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			'packaging_length'             => $packaging->get_length(),
 			'packaging_width'              => $packaging->get_width(),
 			'packaging_height'             => $packaging->get_height(),
+			'packaging_inner_length'       => $packaging->get_inner_length(),
+			'packaging_inner_width'        => $packaging->get_inner_width(),
+			'packaging_inner_height'       => $packaging->get_inner_height(),
 			'packaging_order'              => $packaging->get_order(),
 			'packaging_date_created'       => $packaging->get_date_created( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $packaging->get_date_created( 'edit' )->getOffsetTimestamp() ) : null,
 			'packaging_date_created_gmt'   => $packaging->get_date_created( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $packaging->get_date_created( 'edit' )->getTimestamp() ) : null,
@@ -232,6 +238,9 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 					'length'             => $data->packaging_length,
 					'width'              => $data->packaging_width,
 					'height'             => $data->packaging_height,
+					'inner_length'       => $data->packaging_inner_length,
+					'inner_width'        => $data->packaging_inner_width,
+					'inner_height'       => $data->packaging_inner_height,
 					'order'              => $data->packaging_order,
 					'date_created'       => Package::is_valid_mysql_date( $data->packaging_date_created_gmt ) ? wc_string_to_timestamp( $data->packaging_date_created_gmt ) : null,
 				)
@@ -554,10 +563,15 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			return false;
 		}
 
-		$weight           = (float) wc_format_decimal( empty( $shipment->get_content_weight() ) ? 0 : wc_get_weight( $shipment->get_content_weight(), wc_gzd_get_packaging_weight_unit(), $shipment->get_weight_unit() ), 3 );
-		$volume           = (float) wc_format_decimal( empty( $shipment->get_content_volume() ) ? 0 : wc_gzd_get_volume_dimension( $shipment->get_content_volume(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );
-		$fits             = true;
-		$packaging_volume = (float) $packaging->get_length() * (float) $packaging->get_width() * (float) $packaging->get_height();
+		$weight = (float) wc_format_decimal( empty( $shipment->get_content_weight() ) ? 0 : wc_get_weight( $shipment->get_content_weight(), wc_gzd_get_packaging_weight_unit(), $shipment->get_weight_unit() ), 3 );
+		$volume = (float) wc_format_decimal( empty( $shipment->get_content_volume() ) ? 0 : wc_gzd_get_volume_dimension( $shipment->get_content_volume(), wc_gzd_get_packaging_dimension_unit(), $shipment->get_dimension_unit() ), 1 );
+		$fits   = true;
+
+		if ( $packaging->has_inner_dimensions() ) {
+			$packaging_volume = (float) $packaging->get_inner_length() * (float) $packaging->get_inner_width() * (float) $packaging->get_inner_height();
+		} else {
+			$packaging_volume = (float) $packaging->get_length() * (float) $packaging->get_width() * (float) $packaging->get_height();
+		}
 
 		/**
 		 * The packaging does not fit in case:
@@ -625,18 +639,29 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 				$threshold = apply_filters( 'woocommerce_gzd_shipment_packaging_match_threshold', 0, $shipment );
 
 				$query_sql = "SELECT 
-					packaging_id, 
-					(packaging_length - %f) AS length_diff,
-					(packaging_width - %f) AS width_diff,
-					(packaging_height - %f) AS height_diff,
-					((packaging_length - %f) + (packaging_width - %f) + (packaging_height - %f)) AS total_diff   
+					packaging_id,
+					CASE
+                  		WHEN packaging_inner_length > 0
+                 			THEN (packaging_inner_length - %f)
+                  		ELSE (packaging_length - %f)
+                    END as length_diff,
+    				CASE
+                  		WHEN packaging_inner_width > 0
+                 			THEN (packaging_inner_width - %f)
+                  		ELSE (packaging_width - %f)
+                    END as width_diff,
+    				CASE
+                  		WHEN packaging_inner_height > 0
+                 			THEN (packaging_inner_height - %f)
+                  		ELSE (packaging_height - %f)
+                    END as height_diff
 					FROM {$wpdb->gzd_packaging} 
 					WHERE ( packaging_max_content_weight = 0 OR packaging_max_content_weight >= %f ) AND packaging_type IN ( '" . implode( "','", $types ) . "' )
 					HAVING length_diff >= %f AND width_diff >= %f AND height_diff >= %f
-					ORDER BY total_diff ASC, packaging_weight ASC, packaging_order ASC
+					ORDER BY (length_diff+width_diff+height_diff) ASC, packaging_weight ASC, packaging_order ASC
 				";
 
-				$query   = $wpdb->prepare( $query_sql, $length, $width, $height, $length, $width, $height, $weight, $threshold, $threshold, $threshold ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$query   = $wpdb->prepare( $query_sql, $length, $length, $width, $width, $height, $height, $weight, $threshold, $threshold, $threshold ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$results = $wpdb->get_results( $query ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 				if ( $results ) {

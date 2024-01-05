@@ -61,6 +61,9 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 		'width'                       => 0,
 		'height'                      => 0,
 		'length'                      => 0,
+		'inner_width'                 => 0,
+		'inner_height'                => 0,
+		'inner_length'                => 0,
 		'order'                       => 0,
 		'type'                        => '',
 		'description'                 => '',
@@ -225,6 +228,58 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 	}
 
 	/**
+	 * Returns the inner packaging length in cm.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
+	public function get_inner_length( $context = 'view' ) {
+		$inner_length = $this->get_prop( 'inner_length', $context );
+
+		if ( 'view' === $context && empty( $inner_length ) ) {
+			$inner_length = $this->get_length( $context );
+		}
+
+		return $inner_length;
+	}
+
+	/**
+	 * Returns the packaging inner width in cm.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
+	public function get_inner_width( $context = 'view' ) {
+		$inner_width = $this->get_prop( 'inner_width', $context );
+
+		if ( 'view' === $context && empty( $inner_width ) ) {
+			$inner_width = $this->get_width( $context );
+		}
+
+		return $inner_width;
+	}
+
+	/**
+	 * Returns the packaging inner height in cm.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
+	public function get_inner_height( $context = 'view' ) {
+		$inner_height = $this->get_prop( 'inner_height', $context );
+
+		if ( 'view' === $context && empty( $inner_height ) ) {
+			$inner_height = $this->get_height( $context );
+		}
+
+		return $inner_height;
+	}
+
+	public function has_inner_dimensions() {
+		return ! empty( $this->get_inner_width( 'edit' ) ) || ! empty( $this->get_inner_length( 'edit' ) ) || ! empty( $this->get_inner_height( 'edit' ) );
+	}
+
+	/**
 	 * Returns the available shipping provider names.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
@@ -296,12 +351,33 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 		);
 	}
 
+	/**
+	 * Returns inner dimensions.
+	 *
+	 * @return string|array
+	 */
+	public function get_inner_dimensions() {
+		return array(
+			'length' => wc_format_decimal( $this->get_inner_length(), false, true ),
+			'width'  => wc_format_decimal( $this->get_inner_width(), false, true ),
+			'height' => wc_format_decimal( $this->get_inner_height(), false, true ),
+		);
+	}
+
 	public function get_formatted_dimensions() {
 		return wc_gzd_format_shipment_dimensions( $this->get_dimensions(), wc_gzd_get_packaging_dimension_unit() );
 	}
 
+	public function get_formatted_inner_dimensions() {
+		return wc_gzd_format_shipment_dimensions( $this->get_inner_dimensions(), wc_gzd_get_packaging_dimension_unit() );
+	}
+
 	public function get_volume() {
 		return (float) $this->get_length() * (float) $this->get_width() * (float) $this->get_height();
+	}
+
+	public function get_inner_volume() {
+		return (float) $this->get_inner_length() * (float) $this->get_inner_width() * (float) $this->get_inner_height();
 	}
 
 	/**
@@ -414,7 +490,51 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 		$this->set_prop( 'height', empty( $height ) ? 0 : wc_format_decimal( $height, 1, true ) );
 	}
 
+	/**
+	 * Set packaging inner width in cm.
+	 *
+	 * @param string $width The width.
+	 */
+	public function set_inner_width( $width ) {
+		$this->set_prop( 'inner_width', empty( $width ) ? 0 : wc_format_decimal( $width, 1, true ) );
+	}
+
+	/**
+	 * Set packaging inner length in cm.
+	 *
+	 * @param string $length The length.
+	 */
+	public function set_inner_length( $length ) {
+		$this->set_prop( 'inner_length', empty( $length ) ? 0 : wc_format_decimal( $length, 1, true ) );
+	}
+
+	/**
+	 * Set packaging inner height in cm.
+	 *
+	 * @param string $height The height.
+	 */
+	public function set_inner_height( $height ) {
+		$this->set_prop( 'inner_height', empty( $height ) ? 0 : wc_format_decimal( $height, 1, true ) );
+	}
+
 	protected function get_configuration_set_setting_type() {
 		return 'packaging';
+	}
+
+	public function save() {
+		$changes = $this->get_changes();
+
+		/**
+		 * Maybe reset inner dimensions when changing outer dimensions.
+		 */
+		if ( ! empty( $changes ) ) {
+			foreach ( array( 'length', 'width', 'height' ) as $dim ) {
+				if ( isset( $changes[ $dim ] ) && ! isset( $changes[ "inner_{$dim}" ] ) ) {
+					$this->{"set_inner_{$dim}"}( 0 );
+				}
+			}
+		}
+
+		return parent::save();
 	}
 }

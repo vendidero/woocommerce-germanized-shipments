@@ -95,6 +95,9 @@ class Admin {
 
 		add_action( 'woocommerce_admin_field_gzd_toggle', array( __CLASS__, 'register_toggle_field' ), 30 );
 		add_filter( 'woocommerce_admin_settings_sanitize_option', array( __CLASS__, 'sanitize_toggle_field' ), 10, 3 );
+
+		add_action( 'woocommerce_admin_field_dimensions', array( __CLASS__, 'register_dimensions_field' ), 30 );
+		add_filter( 'woocommerce_admin_settings_sanitize_option', array( __CLASS__, 'sanitize_dimensions_field' ), 10, 3 );
 	}
 
 	public static function sanitize_toggle_field( $value, $option, $raw_value ) {
@@ -111,6 +114,129 @@ class Admin {
 
 		if ( 'gzd_toggle' === $option['type'] ) {
 			$value = '1' === $raw_value || 'yes' === $raw_value ? 'yes' : 'no';
+		}
+
+		return $value;
+	}
+
+	public static function register_dimensions_field( $setting ) {
+		$setting = wp_parse_args(
+			$setting,
+			array(
+				'id'                => '',
+				'desc'              => '',
+				'default'           => array(),
+				'placeholder'       => array(),
+				'custom_attributes' => array(),
+				'row_class'         => '',
+				'title'             => '',
+			)
+		);
+
+		if ( ! isset( $setting['value'] ) ) {
+			$setting['value'] = \WC_Admin_Settings::get_option( $setting['id'], $setting['default'] );
+		}
+
+		$setting['value'] = (array) $setting['value'];
+		$setting['value'] = wp_parse_args(
+			$setting['value'],
+			array(
+				'length' => 0,
+				'width'  => 0,
+				'height' => 0,
+			)
+		);
+
+		$setting['placeholder'] = (array) $setting['placeholder'];
+		$setting['placeholder'] = wp_parse_args(
+			$setting['placeholder'],
+			array(
+				'length' => 0,
+				'width'  => 0,
+				'height' => 0,
+			)
+		);
+
+		// Custom attribute handling.
+		$custom_attributes = array();
+
+		if ( ! empty( $setting['custom_attributes'] ) && is_array( $setting['custom_attributes'] ) ) {
+			foreach ( $setting['custom_attributes'] as $attribute => $attribute_value ) {
+				$custom_attributes[] = esc_attr( $attribute ) . '="' . esc_attr( $attribute_value ) . '"';
+			}
+		}
+
+		$titles = array(
+			'length' => _x( 'Length', 'shipments', 'woocommerce-germanized-shipments' ),
+			'width'  => _x( 'Width', 'shipments', 'woocommerce-germanized-shipments' ),
+			'height' => _x( 'Height', 'shipments', 'woocommerce-germanized-shipments' ),
+		);
+
+		// Description handling.
+		$field_description_data = \WC_Admin_Settings::get_field_description( $setting );
+		?>
+		<tr valign="top"<?php echo $setting['row_class'] ? ' class="' . esc_attr( $setting['row_class'] ) . '"' : ''; ?>">
+		<th scope="row" class="titledesc">
+			<label for="<?php echo esc_attr( $setting['id'] ); ?>"><?php echo esc_html( $setting['title'] ); ?> <?php echo wp_kses_post( $field_description_data['tooltip_html'] ); ?></label>
+		</th>
+		<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $setting['type'] ) ); ?>">
+			<div class="dimensions-fields">
+				<?php
+				foreach ( array( 'length', 'width', 'height' ) as $dim ) :
+					?>
+					<div class="dimension-field">
+						<label for="<?php echo esc_attr( $setting['id'] ); ?>-<?php echo esc_attr( $dim ); ?>"><?php echo esc_html( $titles[ $dim ] ); ?></label>
+						<input
+							name="<?php echo esc_attr( $setting['field_name'] ); ?>[<?php echo esc_attr( $dim ); ?>]"
+							id="<?php echo esc_attr( $setting['id'] ); ?>-<?php echo esc_attr( $dim ); ?>"
+							type="text"
+							style="<?php echo esc_attr( $setting['css'] ); ?>"
+							value="<?php echo esc_attr( $setting['value'][ $dim ] ); ?>"
+							class="<?php echo esc_attr( $setting['class'] ); ?>"
+							placeholder="<?php echo esc_attr( $setting['placeholder'][ $dim ] ); ?>"
+							<?php echo implode( ' ', $custom_attributes ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+						/>
+					</div>
+				<?php endforeach; ?>
+			</div>
+			<?php echo wp_kses_post( $field_description_data['description'] ); ?>
+		</td>
+		</tr>
+		<?php
+	}
+
+	public static function sanitize_dimensions_field( $value, $option, $raw_value ) {
+		$option = wp_parse_args(
+			$option,
+			array(
+				'type'       => '',
+				'field_name' => '',
+				'id'         => '',
+				'store_as'   => 'separate',
+			)
+		);
+
+		if ( 'dimensions' === $option['type'] ) {
+			$value       = wp_parse_args(
+				(array) $value,
+				array(
+					'length' => 0,
+					'width'  => 0,
+					'height' => 0,
+				)
+			);
+			$value       = wc_clean( $value );
+			$option_name = ! empty( $option['field_name'] ) ? $option['field_name'] : $option['id'];
+
+			if ( 'separate' === $option['store_as'] ) {
+				$option_name = str_replace( 'dimensions', '', $option_name );
+
+				foreach ( $value as $dim => $dim_val ) {
+					update_option( "{$option_name}{$dim}", $dim_val );
+				}
+
+				$value = null;
+			}
 		}
 
 		return $value;

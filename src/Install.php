@@ -523,6 +523,9 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_packaging (
   packaging_length decimal(6,2) unsigned NOT NULL DEFAULT 0,
   packaging_width decimal(6,2) unsigned NOT NULL DEFAULT 0,
   packaging_height decimal(6,2) unsigned NOT NULL DEFAULT 0,
+  packaging_inner_length decimal(6,2) unsigned NOT NULL DEFAULT 0,
+  packaging_inner_width decimal(6,2) unsigned NOT NULL DEFAULT 0,
+  packaging_inner_height decimal(6,2) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY  (packaging_id)
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_packagingmeta (
