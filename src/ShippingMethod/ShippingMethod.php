@@ -83,6 +83,17 @@ class ShippingMethod extends \WC_Shipping_Method {
 		return $this->get_option( 'shipping_rules', array() );
 	}
 
+	public function get_shipping_rule_by_id( $rule_id, $packaging_id ) {
+		$rules    = $this->get_shipping_rules_by_packaging( $packaging_id );
+		$rule_key = "rule_{$rule_id}";
+
+		if ( array_key_exists( $rule_key, $rules ) ) {
+			return $rules[ $rule_key ];
+		}
+
+		return false;
+	}
+
 	public function get_shipping_rules_by_packaging( $packaging ) {
 		$shipping_rules  = $this->get_shipping_rules();
 		$packaging_rules = array();
@@ -259,6 +270,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 					'label'     => _x( 'Always', 'shipments', 'woocommerce-germanized-shipments' ),
 					'fields'    => array(),
 					'operators' => array(),
+					'is_global' => true,
 				),
 				'package_weight'           => array(
 					'label'     => _x( 'Package weight', 'shipments', 'woocommerce-germanized-shipments' ),
@@ -297,6 +309,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 						),
 					),
 					'operators' => array( 'is', 'is_not' ),
+					'is_global' => true,
 				),
 				'package_total'            => array(
 					'label'     => _x( 'Package total', 'shipments', 'woocommerce-germanized-shipments' ),
@@ -331,6 +344,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 						),
 					),
 					'operators' => array( 'is', 'is_not' ),
+					'is_global' => true,
 				),
 				'package_shipping_classes' => array(
 					'label'     => _x( 'Shipping Class', 'shipments', 'woocommerce-germanized-shipments' ),
@@ -365,7 +379,15 @@ class ShippingMethod extends \WC_Shipping_Method {
 		$condition_types = $this->get_condition_types();
 
 		if ( array_key_exists( $type, $condition_types ) ) {
-			return $condition_types[ $type ];
+			return wp_parse_args(
+				$condition_types[ $type ],
+				array(
+					'label'     => '',
+					'fields'    => array(),
+					'operators' => array(),
+					'is_global' => false,
+				)
+			);
 		}
 
 		return false;
@@ -386,8 +408,14 @@ class ShippingMethod extends \WC_Shipping_Method {
 			$this->get_option( 'cache', array() ),
 			array(
 				'packaging_ids' => array(),
+				'global_rules'  => null,
 			)
 		);
+
+		if ( is_null( $cache['global_rules'] ) ) {
+			$cache['global_rules'] = $this->get_global_rules();
+			$this->update_option( 'cache', $cache );
+		}
 
 		if ( ! is_null( $property ) ) {
 			if ( array_key_exists( $property, $cache ) ) {
@@ -408,33 +436,89 @@ class ShippingMethod extends \WC_Shipping_Method {
 		return $this->get_instance_option( 'multiple_rules_cost_calculation_mode', 'max' );
 	}
 
-	public function get_available_packaging_boxes() {
+	public function get_available_packaging_boxes( $package_data = array() ) {
 		$cache         = $this->get_cache();
 		$packaging_ids = $cache['packaging_ids'];
+		$global_rules  = $cache['global_rules'];
 
 		if ( in_array( 'all', $packaging_ids, true ) || empty( $packaging_ids ) ) {
 			$packaging_boxes = Helper::get_packaging_boxes();
 			$packaging_ids   = array_diff( $packaging_ids, array( 'all' ) );
 
 			foreach ( $packaging_boxes as $id => $box ) {
+				if ( in_array( $id, $packaging_ids, true ) ) {
+					continue;
+				}
+
 				if ( $box->get_packaging()->supports_shipping_provider( $this->get_shipping_provider() ) ) {
 					$packaging_ids[] = $id;
 				}
 			}
 		}
 
+		/**
+		 * Filter available packaging based on global rules, e.g. weight/total
+		 * and do only allow applicable packaging options to be chosen for actual packing process.
+		 */
+		if ( ! empty( $package_data ) && count( $global_rules ) > 0 ) {
+			$has_fallback_global_rules = array_key_exists( 'all', $global_rules );
+
+			foreach ( $packaging_ids as $packaging_id ) {
+				$has_global_rule     = array_key_exists( $packaging_id, $global_rules );
+				$has_rules           = count( $this->get_shipping_rules_by_packaging( $packaging_id ) ) > 0;
+				$packaging_available = true;
+
+				if ( $has_global_rule ) {
+					$packaging_available = false;
+
+					foreach ( array_reverse( $global_rules[ $packaging_id ] ) as $rule_id ) {
+						if ( $rule = $this->get_shipping_rule_by_id( $rule_id, $packaging_id ) ) {
+							$rule         = $this->parse_rule( $rule );
+							$rule_applies = $this->rule_applies( $rule, $package_data, true );
+
+							if ( $rule_applies ) {
+								$packaging_available = true;
+								break;
+							}
+						}
+					}
+				} elseif ( ! $has_rules && $has_fallback_global_rules ) {
+					$packaging_available = false;
+
+					foreach ( array_reverse( $global_rules['all'] ) as $rule_id ) {
+						if ( $rule = $this->get_shipping_rule_by_id( $rule_id, 'all' ) ) {
+							$rule         = $this->parse_rule( $rule );
+							$rule_applies = $this->rule_applies( $rule, $package_data, true );
+
+							if ( $rule_applies ) {
+								$packaging_available = true;
+								break;
+							}
+						}
+					}
+				}
+
+				if ( ! $packaging_available ) {
+					$packaging_ids = array_diff( $packaging_ids, array( $packaging_id ) );
+				}
+			}
+		}
+
+		$packaging_ids = array_unique( array_values( $packaging_ids ) );
+
 		return Helper::get_packaging_boxes( apply_filters( 'woocommerce_gzd_shipping_method_available_packaging_ids', $packaging_ids, $this ) );
 	}
 
 	public function calculate_shipping( $package = array() ) {
-		$boxes                           = \DVDoug\BoxPacker\BoxList::fromArray( $this->get_available_packaging_boxes() );
-		$cost_calculation_mode           = $this->get_multiple_shipments_cost_calculation_mode();
-		$multiple_rules_calculation_mode = $this->get_multiple_rules_cost_calculation_mode();
+		$applied_rules = array();
 
 		if ( isset( $package['items_to_pack'], $package['package_data'] ) ) {
-			$cart_data             = (array) $package['package_data'];
+			$cart_data                       = (array) $package['package_data'];
+			$boxes                           = \DVDoug\BoxPacker\BoxList::fromArray( $this->get_available_packaging_boxes( $cart_data ) );
+			$cost_calculation_mode           = $this->get_multiple_shipments_cost_calculation_mode();
+			$multiple_rules_calculation_mode = $this->get_multiple_rules_cost_calculation_mode();
+
 			$total_cost            = 0.0;
-			$applied_rules         = array();
 			$rule_ids              = array();
 			$packaging_ids         = array();
 			$total_packed_item_map = array();
@@ -655,7 +739,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 		return $condition;
 	}
 
-	protected function rule_applies( $rule, $package_data ) {
+	protected function rule_applies( $rule, $package_data, $global_only = false ) {
 		$rule_applies = true;
 		$rule         = $this->parse_rule( $rule );
 		$package_data = wp_parse_args(
@@ -683,6 +767,13 @@ class ShippingMethod extends \WC_Shipping_Method {
 			if ( $condition_type = $this->get_condition_type( $condition['type'] ) ) {
 				$condition_type_name = $condition['type'];
 				$operator_name       = $condition['operator'];
+
+				/**
+				 * Skip non-global conditions, e.g. packaging conditions in case set.
+				 */
+				if ( $global_only && ! $condition_type['is_global'] ) {
+					continue;
+				}
 
 				if ( $operator = $this->get_conditional_operator( $operator_name ) ) {
 					if ( $operator['is_negation'] ) {
@@ -776,11 +867,42 @@ class ShippingMethod extends \WC_Shipping_Method {
 		return '';
 	}
 
+	protected function get_global_rules() {
+		$rules        = $this->get_option( 'shipping_rules', array() );
+		$global_rules = array();
+
+		foreach ( $rules as $packaging_id => $packaging_rules ) {
+			foreach ( $packaging_rules as $packaging_rule ) {
+				$is_global = true;
+
+				foreach ( $packaging_rule['conditions'] as $condition ) {
+					if ( $condition_type = $this->get_condition_type( $condition['type'] ) ) {
+						if ( ! $condition_type['is_global'] ) {
+							$is_global = false;
+							break;
+						}
+					}
+				}
+
+				if ( $is_global ) {
+					if ( ! array_key_exists( $packaging_id, $global_rules ) ) {
+						$global_rules[ $packaging_id ] = array();
+					}
+
+					$global_rules[ $packaging_id ][] = $packaging_rule['rule_id'];
+				}
+			}
+		}
+
+		return $global_rules;
+	}
+
 	protected function validate_cache_field() {
 		$rules = $this->get_option( 'shipping_rules', array() );
 
 		$cache = array(
 			'packaging_ids' => array_keys( $rules ),
+			'global_rules'  => $this->get_global_rules(),
 		);
 
 		return $cache;
@@ -1096,5 +1218,23 @@ class ShippingMethod extends \WC_Shipping_Method {
 		$html = ob_get_clean();
 
 		return $html;
+	}
+
+	/**
+	 * Update a single option.
+	 *
+	 * @since 3.4.0
+	 * @param string $key Option key.
+	 * @param mixed  $value Value to set.
+	 * @return bool was anything saved?
+	 */
+	public function update_option( $key, $value = '' ) {
+		if ( empty( $this->instance_settings ) ) {
+			$this->init_instance_settings();
+		}
+
+		$this->instance_settings[ $key ] = $value;
+
+		return update_option( $this->get_instance_option_key(), apply_filters( 'woocommerce_shipping_' . $this->id . '_instance_settings_values', $this->instance_settings, $this ), 'yes' );
 	}
 }

@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\Shipments\Packing;
 
+use Vendidero\Germanized\Shipments\Utilities\NumberUtil;
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -40,9 +42,10 @@ class ShipmentItem extends Item {
 		$line_total    = (int) wc_add_number_precision( $this->item->get_total() );
 		$line_subtotal = (int) wc_add_number_precision( $this->item->get_subtotal() );
 
-		$this->weight   = (int) ceil( (float) wc_get_weight( $weight, 'g', $weight_unit ) );
-		$this->total    = $quantity > 0 ? $line_total / $quantity : 0;
-		$this->subtotal = $quantity > 0 ? $line_subtotal / $quantity : 0;
+		$this->weight = (int) ceil( (float) wc_get_weight( $weight, 'g', $weight_unit ) );
+
+		$this->total    = $quantity > 0 ? NumberUtil::round( $line_total / $quantity ) : 0;
+		$this->subtotal = $quantity > 0 ? NumberUtil::round( $line_subtotal / $quantity ) : 0;
 	}
 
 	/**

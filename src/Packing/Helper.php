@@ -35,7 +35,7 @@ class Helper {
 			}
 		}
 
-		if ( $id ) {
+		if ( false !== $id ) {
 			if ( is_array( $id ) ) {
 				$first_val = ! empty( $id ) ? array_values( $id )[0] : false;
 
