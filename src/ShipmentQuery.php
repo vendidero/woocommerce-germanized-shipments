@@ -178,7 +178,8 @@ class ShipmentQuery extends WC_Object_Query {
 	 */
 	protected function parse_query() {
 		if ( isset( $this->args['order_id'] ) ) {
-			$this->args['order_id'] = absint( $this->args['order_id'] );
+			$this->args['order_id'] = (array) $this->args['order_id'];
+			$this->args['order_id'] = array_map( 'absint', $this->args['order_id'] );
 		}
 
 		if ( isset( $this->args['shipping_provider'] ) ) {
@@ -284,7 +285,9 @@ class ShipmentQuery extends WC_Object_Query {
 
 		// order id
 		if ( isset( $this->args['order_id'] ) ) {
-			$this->query_where .= $wpdb->prepare( ' AND shipment_order_id = %d', $this->args['order_id'] );
+			$order_ids = array_map( 'absint', $this->args['order_id'] );
+			$placeholders = implode( ',', array_fill( 0, count( $order_ids ), '%d' ) );
+			$this->query_where .= $wpdb->prepare( " AND shipment_order_id IN ({$placeholders})", ...$order_ids );
 		}
 
 		// order id
