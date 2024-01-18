@@ -53,7 +53,7 @@ class ShipmentQuery extends WC_Object_Query {
 			'order_id'          => '',
 			'parent_id'         => '',
 			'product_ids'       => '',
-			'product_cat'       => '',
+			'product_cats'       => '',
 			'type'              => 'simple',
 			'country'           => '',
 			'tracking_id'       => '',
