@@ -53,6 +53,7 @@ class ShipmentQuery extends WC_Object_Query {
 			'order_id'          => '',
 			'parent_id'         => '',
 			'product_ids'       => '',
+			'product_cat'       => '',
 			'type'              => 'simple',
 			'country'           => '',
 			'tracking_id'       => '',
@@ -195,6 +196,11 @@ class ShipmentQuery extends WC_Object_Query {
 			$this->args['product_ids'] = array_map( 'absint', $this->args['product_ids'] );
 		}
 
+		if ( isset( $this->args['product_cats'] ) ) {
+			$this->args['product_cats'] = (array) $this->args['product_cats'];
+			$this->args['product_cats'] = array_map( 'absint', $this->args['product_cats'] );
+		}
+
 		if ( isset( $this->args['tracking_id'] ) ) {
 			$this->args['tracking_id'] = sanitize_key( $this->args['tracking_id'] );
 		}
@@ -311,6 +317,16 @@ class ShipmentQuery extends WC_Object_Query {
 
 			$this->query_from  .= " JOIN {$wpdb->prefix}woocommerce_gzd_shipment_items as shipment_items ON ( shipment_items.shipment_id = {$wpdb->prefix}woocommerce_gzd_shipments.shipment_id ) ";
 			$this->query_where .= $wpdb->prepare( " AND shipment_items.shipment_item_product_id IN ({$product_ids_placeholders})", $this->args['product_ids'] ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+		}
+
+		// product cat
+		if ( isset( $this->args['product_cats'] ) ) {
+			$product_cats_placeholders = implode( ', ', array_fill( 0, count( $this->args['product_cats'] ), '%d' ) );
+
+			$this->query_from  .= " JOIN {$wpdb->prefix}woocommerce_gzd_shipment_items AS shipment_items ON {$wpdb->prefix}woocommerce_gzd_shipments.shipment_id = shipment_items.shipment_id ";
+			$this->query_from  .= " JOIN {$wpdb->prefix}woocommerce_order_itemmeta AS itemmeta ON shipment_items.shipment_item_order_item_id = itemmeta.order_item_id AND itemmeta.meta_key='_product_id' ";
+			$this->query_from  .= " JOIN {$wpdb->prefix}term_relationships AS term_relationships ON term_relationships.object_id = itemmeta.meta_value ";
+			$this->query_where .= $wpdb->prepare( " AND term_relationships.term_taxonomy_id IN ({$product_cats_placeholders})",  $this->args['product_cats']); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 		}
 
 		// country
