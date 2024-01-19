@@ -53,7 +53,7 @@ class ShipmentQuery extends WC_Object_Query {
 			'order_id'          => '',
 			'parent_id'         => '',
 			'product_ids'       => '',
-			'product_category'       => '',
+			'product_category'  => '',
 			'type'              => 'simple',
 			'country'           => '',
 			'tracking_id'       => '',
@@ -325,7 +325,7 @@ class ShipmentQuery extends WC_Object_Query {
 
 			$this->query_from  .= " JOIN {$wpdb->prefix}woocommerce_gzd_shipment_items AS shipment_items ON {$wpdb->prefix}woocommerce_gzd_shipments.shipment_id = shipment_items.shipment_id ";
 			$this->query_from  .= " JOIN {$wpdb->prefix}term_relationships AS term_relationships ON term_relationships.object_id = shipment_items.shipment_item_product_id ";
-			$this->query_where .= $wpdb->prepare( " AND term_relationships.term_taxonomy_id IN ({$product_category_placeholders})",  $this->args['product_category']); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+			$this->query_where .= $wpdb->prepare( " AND term_relationships.term_taxonomy_id IN ({$product_category_placeholders})", $this->args['product_category'] ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 		}
 
 		// country
