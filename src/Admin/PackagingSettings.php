@@ -115,9 +115,6 @@ class PackagingSettings {
 	 * @return array
 	 */
 	public static function get_general_settings( $packaging, $section = '' ) {
-		var_dump( Package::get_shipping_classes() );
-		var_dump( $packaging->get_available_shipping_classes() );
-
 		return array(
 			array(
 				'title' => '',
