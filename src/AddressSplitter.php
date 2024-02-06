@@ -22,6 +22,22 @@ class AddressSplitter {
 	 * @throws Exception
 	 */
 	public static function split_address( $address ) {
+		$fixed_street_name = '';
+
+		/**
+		 * Enforce whitespace after comma to improve parsing.
+		 */
+		$address = str_replace( ',', ', ', $address );
+
+		/**
+		 * Special case for street names containing numbers, e.g. Straße 50 in Berlin.
+		 * Replace the original street name with a placeholder to prevent mixing up house numbers.
+		 */
+		if ( 1 === preg_match( '/^(Str\.|Strasse|Straße|Street)\s+[0-9]+/', $address, $matches ) ) {
+			$fixed_street_name = $matches[0];
+			$address           = preg_replace( '/^(Str\.|Strasse|Straße|Street)\s+([0-9]+)/', 'Sample Street', $address );
+		}
+
 		/* Matching this group signifies the following text is part of
 		 * additionToAddress2.
 		 *
@@ -48,7 +64,7 @@ class AddressSplitter {
             # {{{ Additions which further specify more precisely the location
             | \s+ (?: Haus ) \s
             | \s+ (?: WG | W\.G\. | WG\. | Wohngemeinschaft ) ($ | \s)
-            | \s+ (?: [Aa]partment | APT \.? | Apt \.? ) \s
+            | \s+ (?: [Aa]partment | APT \.? | Apt \.?  apt \.? ) \s
             | \s+ (?: [Ff]lat ) \s
             | (?: # Numeric-based location specifiers (e.g., "3. Stock"):
                 \s+
@@ -59,8 +75,8 @@ class AddressSplitter {
                     \s* # …, followed by optional spacing
                 )?
                 (?: # Specifying category:
-                    (?i: Stock | Stockwerk)
-                    | App \.? | Apt \.? | (?i: Appartment | Apartment)
+                    (?i: Stock | Stockwerk | OG)
+                    | App \.? | Apt \.? | apt \.? | (?i: Appartment | Apartment)
                 )
                 # At the end of the string or followed by a space
                 (?: $ | \s)
@@ -143,10 +159,9 @@ class AddressSplitter {
 		$regex                  = '
             /\A\s*
             (?: #########################################################################
-                # Option A: [<Addition to address 1>] <House number> <Street name>      #
+                # Option A: <House number> <Street name>      #
                 # [<Addition to address 2>]                                             #
                 #########################################################################
-                (?:(?P<A_Addition_to_address_1>.*?),\s*)? # Addition to address 1
             (?:No\.\s*)?
                 (?P<A_House_number_match>
                      (?P<A_House_number_base>
@@ -167,8 +182,8 @@ class AddressSplitter {
                 # [<Addition to address 2>]                                             #
                 #########################################################################
                 (?:(?P<B_Addition_to_address_1>.*?),\s*(?=.*[,\/]))? # Addition to address 1
-                (?!\s*No\.)(?P<B_Street_name>[^0-9# ]\s*\S(?:[^,#](?!\b\pN+\s))*?(?<!\s)) # Street name
-            \s*[\/,]?\s*(?:\sNo[.:])?\s*
+                (?!\s*([Nn]o|[Nn]r)\.)(?P<B_Street_name>[^0-9# ]\s*\S(?:[^,#](?!\b\pN+\s))*?(?<!\s)) # Street name
+            \s*[\/,]?\s*(?:\s([Nn]o|[Nn]r)[.:])?\s*
                 (?P<B_House_number_match>
                      (?P<B_House_number_base>
                         \pN+
@@ -200,7 +215,7 @@ class AddressSplitter {
                      )?
                 ) # House number
                 (?:
-                    (?:\s*[-,\/]|(?=\#)|\s)\s*(?!\s*No\.)\s*
+                    (?:\s*[-,\/]|(?=\#)|\s)\s*(?!\s*([Nn]o|[Nn]r)\.)\s*
                     (?P<B_Addition_to_address_2>(?!\s).*?)
                 )?
             )
@@ -212,8 +227,8 @@ class AddressSplitter {
 			throw new RuntimeException( sprintf( 'Error occurred while trying to split address \'%s\'', $address ) );
 		}
 		if ( ! empty( $matches['A_Street_name'] ) ) {
-			return array(
-				'additionToAddress1' => $matches['A_Addition_to_address_1'],
+			$result = array(
+				'additionToAddress1' => '',
 				'streetName'         => $matches['A_Street_name'],
 				'houseNumber'        => $matches['A_House_number_match'],
 				'houseNumberParts'   => array(
@@ -223,9 +238,9 @@ class AddressSplitter {
 				'additionToAddress2' => ( isset( $matches['A_Addition_to_address_2'] ) ) ? $matches['A_Addition_to_address_2'] : '',
 			);
 		} else {
-			return array(
-				'additionToAddress1' => $matches['B_Addition_to_address_1'],
-				'streetName'         => $matches['B_Street_name'],
+			$result = array(
+				'additionToAddress1' => '',
+				'streetName'         => ( ! empty( $matches['B_Addition_to_address_1'] ) ? $matches['B_Addition_to_address_1'] . ' ' : '' ) . $matches['B_Street_name'],
 				'houseNumber'        => $matches['B_House_number_match'],
 				'houseNumberParts'   => array(
 					'base'      => $matches['B_House_number_base'],
@@ -234,6 +249,12 @@ class AddressSplitter {
 				'additionToAddress2' => isset( $matches['B_Addition_to_address_2'] ) ? $matches['B_Addition_to_address_2'] : '',
 			);
 		}
+
+		if ( $fixed_street_name ) {
+			$result['streetName'] = str_replace( 'Sample Street', $fixed_street_name, $result['streetName'] );
+		}
+
+		return $result;
 	}
 
 	/**

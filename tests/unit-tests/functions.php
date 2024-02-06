@@ -172,5 +172,61 @@ class Functions extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTest
 			'addition'   => '',
 			'addition_2' => '',
 		), wc_gzd_split_shipment_street( 'Mia van IJperenplein 153' ) );
+
+		$this->assertEquals( array(
+			'street'     => 'Bonaventura Puig i Perucho',
+			'number'     => '2',
+			'addition'   => '3o 6a',
+			'addition_2' => '',
+		), wc_gzd_split_shipment_street( 'Bonaventura Puig i Perucho 2, 3o 6a' ) );
+
+		$this->assertEquals( array(
+			'street'     => 'Bodor Peter Street',
+			'number'     => '9',
+			'addition'   => 'apt.12',
+			'addition_2' => '',
+		), wc_gzd_split_shipment_street( 'Bodor Peter Street, nr.9, apt.12' ) );
+
+		$this->assertEquals( array(
+			'street'     => 'Woodmar Drive',
+			'number'     => '2002',
+			'addition'   => 'Apt. 3',
+			'addition_2' => '',
+		), wc_gzd_split_shipment_street( '2002 Woodmar Drive,  Apt. 3' ) );
+
+		$this->assertEquals( array(
+			'street'     => 'Musterstraße',
+			'number'     => '12a',
+			'addition'   => '',
+			'addition_2' => '',
+		), wc_gzd_split_shipment_street( 'Musterstraße 12a' ) );
+
+		$this->assertEquals( array(
+			'street'     => 'Rue 30E Régiment d\'Infanterie',
+			'number'     => '1',
+			'addition'   => '',
+			'addition_2' => '',
+		), wc_gzd_split_shipment_street( '1 Rue 30E Régiment d\'Infanterie' ) );
+
+		$this->assertEquals( array(
+			'street'     => 'Straße 50',
+			'number'     => '8',
+			'addition'   => '',
+			'addition_2' => '',
+		), wc_gzd_split_shipment_street( 'Straße 50 Nr. 8' ) );
+
+		$this->assertEquals( array(
+			'street'     => 'Straße 50',
+			'number'     => '8',
+			'addition'   => '',
+			'addition_2' => '',
+		), wc_gzd_split_shipment_street( 'Straße 50 8' ) );
+
+		$this->assertEquals( array(
+			'street'     => 'Konrad-Adenauer-Allee',
+			'number'     => '50',
+			'addition'   => '4 OG',
+			'addition_2' => '',
+		), wc_gzd_split_shipment_street( 'Konrad-Adenauer-Allee 50, 4 OG' ) );
 	}
 }
