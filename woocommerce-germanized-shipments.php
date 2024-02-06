@@ -5,7 +5,7 @@
  * Description: The Germanized Shipments integration, installed as a feature plugin for development and testing purposes.
  * Author: vendidero
  * Author URI: https://vendidero.de
- * Version: 3.0.4
+ * Version: 3.0.5
  * Requires PHP: 5.6
  * License: GPLv3
  *
