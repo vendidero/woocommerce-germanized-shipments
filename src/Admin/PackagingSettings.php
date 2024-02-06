@@ -115,6 +115,9 @@ class PackagingSettings {
 	 * @return array
 	 */
 	public static function get_general_settings( $packaging, $section = '' ) {
+		var_dump( Package::get_shipping_classes() );
+		var_dump( $packaging->get_available_shipping_classes() );
+
 		return array(
 			array(
 				'title' => '',
@@ -157,7 +160,11 @@ class PackagingSettings {
 				'class'             => 'wc-enhanced-select',
 				'default'           => array(),
 				'options'           => Package::get_shipping_classes(),
-				'value'             => $packaging->get_available_shipping_classes( 'edit' ),
+				/**
+				 * Woo explicitly casts option values to strings before comparing.
+				 * @see \WC_Admin_Settings::output_fields()
+				 */
+				'value'             => array_map( 'strval', $packaging->get_available_shipping_classes( 'edit' ) ),
 				'custom_attributes' => array(
 					'data-placeholder' => _x( 'All shipping classes', 'shipments', 'woocommerce-germanized-shipments' ),
 				),
