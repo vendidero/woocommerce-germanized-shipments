@@ -1174,10 +1174,12 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 		if ( $this->is_configuration_set_setting( $setting_name_clean ) ) {
 			if ( $configuration_set = $this->get_configuration_set( $setting_name_clean ) ) {
-				return $configuration_set->get_setting( $setting_name_clean, $default );
+				$value = $configuration_set->get_setting( $setting_name_clean, $default );
 			} else {
-				return $default;
+				$value = $default;
 			}
+
+			return apply_filters( "{$this->get_hook_prefix()}setting_{$setting_name_clean}", $value, $key, $default, $context );
 		} else {
 			return parent::get_setting( $key, $default, $context );
 		}

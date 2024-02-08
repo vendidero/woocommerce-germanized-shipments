@@ -2562,7 +2562,7 @@ abstract class Shipment extends WC_Data {
 	 */
 	public function create_label( $props = false ) {
 		$hook_prefix   = $this->get_general_hook_prefix();
-		$provider_name = '';
+		$provider_name = $this->get_shipping_provider() ? $this->get_shipping_provider() . '_' : '';
 		$error         = new ShipmentError();
 
 		/**
@@ -2574,9 +2574,13 @@ abstract class Shipment extends WC_Data {
 			}
 		}
 
+		do_action( "{$hook_prefix}before_create_{$provider_name}label", $props, $this );
+
 		if ( $provider = $this->get_shipping_provider_instance() ) {
 			$provider_name = $provider->get_name();
 			$result        = $provider->create_label( $this, $props );
+
+			do_action( "{$hook_prefix}after_create_{$provider_name}label", $props, $this, $result );
 
 			if ( is_wp_error( $result ) ) {
 				$error = wc_gzd_get_shipment_error( $result );

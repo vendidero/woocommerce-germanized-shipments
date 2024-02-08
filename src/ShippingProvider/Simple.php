@@ -954,7 +954,7 @@ class Simple extends WC_Data implements ShippingProvider {
 			$value = $this->retrieve_password( $value );
 		}
 
-		return $value;
+		return apply_filters( "{$this->get_hook_prefix()}setting_{$clean_key}", $value, $key, $default, $context );
 	}
 
 	protected function retrieve_password( $value ) {
