@@ -1049,8 +1049,11 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			$product_id = $this->get_default_product_for_zone( $config_set );
 		}
 
+		$product_id = apply_filters( "{$this->get_hook_prefix()}default_label_product", $product_id, $shipment, $this );
+
 		if ( ! array_key_exists( $product_id, $available ) && ! empty( $available ) ) {
-			$product_id = array_keys( $available )[0];
+			$original_product_id = $product_id;
+			$product_id          = apply_filters( "{$this->get_hook_prefix()}fallback_label_product", array_keys( $available )[0], $original_product_id, $shipment, $available, $this );
 		}
 
 		return $product_id;
