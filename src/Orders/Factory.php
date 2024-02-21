@@ -15,7 +15,7 @@ use \Exception;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Label factory class
+ * Order factory class
  */
 class Factory {
 
@@ -34,7 +34,7 @@ class Factory {
 
 		if ( is_a( $order, 'WC_Order' ) ) {
 			try {
-				return self::get_cached_order( $order );
+				return new Order( $order );
 			} catch ( Exception $e ) {
 				wc_caught_exception( $e, __FUNCTION__, array( $order ) );
 				return false;
@@ -44,25 +44,5 @@ class Factory {
 		}
 
 		return false;
-	}
-
-	/**
-	 * @param \WC_Order $wc_order
-	 * @return Order
-	 */
-	private static function get_cached_order( $wc_order ) {
-		if ( version_compare( PHP_VERSION, '8.0.0', '>=' ) ) {
-			if ( is_null( self::$order_list ) ) {
-				self::$order_list = new \WeakMap();
-			}
-
-			if ( ! isset( self::$order_list[ $wc_order ] ) ) {
-				self::$order_list[ $wc_order ] = new Order( $wc_order );
-			}
-
-			return self::$order_list[ $wc_order ];
-		} else {
-			return new Order( $wc_order );
-		}
 	}
 }

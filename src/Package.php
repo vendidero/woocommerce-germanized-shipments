@@ -2,19 +2,10 @@
 
 namespace Vendidero\Germanized\Shipments;
 
-use DVDoug\BoxPacker\ItemList;
+use Automattic\WooCommerce\Caches\OrderCache;
 use Exception;
-use Vendidero\Germanized\DHL\ShippingProvider\DHL;
-use Vendidero\Germanized\Shipments\DataStores\ShippingProvider;
-use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
-use Vendidero\Germanized\Shipments\Packing\CartItem;
 use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
-use Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod;
-use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
-use Vendidero\Germanized\Shipments\ShippingProvider\ProductList;
-use WC_Shipping;
-use WC_Shipping_Method;
 
 defined( 'ABSPATH' ) || exit;
 
