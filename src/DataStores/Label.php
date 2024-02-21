@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments\DataStores;
 
+use Vendidero\Germanized\Shipments\Caches\Helper;
 use Vendidero\Germanized\Shipments\Package;
 use WC_Data_Store_WP;
 use WC_Object_Data_Store_Interface;
@@ -309,6 +310,10 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 	 */
 	protected function clear_caches( &$label ) {
 		wp_cache_delete( $label->get_id(), $this->meta_type . '_meta' );
+
+		if ( $cache = Helper::get_cache_object( 'shipment-labels' ) ) {
+			$cache->remove( $label->get_id() );
+		}
 	}
 
 	/*

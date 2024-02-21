@@ -2665,8 +2665,6 @@ abstract class Shipment extends WC_Data {
 			$this->set_tracking_id( '' );
 			$this->save();
 
-			$this->label = null;
-
 			return true;
 		}
 

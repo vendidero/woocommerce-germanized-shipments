@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments\DataStores;
 
+use Vendidero\Germanized\Shipments\Caches\Helper;
 use Vendidero\Germanized\Shipments\Package;
 use WC_Data_Store_WP;
 use WC_Object_Data_Store_Interface;
@@ -377,6 +378,10 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 			$cache_key = 'shipment-count-' . $shipment->get_type() . '-' . $status;
 
 			wp_cache_delete( $cache_key, 'shipments' );
+		}
+
+		if ( $cache = Helper::get_cache_object( 'shipments' ) ) {
+			$cache->remove( $shipment->get_id() );
 		}
 	}
 

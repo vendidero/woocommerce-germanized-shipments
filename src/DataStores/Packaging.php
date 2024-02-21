@@ -273,6 +273,10 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		wp_cache_delete( 'packaging-list', 'packaging' );
 
 		Helper::clear_cache();
+
+		if ( $cache = \Vendidero\Germanized\Shipments\Caches\Helper::get_cache_object( 'packagings' ) ) {
+			$cache->remove( $packaging->get_id() );
+		}
 	}
 
 	/*
