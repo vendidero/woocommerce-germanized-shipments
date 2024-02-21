@@ -371,6 +371,13 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 		wp_cache_delete( 'shipment-items-' . $shipment->get_id(), 'shipments' );
 		wp_cache_delete( $shipment->get_id(), $this->meta_type . '_meta' );
 		wp_cache_delete( 'available-packaging-' . $shipment->get_id(), 'shipments' );
+		wp_cache_delete( 'shipment-type' . $shipment->get_id(), 'shipments' );
+
+		foreach ( array_keys( wc_gzd_get_shipment_statuses() ) as $status ) {
+			$cache_key = 'shipment-count-' . $shipment->get_type() . '-' . $status;
+
+			wp_cache_delete( $cache_key, 'shipments' );
+		}
 	}
 
 	/*
@@ -411,14 +418,22 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	public function get_shipment_type( $shipment_id ) {
 		global $wpdb;
 
-		$type = $wpdb->get_col(
-			$wpdb->prepare(
-				"SELECT shipment_type FROM {$wpdb->gzd_shipments} WHERE shipment_id = %d LIMIT 1",
-				$shipment_id
-			)
-		);
+		$type = wp_cache_get( 'shipment-type-' . $shipment_id, 'shipments' );
 
-		return ! empty( $type ) ? $type[0] : false;
+		if ( false === $type ) {
+			$type = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT shipment_type FROM {$wpdb->gzd_shipments} WHERE shipment_id = %d LIMIT 1",
+					$shipment_id
+				)
+			);
+
+			$type = ! empty( $type ) ? $type[0] : false;
+
+			wp_cache_set( 'shipment-type-' . $shipment_id, $type, 'shipments' );
+		}
+
+		return $type;
 	}
 
 	/**
@@ -537,7 +552,6 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 		$items = 0 < $shipment->get_id() ? wp_cache_get( 'shipment-items-' . $shipment->get_id(), 'shipments' ) : false;
 
 		if ( false === $items ) {
-
 			$items = $wpdb->get_results(
 				$wpdb->prepare( "SELECT * FROM {$wpdb->gzd_shipment_items} WHERE shipment_id = %d ORDER BY shipment_item_id;", $shipment->get_id() )
 			);
@@ -701,12 +715,21 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	public function get_shipment_count( $status, $type = '' ) {
 		global $wpdb;
 
-		if ( empty( $type ) ) {
-			$query = $wpdb->prepare( "SELECT COUNT( * ) FROM {$wpdb->gzd_shipments} WHERE shipment_status = %s", $status );
-		} else {
-			$query = $wpdb->prepare( "SELECT COUNT( * ) FROM {$wpdb->gzd_shipments} WHERE shipment_status = %s and shipment_type = %s", $status, $type );
+		$cache_key = 'shipment-count-' . $type . '-' . $status;
+		$count     = wp_cache_get( $cache_key, 'shipments' );
+
+		if ( false === $count ) {
+			if ( empty( $type ) ) {
+				$query = $wpdb->prepare( "SELECT COUNT( * ) FROM {$wpdb->gzd_shipments} WHERE shipment_status = %s", $status );
+			} else {
+				$query = $wpdb->prepare( "SELECT COUNT( * ) FROM {$wpdb->gzd_shipments} WHERE shipment_status = %s and shipment_type = %s", $status, $type );
+			}
+
+			$count = absint( $wpdb->get_var( $query ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+			wp_cache_set( $cache_key, $count, 'shipments' );
 		}
 
-		return absint( $wpdb->get_var( $query ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		return $count;
 	}
 }

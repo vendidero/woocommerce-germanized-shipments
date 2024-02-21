@@ -9,6 +9,7 @@
  */
 namespace Vendidero\Germanized\Shipments;
 
+use Vendidero\Germanized\Shipments\Caches\Helper;
 use Vendidero\Germanized\Shipments\Shipment;
 use \WC_Data_Store;
 use \Exception;
@@ -30,6 +31,14 @@ class ShipmentFactory {
 		$shipment_id = self::get_shipment_id( $shipment_id );
 
 		if ( $shipment_id ) {
+			if ( $cache = Helper::get_cache_object( 'shipments' ) ) {
+				$shipment = $cache->get( $shipment_id );
+
+				if ( ! is_null( $shipment ) ) {
+					return $shipment;
+				}
+			}
+
 			$shipment_type = WC_Data_Store::load( 'shipment' )->get_shipment_type( $shipment_id );
 
 			/**
@@ -67,7 +76,13 @@ class ShipmentFactory {
 		}
 
 		try {
-			return new $classname( $shipment_id );
+			$shipment = new $classname( $shipment_id );
+
+			if ( $shipment && $shipment_id > 0 && ( $cache = Helper::get_cache_object( 'shipments' ) ) ) {
+				$cache->set( $shipment, $shipment_id );
+			}
+
+			return $shipment;
 		} catch ( Exception $e ) {
 			wc_caught_exception( $e, __FUNCTION__, array( $shipment_id, $shipment_type ) );
 			return false;

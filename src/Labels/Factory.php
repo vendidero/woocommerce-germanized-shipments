@@ -9,6 +9,7 @@
  */
 namespace Vendidero\Germanized\Shipments\Labels;
 
+use Vendidero\Germanized\Shipments\Caches\Helper;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use \WC_Data_Store;
 use \Exception;
@@ -30,6 +31,14 @@ class Factory {
 		$label_id = self::get_label_id( $label_id );
 
 		if ( $label_id ) {
+			if ( $cache = Helper::get_cache_object( 'shipment-labels' ) ) {
+				$label = $cache->get( $label_id );
+
+				if ( ! is_null( $label ) ) {
+					return $label;
+				}
+			}
+
 			$label_data = WC_Data_Store::load( 'shipment-label' )->get_label_data( $label_id );
 
 			if ( $label_data ) {
@@ -70,7 +79,13 @@ class Factory {
 		}
 
 		try {
-			return new $classname( $label_id );
+			$label = new $classname( $label_id );
+
+			if ( $label && $label_id > 0 && ( $cache = Helper::get_cache_object( 'shipment-labels' ) ) ) {
+				$cache->set( $label, $label_id );
+			}
+
+			return $label;
 		} catch ( Exception $e ) {
 			wc_caught_exception( $e, __FUNCTION__, array( $label_id, $shipping_provider_name, $label_type ) );
 			return false;

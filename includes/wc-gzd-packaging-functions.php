@@ -32,8 +32,7 @@ function wc_gzd_get_packaging_types() {
  * @return \Vendidero\Germanized\Shipments\Packaging[] $packaging_list
  */
 function wc_gzd_get_packaging_list( $args = array() ) {
-	$data_store = \WC_Data_Store::load( 'packaging' );
-	$list       = $data_store->get_packaging_list( $args );
+	$list = \Vendidero\Germanized\Shipments\Packaging\Helper::get_packaging_list( $args );
 
 	return $list;
 }

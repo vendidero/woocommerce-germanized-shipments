@@ -1344,4 +1344,14 @@ class Simple extends WC_Data implements ShippingProvider {
 
 		return $shipment_types;
 	}
+
+	public function save() {
+		$id = parent::save();
+
+		if ( $cache = \Vendidero\Germanized\Shipments\Caches\Helper::get_cache_object( 'shipping-providers' ) ) {
+			$cache->remove( $this->get_name() );
+		}
+
+		return $id;
+	}
 }

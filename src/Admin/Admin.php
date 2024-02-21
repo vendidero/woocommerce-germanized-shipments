@@ -540,10 +540,14 @@ class Admin {
 
 	public static function render_order_columns( $column, $post_id ) {
 		if ( 'shipping_status' === $column ) {
-			global $the_order;
+			if ( is_a( $post_id, 'WC_Order' ) ) {
+				$the_order = $post_id;
+			} else {
+				global $the_order;
 
-			if ( ! $the_order || $the_order->get_id() !== $post_id ) {
-				$the_order = wc_get_order( $post_id );
+				if ( ! $the_order || $the_order->get_id() !== $post_id ) {
+					$the_order = wc_get_order( $post_id );
+				}
 			}
 
 			if ( $shipment_order = wc_gzd_get_shipment_order( $the_order ) ) {

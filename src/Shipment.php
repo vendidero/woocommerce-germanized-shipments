@@ -8,8 +8,11 @@
 namespace Vendidero\Germanized\Shipments;
 
 use DVDoug\BoxPacker\ItemList;
+use Vendidero\Germanized\Shipments\Caches\Helper;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
+use Vendidero\Germanized\Shipments\Labels\Label;
+use Vendidero\Germanized\Shipments\ShippingMethod\ProviderMethod;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
@@ -58,6 +61,11 @@ abstract class Shipment extends WC_Data {
 	protected $cache_group = 'shipment';
 
 	protected $label_configuration_set = null;
+
+	/**
+	 * @var null|ShipmentLabel
+	 */
+	protected $label = null;
 
 	/**
 	 * The contained ShipmentItems.
@@ -2500,12 +2508,15 @@ abstract class Shipment extends WC_Data {
 	 * @return boolean|ShipmentLabel|ShipmentReturnLabel
 	 */
 	public function get_label() {
-		$label  = false;
 		$prefix = '';
 
-		if ( $provider = $this->get_shipping_provider_instance() ) {
-			$prefix = $provider->get_name() . '_';
-			$label  = $provider->get_label( $this );
+		if ( is_null( $this->label ) ) {
+			$this->label = false;
+
+			if ( $provider = $this->get_shipping_provider_instance() ) {
+				$prefix      = $provider->get_name() . '_';
+				$this->label = $provider->get_label( $this );
+			}
 		}
 
 		/**
@@ -2523,7 +2534,7 @@ abstract class Shipment extends WC_Data {
 		 * @since 3.0.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( "{$this->get_hook_prefix()}{$prefix}label", $label, $this );
+		return apply_filters( "{$this->get_hook_prefix()}{$prefix}label", $this->label, $this );
 	}
 
 	/**
@@ -2564,6 +2575,7 @@ abstract class Shipment extends WC_Data {
 		$hook_prefix   = $this->get_general_hook_prefix();
 		$provider_name = $this->get_shipping_provider() ? $this->get_shipping_provider() . '_' : '';
 		$error         = new ShipmentError();
+		$this->label   = null;
 
 		/**
 		 * Sanitize props
@@ -2652,6 +2664,8 @@ abstract class Shipment extends WC_Data {
 			$label->delete( $force );
 			$this->set_tracking_id( '' );
 			$this->save();
+
+			$this->label = null;
 
 			return true;
 		}
@@ -2836,6 +2850,10 @@ abstract class Shipment extends WC_Data {
 
 			$this->save_items();
 
+			if ( $cache = Helper::get_cache_object( 'shipments' ) ) {
+				$cache->remove( $this->get_id() );
+			}
+
 			/**
 			 * Trigger action after saving shipment to the DB.
 			 *
@@ -2868,7 +2886,7 @@ abstract class Shipment extends WC_Data {
 
 			$this->status_transition();
 			$this->reset_content_data();
-
+			$this->label = null;
 		} catch ( Exception $e ) {
 			/**
 			 * This is a tweak to prevent the WooCommerce PayPal Payments Plugin compatibility script
@@ -2881,6 +2899,7 @@ abstract class Shipment extends WC_Data {
 			if ( is_a( $e, 'WooCommerce\PayPalCommerce\ApiClient\Exception\PayPalApiException' ) || is_a( $e, 'WooCommerce\PayPalCommerce\ApiClient\Exception\RuntimeException' ) ) {
 				$this->status_transition();
 				$this->reset_content_data();
+				$this->label = null;
 			} else {
 				$logger = wc_get_logger();
 				$logger->error(

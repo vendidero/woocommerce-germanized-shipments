@@ -10,6 +10,7 @@
 namespace Vendidero\Germanized\Shipments;
 
 use \Exception;
+use Vendidero\Germanized\Shipments\Caches\Helper;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -28,6 +29,16 @@ class PackagingFactory {
 		$packaging_id = self::get_packaging_id( $packaging_id );
 		$classname    = '\Vendidero\Germanized\Shipments\Packaging';
 
+		if ( $packaging_id ) {
+			if ( $cache = Helper::get_cache_object( 'packagings' ) ) {
+				$packaging = $cache->get( $packaging_id );
+
+				if ( ! is_null( $packaging ) ) {
+					return $packaging;
+				}
+			}
+		}
+
 		/**
 		 * Filter to adjust the classname used to construct a Packaging.
 		 *
@@ -44,7 +55,13 @@ class PackagingFactory {
 		}
 
 		try {
-			return new $classname( $packaging_id );
+			$packaging = new $classname( $packaging_id );
+
+			if ( $packaging && $packaging_id > 0 && ( $cache = Helper::get_cache_object( 'packagings' ) ) ) {
+				$cache->set( $packaging, $packaging_id );
+			}
+
+			return $packaging;
 		} catch ( Exception $e ) {
 			wc_caught_exception( $e, __FUNCTION__, array( $packaging_id ) );
 			return false;

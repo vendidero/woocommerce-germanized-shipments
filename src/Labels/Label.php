@@ -867,4 +867,14 @@ class Label extends WC_Data implements ShipmentLabel {
 
 		return apply_filters( 'woocommerce_gzd_shipments_label_customs_data', $customs_data, $this, $shipment, $max_desc_length );
 	}
+
+	public function save() {
+		$id = parent::save();
+
+		if ( $cache = \Vendidero\Germanized\Shipments\Caches\Helper::get_cache_object( 'shipment-labels' ) ) {
+			$cache->remove( $this->get_id() );
+		}
+
+		return $id;
+	}
 }

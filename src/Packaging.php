@@ -535,6 +535,12 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 			}
 		}
 
-		return parent::save();
+		$id = parent::save();
+
+		if ( $cache = \Vendidero\Germanized\Shipments\Caches\Helper::get_cache_object( 'packagings' ) ) {
+			$cache->remove( $this->get_id() );
+		}
+
+		return $id;
 	}
 }

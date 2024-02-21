@@ -119,6 +119,10 @@ class Helper {
 		}
 
 		$this->shipping_providers[ $provider->get_name() ] = $provider;
+
+		if ( $cache = \Vendidero\Germanized\Shipments\Caches\Helper::get_cache_object( 'shipping-providers' ) ) {
+			$cache->set( $provider, $provider->get_name() );
+		}
 	}
 
 	/**
@@ -176,6 +180,14 @@ class Helper {
 
 		// For the settings in the backend, and for non-shipping zone methods, we still need to load any registered classes here.
 		foreach ( $shipping_providers as $provider_name => $provider_class ) {
+			if ( $cache = \Vendidero\Germanized\Shipments\Caches\Helper::get_cache_object( 'shipping-providers' ) ) {
+				$provider = $cache->get( $provider_name );
+
+				if ( ! is_null( $provider ) ) {
+					return $provider;
+				}
+			}
+
 			$this->register_shipping_provider( $provider_class );
 		}
 

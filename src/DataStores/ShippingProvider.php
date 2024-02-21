@@ -291,20 +291,9 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	}
 
 	public function is_activated( $name ) {
-		global $wpdb;
+		$shipping_providers = $this->get_shipping_providers();
 
-		$data = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT shipping_provider_activated FROM {$wpdb->gzd_shipping_provider} WHERE shipping_provider_name = %s LIMIT 1",
-				$name
-			)
-		);
-
-		if ( $data ) {
-			return wc_string_to_bool( $data->shipping_provider_activated );
-		}
-
-		return false;
+		return array_key_exists( $name, $shipping_providers ) ? wc_string_to_bool( $shipping_providers[ $name ]->shipping_provider_activated ) : false;
 	}
 
 	/**
@@ -315,6 +304,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	 */
 	protected function clear_caches( &$provider ) {
 		wp_cache_delete( $provider->get_id(), $this->meta_type . '_meta' );
+		wp_cache_delete( 'all-providers', 'shipping-providers' );
 	}
 
 	/*
@@ -456,18 +446,14 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	}
 
 	public function get_shipping_provider_count() {
-		global $wpdb;
-
-		return absint( $wpdb->get_var( "SELECT COUNT( * ) FROM {$wpdb->gzd_shipping_provider}" ) );
+		return count( $this->get_shipping_providers() );
 	}
 
 	public function get_shipping_provider_name( $provider_id ) {
-		global $wpdb;
-
-		$provider_name_check = $wpdb->get_row( $wpdb->prepare( "SELECT shipping_provider_name FROM $wpdb->gzd_shipping_provider WHERE shipping_provider_id = %d LIMIT 1", $provider_id ) );
-
-		if ( ! empty( $provider_name_check ) ) {
-			return $provider_name_check->shipping_provider_name;
+		foreach ( $this->get_shipping_providers() as $shipping_provider ) {
+			if ( (int) $shipping_provider->shipping_provider_id === (int) $provider_id ) {
+				return $shipping_provider->shipping_provider_name;
+			}
 		}
 
 		return false;
@@ -476,15 +462,21 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 	public function get_shipping_providers() {
 		global $wpdb;
 
-		$providers          = $wpdb->get_results( "SELECT * FROM $wpdb->gzd_shipping_provider ORDER BY shipping_provider_order ASC" );
-		$shipping_providers = array();
+		$shipping_providers = wp_cache_get( 'all-providers', 'shipping-providers' );
 
-		foreach ( $providers as $provider ) {
-			try {
-				$shipping_providers[ $provider->shipping_provider_name ] = $provider;
-			} catch ( Exception $e ) {
-				continue;
+		if ( false === $shipping_providers ) {
+			$providers          = $wpdb->get_results( "SELECT * FROM $wpdb->gzd_shipping_provider ORDER BY shipping_provider_order ASC" );
+			$shipping_providers = array();
+
+			foreach ( $providers as $provider ) {
+				try {
+					$shipping_providers[ $provider->shipping_provider_name ] = $provider;
+				} catch ( Exception $e ) {
+					continue;
+				}
 			}
+
+			wp_cache_set( 'all-providers', $providers, 'shipping-providers' );
 		}
 
 		return $shipping_providers;
