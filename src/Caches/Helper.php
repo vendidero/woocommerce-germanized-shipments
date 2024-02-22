@@ -55,7 +55,7 @@ class Helper {
 		if ( 'shipment-orders' === $type ) {
 			$is_enabled = false;
 
-			if ( class_exists( 'Automattic\WooCommerce\Utilities\OrderUtil' ) && OrderUtil::orders_cache_usage_is_enabled() ) {
+			if ( class_exists( 'Automattic\WooCommerce\Utilities\OrderUtil' ) && is_callable( array( 'Automattic\WooCommerce\Utilities\OrderUtil', 'orders_cache_usage_is_enabled' ) ) && OrderUtil::orders_cache_usage_is_enabled() ) {
 				$is_enabled = true;
 			}
 		}
@@ -88,6 +88,10 @@ class Helper {
 	 */
 	public static function get_cache_object( $type ) {
 		$types = self::get_types();
+
+		if ( version_compare( WC()->version, '8.0.0', '<' ) ) {
+			return false;
+		}
 
 		if ( ! self::is_enabled( $type ) || ! array_key_exists( $type, $types ) ) {
 			return false;
