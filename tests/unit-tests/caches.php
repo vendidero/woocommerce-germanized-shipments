@@ -17,6 +17,13 @@ class Caches extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTestCas
 		$this->assertEquals( true, \Vendidero\Germanized\Shipments\Caches\Helper::is_enabled( 'shipments' ) );
 	}
 
+	function setUp(): void {
+		parent::setUp();
+
+		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
+		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
+	}
+
 	function test_shipment_order_cache() {
 		remove_all_filters( 'pre_update_option', 999 );
 		update_option( 'woocommerce_custom_orders_table_enabled', 'yes' );
