@@ -19,10 +19,14 @@ class Caches extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTestCas
 
 	function test_shipment_order_cache() {
 		update_option( 'woocommerce_custom_orders_table_enabled', 'yes' );
+
+		var_dump(get_option('woocommerce_custom_orders_table_enabled'));
+
 		$feature_controller = wc_get_container()->get( \Automattic\WooCommerce\Internal\Features\FeaturesController::class );
 		$hpos_enabled       = $feature_controller->feature_is_enabled( \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION  );
 
-		var_dump($hpos_enabled);
+		var_dump("Enabled? " . $hpos_enabled);
+		var_dump("Exists? " . $feature_controller->feature_exists( \Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::CUSTOM_ORDERS_TABLE_USAGE_ENABLED_OPTION ) );
 		WC_Install::create_tables();
 
 		$shipment = ShipmentHelper::create_simple_shipment();
