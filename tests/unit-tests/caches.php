@@ -51,5 +51,7 @@ class Caches extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTestCas
 
 			$this->assertEquals( null === $cache->get( $order->get_id() ), true );
 		}
+
+		update_option( 'woocommerce_custom_orders_table_enabled', 'no' );
 	}
 }
