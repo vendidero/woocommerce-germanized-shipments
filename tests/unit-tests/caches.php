@@ -24,8 +24,13 @@ class Caches extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTestCas
 		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
 	}
 
+	function tear_down() {
+		parent::tear_down();
+
+		update_option( 'woocommerce_custom_orders_table_enabled', 'no' );
+	}
+
 	function test_shipment_order_cache() {
-		remove_all_filters( 'pre_update_option', 999 );
 		update_option( 'woocommerce_custom_orders_table_enabled', 'yes' );
 
 		add_action( 'woocommerce_init', function() {

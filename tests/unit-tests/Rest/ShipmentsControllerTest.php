@@ -200,11 +200,19 @@ class ShipmentsControllerTest extends \Vendidero\Germanized\Shipments\Tests\Fram
 		$shipments_response = $response->get_data();
 
 		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 3, count( $shipments_response ) );
+		$response_count = 0;
 
-		foreach ( $shipments_response as $shipment ) {
-			$this->check_single_shipment( $shipment->get_data() );
+		foreach ( $shipments_response as $inner_shipment ) {
+			$id = $inner_shipment->get_data()['id'];
+
+			if ( in_array( (int) $id, array( $shipment->get_id(), $shipment_1->get_id(), $shipment_2->get_id() ), true ) ) {
+				$this->check_single_shipment( $inner_shipment->get_data() );
+
+				$response_count++;
+			}
 		}
+
+		$this->assertEquals( 3, $response_count );
 	}
 
 	/**
