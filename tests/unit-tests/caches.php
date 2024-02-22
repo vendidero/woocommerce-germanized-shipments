@@ -18,15 +18,12 @@ class Caches extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTestCas
 	}
 
 	function test_shipment_order_cache() {
+		remove_all_filters( 'pre_update_option', 999 );
 		update_option( 'woocommerce_custom_orders_table_enabled', 'yes' );
 
 		add_action( 'woocommerce_init', function() {
-			echo "creating tables...";
-
 			WC_Install::create_tables();
 		} );
-
-		echo get_option( 'woocommerce_version' );
 
 		do_action( 'woocommerce_init' );
 
