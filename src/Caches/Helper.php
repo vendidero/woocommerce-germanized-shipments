@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments\Caches;
 
 use Automattic\WooCommerce\Caching\ObjectCache;
+use Automattic\WooCommerce\Utilities\OrderUtil;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -12,12 +13,52 @@ class Helper {
 
 	private static $caches = array();
 
+	public static function init() {
+		add_action(
+			'woocommerce_after_order_object_save',
+			function( $order_id ) {
+				self::flush_order_cache( $order_id );
+			}
+		);
+
+		add_action(
+			'woocommerce_before_delete_order',
+			function( $order_id ) {
+				self::flush_order_cache( $order_id );
+			}
+		);
+	}
+
+	public static function flush_order_cache( $order ) {
+		if ( is_numeric( $order ) ) {
+			$order = wc_get_order( $order );
+		}
+
+		if ( ! is_callable( array( $order, 'get_id' ) ) ) {
+			return false;
+		}
+
+		if ( $cache = self::get_cache_object( 'shipment-orders' ) ) {
+			return $cache->remove( $order->get_id() );
+		}
+
+		return false;
+	}
+
 	public static function is_enabled( $type ) {
 		if ( ! class_exists( '\Automattic\WooCommerce\Caching\ObjectCache' ) ) {
 			return false;
 		}
 
 		$is_enabled = ! in_array( $type, self::$disabled, true );
+
+		if ( 'shipment-orders' === $type ) {
+			$is_enabled = false;
+
+			if ( class_exists( 'Automattic\WooCommerce\Utilities\OrderUtil' ) && OrderUtil::orders_cache_usage_is_enabled() ) {
+				$is_enabled = true;
+			}
+		}
 
 		return apply_filters( "woocommerce_gzd_shipments_enable_{$type}_cache", $is_enabled, $type );
 	}
@@ -36,6 +77,7 @@ class Helper {
 			'packagings'         => '\Vendidero\Germanized\Shipments\Caches\PackagingCache',
 			'shipment-labels'    => '\Vendidero\Germanized\Shipments\Caches\ShipmentLabelCache',
 			'shipping-providers' => '\Vendidero\Germanized\Shipments\Caches\ShippingProviderCache',
+			'shipment-orders'    => '\Vendidero\Germanized\Shipments\Caches\ShipmentOrderCache',
 		);
 	}
 

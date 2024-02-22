@@ -383,6 +383,10 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 		if ( $cache = Helper::get_cache_object( 'shipments' ) ) {
 			$cache->remove( $shipment->get_id() );
 		}
+
+		if ( $cache = Helper::get_cache_object( 'shipment-orders' ) ) {
+			$cache->remove( $shipment->get_order_id() );
+		}
 	}
 
 	/*

@@ -2,8 +2,8 @@
 
 namespace Vendidero\Germanized\Shipments;
 
-use Automattic\WooCommerce\Caches\OrderCache;
 use Exception;
+use Vendidero\Germanized\Shipments\Caches\Helper;
 use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
 use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
 
@@ -580,6 +580,7 @@ class Package {
 		Api::init();
 		FormHandler::init();
 		ReportHelper::init();
+		Helper::init();
 
 		if ( self::is_frontend_request() ) {
 			include_once self::get_path() . '/includes/wc-gzd-shipment-template-hooks.php';

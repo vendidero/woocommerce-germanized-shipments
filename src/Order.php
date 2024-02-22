@@ -505,6 +505,15 @@ class Order {
 					'order'    => 'ASC',
 				)
 			);
+
+			/**
+			 * As by default WordPress cache engine only stores object clones
+			 * we need to update the cache after, e.g. loading shipments to make sure
+			 * those shipments are not reloaded on the next cache hit.
+			 */
+			if ( $cache = \Vendidero\Germanized\Shipments\Caches\Helper::get_cache_object( 'shipment-orders' ) ) {
+				$cache->set( $this, $this->get_order()->get_id() );
+			}
 		}
 
 		$shipments = (array) $this->shipments;
@@ -1263,7 +1272,13 @@ class Order {
 			$shipment->save();
 		}
 
-		$this->package_data = null;
+		$this->package_data        = null;
+		$this->shipments           = null;
+		$this->shipments_to_delete = null;
+
+		if ( $cache = \Vendidero\Germanized\Shipments\Caches\Helper::get_cache_object( 'shipment-orders' ) ) {
+			$cache->remove( $this->get_order()->get_id() );
+		}
 	}
 
 	/**
