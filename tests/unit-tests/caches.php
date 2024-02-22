@@ -19,6 +19,7 @@ class Caches extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTestCas
 
 	function test_shipment_order_cache() {
 		update_option( 'woocommerce_custom_orders_table_enabled', 'yes' );
+		WC_Install::create_tables();
 
 		$shipment = ShipmentHelper::create_simple_shipment();
 		$order = wc_get_order( $shipment->get_order_id() );
