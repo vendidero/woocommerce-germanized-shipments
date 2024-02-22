@@ -26,6 +26,8 @@ class Caches extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTestCas
 
 		$this->assertEquals( true, true );
 
+		var_dump( \Vendidero\Germanized\Shipments\Caches\Helper::is_enabled( 'shipment-orders' ) );
+
 		if ( $cache = \Vendidero\Germanized\Shipments\Caches\Helper::get_cache_object( 'shipment-orders' ) ) {
 			$this->assertEquals( null !== $cache->get( $order->get_id() ), true );
 
