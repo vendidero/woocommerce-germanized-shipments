@@ -478,6 +478,15 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipments (
   KEY shipment_packaging_id (shipment_packaging_id),
   KEY shipment_parent_id (shipment_parent_id)
 ) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipmentmeta (
+  meta_id bigint(20) unsigned NOT NULL auto_increment,
+  gzd_shipment_id bigint(20) unsigned NOT NULL,
+  meta_key varchar(255) default NULL,
+  meta_value longtext NULL,
+  PRIMARY KEY  (meta_id),
+  KEY gzd_shipment_id (gzd_shipment_id),
+  KEY meta_key (meta_key(32))
+) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_labels (
   label_id bigint(20) unsigned NOT NULL auto_increment,
   label_date_created datetime default NULL,
@@ -500,15 +509,6 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_labelmeta (
   meta_value longtext NULL,
   PRIMARY KEY  (meta_id),
   KEY gzd_shipment_label_id (gzd_shipment_label_id),
-  KEY meta_key (meta_key(32))
-) $collate;
-CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipmentmeta (
-  meta_id bigint(20) unsigned NOT NULL auto_increment,
-  gzd_shipment_id bigint(20) unsigned NOT NULL,
-  meta_key varchar(255) default NULL,
-  meta_value longtext NULL,
-  PRIMARY KEY  (meta_id),
-  KEY gzd_shipment_id (gzd_shipment_id),
   KEY meta_key (meta_key(32))
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_packaging (
@@ -535,6 +535,32 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_packagingmeta (
   meta_value longtext NULL,
   PRIMARY KEY  (meta_id),
   KEY gzd_packaging_id (gzd_packaging_id),
+  KEY meta_key (meta_key(32))
+) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_pick_pack_orders (
+  pick_pack_order_id bigint(20) unsigned NOT NULL auto_increment,
+  pick_pack_order_date_created datetime default NULL,
+  pick_pack_order_date_created_gmt datetime default NULL,
+  pick_pack_order_status varchar(20) NOT NULL default 'gzd-created',
+  pick_pack_order_current_order_id bigint(20) unsigned NOT NULL DEFAULT 0,
+  pick_pack_order_total_processed bigint(20) unsigned NOT NULL DEFAULT 0,
+  pick_pack_order_current_task varchar(200) NOT NULL DEFAULT '',
+  pick_pack_order_type varchar(200) NOT NULL DEFAULT '',
+  pick_pack_order_percentage tinyint(3) unsigned NOT NULL DEFAULT 0,
+  pick_pack_order_limit smallint(4) unsigned NOT NULL DEFAULT 0,
+  pick_pack_order_total bigint(20) unsigned NOT NULL DEFAULT 0,
+  pick_pack_order_query longtext NOT NULL DEFAULT '',
+  pick_pack_order_tasks longtext NOT NULL DEFAULT '',
+  PRIMARY KEY  (pick_pack_order_id),
+  KEY pick_pack_order_current_order_id (pick_pack_order_current_order_id)
+) $collate;
+CREATE TABLE {$wpdb->prefix}woocommerce_gzd_pick_pack_ordermeta (
+  meta_id bigint(20) unsigned NOT NULL auto_increment,
+  gzd_pick_pack_order_id bigint(20) unsigned NOT NULL,
+  meta_key varchar(255) default NULL,
+  meta_value longtext NULL,
+  PRIMARY KEY  (meta_id),
+  KEY gzd_pick_pack_order_id (gzd_pick_pack_order_id),
   KEY meta_key (meta_key(32))
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipping_provider (

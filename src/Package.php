@@ -62,6 +62,14 @@ class Package {
 
 		add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
 		add_filter( 'woocommerce_shipping_method_add_rate_args', array( __CLASS__, 'manipulate_shipping_rates' ), 1000, 2 );
+
+		/*
+		add_action( 'admin_init', function() {
+			$pick = new PickPack\ManualOrder();
+			$pick->run();
+			exit();
+		} );
+		*/
 	}
 
 	public static function manipulate_shipping_rates( $args, $method ) {
@@ -629,6 +637,8 @@ class Package {
 			'gzd_shipping_providermeta' => 'woocommerce_gzd_shipping_providermeta',
 			'gzd_packaging'             => 'woocommerce_gzd_packaging',
 			'gzd_packagingmeta'         => 'woocommerce_gzd_packagingmeta',
+			'gzd_pick_pack_orders'      => 'woocommerce_gzd_pick_pack_orders',
+			'gzd_pick_pack_ordermeta'   => 'woocommerce_gzd_pick_pack_ordermeta',
 		);
 
 		foreach ( $tables as $name => $table ) {
@@ -643,6 +653,7 @@ class Package {
 		$stores['packaging']         = 'Vendidero\Germanized\Shipments\DataStores\Packaging';
 		$stores['shipment-item']     = 'Vendidero\Germanized\Shipments\DataStores\ShipmentItem';
 		$stores['shipping-provider'] = 'Vendidero\Germanized\Shipments\DataStores\ShippingProvider';
+		$stores['pick-pack-order']   = 'Vendidero\Germanized\Shipments\DataStores\PickPackOrder';
 
 		do_action( 'woocommerce_gzd_shipments_registered_data_stores' );
 
