@@ -480,7 +480,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 				}
 			}
 
-			wp_cache_set( 'all-providers', $providers, 'shipping-providers' );
+			wp_cache_set( 'all-providers', $shipping_providers, 'shipping-providers' );
 		}
 
 		return $shipping_providers;
