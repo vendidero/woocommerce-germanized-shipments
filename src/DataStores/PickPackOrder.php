@@ -33,13 +33,18 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 		'date_created_gmt',
 		'status',
 		'current_order_id',
+		'current_error',
+		'pause_on_error',
 		'total_processed',
-		'current_task',
+		'current_task_name',
 		'total',
 		'limit',
+		'offset',
 		'percentage',
 		'query',
 		'tasks',
+		'tasks_processed',
+		'orders_data',
 	);
 
 	protected $internal_meta_keys = array();
@@ -61,18 +66,23 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 		$pick_pack_order->set_date_created( time() );
 
 		$data = array(
-			'pick_pack_order_type'             => $pick_pack_order->get_type(),
-			'pick_pack_order_status'           => $this->get_status( $pick_pack_order ),
-			'pick_pack_order_current_order_id' => $pick_pack_order->get_current_order_id(),
-			'pick_pack_order_total_processed'  => $pick_pack_order->get_total_processed(),
-			'pick_pack_order_current_task'     => $pick_pack_order->get_current_task(),
-			'pick_pack_order_total'            => $pick_pack_order->get_total(),
-			'pick_pack_order_limit'            => $pick_pack_order->get_limit(),
-			'pick_pack_order_percentage'       => $pick_pack_order->get_percentage(),
-			'pick_pack_order_query'            => maybe_serialize( $pick_pack_order->get_query() ),
-			'pick_pack_order_tasks'            => maybe_serialize( $pick_pack_order->get_tasks() ),
-			'pick_pack_order_date_created'     => $pick_pack_order->get_date_created( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->get_date_created( 'edit' )->getOffsetTimestamp() ) : null,
-			'pick_pack_order_date_created_gmt' => $pick_pack_order->get_date_created( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->get_date_created( 'edit' )->getTimestamp() ) : null,
+			'pick_pack_order_type'              => $pick_pack_order->get_type(),
+			'pick_pack_order_status'            => $this->get_status( $pick_pack_order ),
+			'pick_pack_order_current_order_id'  => $pick_pack_order->get_current_order_id(),
+			'pick_pack_order_total_processed'   => $pick_pack_order->get_total_processed(),
+			'pick_pack_order_current_task_name' => $pick_pack_order->get_current_task_name(),
+			'pick_pack_order_total'             => $pick_pack_order->get_total(),
+			'pick_pack_order_limit'             => $pick_pack_order->get_limit(),
+			'pick_pack_order_offset'            => $pick_pack_order->get_offset(),
+			'pick_pack_order_current_error'     => $pick_pack_order->get_current_error(),
+			'pick_pack_order_pause_on_error'    => $pick_pack_order->get_pause_on_error() ? 1 : 0,
+			'pick_pack_order_percentage'        => $pick_pack_order->get_percentage(),
+			'pick_pack_order_query'             => maybe_serialize( $pick_pack_order->get_query() ),
+			'pick_pack_order_tasks'             => maybe_serialize( $pick_pack_order->get_tasks() ),
+			'pick_pack_order_tasks_processed'   => maybe_serialize( $pick_pack_order->get_tasks_processed() ),
+			'pick_pack_order_orders_data'       => maybe_serialize( $pick_pack_order->get_orders_data() ),
+			'pick_pack_order_date_created'      => $pick_pack_order->get_date_created( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->get_date_created( 'edit' )->getOffsetTimestamp() ) : null,
+			'pick_pack_order_date_created_gmt'  => $pick_pack_order->get_date_created( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->get_date_created( 'edit' )->getTimestamp() ) : null,
 		);
 
 		$wpdb->insert(
@@ -151,10 +161,21 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 				case 'status':
 					$pick_pack_data[ 'pick_pack_order_' . $prop ] = $this->get_status( $pick_pack_order );
 					break;
+				case 'pause_on_error':
+					$pick_pack_data[ 'pick_pack_order_' . $prop ] = $pick_pack_order->get_pause_on_error( 'edit' ) ? 1 : 0;
+					break;
 				case 'date_created':
 					if ( is_callable( array( $pick_pack_order, 'get_' . $prop ) ) ) {
 						$pick_pack_data[ 'pick_pack_order_' . $prop ]          = $pick_pack_order->{'get_' . $prop}( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->{'get_' . $prop}( 'edit' )->getOffsetTimestamp() ) : null;
-						$pick_pack_data[ 'pick_pack_order_' . $prop . '_gmt' ] = $pick_pack_data->{'get_' . $prop}( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->{'get_' . $prop}( 'edit' )->getTimestamp() ) : null;
+						$pick_pack_data[ 'pick_pack_order_' . $prop . '_gmt' ] = $pick_pack_order->{'get_' . $prop}( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->{'get_' . $prop}( 'edit' )->getTimestamp() ) : null;
+					}
+					break;
+				case 'query':
+				case 'tasks':
+				case 'tasks_processed':
+				case 'orders_data':
+					if ( is_callable( array( $pick_pack_order, 'get_' . $prop ) ) ) {
+						$pick_pack_data[ 'pick_pack_order_' . $prop ] = maybe_serialize( $pick_pack_order->{'get_' . $prop}( 'edit' ) );
 					}
 					break;
 				default:
@@ -233,7 +254,7 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 
 		$data = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->gzd_pick_pack_order} WHERE pick_pack_order_id = %d LIMIT 1",
+				"SELECT * FROM {$wpdb->gzd_pick_pack_orders} WHERE pick_pack_order_id = %d LIMIT 1",
 				$pick_pack_order->get_id()
 			)
 		);
@@ -241,17 +262,22 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 		if ( $data ) {
 			$pick_pack_order->set_props(
 				array(
-					'type'             => $data->pick_pack_order_type,
-					'date_created'     => Package::is_valid_mysql_date( $data->pick_pack_order_date_created_gmt ) ? wc_string_to_timestamp( $data->pick_pack_order_date_created_gmt ) : null,
-					'status'           => $data->pick_pack_order_status,
-					'current_order_id' => $data->pick_pack_order_current_order_id,
-					'total_processed'  => $data->pick_pack_order_total_processed,
-					'current_task'     => $data->pick_pack_order_current_task,
-					'total'            => $data->pick_pack_order_total,
-					'limit'            => $data->pick_pack_order_limit,
-					'percentage'       => $data->pick_pack_order_percentage,
-					'query'            => maybe_unserialize( $data->pick_pack_order_query ),
-					'tasks'            => maybe_unserialize( $data->pick_pack_order_tasks ),
+					'type'              => $data->pick_pack_order_type,
+					'date_created'      => Package::is_valid_mysql_date( $data->pick_pack_order_date_created_gmt ) ? wc_string_to_timestamp( $data->pick_pack_order_date_created_gmt ) : null,
+					'status'            => $data->pick_pack_order_status,
+					'current_order_id'  => $data->pick_pack_order_current_order_id,
+					'total_processed'   => $data->pick_pack_order_total_processed,
+					'current_task_name' => $data->pick_pack_order_current_task_name,
+					'current_error'     => $data->pick_pack_order_current_error,
+					'pause_on_error'    => $data->pick_pack_order_pause_on_error,
+					'total'             => $data->pick_pack_order_total,
+					'limit'             => $data->pick_pack_order_limit,
+					'offset'            => $data->pick_pack_order_offset,
+					'percentage'        => $data->pick_pack_order_percentage,
+					'query'             => maybe_unserialize( $data->pick_pack_order_query ),
+					'tasks'             => maybe_unserialize( $data->pick_pack_order_tasks ),
+					'tasks_processed'   => maybe_unserialize( $data->pick_pack_order_tasks_processed ),
+					'orders_data'       => maybe_unserialize( $data->pick_pack_order_orders_data ),
 				)
 			);
 
@@ -289,25 +315,6 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 	| Additional Methods
 	|--------------------------------------------------------------------------
 	*/
-
-	/**
-	 * Get the packaging type based on ID.
-	 *
-	 * @param int $packaging_id Packaging id.
-	 * @return string
-	 */
-	public function get_packaging_type( $packing_id ) {
-		global $wpdb;
-
-		$type = $wpdb->get_col(
-			$wpdb->prepare(
-				"SELECT packaging_type FROM {$wpdb->gzd_packaging} WHERE packaging_id = %d LIMIT 1",
-				$packing_id
-			)
-		);
-
-		return ! empty( $type ) ? $type[0] : false;
-	}
 
 	/**
 	 * Read extra data associated with the Pick & Pack order.

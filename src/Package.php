@@ -63,13 +63,24 @@ class Package {
 		add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
 		add_filter( 'woocommerce_shipping_method_add_rate_args', array( __CLASS__, 'manipulate_shipping_rates' ), 1000, 2 );
 
-		/*
-		add_action( 'admin_init', function() {
-			$pick = new PickPack\ManualOrder();
-			$pick->run();
-			exit();
-		} );
-		*/
+		add_action(
+			'admin_init1',
+			function() {
+				$pick = new PickPack\ManualOrder();
+				$pick->set_limit( 20 );
+				$pick->set_tasks( array( 'create_shipments', 'create_labels' ) );
+				$pick->set_query(
+					array(
+						'date_created' => strtotime( '2024-01-01' ) . '...' . strtotime( '2024-02-27' ),
+					)
+				);
+
+				$pick->run();
+				$pick->save();
+
+				exit();
+			}
+		);
 	}
 
 	public static function manipulate_shipping_rates( $args, $method ) {
