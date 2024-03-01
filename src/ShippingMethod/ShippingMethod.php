@@ -477,17 +477,40 @@ class ShippingMethod extends \WC_Shipping_Method {
 		 * and do only allow applicable packaging options to be chosen for actual packing process.
 		 */
 		if ( ! empty( $package_data ) && count( $global_rules ) > 0 ) {
-			$has_fallback_global_rules = array_key_exists( 'all', $global_rules );
+			$has_fallback_global_rules    = array_key_exists( 'all', $global_rules );
+			$is_global_fallback_available = true;
+
+			if ( $has_fallback_global_rules ) {
+				$fallback_rules = $this->get_fallback_shipping_rules();
+
+				if ( count( $fallback_rules ) === count( $global_rules['all'] ) ) {
+					$is_global_fallback_available = false;
+
+					foreach ( array_reverse( $global_rules['all'] ) as $rule_id ) {
+						if ( $rule = $this->get_shipping_rule_by_id( $rule_id, 'all' ) ) {
+							$rule         = $this->parse_rule( $rule );
+							$rule_applies = $this->rule_applies( $rule, $package_data, true );
+
+							if ( $rule_applies ) {
+								$is_global_fallback_available = true;
+								break;
+							}
+						}
+					}
+				}
+			}
 
 			foreach ( $packaging_ids as $packaging_id ) {
-				$has_global_rule     = array_key_exists( $packaging_id, $global_rules );
-				$has_rules           = count( $this->get_shipping_rules_by_packaging( $packaging_id ) ) > 0;
-				$packaging_available = true;
+				$global_packaging_rules      = array_key_exists( $packaging_id, $global_rules ) ? $global_rules[ $packaging_id ] : array();
+				$global_packaging_rule_count = count( $global_packaging_rules );
+				$packaging_rule_count        = count( $this->get_shipping_rules_by_packaging( $packaging_id ) );
+				$has_rules                   = $packaging_rule_count > 0;
+				$packaging_available         = true;
 
-				if ( $has_global_rule ) {
+				if ( $global_packaging_rule_count > 0 && $packaging_rule_count === $global_packaging_rule_count ) {
 					$packaging_available = false;
 
-					foreach ( array_reverse( $global_rules[ $packaging_id ] ) as $rule_id ) {
+					foreach ( array_reverse( $global_packaging_rules ) as $rule_id ) {
 						if ( $rule = $this->get_shipping_rule_by_id( $rule_id, $packaging_id ) ) {
 							$rule         = $this->parse_rule( $rule );
 							$rule_applies = $this->rule_applies( $rule, $package_data, true );
@@ -499,19 +522,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 						}
 					}
 				} elseif ( ! $has_rules && $has_fallback_global_rules ) {
-					$packaging_available = false;
-
-					foreach ( array_reverse( $global_rules['all'] ) as $rule_id ) {
-						if ( $rule = $this->get_shipping_rule_by_id( $rule_id, 'all' ) ) {
-							$rule         = $this->parse_rule( $rule );
-							$rule_applies = $this->rule_applies( $rule, $package_data, true );
-
-							if ( $rule_applies ) {
-								$packaging_available = true;
-								break;
-							}
-						}
-					}
+					$packaging_available = $is_global_fallback_available;
 				}
 
 				if ( ! $packaging_available ) {
