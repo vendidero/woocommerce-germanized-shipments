@@ -48,6 +48,7 @@ class Ajax {
 			'remove_shipment_label',
 			'send_return_shipment_notification_email',
 			'confirm_return_request',
+			'create_pick_pack_order',
 		);
 
 		foreach ( $ajax_events as $ajax_event ) {
@@ -62,6 +63,60 @@ class Ajax {
 		}
 
 		$GLOBALS['wpdb']->hide_errors();
+	}
+
+	public static function create_pick_pack_order() {
+		check_ajax_referer( 'create-pick-pack-order', 'security' );
+
+		if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['order_type'] ) ) {
+			wp_die( -1 );
+		}
+
+		$order_type = wc_clean( wp_unslash( $_POST['order_type'] ) );
+		$date_from  = isset( $_POST['date_from'] ) ? wc_clean( wp_unslash( $_POST['date_from'] ) ) : date_i18n( 'Y-m-d' );
+		$date_end   = isset( $_POST['date_end'] ) ? wc_clean( wp_unslash( $_POST['date_end'] ) ) : date_i18n( 'Y-m-d' );
+		$tasks      = isset( $_POST[ "order_{$order_type}_tasks" ] ) ? (array) wc_clean( wp_unslash( $_POST[ "order_{$order_type}_tasks" ] ) ) : \Vendidero\Germanized\Shipments\PickPack\Helper::get_available_tasks( $order_type );
+
+		foreach ( $tasks as $k => $task ) {
+			if ( ! \Vendidero\Germanized\Shipments\PickPack\Helper::get_task( $task, $order_type ) ) {
+				unset( $tasks[ $k ] );
+			}
+		}
+
+		$tasks = array_values( $tasks );
+
+		$start = wc_string_to_datetime( $date_from );
+		$end   = wc_string_to_datetime( $date_end . ' ' . date_i18n( 'H:i:s' ) );
+
+		$start->setTime( 0, 0, 0 );
+
+		$order = \Vendidero\Germanized\Shipments\PickPack\Helper::create_pick_pack_order(
+			array(
+				'type'  => $order_type,
+				'tasks' => $tasks,
+				'query' => array(
+					'date_created' => $start->getTimestamp() . '...' . $end->getTimestamp(),
+				),
+			)
+		);
+
+		if ( $order ) {
+			wp_send_json(
+				array(
+					'success'  => true,
+					'redirect' => admin_url( 'admin.php?page=shipments-pick-pack&pick-pack-order=' . $order->get_id() ),
+				)
+			);
+		} else {
+			wp_send_json(
+				array(
+					'success'  => false,
+					'messages' => array(
+						_x( 'There was an error while creating the pick and pack order.', 'shipments', 'woocommerce-germanized-shipments' ),
+					),
+				)
+			);
+		}
 	}
 
 	public static function send_return_shipment_notification_email() {

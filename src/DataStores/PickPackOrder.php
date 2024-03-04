@@ -250,16 +250,7 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 	 * @throws Exception Throw exception if invalid pick and pack order.
 	 */
 	public function read( &$pick_pack_order ) {
-		global $wpdb;
-
-		$data = $wpdb->get_row(
-			$wpdb->prepare(
-				"SELECT * FROM {$wpdb->gzd_pick_pack_orders} WHERE pick_pack_order_id = %d LIMIT 1",
-				$pick_pack_order->get_id()
-			)
-		);
-
-		if ( $data ) {
+		if ( $data = $this->get_data( $pick_pack_order->get_id() ) ) {
 			$pick_pack_order->set_props(
 				array(
 					'type'              => $data->pick_pack_order_type,
@@ -308,6 +299,7 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 	 */
 	protected function clear_caches( &$pick_pack_order ) {
 		wp_cache_delete( $pick_pack_order->get_id(), $this->meta_type . '_meta' );
+		wp_cache_delete( 'pick-pack-order-' . $pick_pack_order->get_id(), 'pick-pack-orders' );
 	}
 
 	/*
@@ -507,5 +499,40 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 
 	public function get_query_args( $query_vars ) {
 		return $this->get_wp_query_args( $query_vars );
+	}
+
+	protected function get_data( $pick_pack_order_id ) {
+		$data = wp_cache_get( 'pick-pack-order-' . $pick_pack_order_id, 'pick-pack-orders' );
+
+		if ( false === $data ) {
+			global $wpdb;
+
+			$data = $wpdb->get_row(
+				$wpdb->prepare(
+					"SELECT * FROM {$wpdb->gzd_pick_pack_orders} WHERE pick_pack_order_id = %d LIMIT 1",
+					absint( $pick_pack_order_id )
+				)
+			);
+
+			if ( ! empty( $data ) ) {
+				wp_cache_set( 'pick-pack-order-' . $pick_pack_order_id, $data, 'pick-pack-orders' );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Get the pick pack order type based on ID.
+	 *
+	 * @param int $pick_pack_order_id Pick pack order id.
+	 * @return string
+	 */
+	public function get_pick_pack_order_type( $pick_pack_order_id ) {
+		if ( $data = $this->get_data( $pick_pack_order_id ) ) {
+			return $data->pick_pack_order_type;
+		}
+
+		return 'manual';
 	}
 }

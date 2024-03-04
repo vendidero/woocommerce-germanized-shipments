@@ -1484,6 +1484,7 @@ class Admin {
 
 		// Register admin styles.
 		wp_register_style( 'woocommerce_gzd_shipments_admin', Package::get_assets_url( 'static/admin-styles.css' ), array( 'woocommerce_admin_styles' ), Package::get_version() );
+		wp_register_style( 'woocommerce_gzd_pick_pack_orders_styles', Package::get_assets_url( 'static/pick-pack-orders-styles.css' ), array( 'woocommerce_admin_styles' ), Package::get_version() );
 
 		// Admin styles for WC pages only.
 		if ( in_array( $screen_id, self::get_screen_ids(), true ) ) {
@@ -1497,6 +1498,11 @@ class Admin {
 		// Shipping zone methods
 		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] && ( isset( $_GET['zone_id'] ) || isset( $_GET['instance_id'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			wp_enqueue_style( 'woocommerce_gzd_shipments_admin' );
+		}
+
+		if ( 'woocommerce_page_shipments-pick-pack' === $screen_id ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			wp_enqueue_style( 'woocommerce_gzd_pick_pack_orders_styles' );
+			wp_enqueue_style( 'jquery-ui-style' );
 		}
 	}
 
@@ -1522,6 +1528,8 @@ class Admin {
 		wp_register_script( 'wc-gzd-admin-shipments-table', Package::get_assets_url( 'static/admin-shipments-table.js' ), array( 'woocommerce_admin', 'wc-gzd-admin-shipment-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_register_script( 'wc-gzd-admin-shipping-providers', Package::get_assets_url( 'static/admin-shipping-providers.js' ), array( 'jquery', 'jquery-ui-sortable' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 		wp_register_script( 'wc-gzd-admin-shipping-provider-method', Package::get_assets_url( 'static/admin-shipping-provider-method.js' ), array( 'wc-gzd-admin-shipment-settings' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+
+		wp_register_script( 'wc-gzd-admin-pick-pack-orders', Package::get_assets_url( 'static/admin-pick-pack-orders.js' ), array( 'jquery', 'jquery-blockui', 'jquery-ui-datepicker', 'wc-gzd-admin-shipment' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 
 		// Orders.
 		if ( self::is_order_meta_box_screen( $screen_id ) ) {
@@ -1588,6 +1596,19 @@ class Admin {
 					'bulk_actions'                       => $bulk_actions,
 					'create_shipment_label_load_nonce'   => wp_create_nonce( 'create-shipment-label-load' ),
 					'create_shipment_label_submit_nonce' => wp_create_nonce( 'create-shipment-label-submit' ),
+				)
+			);
+		}
+
+		if ( 'woocommerce_page_shipments-pick-pack' === $screen_id ) {
+			wp_enqueue_script( 'wc-gzd-admin-pick-pack-orders' );
+
+			wp_localize_script(
+				'wc-gzd-admin-pick-pack-orders',
+				'wc_gzd_admin_pick_pack_orders_params',
+				array(
+					'ajax_url'                     => admin_url( 'admin-ajax.php' ),
+					'create_pick_pack_order_nonce' => wp_create_nonce( 'create-pick-pack-order' ),
 				)
 			);
 		}
@@ -1738,6 +1759,7 @@ class Admin {
 			'woocommerce_page_wc-gzd-return-shipments',
 			'woocommerce_page_shipment-packaging',
 			'woocommerce_page_shipment-packaging-report',
+			'woocommerce_page_shipments-pick-pack',
 		);
 
 		return $screen_ids;

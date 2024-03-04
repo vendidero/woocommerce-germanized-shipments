@@ -599,6 +599,7 @@ class Package {
 		Api::init();
 		FormHandler::init();
 		ReportHelper::init();
+		\Vendidero\Germanized\Shipments\PickPack\Helper::init();
 		Helper::init();
 
 		if ( self::is_frontend_request() ) {
@@ -711,7 +712,7 @@ class Package {
 		$is_static  = strstr( $script_or_style, 'static/' );
 
 		if ( $is_debug && $is_static && ! $is_style ) {
-			$assets_url = self::get_url() . '/assets/js';
+			$assets_url = self::get_url() . 'assets/js';
 		}
 
 		return trailingslashit( $assets_url ) . $script_or_style;
