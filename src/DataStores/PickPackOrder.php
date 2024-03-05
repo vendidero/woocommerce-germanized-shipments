@@ -37,6 +37,7 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 		'pause_on_error',
 		'total_processed',
 		'current_task_name',
+		'current_task_group_name',
 		'total',
 		'limit',
 		'offset',
@@ -44,6 +45,7 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 		'query',
 		'tasks',
 		'tasks_processed',
+		'task_groups_processed',
 		'orders_data',
 	);
 
@@ -68,19 +70,21 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 		$data = array(
 			'pick_pack_order_type'              => $pick_pack_order->get_type(),
 			'pick_pack_order_status'            => $this->get_status( $pick_pack_order ),
-			'pick_pack_order_current_order_id'  => $pick_pack_order->get_current_order_id(),
-			'pick_pack_order_total_processed'   => $pick_pack_order->get_total_processed(),
-			'pick_pack_order_current_task_name' => $pick_pack_order->get_current_task_name(),
-			'pick_pack_order_total'             => $pick_pack_order->get_total(),
-			'pick_pack_order_limit'             => $pick_pack_order->get_limit(),
-			'pick_pack_order_offset'            => $pick_pack_order->get_offset(),
-			'pick_pack_order_current_error'     => $pick_pack_order->get_current_error(),
-			'pick_pack_order_pause_on_error'    => $pick_pack_order->get_pause_on_error() ? 1 : 0,
-			'pick_pack_order_percentage'        => $pick_pack_order->get_percentage(),
-			'pick_pack_order_query'             => maybe_serialize( $pick_pack_order->get_query() ),
-			'pick_pack_order_tasks'             => maybe_serialize( $pick_pack_order->get_tasks() ),
-			'pick_pack_order_tasks_processed'   => maybe_serialize( $pick_pack_order->get_tasks_processed() ),
-			'pick_pack_order_orders_data'       => maybe_serialize( $pick_pack_order->get_orders_data() ),
+			'pick_pack_order_current_order_id'  => $pick_pack_order->get_current_order_id( 'edit' ),
+			'pick_pack_order_total_processed'   => $pick_pack_order->get_total_processed( 'edit' ),
+			'pick_pack_order_current_task_name' => $pick_pack_order->get_current_task_name( 'edit' ),
+			'pick_pack_order_current_task_group_name' => $pick_pack_order->get_current_task_group_name( 'edit' ),
+			'pick_pack_order_total'             => $pick_pack_order->get_total( 'edit' ),
+			'pick_pack_order_limit'             => $pick_pack_order->get_limit( 'edit' ),
+			'pick_pack_order_offset'            => $pick_pack_order->get_offset( 'edit' ),
+			'pick_pack_order_current_error'     => $pick_pack_order->get_current_error( 'edit' ),
+			'pick_pack_order_pause_on_error'    => $pick_pack_order->get_pause_on_error( 'edit' ) ? 1 : 0,
+			'pick_pack_order_percentage'        => $pick_pack_order->get_percentage( 'edit' ),
+			'pick_pack_order_query'             => maybe_serialize( $pick_pack_order->get_query( 'edit' ) ),
+			'pick_pack_order_tasks'             => maybe_serialize( $pick_pack_order->get_tasks( 'edit' ) ),
+			'pick_pack_order_tasks_processed'   => maybe_serialize( $pick_pack_order->get_tasks_processed( 'edit' ) ),
+			'pick_pack_order_task_groups_processed'   => maybe_serialize( $pick_pack_order->get_task_groups_processed( 'edit' ) ),
+			'pick_pack_order_orders_data'       => maybe_serialize( $pick_pack_order->get_orders_data( 'edit' ) ),
 			'pick_pack_order_date_created'      => $pick_pack_order->get_date_created( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->get_date_created( 'edit' )->getOffsetTimestamp() ) : null,
 			'pick_pack_order_date_created_gmt'  => $pick_pack_order->get_date_created( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->get_date_created( 'edit' )->getTimestamp() ) : null,
 		);
@@ -173,6 +177,7 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 				case 'query':
 				case 'tasks':
 				case 'tasks_processed':
+				case 'task_groups_processed':
 				case 'orders_data':
 					if ( is_callable( array( $pick_pack_order, 'get_' . $prop ) ) ) {
 						$pick_pack_data[ 'pick_pack_order_' . $prop ] = maybe_serialize( $pick_pack_order->{'get_' . $prop}( 'edit' ) );
@@ -259,6 +264,7 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 					'current_order_id'  => $data->pick_pack_order_current_order_id,
 					'total_processed'   => $data->pick_pack_order_total_processed,
 					'current_task_name' => $data->pick_pack_order_current_task_name,
+					'current_task_group_name' => $data->pick_pack_order_current_task_group_name,
 					'current_error'     => $data->pick_pack_order_current_error,
 					'pause_on_error'    => $data->pick_pack_order_pause_on_error,
 					'total'             => $data->pick_pack_order_total,
@@ -268,6 +274,7 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 					'query'             => maybe_unserialize( $data->pick_pack_order_query ),
 					'tasks'             => maybe_unserialize( $data->pick_pack_order_tasks ),
 					'tasks_processed'   => maybe_unserialize( $data->pick_pack_order_tasks_processed ),
+					'task_groups_processed'   => maybe_unserialize( $data->pick_pack_order_task_groups_processed ),
 					'orders_data'       => maybe_unserialize( $data->pick_pack_order_orders_data ),
 				)
 			);

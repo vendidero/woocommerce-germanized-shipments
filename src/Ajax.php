@@ -101,10 +101,16 @@ class Ajax {
 		);
 
 		if ( $order ) {
+            $order->run();
+
 			wp_send_json(
 				array(
-					'success'  => true,
-					'redirect' => admin_url( 'admin.php?page=shipments-pick-pack&pick-pack-order=' . $order->get_id() ),
+                    'orders'           => $order->get_total(),
+                    'current_order_id' => $order->get_current_order_id(),
+                    'percentage'       => $order->get_percentage(),
+                    'status'           => $order->get_status(),
+					'success'          => true,
+					'redirect'         => admin_url( 'admin.php?page=shipments-pick-pack&pick-pack-order=' . $order->get_id() ),
 				)
 			);
 		} else {

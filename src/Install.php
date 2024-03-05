@@ -545,6 +545,7 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_pick_pack_orders (
   pick_pack_order_current_order_id bigint(20) unsigned NOT NULL DEFAULT 0,
   pick_pack_order_total_processed bigint(20) unsigned NOT NULL DEFAULT 0,
   pick_pack_order_current_task_name varchar(200) NOT NULL DEFAULT '',
+  pick_pack_order_current_task_group_name varchar(200) NOT NULL DEFAULT '',
   pick_pack_order_pause_on_error tinyint(1) NOT NULL default 1,
   pick_pack_order_current_error longtext NOT NULL DEFAULT '',
   pick_pack_order_type varchar(200) NOT NULL DEFAULT '',
@@ -555,6 +556,7 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_pick_pack_orders (
   pick_pack_order_query longtext NOT NULL DEFAULT '',
   pick_pack_order_tasks longtext NOT NULL DEFAULT '',
   pick_pack_order_tasks_processed varchar(2000) NOT NULL DEFAULT '',
+  pick_pack_order_task_groups_processed varchar(1000) NOT NULL DEFAULT '',
   pick_pack_order_orders_data longtext NOT NULL DEFAULT '',
   PRIMARY KEY  (pick_pack_order_id),
   KEY pick_pack_order_current_order_id (pick_pack_order_current_order_id)

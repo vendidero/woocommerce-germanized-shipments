@@ -10,7 +10,7 @@ use Exception;
 
 defined( 'ABSPATH' ) || exit;
 
-abstract class Order extends WC_Data {
+class Order extends WC_Data {
 
 	/**
 	 * This is the name of this object type.
@@ -46,13 +46,11 @@ abstract class Order extends WC_Data {
 
 	protected $orders = array();
 
-	protected $orders_offset_map = array();
-
 	protected $tasks = null;
 
 	protected $task_name_map = null;
 
-	protected $current_task = null;
+	protected $task_groups = array();
 
 	protected $current_orders_processed = 0;
 
@@ -73,6 +71,7 @@ abstract class Order extends WC_Data {
 		'pause_on_error'    => true,
 		'total_processed'   => 0,
 		'current_task_name' => '',
+		'current_task_group_name' => '',
 		'total'             => 0,
 		'limit'             => 1,
 		'offset'            => 0,
@@ -80,6 +79,7 @@ abstract class Order extends WC_Data {
 		'query'             => array(),
 		'tasks'             => array(),
 		'tasks_processed'   => array(),
+		'task_groups_processed' => array(),
 		'orders_data'       => array(),
 	);
 
@@ -107,9 +107,24 @@ abstract class Order extends WC_Data {
 		} else {
 			$this->set_object_read( true );
 		}
-	}
 
-	abstract public function get_type();
+		/**
+		 * Make sure that the current task group is always set.
+		 */
+		if ( empty( $this->get_current_task_name() ) && empty( $this->get_current_task_group_name() ) ) {
+			$tasks            = $this->get_tasks();
+			$groups_processed = $this->get_task_groups_processed();
+
+			foreach( array_keys( Helper::get_available_task_groups() ) as $group_name ) {
+				foreach( $tasks as $task_name => $task ) {
+					if ( $task['group'] === $group_name && ! in_array( $group_name, $groups_processed, true ) ) {
+						$this->set_current_task_group_name( $group_name );
+						break;
+					}
+				}
+			}
+		}
+	}
 
 	/**
 	 * Prefix for action and filter hooks on data.
@@ -171,8 +186,24 @@ abstract class Order extends WC_Data {
 		return $this->get_prop( 'current_task_name', $context );
 	}
 
+	public function get_current_task_group_name( $context = 'view' ) {
+		return $this->get_prop( 'current_task_group_name', $context );
+	}
+
 	public function get_current_order_id( $context = 'view' ) {
 		return $this->get_prop( 'current_order_id', $context );
+	}
+
+	public function get_current_order_number( $context = 'view' ) {
+		$order_number = $this->get_current_order_id( $context );
+
+		if ( $order_number ) {
+			if ( $order = $this->get_order( $order_number ) ) {
+				$order_number = $order->get_order()->get_order_number();
+			}
+		}
+
+		return $order_number;
 	}
 
 	public function get_total_processed( $context = 'view' ) {
@@ -180,11 +211,21 @@ abstract class Order extends WC_Data {
 	}
 
 	public function get_tasks( $context = 'view' ) {
-		return (array) $this->get_prop( 'tasks', $context );
+		$tasks = (array) $this->get_prop( 'tasks', $context );
+
+		return $tasks;
+	}
+
+	public function get_task_groups() {
+		return $this->task_groups;
 	}
 
 	public function get_tasks_processed( $context = 'view' ) {
 		return (array) $this->get_prop( 'tasks_processed', $context );
+	}
+
+	public function get_task_groups_processed( $context = 'view' ) {
+		return (array) $this->get_prop( 'task_groups_processed', $context );
 	}
 
 	public function get_orders_data( $context = 'view' ) {
@@ -201,42 +242,16 @@ abstract class Order extends WC_Data {
 
 	protected function get_current_tasks() {
 		if ( is_null( $this->tasks ) ) {
-			$this->tasks                 = array();
-			$this->current_task_priority = 0;
-			$this->task_name_map         = array();
+			$current_group_name  = $this->get_current_task_group_name();
+			$this->tasks         = array();
+			$this->task_name_map = array();
 
-			$original_tasks  = $this->get_tasks();
-			$tasks           = $original_tasks;
+			$tasks           = $this->get_tasks();
 			$priority_suffix = 0;
 			$task_index      = 0;
-			$available_tasks = array();
 
-			/**
-			 * Force creating shipments first
-			 */
-			if ( ! in_array( 'create_shipments', $tasks, true ) ) {
-				$tasks = array_merge( array( 'create_shipments' ), $tasks );
-			}
-
-			foreach ( $tasks as $task_name ) {
-				if ( $task = Helper::get_task( $task_name, $this->get_type() ) ) {
-					$task = wp_parse_args(
-						$task,
-						array(
-							'background_process' => false,
-						)
-					);
-
-					if ( ! empty( $task['depends_on'] ) ) {
-						$dependent = array_key_exists( $task['depends_on'], $available_tasks ) ? $available_tasks[ $task['depends_on'] ] : array();
-
-						if ( ! $dependent ) {
-							continue;
-						} else {
-							$task['depends_on'] = $dependent;
-						}
-					}
-
+			foreach( $tasks as $task_name => $task ) {
+				if ( $task['group'] === $current_group_name ) {
 					if ( isset( $this->tasks[ $task['priority'] ] ) ) {
 						$priority_suffix++;
 					}
@@ -244,10 +259,6 @@ abstract class Order extends WC_Data {
 					$task_priority    = $task['priority'] + $priority_suffix;
 					$task['priority'] = $task_priority;
 					$task['index']    = $task_index++;
-
-					if ( ! in_array( $task_name, $original_tasks, true ) ) {
-						$task['background_process'] = true;
-					}
 
 					$this->tasks[ $task_priority ]     = $task;
 					$this->task_name_map[ $task_name ] = $task_priority;
@@ -321,9 +332,13 @@ abstract class Order extends WC_Data {
 	}
 
 	public function set_current_task_name( $current_task ) {
-		$this->current_task = null;
-
 		$this->set_prop( 'current_task_name', $current_task );
+	}
+
+	public function set_current_task_group_name( $run_group ) {
+		$this->tasks = null;
+
+		$this->set_prop( 'current_task_group_name', $run_group );
 	}
 
 	public function set_pause_on_error( $pause_on_error ) {
@@ -363,12 +378,32 @@ abstract class Order extends WC_Data {
 	}
 
 	public function set_tasks( $tasks ) {
-		$this->tasks = null;
-		$this->set_prop( 'tasks', (array) $tasks );
+		$this->tasks        = null;
+		$this->task_groups  = array();
+
+		foreach( (array) $tasks as $task_name => $task ) {
+			if ( ! $task_default_data = Helper::get_task( $task_name ) ) {
+				continue;
+			}
+
+			$task_default_data['background'] = false;
+
+			$tasks[ $task_name ] = wp_parse_args( $task, $task_default_data );
+
+			if ( ! in_array( $task['group'], $this->task_groups, true ) ) {
+				$this->task_groups[] = $task['group'];
+			}
+		}
+
+		$this->set_prop( 'tasks', $tasks );
 	}
 
 	public function set_tasks_processed( $tasks ) {
 		$this->set_prop( 'tasks_processed', array_unique( (array) $tasks ) );
+	}
+
+	public function set_task_groups_processed( $tasks ) {
+		$this->set_prop( 'task_groups_processed', array_unique( (array) $tasks ) );
 	}
 
 	protected function get_order_data( $order_id ) {
@@ -539,29 +574,35 @@ abstract class Order extends WC_Data {
 			return;
 		}
 
-		$this->query();
+		$group = $this->get_current_task_group();
 
-		do {
-			if ( $order = $this->get_current_order() ) {
-				$this->process( $order );
+		if ( true === $group['is_loop'] ) {
+			$this->query();
 
-				if ( $this->is_paused() ) {
-					break;
+			do {
+				if ( $order = $this->get_current_order() ) {
+					$this->process_order( $order );
+
+					if ( $this->is_paused() ) {
+						break;
+					}
 				}
+
+				self::log( sprintf( 'Processed %s of %s found orders', $this->get_total_processed(), $this->get_total() ) );
+
+				$this->set_percentage( floor( ( $this->get_offset() / $this->get_total() ) * 100 ) );
+				$this->save();
+			} while ( $this->current_orders_processed < $this->get_limit() && $this->next_order() );
+
+			if ( $this->is_paused() ) {
+				return;
 			}
+		} else {
+			$this->start_tasks();
 
-			self::log( sprintf( 'Processed %s of %s found orders', $this->get_total_processed(), $this->get_total() ) );
-
-			$this->set_percentage( floor( ( $this->get_offset() / $this->get_total() ) * 100 ) );
-			$this->save();
-		} while ( $this->current_orders_processed < $this->get_limit() && $this->next_order() );
-
-		if ( $this->is_paused() ) {
-			return;
-		}
-
-		if ( ! $this->get_next_order() ) {
-			$this->complete();
+			if ( $this->is_paused() ) {
+				return;
+			}
 		}
 	}
 
@@ -601,6 +642,67 @@ abstract class Order extends WC_Data {
 		return $task;
 	}
 
+	public function get_next_task_group() {
+		$current       = $this->get_current_task_group();
+		$groups        = $this->get_task_groups();
+		$current_index = array_search( $current, $groups, true );
+
+		if ( false !== $current_index ) {
+			if ( count( $groups ) > $current_index + 1 ) {
+				$next_group = $groups[ $current_index + 1 ];
+
+				return $next_group;
+			}
+		}
+
+		return false;
+	}
+
+	public function next_task_group() {
+		if ( $group = $this->get_next_task_group() ) {
+			$this->set_current_task_group_name( $group );
+			$this->set_current_task_name( '' );
+			$this->set_current_order_id( 0 );
+			$this->save();
+
+			return $group;
+		}
+
+		return false;
+	}
+
+	public function prev_task_group() {
+		if ( $group = $this->get_prev_task_group() ) {
+			$current_group = $this->get_current_task_group_name();
+
+			$this->set_current_task_group_name( $group );
+			$this->set_current_task_name( '' );
+			$this->set_current_order_id( 0 );
+			$this->set_task_groups_processed( array_diff( $this->get_task_groups_processed(), array( $current_group ) ) );
+			$this->save();
+
+			return $group;
+		}
+
+		return false;
+	}
+
+	public function get_prev_task_group() {
+		$current       = $this->get_current_task_group();
+		$groups        = $this->get_task_groups();
+		$current_index = array_search( $current, $groups, true );
+
+		if ( false !== $current_index ) {
+			if ( $current_index - 1 >= 0 ) {
+				$prev_group = $groups[ $current_index - 1 ];
+
+				return $prev_group;
+			}
+		}
+
+		return false;
+	}
+
 	public function get_next_task() {
 		$tasks   = array_values( $this->get_current_tasks() );
 		$current = $this->get_current_task();
@@ -626,9 +728,6 @@ abstract class Order extends WC_Data {
 			return $task;
 		}
 
-		$this->set_current_task_name( '' );
-		$this->save();
-
 		return false;
 	}
 
@@ -651,14 +750,14 @@ abstract class Order extends WC_Data {
 
 	public function prev_task() {
 		if ( $task = $this->get_prev_task() ) {
+			$current_task = $this->get_current_task_name();
+
+			$this->set_tasks_processed( array_diff( $this->get_tasks_processed(), array( $current_task ) ) );
 			$this->set_current_task_name( $task['name'] );
 			$this->save();
 
 			return $task;
 		}
-
-		$this->set_current_task_name( '' );
-		$this->save();
 
 		return false;
 	}
@@ -679,36 +778,27 @@ abstract class Order extends WC_Data {
 	}
 
 	/**
+	 * @return array|null
+	 */
+	protected function get_current_task_group() {
+		$group_name = $this->get_current_task_group_name();
+
+		if ( $group = Helper::get_task_group( $group_name ) ) {
+			return $group;
+		}
+
+		return null;
+	}
+
+	/**
 	 * @param \Vendidero\Germanized\Shipments\Order $order
 	 *
 	 * @return boolean
 	 */
-	protected function process( $order ) {
-		if ( $this->order_has_been_processed( $order ) ) {
-			return false;
-		}
-
-		$this->set_current_error( '' );
-
+	protected function process_order( $order ) {
 		self::log( sprintf( 'Begin processing order #%s', $order->get_order_number() ) );
 
-		do {
-			if ( $current = $this->get_current_task() ) {
-				$result = $this->run_task( $order, $current );
-
-				if ( true === $result ) {
-					$processed   = $this->get_tasks_processed();
-					$processed[] = $current['name'];
-
-					$this->set_tasks_processed( $processed );
-					$this->save();
-				}
-			}
-
-			if ( $this->is_paused() ) {
-				break;
-			}
-		} while ( $this->next_task() );
+		$this->start_tasks();
 
 		if ( ! $this->is_paused() ) {
 			self::log( sprintf( 'End processing order #%s', $order->get_order_number() ) );
@@ -728,6 +818,75 @@ abstract class Order extends WC_Data {
 		return false;
 	}
 
+	protected function start_tasks() {
+		do {
+			if ( $current = $this->get_current_task() ) {
+				if ( $current['background'] ) {
+					$this->process_task( $current );
+				} else {
+					$this->pause();
+					$this->render_task( $current );
+				}
+			}
+
+			if ( $this->is_paused() ) {
+				break;
+			}
+		} while ( $this->next_task() );
+	}
+
+	protected function process_task( $task, $args = array() ) {
+		$this->set_current_error( '' );
+
+		$task_name = $task['name'];
+		$caller    = "process_{$task_name}";
+
+		self::log( sprintf( 'Starting task: %s', $task['title'] ) );
+
+		if ( has_action( "{$this->get_general_hook_prefix()}_process_{$task_name}" ) ) {
+			do_action( "{$this->get_general_hook_prefix()}_process_{$task_name}", $this, $args );
+		} elseif ( is_callable( array( $this, $caller ) ) ) {
+			$this->$caller( $args );
+		}
+
+		if ( $this->is_paused() ) {
+			return false;
+		} elseif ( $this->has_error() ) {
+			$this->pause();
+			return false;
+		} else {
+			$tasks_processed = $this->get_tasks_processed();
+			$tasks_processed[] = $task_name;
+
+			$this->set_tasks_processed( $tasks_processed );
+			$this->save();
+
+			return true;
+		}
+	}
+
+	protected function render_task( $task ) {
+		$task_name = $task['name'];
+		$caller    = "render_{$task_name}";
+		$html      = '';
+
+		self::log( sprintf( 'Render task: %s', $task['title'] ) );
+
+		if ( has_action( "{$this->get_general_hook_prefix()}_render_{$task_name}" ) ) {
+			ob_start();
+			$html = apply_filters( "{$this->get_general_hook_prefix()}_render_{$task_name}", $this );
+			$additional_output = ob_get_clean();
+
+			if ( empty( $html ) && ! empty( $additional_output ) ) {
+				$html = $additional_output;
+			}
+ 		} elseif ( is_callable( array( $this, $caller ) ) ) {
+			$html = $this->$caller();
+		}
+
+		return $html;
+	}
+
 	/**
 	 * @return int
 	 */
@@ -737,42 +896,6 @@ abstract class Order extends WC_Data {
 		}
 
 		return 0;
-	}
-
-	protected function run_task( $order, $task ) {
-		$task_name = $task['name'];
-
-		if ( $this->did_task( $task['name'] ) ) {
-			return false;
-		} elseif ( ! empty( $task['depends_on'] ) && ! $this->did_task( $task['depends_on'] ) ) {
-			$result = $this->run_task( $task['depends_on'], $order );
-
-			if ( false === $result ) {
-				return false;
-			}
-		}
-
-		$this->set_current_task_name( $task_name );
-		$this->save();
-
-		$caller = "process_{$task_name}";
-
-		self::log( sprintf( 'Starting task: %s', $task['title'] ) );
-
-		if ( has_action( "{$this->get_general_hook_prefix()}_process_{$task_name}" ) ) {
-			do_action( "{$this->get_general_hook_prefix()}_process_{$task_name}", $order, $this, $task['background_process'] );
-		} elseif ( is_callable( array( $this, $caller ) ) ) {
-			$this->$caller( $order, $task['background_process'] );
-		}
-
-		if ( $this->is_paused() ) {
-			return false;
-		} elseif ( $this->has_error() ) {
-			$this->pause();
-			return false;
-		} else {
-			return true;
-		}
 	}
 
 	/**
@@ -889,101 +1012,130 @@ abstract class Order extends WC_Data {
 	}
 
 	protected function query() {
-		$total_orders_found = 0;
-		$min_limit          = 10;
-		$query_offset       = $this->get_offset();
-		$max_orders_to_find = $this->get_limit() + 1; // find the next order too, if possible
+		$group      = $this->get_current_task_group();
+		$group_name = $group['name'];
 
-		if ( $current = $this->get_current_order() ) {
-			$orders           = array_keys( $this->orders );
-			$current_order_id = $current->get_id();
-			$current_key      = array_search( $current_order_id, $orders, true );
+		if ( 'loop' === $group_name ) {
+			$total_orders_found = 0;
+			$min_limit          = 10;
+			$query_offset       = $this->get_offset();
+			$max_orders_to_find = $this->get_limit() + 1; // find the next order too, if possible
 
-			if ( false !== $current_key ) {
-				if ( $current_key >= count( $orders ) - 1 ) {
-					$this->orders  = array();
-					$query_offset += 1;
-				} elseif ( $current_key <= 0 && ( $last_order = $this->get_last_order() ) ) {
-					$this->orders = array();
-					$query_offset = $this->get_order_offset( $last_order->get_id() );
+			if ( $current = $this->get_current_order() ) {
+				$orders           = array_keys( $this->orders );
+				$current_order_id = $current->get_id();
+				$current_key      = array_search( $current_order_id, $orders, true );
+
+				if ( false !== $current_key ) {
+					if ( $current_key >= count( $orders ) - 1 ) {
+						$this->orders  = array();
+						$query_offset += 1;
+					} elseif ( $current_key <= 0 && ( $last_order = $this->get_last_order() ) ) {
+						$this->orders = array();
+						$query_offset = $this->get_order_offset( $last_order->get_id() );
+					}
 				}
 			}
-		}
 
-		$args            = $this->get_query();
-		$args['orderby'] = 'ID';
-		$args['order']   = 'ASC';
-		$args['limit']   = $this->get_limit() > $min_limit ? $this->get_limit() : $min_limit;
+			$args            = $this->get_query();
+			$args['orderby'] = 'ID';
+			$args['order']   = 'ASC';
+			$args['limit']   = $this->get_limit() > $min_limit ? $this->get_limit() : $min_limit;
 
-		$date_interval = explode( '...', $args['date_created'] );
-		$date_end      = count( $date_interval ) > 1 ? $date_interval[1] : $date_interval[0];
+			$date_interval = explode( '...', $args['date_created'] );
+			$date_end      = count( $date_interval ) > 1 ? $date_interval[1] : $date_interval[0];
 
-		// Prevent including orders that changed after the end date to make sure offset logic works
-		$args['date_modified'] = '<' . $date_end;
+			// Prevent including orders that changed after the end date to make sure offset logic works
+			$args['date_modified'] = '<' . $date_end;
 
-		while ( $query_offset <= $this->get_total() ) {
-			if ( 0 === $this->get_total() ) {
-				$tmp_args             = $args;
-				$tmp_args['paginate'] = true;
-				$tmp_args['return']   = 'ids';
-				$results              = wc_get_orders( $tmp_args );
+			while ( $query_offset <= $this->get_total() ) {
+				if ( 0 === $this->get_total() ) {
+					$tmp_args             = $args;
+					$tmp_args['paginate'] = true;
+					$tmp_args['return']   = 'ids';
+					$results              = wc_get_orders( $tmp_args );
 
-				$this->set_total( $results->total );
-				$this->set_total_processed( 0 );
-				$this->set_current_order_id( 0 );
-				$this->set_orders_data( array() );
-				$this->set_offset( 0 );
+					$this->set_total( $results->total );
+					$this->set_total_processed( 0 );
+					$this->set_current_order_id( 0 );
+					$this->set_orders_data( array() );
+					$this->set_offset( 0 );
 
-				$orders = $results->orders;
-			} else {
-				$tmp_args           = $args;
-				$tmp_args['offset'] = $query_offset;
+					$orders = $results->orders;
+				} else {
+					$tmp_args           = $args;
+					$tmp_args['offset'] = $query_offset;
 
-				$orders = wc_get_orders( $tmp_args );
+					$orders = wc_get_orders( $tmp_args );
+				}
+
+				if ( empty( $orders ) ) {
+					break;
+				}
+
+				foreach ( $orders as $order ) {
+					if ( $order = $this->get_order( $order ) ) {
+						if ( $this->include_order( $order ) ) {
+							$this->orders[ $order->get_id() ] = $order;
+							$this->set_order_offset( $order->get_id(), $query_offset );
+
+							$total_orders_found++;
+						}
+					}
+
+					$query_offset++;
+
+					if ( $total_orders_found >= $max_orders_to_find ) {
+						break;
+					}
+				}
 			}
 
-			if ( empty( $orders ) ) {
-				break;
-			}
-
-			foreach ( $orders as $order ) {
-				if ( $order = $this->get_order( $order ) ) {
-					if ( $this->include_order( $order ) ) {
+			if ( ! empty( $this->orders ) ) {
+				if ( $this->get_current_order_id() && ! $this->has_order( $this->get_current_order_id() ) ) {
+					/**
+					 * Prepend the current order
+					 */
+					if ( $order = $this->get_order( $this->get_current_order_id() ) ) {
 						$this->orders[ $order->get_id() ] = $order;
-						$this->set_order_offset( $order->get_id(), $query_offset );
-
-						$total_orders_found++;
 					}
 				}
 
-				$query_offset++;
+				if ( $last_order = $this->get_last_order() ) {
+					if ( ! $this->has_order( $last_order->get_id() ) ) {
+						$this->orders[ $last_order->get_id() ] = $last_order;
+					}
+				}
 
-				if ( $total_orders_found >= $max_orders_to_find ) {
-					break;
+				ksort( $this->orders, SORT_NUMERIC );
+
+				if ( is_null( $this->current_order ) ) {
+					$this->set_current_order( array_values( $this->orders )[0] );
 				}
 			}
-		}
+		} elseif ( 'after_loop_processing' === $group_name ) {
+			$processed    = array_keys( $this->get_orders_data() );
+			$offset       = $this->get_offset();
+			$orders       = array_slice( $processed, $offset - 1, $offset + $this->get_limit() + 1 );
+			$this->orders = array();
 
-		if ( ! empty( $this->orders ) ) {
-			if ( $this->get_current_order_id() && ! $this->has_order( $this->get_current_order_id() ) ) {
-				/**
-				 * Prepend the current order
-				 */
-				if ( $order = $this->get_order( $this->get_current_order_id() ) ) {
-					$this->orders[ $order->get_id() ] = $order;
+			foreach( $orders as $order_id ) {
+				if ( $order = $this->get_order( $order_id ) ) {
+					$this->orders[ $order_id ] = $order;
 				}
 			}
 
-			if ( $last_order = $this->get_last_order() ) {
-				if ( ! $this->has_order( $last_order->get_id() ) ) {
-					$this->orders[ $last_order->get_id() ] = $last_order;
+			if ( ! empty( $this->orders ) ) {
+				if ( $this->get_current_order_id() && ! $this->has_order( $this->get_current_order_id() ) ) {
+					/**
+					 * Prepend the current order
+					 */
+					if ( $order = $this->get_order( $this->get_current_order_id() ) ) {
+						$this->orders[ $order->get_id() ] = $order;
+					}
 				}
-			}
 
-			ksort( $this->orders, SORT_NUMERIC );
-
-			if ( is_null( $this->current_order ) ) {
-				$this->set_current_order( array_values( $this->orders )[0] );
+				ksort( $this->orders, SORT_NUMERIC );
 			}
 		}
 	}
