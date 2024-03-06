@@ -10,7 +10,7 @@ use Exception;
 
 defined( 'ABSPATH' ) || exit;
 
-class Order extends WC_Data {
+abstract class Order extends WC_Data {
 
 	/**
 	 * This is the name of this object type.
@@ -44,19 +44,27 @@ class Order extends WC_Data {
 	 */
 	protected $status_transition = false;
 
-	protected $orders = array();
+	protected $allow_shutdown_handler = false;
 
+	/**
+	 * @var null|Task[]
+	 */
 	protected $tasks = null;
 
-	protected $task_name_map = null;
+	/**
+	 * @var array
+	 */
+	protected $task_map = array();
 
-	protected $task_groups = array();
+	/**
+	 * @var null|Task
+	 */
+	protected $current_task = null;
 
-	protected $current_orders_processed = 0;
-
-	protected $current_order = null;
-
-	protected $allow_shutdown_handler = false;
+	/**
+	 * @var null|ShipmentError
+	 */
+	protected $error = null;
 
 	/**
 	 * Stores data.
@@ -64,23 +72,12 @@ class Order extends WC_Data {
 	 * @var array
 	 */
 	protected $data = array(
-		'date_created'      => null,
-		'status'            => '',
-		'current_order_id'  => 0,
-		'current_error'     => '',
-		'pause_on_error'    => true,
-		'total_processed'   => 0,
-		'current_task_name' => '',
-		'current_task_group_name' => '',
-		'total'             => 0,
-		'limit'             => 1,
-		'offset'            => 0,
-		'percentage'        => 0,
-		'query'             => array(),
-		'tasks'             => array(),
-		'tasks_processed'   => array(),
-		'task_groups_processed' => array(),
-		'orders_data'       => array(),
+		'date_created'        => null,
+		'task_types'          => array(),
+		'status'              => '',
+		'parent_id'           => 0,
+		'current_task_type'   => '',
+		'current_notice_data' => array(),
 	);
 
 	public function __construct( $data = 0 ) {
@@ -107,24 +104,9 @@ class Order extends WC_Data {
 		} else {
 			$this->set_object_read( true );
 		}
-
-		/**
-		 * Make sure that the current task group is always set.
-		 */
-		if ( empty( $this->get_current_task_name() ) && empty( $this->get_current_task_group_name() ) ) {
-			$tasks            = $this->get_tasks();
-			$groups_processed = $this->get_task_groups_processed();
-
-			foreach( array_keys( Helper::get_available_task_groups() ) as $group_name ) {
-				foreach( $tasks as $task_name => $task ) {
-					if ( $task['group'] === $group_name && ! in_array( $group_name, $groups_processed, true ) ) {
-						$this->set_current_task_group_name( $group_name );
-						break;
-					}
-				}
-			}
-		}
 	}
+
+	abstract public function get_type();
 
 	/**
 	 * Prefix for action and filter hooks on data.
@@ -154,123 +136,54 @@ class Order extends WC_Data {
 		return $this->get_prop( 'date_created', $context );
 	}
 
-	public function get_limit( $context = 'view' ) {
-		return $this->get_prop( 'limit', $context );
-	}
+	/**
+	 * Return tasks data
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return array The tasks data
+	 */
+	public function get_task_types( $context = 'view' ) {
+		$task_types = $this->get_prop( 'task_types', $context );
 
-	public function get_current_error( $context = 'view' ) {
-		return $this->get_prop( 'current_error', $context );
-	}
-
-	public function get_pause_on_error( $context = 'view' ) {
-		return $this->get_prop( 'pause_on_error', $context );
-	}
-
-	public function pause_on_error( $context = 'view' ) {
-		return true === $this->get_pause_on_error( $context );
-	}
-
-	public function get_offset( $context = 'view' ) {
-		return $this->get_prop( 'offset', $context );
-	}
-
-	public function get_total( $context = 'view' ) {
-		return $this->get_prop( 'total', $context );
-	}
-
-	public function get_percentage( $context = 'view' ) {
-		return $this->get_prop( 'percentage', $context );
-	}
-
-	public function get_current_task_name( $context = 'view' ) {
-		return $this->get_prop( 'current_task_name', $context );
-	}
-
-	public function get_current_task_group_name( $context = 'view' ) {
-		return $this->get_prop( 'current_task_group_name', $context );
-	}
-
-	public function get_current_order_id( $context = 'view' ) {
-		return $this->get_prop( 'current_order_id', $context );
-	}
-
-	public function get_current_order_number( $context = 'view' ) {
-		$order_number = $this->get_current_order_id( $context );
-
-		if ( $order_number ) {
-			if ( $order = $this->get_order( $order_number ) ) {
-				$order_number = $order->get_order()->get_order_number();
-			}
+		if ( 'view' === $context && empty( $task_types ) ) {
+			$task_types = array(
+				array(
+					'type' => 'create_shipments',
+				),
+			);
 		}
 
-		return $order_number;
+		return $task_types;
 	}
 
-	public function get_total_processed( $context = 'view' ) {
-		return $this->get_prop( 'total_processed', $context );
+	/**
+	 * Return parent id
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return integer The parent id
+	 */
+	public function get_parent_id( $context = 'view' ) {
+		return $this->get_prop( 'parent_id', $context );
 	}
 
-	public function get_tasks( $context = 'view' ) {
-		$tasks = (array) $this->get_prop( 'tasks', $context );
-
-		return $tasks;
+	/**
+	 * Return current task type
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return integer The current task type
+	 */
+	public function get_current_task_type( $context = 'view' ) {
+		return $this->get_prop( 'current_task_type', $context );
 	}
 
-	public function get_task_groups() {
-		return $this->task_groups;
-	}
-
-	public function get_tasks_processed( $context = 'view' ) {
-		return (array) $this->get_prop( 'tasks_processed', $context );
-	}
-
-	public function get_task_groups_processed( $context = 'view' ) {
-		return (array) $this->get_prop( 'task_groups_processed', $context );
-	}
-
-	public function get_orders_data( $context = 'view' ) {
-		return (array) $this->get_prop( 'orders_data', $context );
-	}
-
-	public function order_has_been_processed( $order ) {
-		if ( $order_data = $this->get_order_data( $order ) ) {
-			return $order_data['processed'];
-		}
-
-		return false;
-	}
-
-	protected function get_current_tasks() {
-		if ( is_null( $this->tasks ) ) {
-			$current_group_name  = $this->get_current_task_group_name();
-			$this->tasks         = array();
-			$this->task_name_map = array();
-
-			$tasks           = $this->get_tasks();
-			$priority_suffix = 0;
-			$task_index      = 0;
-
-			foreach( $tasks as $task_name => $task ) {
-				if ( $task['group'] === $current_group_name ) {
-					if ( isset( $this->tasks[ $task['priority'] ] ) ) {
-						$priority_suffix++;
-					}
-
-					$task_priority    = $task['priority'] + $priority_suffix;
-					$task['priority'] = $task_priority;
-					$task['index']    = $task_index++;
-
-					$this->tasks[ $task_priority ]     = $task;
-					$this->task_name_map[ $task_name ] = $task_priority;
-				}
-			}
-		}
-
-		return $this->tasks;
-	}
-
-	public function get_query( $context = 'view' ) {
-		return (array) $this->get_prop( 'query', $context );
+	/**
+	 * Return current notice data
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return array The current notice data
+	 */
+	public function get_current_notice_data( $context = 'view' ) {
+		return $this->get_prop( 'current_notice_data', $context );
 	}
 
 	/**
@@ -296,6 +209,45 @@ class Order extends WC_Data {
 	 */
 	public function set_date_created( $date = null ) {
 		$this->set_date_prop( 'date_created', $date );
+	}
+
+	/**
+	 * Set tasks data.
+	 *
+	 * @param array $tasks
+	 */
+	public function set_task_types( $tasks ) {
+		$this->tasks = null;
+		$this->set_prop( 'task_types', (array) $tasks );
+	}
+
+	/**
+	 * Set parent id
+	 *
+	 * @param integer $parent_id
+	 */
+	public function set_parent_id( $parent_id ) {
+		$this->set_prop( 'parent_id', (int) $parent_id );
+	}
+
+	/**
+	 * Set current task type
+	 *
+	 * @param string $current_task_type
+	 */
+	public function set_current_task_type( $current_task_type ) {
+		$this->set_prop( 'current_task_type', $current_task_type );
+	}
+
+	/**
+	 * Set current notice data
+	 *
+	 * @param array $current_notice_data
+	 */
+	public function set_current_notice_data( $current_notice_data ) {
+		$this->error = null;
+
+		$this->set_prop( 'current_notice_dta', (array) $current_notice_data );
 	}
 
 	/**
@@ -331,152 +283,222 @@ class Order extends WC_Data {
 		return $result;
 	}
 
-	public function set_current_task_name( $current_task ) {
-		$this->set_prop( 'current_task_name', $current_task );
-	}
+	/**
+	 * @return Task[]
+	 */
+	public function get_tasks() {
+		if ( is_null( $this->tasks ) ) {
+			$this->tasks     = array();
+			$priority_prefix = 0;
 
-	public function set_current_task_group_name( $run_group ) {
-		$this->tasks = null;
+			foreach ( $this->get_task_types() as $task_data ) {
+				if ( $task = Factory::get_task( $task_data, $this ) ) {
+					$priority = $task->get_default_priority();
 
-		$this->set_prop( 'current_task_group_name', $run_group );
-	}
+					if ( isset( $this->tasks[ $priority ] ) ) {
+						$priority_prefix++;
+					}
 
-	public function set_pause_on_error( $pause_on_error ) {
-		$this->set_prop( 'pause_on_error', wc_string_to_bool( $pause_on_error ) );
-	}
-
-	public function set_current_order_id( $id ) {
-		$this->set_prop( 'current_order_id', absint( $id ) );
-	}
-
-	public function set_total_processed( $processed ) {
-		$this->set_prop( 'total_processed', absint( $processed ) );
-	}
-
-	public function set_limit( $limit ) {
-		$this->set_prop( 'limit', absint( $limit ) );
-	}
-
-	public function set_offset( $offset ) {
-		$this->set_prop( 'offset', absint( $offset ) );
-	}
-
-	public function set_current_error( $error ) {
-		if ( ! $this->pause_on_error() ) {
-			$this->log( $error, 'error' );
-		} else {
-			$this->set_prop( 'current_error', $error );
-		}
-	}
-
-	public function set_total( $total ) {
-		$this->set_prop( 'total', absint( $total ) );
-	}
-
-	public function set_percentage( $total ) {
-		$this->set_prop( 'percentage', absint( $total ) );
-	}
-
-	public function set_tasks( $tasks ) {
-		$this->tasks        = null;
-		$this->task_groups  = array();
-
-		foreach( (array) $tasks as $task_name => $task ) {
-			if ( ! $task_default_data = Helper::get_task( $task_name ) ) {
-				continue;
+					$this->tasks[ $priority + $priority_prefix ] = $task;
+				}
 			}
 
-			$task_default_data['background'] = false;
+			ksort( $this->tasks, SORT_NUMERIC );
+			$this->tasks = array_values( $this->tasks ); // Reset keys to start at 0
 
-			$tasks[ $task_name ] = wp_parse_args( $task, $task_default_data );
-
-			if ( ! in_array( $task['group'], $this->task_groups, true ) ) {
-				$this->task_groups[] = $task['group'];
+			foreach ( $this->tasks as $index => $task ) {
+				$this->task_map[ $task->get_type() ] = $index;
 			}
 		}
 
-		$this->set_prop( 'tasks', $tasks );
+		return $this->tasks;
 	}
 
-	public function set_tasks_processed( $tasks ) {
-		$this->set_prop( 'tasks_processed', array_unique( (array) $tasks ) );
-	}
+	/**
+	 * @param $type
+	 *
+	 * @return Task|null
+	 */
+	public function get_task( $type ) {
+		$tasks = $this->get_tasks();
 
-	public function set_task_groups_processed( $tasks ) {
-		$this->set_prop( 'task_groups_processed', array_unique( (array) $tasks ) );
-	}
-
-	protected function get_order_data( $order_id ) {
-		if ( is_a( $order_id, 'Vendidero\Germanized\Shipments\Order' ) ) {
-			$order_id = $order_id->get_id();
+		if ( array_key_exists( $type, $this->task_map ) ) {
+			return $tasks[ $this->task_map[ $type ] ];
 		}
 
-		$orders = $this->get_orders_data();
+		return null;
+	}
 
-		if ( array_key_exists( $order_id, $orders ) ) {
-			return wp_parse_args(
-				$orders[ $order_id ],
-				array(
-					'processed' => false,
-					'offset'    => 0,
-				)
-			);
+	/**
+	 * @return Task
+	 */
+	public function get_current_task() {
+		$this->init();
+
+		return $this->current_task;
+	}
+
+	public function needs_setup() {
+		if ( 'created' === $this->get_status() || 'doing-setup' === $this->get_status() ) {
+			return true;
 		}
 
 		return false;
 	}
 
-	protected function set_order_processed( $order_id, $processed = true ) {
-		if ( is_a( $order_id, 'Vendidero\Germanized\Shipments\Order' ) ) {
-			$order_id = $order_id->get_id();
-		}
-
-		$orders = $this->get_orders_data();
-
-		if ( ! array_key_exists( $order_id, $orders ) ) {
-			$orders[ $order_id ] = array(
-				'processed' => false,
-				'offset'    => 0,
-			);
-		}
-
-		$orders[ $order_id ]['processed'] = $processed;
-
-		$this->set_orders_data( $orders );
+	public function setup() {
+		$this->update_status( 'idling' );
 	}
 
-	protected function set_order_offset( $order_id, $offset ) {
-		if ( is_a( $order_id, 'Vendidero\Germanized\Shipments\Order' ) ) {
-			$order_id = $order_id->get_id();
+	protected function init() {
+		if ( $this->needs_setup() ) {
+			$this->setup();
 		}
 
-		$orders = $this->get_orders_data();
+		if ( is_null( $this->current_task ) ) {
+			$this->set_status( 'running' );
+			$tasks = $this->get_tasks();
 
-		if ( ! array_key_exists( $order_id, $orders ) ) {
-			$orders[ $order_id ] = array(
-				'processed' => false,
-				'offset'    => $offset,
-			);
+			if ( $task_type = $this->get_current_task_type() ) {
+				if ( $task = $this->get_task( $task_type ) ) {
+					$this->current_task = $task;
+				}
+			}
+
+			if ( is_null( $this->current_task ) ) {
+				$this->current_task = $tasks[0];
+			}
+
+			$this->set_current_task_type( $this->current_task->get_type() );
+		}
+	}
+
+	/**
+	 * @param $to_process
+	 *
+	 * @return bool|ShipmentError
+	 */
+	public function process( $to_process = array() ) {
+		$this->init();
+
+		if ( $task = $this->get_current_task() ) {
+			$this->set_current_notice_data( array() );
+			$result = $task->process( $to_process );
+
+			if ( is_wp_error( $result ) ) {
+				$result = wc_gzd_get_shipment_error( $result );
+				$this->set_current_notice_data( $result->errors );
+			}
+
+			return $result;
 		}
 
-		$orders[ $order_id ]['offset'] = $offset;
-
-		$this->set_orders_data( $orders );
+		return false;
 	}
 
-	public function set_orders_data( $orders ) {
-		$orders = (array) $orders;
-		ksort( $orders, SORT_NUMERIC );
+	public function render() {
+		$this->init();
 
-		$this->set_prop( 'orders_data', $orders );
+		if ( $task = $this->get_current_task() ) {
+			$task->render();
+		}
 	}
 
-	public function did_task( $task_name ) {
-		return in_array( $task_name, $this->get_tasks_processed(), true );
+	/**
+	 * @return Task|null
+	 */
+	public function get_next() {
+		$this->init();
+		$this->set_current_notice_data( array() );
+
+		if ( $task = $this->get_current_task() ) {
+			$tasks     = $this->get_tasks();
+			$new_index = $this->task_map[ $task->get_type() ] + 1;
+
+			if ( isset( $tasks[ $new_index ] ) ) {
+				$next_task = $tasks[ $new_index ];
+
+				return $next_task;
+			}
+		}
+
+		return null;
 	}
 
-	public function set_query( $query ) {
-		$this->set_prop( 'query', (array) $query );
+	public function next() {
+		if ( $task = $this->get_next() ) {
+			$this->set_current_task_type( $task->get_type() );
+			$this->save();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * @return Task|null
+	 */
+	public function get_prev() {
+		$this->init();
+		$this->set_current_notice_data( array() );
+
+		if ( $task = $this->get_current_task() ) {
+			$tasks     = $this->get_tasks();
+			$new_index = $this->task_map[ $task->get_type() ] - 1;
+
+			if ( isset( $tasks[ $new_index ] ) ) {
+				$prev_task = $tasks[ $new_index ];
+
+				return $prev_task;
+			}
+		}
+
+		return null;
+	}
+
+	public function prev() {
+		if ( $task = $this->get_prev() ) {
+			$this->set_current_task_type( $task->get_type() );
+			$this->save();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public function get_current_error() {
+		if ( is_null( $this->error ) ) {
+			$this->error = new ShipmentError();
+			$notice_data = $this->get_current_notice_data();
+
+			if ( ! empty( $notice_data ) ) {
+				$this->error->errors = $notice_data;
+			}
+		}
+
+		return $this->error;
+	}
+
+	public function has_error() {
+		$has_error = false;
+
+		if ( $error = $this->get_current_error() ) {
+			$has_error = $error->has_errors() && ! $error->is_soft_error();
+		}
+
+		return $has_error;
+	}
+
+	public function has_notice() {
+		$has_notice = false;
+
+		if ( $error = $this->get_current_error() ) {
+			$has_notice = $error->has_errors() && $error->is_soft_error();
+		}
+
+		return $has_notice;
 	}
 
 	/**
@@ -487,14 +509,6 @@ class Order extends WC_Data {
 	 */
 	public function has_status( $status ) {
 		return apply_filters( 'woocommerce_gzd_pick_pack_order_has_status', ( is_array( $status ) && in_array( $this->get_status(), $status, true ) ) || $this->get_status() === $status, $this, $status );
-	}
-
-	public function has_error() {
-		if ( $this->pause_on_error() && $this->get_current_error() ) {
-			return true;
-		}
-
-		return false;
 	}
 
 	/**
@@ -517,95 +531,6 @@ class Order extends WC_Data {
 		return true;
 	}
 
-	public function run() {
-		if ( 'created' === $this->get_status() ) {
-			$start = wc_string_to_datetime( date_i18n( 'Y-m-d' ) );
-			$end   = wc_string_to_datetime( date_i18n( 'Y-m-d H:i:s' ) );
-
-			$start->setTime( 0, 0, 0 );
-
-			$args = wp_parse_args(
-				$this->get_query(),
-				array(
-					'date_created' => $start->getTimestamp() . '...' . $end->getTimestamp(),
-					'type'         => 'shop_order',
-					'status'       => array( 'wc-pending', 'wc-processing', 'wc-on-hold', 'wc-completed' ),
-				)
-			);
-
-			$this->set_query( $args );
-		}
-
-		$this->set_status( 'running' );
-		$this->save();
-
-		$this->log( sprintf( 'Starting Pick & Pack %s', $this->get_id() ) );
-		$this->log( 'Query: ' . wc_print_r( $this->get_query(), true ) );
-
-		$this->allow_shutdown_handler   = true;
-		$this->current_orders_processed = 0;
-
-		if ( $this->get_current_order_id() > 0 ) {
-			if ( $order = $this->get_order( $this->get_current_order_id() ) ) {
-				$this->set_current_order( $order );
-			}
-		} elseif ( $last_processed = $this->get_last_processed_order() ) {
-			$offset = $this->get_order_offset( $last_processed->get_id() );
-
-			$this->set_offset( $offset + 1 );
-		}
-
-		register_shutdown_function(
-			function() {
-				if ( $this->allow_shutdown_handler ) {
-					$this->pause();
-				}
-			}
-		);
-
-		$this->loop();
-
-		$this->allow_shutdown_handler = false;
-		$this->save();
-	}
-
-	protected function loop() {
-		if ( $this->is_completed() ) {
-			return;
-		}
-
-		$group = $this->get_current_task_group();
-
-		if ( true === $group['is_loop'] ) {
-			$this->query();
-
-			do {
-				if ( $order = $this->get_current_order() ) {
-					$this->process_order( $order );
-
-					if ( $this->is_paused() ) {
-						break;
-					}
-				}
-
-				self::log( sprintf( 'Processed %s of %s found orders', $this->get_total_processed(), $this->get_total() ) );
-
-				$this->set_percentage( floor( ( $this->get_offset() / $this->get_total() ) * 100 ) );
-				$this->save();
-			} while ( $this->current_orders_processed < $this->get_limit() && $this->next_order() );
-
-			if ( $this->is_paused() ) {
-				return;
-			}
-		} else {
-			$this->start_tasks();
-
-			if ( $this->is_paused() ) {
-				return;
-			}
-		}
-	}
-
 	public function is_paused() {
 		return $this->has_status( 'paused' );
 	}
@@ -619,597 +544,6 @@ class Order extends WC_Data {
 
 		$this->set_status( 'paused' );
 		$this->save();
-	}
-
-	protected function complete() {
-		self::log( 'Completing' );
-
-		$this->set_current_task_name( '' );
-		$this->set_current_order_id( 0 );
-		$this->set_percentage( 100 );
-		$this->set_status( 'completed' );
-		$this->save();
-	}
-
-	protected function get_task( $name ) {
-		$tasks = $this->get_current_tasks();
-		$task  = false;
-
-		if ( array_key_exists( $name, $this->task_name_map ) ) {
-			$task = $tasks[ $this->task_name_map[ $name ] ];
-		}
-
-		return $task;
-	}
-
-	public function get_next_task_group() {
-		$current       = $this->get_current_task_group();
-		$groups        = $this->get_task_groups();
-		$current_index = array_search( $current, $groups, true );
-
-		if ( false !== $current_index ) {
-			if ( count( $groups ) > $current_index + 1 ) {
-				$next_group = $groups[ $current_index + 1 ];
-
-				return $next_group;
-			}
-		}
-
-		return false;
-	}
-
-	public function next_task_group() {
-		if ( $group = $this->get_next_task_group() ) {
-			$this->set_current_task_group_name( $group );
-			$this->set_current_task_name( '' );
-			$this->set_current_order_id( 0 );
-			$this->save();
-
-			return $group;
-		}
-
-		return false;
-	}
-
-	public function prev_task_group() {
-		if ( $group = $this->get_prev_task_group() ) {
-			$current_group = $this->get_current_task_group_name();
-
-			$this->set_current_task_group_name( $group );
-			$this->set_current_task_name( '' );
-			$this->set_current_order_id( 0 );
-			$this->set_task_groups_processed( array_diff( $this->get_task_groups_processed(), array( $current_group ) ) );
-			$this->save();
-
-			return $group;
-		}
-
-		return false;
-	}
-
-	public function get_prev_task_group() {
-		$current       = $this->get_current_task_group();
-		$groups        = $this->get_task_groups();
-		$current_index = array_search( $current, $groups, true );
-
-		if ( false !== $current_index ) {
-			if ( $current_index - 1 >= 0 ) {
-				$prev_group = $groups[ $current_index - 1 ];
-
-				return $prev_group;
-			}
-		}
-
-		return false;
-	}
-
-	public function get_next_task() {
-		$tasks   = array_values( $this->get_current_tasks() );
-		$current = $this->get_current_task();
-
-		if ( ! is_null( $current ) ) {
-			$index = $current['index'];
-
-			if ( count( $tasks ) > $index + 1 ) {
-				$next_task = $tasks[ $index + 1 ];
-
-				return $next_task;
-			}
-		}
-
-		return false;
-	}
-
-	public function next_task() {
-		if ( $task = $this->get_next_task() ) {
-			$this->set_current_task_name( $task['name'] );
-			$this->save();
-
-			return $task;
-		}
-
-		return false;
-	}
-
-	public function get_prev_task() {
-		$tasks   = array_values( $this->get_current_tasks() );
-		$current = $this->get_current_task();
-
-		if ( ! is_null( $current ) ) {
-			$index = $current['index'];
-
-			if ( $index - 1 >= 0 ) {
-				$prev_task = $tasks[ $index - 1 ];
-
-				return $prev_task;
-			}
-		}
-
-		return false;
-	}
-
-	public function prev_task() {
-		if ( $task = $this->get_prev_task() ) {
-			$current_task = $this->get_current_task_name();
-
-			$this->set_tasks_processed( array_diff( $this->get_tasks_processed(), array( $current_task ) ) );
-			$this->set_current_task_name( $task['name'] );
-			$this->save();
-
-			return $task;
-		}
-
-		return false;
-	}
-
-	/**
-	 * @return mixed|null
-	 */
-	protected function get_current_task() {
-		$current_task = $this->get_current_task_name();
-
-		if ( $task = $this->get_task( $current_task ) ) {
-			return $task;
-		} else {
-			$tasks = $this->get_current_tasks();
-
-			return count( $tasks ) > 0 ? array_values( $tasks )[0] : null;
-		}
-	}
-
-	/**
-	 * @return array|null
-	 */
-	protected function get_current_task_group() {
-		$group_name = $this->get_current_task_group_name();
-
-		if ( $group = Helper::get_task_group( $group_name ) ) {
-			return $group;
-		}
-
-		return null;
-	}
-
-	/**
-	 * @param \Vendidero\Germanized\Shipments\Order $order
-	 *
-	 * @return boolean
-	 */
-	protected function process_order( $order ) {
-		self::log( sprintf( 'Begin processing order #%s', $order->get_order_number() ) );
-
-		$this->start_tasks();
-
-		if ( ! $this->is_paused() ) {
-			self::log( sprintf( 'End processing order #%s', $order->get_order_number() ) );
-
-			$this->current_orders_processed++;
-
-			$this->set_total_processed( $this->get_total_processed() + 1 );
-
-			$this->set_order_processed( $order->get_id() );
-			$this->set_tasks_processed( array() );
-			$this->set_current_order_id( 0 );
-			$this->save();
-
-			return true;
-		}
-
-		return false;
-	}
-
-	protected function start_tasks() {
-		do {
-			if ( $current = $this->get_current_task() ) {
-				if ( $current['background'] ) {
-					$this->process_task( $current );
-				} else {
-					$this->pause();
-					$this->render_task( $current );
-				}
-			}
-
-			if ( $this->is_paused() ) {
-				break;
-			}
-		} while ( $this->next_task() );
-	}
-
-	protected function process_task( $task, $args = array() ) {
-		$this->set_current_error( '' );
-
-		$task_name = $task['name'];
-		$caller    = "process_{$task_name}";
-
-		self::log( sprintf( 'Starting task: %s', $task['title'] ) );
-
-		if ( has_action( "{$this->get_general_hook_prefix()}_process_{$task_name}" ) ) {
-			do_action( "{$this->get_general_hook_prefix()}_process_{$task_name}", $this, $args );
-		} elseif ( is_callable( array( $this, $caller ) ) ) {
-			$this->$caller( $args );
-		}
-
-		if ( $this->is_paused() ) {
-			return false;
-		} elseif ( $this->has_error() ) {
-			$this->pause();
-			return false;
-		} else {
-			$tasks_processed = $this->get_tasks_processed();
-			$tasks_processed[] = $task_name;
-
-			$this->set_tasks_processed( $tasks_processed );
-			$this->save();
-
-			return true;
-		}
-	}
-
-	protected function render_task( $task ) {
-		$task_name = $task['name'];
-		$caller    = "render_{$task_name}";
-		$html      = '';
-
-		self::log( sprintf( 'Render task: %s', $task['title'] ) );
-
-		if ( has_action( "{$this->get_general_hook_prefix()}_render_{$task_name}" ) ) {
-			ob_start();
-			$html = apply_filters( "{$this->get_general_hook_prefix()}_render_{$task_name}", $this );
-			$additional_output = ob_get_clean();
-
-			if ( empty( $html ) && ! empty( $additional_output ) ) {
-				$html = $additional_output;
-			}
- 		} elseif ( is_callable( array( $this, $caller ) ) ) {
-			$html = $this->$caller();
-		}
-
-		return $html;
-	}
-
-	/**
-	 * @return int
-	 */
-	protected function get_order_offset( $order_id ) {
-		if ( $order_data = $this->get_order_data( $order_id ) ) {
-			return $order_data['offset'];
-		}
-
-		return 0;
-	}
-
-	/**
-	 * @param \Vendidero\Germanized\Shipments\Order $order
-	 * @param boolean $force_background_processing
-	 *
-	 * @return void
-	 */
-	protected function process_create_shipments( $order, $force_background_processing = false ) {
-		var_dump( 'Creating shipments...' );
-		var_dump( $order->get_id() );
-	}
-
-	/**
-	 * @param \Vendidero\Germanized\Shipments\Order $order
-	 * @param boolean $force_background_processing
-	 *
-	 * @return void
-	 */
-	protected function process_create_labels( $order, $force_background_processing = false ) {
-		var_dump( 'Creating labels...' );
-		var_dump( $order->get_id() );
-	}
-
-	/**
-	 * @param \Vendidero\Germanized\Shipments\Order $order
-	 *
-	 * @return void
-	 */
-	protected function set_current_order( $order ) {
-		$this->current_order = $order;
-
-		if ( $offset = $this->get_order_offset( $order->get_id() ) ) {
-			$this->set_offset( $offset );
-		}
-
-		$this->set_current_order_id( $order->get_id() );
-	}
-
-	public function get_prev_order() {
-		$this->query();
-		$orders = $this->get_orders();
-
-		if ( $current_order = $this->get_current_order() ) {
-			$keys        = array_keys( $orders );
-			$current_key = array_search( $current_order->get_id(), $keys, true );
-
-			if ( false !== $current_key ) {
-				if ( $current_key > 0 ) {
-					return $orders[ $keys[ $current_key - 1 ] ];
-				}
-			}
-		}
-
-		return null;
-	}
-
-	public function prev_order() {
-		if ( $order = $this->get_prev_order() ) {
-			$this->set_current_order( $order );
-			$this->save();
-
-			return $this->get_current_order();
-		}
-
-		return null;
-	}
-
-	public function get_next_order() {
-		$this->query();
-		$orders = $this->get_orders();
-
-		if ( $current_order = $this->get_current_order() ) {
-			$keys        = array_keys( $orders );
-			$current_key = array_search( $current_order->get_id(), $keys, true );
-
-			if ( false !== $current_key ) {
-				if ( $current_key < count( $orders ) - 1 ) {
-					return $orders[ $keys[ $current_key + 1 ] ];
-				}
-			}
-		}
-
-		return null;
-	}
-
-	public function next_order() {
-		if ( $order = $this->get_next_order() ) {
-			$this->set_current_order( $order );
-			$this->save();
-
-			return $this->get_current_order();
-		}
-
-		return null;
-	}
-
-	protected function get_order( $order ) {
-		$order = wc_gzd_get_shipment_order( $order );
-
-		if ( false === $order ) {
-			return null;
-		}
-
-		return $order;
-	}
-
-	protected function get_current_order() {
-		return $this->current_order;
-	}
-
-	protected function get_orders() {
-		return $this->orders;
-	}
-
-	protected function query() {
-		$group      = $this->get_current_task_group();
-		$group_name = $group['name'];
-
-		if ( 'loop' === $group_name ) {
-			$total_orders_found = 0;
-			$min_limit          = 10;
-			$query_offset       = $this->get_offset();
-			$max_orders_to_find = $this->get_limit() + 1; // find the next order too, if possible
-
-			if ( $current = $this->get_current_order() ) {
-				$orders           = array_keys( $this->orders );
-				$current_order_id = $current->get_id();
-				$current_key      = array_search( $current_order_id, $orders, true );
-
-				if ( false !== $current_key ) {
-					if ( $current_key >= count( $orders ) - 1 ) {
-						$this->orders  = array();
-						$query_offset += 1;
-					} elseif ( $current_key <= 0 && ( $last_order = $this->get_last_order() ) ) {
-						$this->orders = array();
-						$query_offset = $this->get_order_offset( $last_order->get_id() );
-					}
-				}
-			}
-
-			$args            = $this->get_query();
-			$args['orderby'] = 'ID';
-			$args['order']   = 'ASC';
-			$args['limit']   = $this->get_limit() > $min_limit ? $this->get_limit() : $min_limit;
-
-			$date_interval = explode( '...', $args['date_created'] );
-			$date_end      = count( $date_interval ) > 1 ? $date_interval[1] : $date_interval[0];
-
-			// Prevent including orders that changed after the end date to make sure offset logic works
-			$args['date_modified'] = '<' . $date_end;
-
-			while ( $query_offset <= $this->get_total() ) {
-				if ( 0 === $this->get_total() ) {
-					$tmp_args             = $args;
-					$tmp_args['paginate'] = true;
-					$tmp_args['return']   = 'ids';
-					$results              = wc_get_orders( $tmp_args );
-
-					$this->set_total( $results->total );
-					$this->set_total_processed( 0 );
-					$this->set_current_order_id( 0 );
-					$this->set_orders_data( array() );
-					$this->set_offset( 0 );
-
-					$orders = $results->orders;
-				} else {
-					$tmp_args           = $args;
-					$tmp_args['offset'] = $query_offset;
-
-					$orders = wc_get_orders( $tmp_args );
-				}
-
-				if ( empty( $orders ) ) {
-					break;
-				}
-
-				foreach ( $orders as $order ) {
-					if ( $order = $this->get_order( $order ) ) {
-						if ( $this->include_order( $order ) ) {
-							$this->orders[ $order->get_id() ] = $order;
-							$this->set_order_offset( $order->get_id(), $query_offset );
-
-							$total_orders_found++;
-						}
-					}
-
-					$query_offset++;
-
-					if ( $total_orders_found >= $max_orders_to_find ) {
-						break;
-					}
-				}
-			}
-
-			if ( ! empty( $this->orders ) ) {
-				if ( $this->get_current_order_id() && ! $this->has_order( $this->get_current_order_id() ) ) {
-					/**
-					 * Prepend the current order
-					 */
-					if ( $order = $this->get_order( $this->get_current_order_id() ) ) {
-						$this->orders[ $order->get_id() ] = $order;
-					}
-				}
-
-				if ( $last_order = $this->get_last_order() ) {
-					if ( ! $this->has_order( $last_order->get_id() ) ) {
-						$this->orders[ $last_order->get_id() ] = $last_order;
-					}
-				}
-
-				ksort( $this->orders, SORT_NUMERIC );
-
-				if ( is_null( $this->current_order ) ) {
-					$this->set_current_order( array_values( $this->orders )[0] );
-				}
-			}
-		} elseif ( 'after_loop_processing' === $group_name ) {
-			$processed    = array_keys( $this->get_orders_data() );
-			$offset       = $this->get_offset();
-			$orders       = array_slice( $processed, $offset - 1, $offset + $this->get_limit() + 1 );
-			$this->orders = array();
-
-			foreach( $orders as $order_id ) {
-				if ( $order = $this->get_order( $order_id ) ) {
-					$this->orders[ $order_id ] = $order;
-				}
-			}
-
-			if ( ! empty( $this->orders ) ) {
-				if ( $this->get_current_order_id() && ! $this->has_order( $this->get_current_order_id() ) ) {
-					/**
-					 * Prepend the current order
-					 */
-					if ( $order = $this->get_order( $this->get_current_order_id() ) ) {
-						$this->orders[ $order->get_id() ] = $order;
-					}
-				}
-
-				ksort( $this->orders, SORT_NUMERIC );
-			}
-		}
-	}
-
-	protected function has_order( $id ) {
-		return array_key_exists( $id, $this->orders );
-	}
-
-	protected function get_last_order_data( $has_been_processed = null ) {
-		if ( $order_id = $this->get_last_order_id( $has_been_processed ) ) {
-			$data = $this->get_orders_data();
-
-			return wp_parse_args(
-				$data[ $order_id ],
-				array(
-					'processed' => false,
-					'offset'    => 0,
-				)
-			);
-		}
-
-		return false;
-	}
-
-	protected function get_last_order( $has_been_processed = null ) {
-		if ( $order_id = $this->get_last_order_id( $has_been_processed ) ) {
-			return $this->get_order( $order_id );
-		}
-
-		return false;
-	}
-
-	protected function get_last_order_id( $has_been_processed = null ) {
-		$order_data       = $this->get_orders_data();
-		$current_order_id = $this->get_current_order() ? $this->get_current_order()->get_id() : null;
-
-		if ( count( $order_data ) > 0 ) {
-			foreach ( array_reverse( $order_data, true ) as $id => $data ) {
-				if ( $current_order_id && $id >= $current_order_id ) {
-					continue;
-				}
-
-				if ( is_null( $has_been_processed ) ) {
-					return $id;
-				} elseif ( $has_been_processed === $data['processed'] ) {
-					return $id;
-				}
-			}
-		}
-
-		return false;
-	}
-
-	/**
-	 * @return \Vendidero\Germanized\Shipments\Order|null
-	 */
-	protected function get_last_processed_order() {
-		return $this->get_last_order( true );
-	}
-
-	/**
-	 * @param \Vendidero\Germanized\Shipments\Order $order
-	 *
-	 * @return boolean
-	 */
-	protected function include_order( $order ) {
-		$include_order = false;
-		$is_paid       = $order->get_order()->is_paid() || in_array( $order->get_order()->get_payment_method(), array( 'invoice' ), true );
-
-		if ( ! $order->is_shipped() && $is_paid ) {
-			$include_order = true;
-		}
-
-		return apply_filters( "{$this->get_general_hook_prefix()}include_order", $include_order, $order, $this );
 	}
 
 	protected function log( $message, $type = 'info' ) {

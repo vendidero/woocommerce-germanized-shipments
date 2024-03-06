@@ -31,22 +31,11 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 		'type',
 		'date_created',
 		'date_created_gmt',
+		'task_types',
 		'status',
-		'current_order_id',
-		'current_error',
-		'pause_on_error',
-		'total_processed',
-		'current_task_name',
-		'current_task_group_name',
-		'total',
-		'limit',
-		'offset',
-		'percentage',
-		'query',
-		'tasks',
-		'tasks_processed',
-		'task_groups_processed',
-		'orders_data',
+		'parent_id',
+		'current_task_type',
+		'current_notice_data',
 	);
 
 	protected $internal_meta_keys = array();
@@ -68,25 +57,14 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 		$pick_pack_order->set_date_created( time() );
 
 		$data = array(
-			'pick_pack_order_type'              => $pick_pack_order->get_type(),
-			'pick_pack_order_status'            => $this->get_status( $pick_pack_order ),
-			'pick_pack_order_current_order_id'  => $pick_pack_order->get_current_order_id( 'edit' ),
-			'pick_pack_order_total_processed'   => $pick_pack_order->get_total_processed( 'edit' ),
-			'pick_pack_order_current_task_name' => $pick_pack_order->get_current_task_name( 'edit' ),
-			'pick_pack_order_current_task_group_name' => $pick_pack_order->get_current_task_group_name( 'edit' ),
-			'pick_pack_order_total'             => $pick_pack_order->get_total( 'edit' ),
-			'pick_pack_order_limit'             => $pick_pack_order->get_limit( 'edit' ),
-			'pick_pack_order_offset'            => $pick_pack_order->get_offset( 'edit' ),
-			'pick_pack_order_current_error'     => $pick_pack_order->get_current_error( 'edit' ),
-			'pick_pack_order_pause_on_error'    => $pick_pack_order->get_pause_on_error( 'edit' ) ? 1 : 0,
-			'pick_pack_order_percentage'        => $pick_pack_order->get_percentage( 'edit' ),
-			'pick_pack_order_query'             => maybe_serialize( $pick_pack_order->get_query( 'edit' ) ),
-			'pick_pack_order_tasks'             => maybe_serialize( $pick_pack_order->get_tasks( 'edit' ) ),
-			'pick_pack_order_tasks_processed'   => maybe_serialize( $pick_pack_order->get_tasks_processed( 'edit' ) ),
-			'pick_pack_order_task_groups_processed'   => maybe_serialize( $pick_pack_order->get_task_groups_processed( 'edit' ) ),
-			'pick_pack_order_orders_data'       => maybe_serialize( $pick_pack_order->get_orders_data( 'edit' ) ),
-			'pick_pack_order_date_created'      => $pick_pack_order->get_date_created( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->get_date_created( 'edit' )->getOffsetTimestamp() ) : null,
-			'pick_pack_order_date_created_gmt'  => $pick_pack_order->get_date_created( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->get_date_created( 'edit' )->getTimestamp() ) : null,
+			'pick_pack_order_type'                => $pick_pack_order->get_type(),
+			'pick_pack_order_status'              => $this->get_status( $pick_pack_order ),
+			'pick_pack_order_task_types'          => maybe_serialize( $pick_pack_order->get_task_types( 'edit' ) ),
+			'pick_pack_order_parent_id'           => $pick_pack_order->get_parent_id( 'edit' ),
+			'pick_pack_order_current_task_type'   => $pick_pack_order->get_current_task_type( 'edit' ),
+			'pick_pack_order_current_notice_data' => maybe_serialize( $pick_pack_order->get_current_notice_data( 'edit' ) ),
+			'pick_pack_order_date_created'        => $pick_pack_order->get_date_created( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->get_date_created( 'edit' )->getOffsetTimestamp() ) : null,
+			'pick_pack_order_date_created_gmt'    => $pick_pack_order->get_date_created( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->get_date_created( 'edit' )->getTimestamp() ) : null,
 		);
 
 		$wpdb->insert(
@@ -165,20 +143,14 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 				case 'status':
 					$pick_pack_data[ 'pick_pack_order_' . $prop ] = $this->get_status( $pick_pack_order );
 					break;
-				case 'pause_on_error':
-					$pick_pack_data[ 'pick_pack_order_' . $prop ] = $pick_pack_order->get_pause_on_error( 'edit' ) ? 1 : 0;
-					break;
 				case 'date_created':
 					if ( is_callable( array( $pick_pack_order, 'get_' . $prop ) ) ) {
 						$pick_pack_data[ 'pick_pack_order_' . $prop ]          = $pick_pack_order->{'get_' . $prop}( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->{'get_' . $prop}( 'edit' )->getOffsetTimestamp() ) : null;
 						$pick_pack_data[ 'pick_pack_order_' . $prop . '_gmt' ] = $pick_pack_order->{'get_' . $prop}( 'edit' ) ? gmdate( 'Y-m-d H:i:s', $pick_pack_order->{'get_' . $prop}( 'edit' )->getTimestamp() ) : null;
 					}
 					break;
-				case 'query':
-				case 'tasks':
-				case 'tasks_processed':
-				case 'task_groups_processed':
-				case 'orders_data':
+				case 'task_types':
+				case 'current_notice_data':
 					if ( is_callable( array( $pick_pack_order, 'get_' . $prop ) ) ) {
 						$pick_pack_data[ 'pick_pack_order_' . $prop ] = maybe_serialize( $pick_pack_order->{'get_' . $prop}( 'edit' ) );
 					}
@@ -258,24 +230,13 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 		if ( $data = $this->get_data( $pick_pack_order->get_id() ) ) {
 			$pick_pack_order->set_props(
 				array(
-					'type'              => $data->pick_pack_order_type,
-					'date_created'      => Package::is_valid_mysql_date( $data->pick_pack_order_date_created_gmt ) ? wc_string_to_timestamp( $data->pick_pack_order_date_created_gmt ) : null,
-					'status'            => $data->pick_pack_order_status,
-					'current_order_id'  => $data->pick_pack_order_current_order_id,
-					'total_processed'   => $data->pick_pack_order_total_processed,
-					'current_task_name' => $data->pick_pack_order_current_task_name,
-					'current_task_group_name' => $data->pick_pack_order_current_task_group_name,
-					'current_error'     => $data->pick_pack_order_current_error,
-					'pause_on_error'    => $data->pick_pack_order_pause_on_error,
-					'total'             => $data->pick_pack_order_total,
-					'limit'             => $data->pick_pack_order_limit,
-					'offset'            => $data->pick_pack_order_offset,
-					'percentage'        => $data->pick_pack_order_percentage,
-					'query'             => maybe_unserialize( $data->pick_pack_order_query ),
-					'tasks'             => maybe_unserialize( $data->pick_pack_order_tasks ),
-					'tasks_processed'   => maybe_unserialize( $data->pick_pack_order_tasks_processed ),
-					'task_groups_processed'   => maybe_unserialize( $data->pick_pack_order_task_groups_processed ),
-					'orders_data'       => maybe_unserialize( $data->pick_pack_order_orders_data ),
+					'type'                => $data->pick_pack_order_type,
+					'date_created'        => Package::is_valid_mysql_date( $data->pick_pack_order_date_created_gmt ) ? wc_string_to_timestamp( $data->pick_pack_order_date_created_gmt ) : null,
+					'status'              => $data->pick_pack_order_status,
+					'current_task_type'   => $data->pick_pack_order_current_task_type,
+					'parent_id'           => $data->pick_pack_order_parent_id,
+					'task_types'          => maybe_unserialize( $data->pick_pack_order_task_types ),
+					'current_notice_data' => maybe_unserialize( $data->pick_pack_order_current_notice_data ),
 				)
 			);
 
@@ -322,10 +283,28 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 	 * @since 3.0.0
 	 */
 	protected function read_pick_pack_data( &$pick_pack_order ) {
-		$props = array();
+		$props     = array();
+		$meta_keys = $this->internal_meta_keys;
 
-		foreach ( $this->internal_meta_keys as $meta_key ) {
-			$props[ substr( $meta_key, 1 ) ] = get_metadata( 'gzd_pick_pack_order', $pick_pack_order->get_id(), $meta_key, true );
+		foreach ( $pick_pack_order->get_extra_data_keys() as $key ) {
+			$meta_keys[] = '_' . $key;
+		}
+
+		foreach ( $meta_keys as $meta_key ) {
+			$prop       = substr( $meta_key, 1 );
+			$meta_value = get_metadata( 'gzd_pick_pack_order', $pick_pack_order->get_id(), $meta_key, true );
+
+			if ( strstr( $prop, 'date_' ) ) {
+				$gmt = get_metadata( 'gzd_pick_pack_order', $pick_pack_order->get_id(), $meta_key . '_gmt', true );
+
+				if ( $gmt && Package::is_valid_mysql_date( $gmt ) ) {
+					$meta_value = wc_string_to_timestamp( $gmt );
+				}
+			} elseif ( in_array( $prop, array( 'orders', 'query_args' ), true ) ) {
+				$meta_value = is_array( $meta_value ) ? $meta_value : array();
+			}
+
+			$props[ $prop ] = $meta_value;
 		}
 
 		$pick_pack_order->set_props( $props );
@@ -346,6 +325,13 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 			}
 
 			$meta_key_to_props[ $meta_key ] = $prop_name;
+		}
+
+		// Make sure to take extra data into account.
+		$extra_data_keys = $pick_pack_order->get_extra_data_keys();
+
+		foreach ( $extra_data_keys as $key ) {
+			$meta_key_to_props[ '_' . $key ] = $key;
 		}
 
 		$props_to_update = $this->get_props_to_update( $pick_pack_order, $meta_key_to_props, $this->meta_type );
@@ -395,10 +381,21 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 	 * @return bool True if updated/deleted.
 	 */
 	protected function update_or_delete_meta( $object, $meta_key, $meta_value ) {
-		if ( in_array( $meta_value, array( array(), '' ), true ) && ! in_array( $meta_key, $this->must_exist_meta_keys, true ) ) {
-			$updated = delete_metadata( $this->meta_type, $object->get_id(), $meta_key );
-		} else {
-			$updated = update_metadata( $this->meta_type, $object->get_id(), $meta_key, $meta_value );
+		$updated = false;
+
+		if ( strstr( $meta_key, 'date_' ) ) {
+			if ( is_null( $meta_value ) ) {
+				$updated = delete_metadata( $this->meta_type, $object->get_id(), $meta_key );
+			} elseif ( is_a( $meta_value, 'WC_DateTime' ) ) {
+				$updated = update_metadata( $this->meta_type, $object->get_id(), $meta_key, gmdate( 'Y-m-d H:i:s', $meta_value->getOffsetTimestamp() ) );
+				$updated = update_metadata( $this->meta_type, $object->get_id(), ( $meta_key . '_gmt' ), gmdate( 'Y-m-d H:i:s', $meta_value->getTimestamp() ) );
+			}
+		} elseif ( ! $updated ) {
+			if ( in_array( $meta_value, array( array(), '' ), true ) && ! in_array( $meta_key, $this->must_exist_meta_keys, true ) ) {
+				$updated = delete_metadata( $this->meta_type, $object->get_id(), $meta_key );
+			} else {
+				$updated = update_metadata( $this->meta_type, $object->get_id(), $meta_key, $meta_value );
+			}
 		}
 
 		return (bool) $updated;

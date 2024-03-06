@@ -66,18 +66,27 @@ class Package {
 		add_action(
 			'admin_init1',
 			function() {
-				$pick = new PickPack\ManualOrder();
-				$pick->set_limit( 20 );
-				$pick->set_tasks( array( 'create_shipments', 'create_labels' ) );
-				$pick->set_query(
+				self::install();
+
+				$pick = new PickPack\Loop();
+				$pick->set_date_start( '2024-01-01 00:00:00' );
+				$pick->set_date_end( date_i18n( 'Y-m-d H:i:s' ) );
+
+				$pick->set_task_types(
 					array(
-						'date_created' => strtotime( '2024-01-01' ) . '...' . strtotime( '2024-02-27' ),
+						array(
+							'type'                      => 'create_shipments',
+							'has_background_processing' => false,
+						),
+						array(
+							'type'                      => 'create_labels',
+							'has_background_processing' => true,
+						),
 					)
 				);
 
-				$pick->run();
-				$pick->save();
-
+				$id = $pick->save();
+				$pick->setup();
 				exit();
 			}
 		);
