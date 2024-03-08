@@ -834,7 +834,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 							$condition_applies = false;
 						}
 					}
-				} elseif ( 'shipping_classes' === $condition_type || 'package_shipping_classes' === $condition_type_name ) {
+				} elseif ( 'shipping_classes' === $condition_type_name || 'package_shipping_classes' === $condition_type_name ) {
 					$classes = isset( $condition['classes'] ) && ! empty( $condition['classes'] ) ? array_map( 'absint', (array) $condition['classes'] ) : array();
 
 					if ( array_intersect( $package_data[ $condition_type_name ], $classes ) ) {
