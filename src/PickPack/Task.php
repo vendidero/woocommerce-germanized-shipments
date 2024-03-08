@@ -37,6 +37,10 @@ abstract class Task {
 		return array( 'loop' );
 	}
 
+	public function is_order_type_supported( $order_type ) {
+		return in_array( $order_type, $this->get_supported_order_types(), true );
+	}
+
 	public function get_description() {
 		return '';
 	}

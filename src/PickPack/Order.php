@@ -156,6 +156,12 @@ abstract class Order extends WC_Data {
 		return $task_types;
 	}
 
+	public function has_task_type( $type ) {
+		$this->get_tasks();
+
+		return array_key_exists( $type, $this->task_map ) ? true : false;
+	}
+
 	/**
 	 * Return parent id
 	 *
@@ -218,6 +224,7 @@ abstract class Order extends WC_Data {
 	 */
 	public function set_task_types( $tasks ) {
 		$this->tasks = null;
+
 		$this->set_prop( 'task_types', (array) $tasks );
 	}
 
@@ -236,6 +243,8 @@ abstract class Order extends WC_Data {
 	 * @param string $current_task_type
 	 */
 	public function set_current_task_type( $current_task_type ) {
+		$this->current_task = null;
+
 		$this->set_prop( 'current_task_type', $current_task_type );
 	}
 
@@ -350,26 +359,38 @@ abstract class Order extends WC_Data {
 		$this->update_status( 'idling' );
 	}
 
-	protected function init() {
+	public function init( $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'task' => '',
+			)
+		);
+
+		if ( ! empty( $args['task'] ) && $this->has_task_type( $args['task'] ) ) {
+			$this->set_current_task_type( $args['task'] );
+		}
+
 		if ( $this->needs_setup() ) {
 			$this->setup();
 		}
 
 		if ( is_null( $this->current_task ) ) {
 			$this->set_status( 'running' );
-			$tasks = $this->get_tasks();
 
-			if ( $task_type = $this->get_current_task_type() ) {
-				if ( $task = $this->get_task( $task_type ) ) {
-					$this->current_task = $task;
-				}
+			$tasks             = $this->get_tasks();
+			$current_task_type = $this->get_current_task_type();
+
+			if ( $current_task_type && ! $this->get_task( $current_task_type ) ) {
+				$current_task_type = '';
 			}
 
-			if ( is_null( $this->current_task ) ) {
-				$this->current_task = $tasks[0];
+			if ( empty( $current_task_type ) ) {
+				$current_task_type = $tasks[0]->get_type();
 			}
 
-			$this->set_current_task_type( $this->current_task->get_type() );
+			$this->set_current_task_type( $current_task_type );
+			$this->current_task = $this->get_task( $current_task_type );
 		}
 	}
 
@@ -411,9 +432,9 @@ abstract class Order extends WC_Data {
 		$this->init();
 		$this->set_current_notice_data( array() );
 
-		if ( $task = $this->get_current_task() ) {
+		if ( $this->get_current_task() ) {
 			$tasks     = $this->get_tasks();
-			$new_index = $this->task_map[ $task->get_type() ] + 1;
+			$new_index = $this->get_current_task_index() + 1;
 
 			if ( isset( $tasks[ $new_index ] ) ) {
 				$next_task = $tasks[ $new_index ];
@@ -423,6 +444,60 @@ abstract class Order extends WC_Data {
 		}
 
 		return null;
+	}
+
+	public function get_url() {
+		return add_query_arg(
+			array(
+				'pick-pack-order' => $this->get_id(),
+				'task'            => $this->get_current_task()->get_type(),
+			),
+			admin_url( 'admin.php?page=shipments-pick-pack' )
+		);
+	}
+
+	public function get_next_url() {
+		$url = $this->get_url();
+
+		if ( $next = $this->get_next() ) {
+			$url = add_query_arg( array( 'task' => $next->get_type() ), $url );
+		}
+
+		return $url;
+	}
+
+	public function get_prev_url() {
+		$url = $this->get_url();
+
+		if ( $prev = $this->get_prev() ) {
+			$url = add_query_arg( array( 'task' => $prev->get_type() ), $url );
+		}
+
+		return $url;
+	}
+
+	protected function is_last_task() {
+		$is_last = false;
+
+		if ( null !== $this->get_current_task_index() ) {
+			$is_last = ( $this->get_current_task_index() + 1 ) === count( $this->get_tasks() );
+		}
+
+		return $is_last;
+	}
+
+	protected function is_first_task() {
+		return 0 === $this->get_current_task_index();
+	}
+
+	protected function get_current_task_index() {
+		$index = null;
+
+		if ( $task = $this->get_current_task() ) {
+			$index = $this->task_map[ $task->get_type() ];
+		}
+
+		return $index;
 	}
 
 	public function next() {
@@ -443,9 +518,9 @@ abstract class Order extends WC_Data {
 		$this->init();
 		$this->set_current_notice_data( array() );
 
-		if ( $task = $this->get_current_task() ) {
+		if ( $this->get_current_task() ) {
 			$tasks     = $this->get_tasks();
-			$new_index = $this->task_map[ $task->get_type() ] - 1;
+			$new_index = $this->get_current_task_index() - 1;
 
 			if ( isset( $tasks[ $new_index ] ) ) {
 				$prev_task = $tasks[ $new_index ];
@@ -466,6 +541,10 @@ abstract class Order extends WC_Data {
 		}
 
 		return false;
+	}
+
+	public function get_progress() {
+		return (int) floor( ( $this->get_current_task_index() ) / count( $this->get_tasks() ) * 100 );
 	}
 
 	public function get_current_error() {
@@ -540,7 +619,7 @@ abstract class Order extends WC_Data {
 	}
 
 	public function pause() {
-		self::log( 'Pausing' );
+		$this->log( 'Pausing' );
 
 		$this->set_status( 'paused' );
 		$this->save();
@@ -606,6 +685,12 @@ abstract class Order extends WC_Data {
 		}
 
 		return $this->get_id();
+	}
+
+	protected function complete() {
+		$this->log( 'Completing' );
+
+		$this->update_status( 'completed' );
 	}
 
 	/**

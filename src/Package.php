@@ -66,6 +66,63 @@ class Package {
 		add_action(
 			'admin_init1',
 			function() {
+				$pick = \Vendidero\Germanized\Shipments\PickPack\Helper::get_pick_pack_order( 13 );
+				$pick->set_current_task_type( '' );
+				$pick->set_current_order_index( 0 );
+				$pick->save();
+
+				exit();
+
+				var_dump( $pick->get_progress() );
+
+				var_dump( $pick->get_orders() );
+				var_dump( $pick->get_current_order()->get_id() );
+				var_dump( $pick->get_current_task()->get_type() );
+
+				var_dump( 'next!' );
+				$pick->next();
+
+				var_dump( $pick->get_progress() );
+				var_dump( $pick->get_current_order()->get_id() );
+				var_dump( $pick->get_current_task()->get_type() );
+
+				$pick->next();
+
+				var_dump( $pick->get_progress() );
+				var_dump( $pick->get_current_order()->get_id() );
+				var_dump( $pick->get_current_task()->get_type() );
+
+				$pick->next();
+
+				var_dump( $pick->get_progress() );
+				var_dump( $pick->get_current_order()->get_id() );
+				var_dump( $pick->get_current_task()->get_type() );
+
+				$pick->next();
+
+				var_dump( $pick->get_progress() );
+				var_dump( $pick->get_current_order()->get_id() );
+				var_dump( $pick->get_current_task()->get_type() );
+
+				$pick->next();
+
+				var_dump( $pick->get_progress() );
+				var_dump( $pick->get_current_order()->get_id() );
+				var_dump( $pick->get_current_task()->get_type() );
+
+				$pick->prev();
+
+				var_dump( $pick->get_progress() );
+				var_dump( $pick->get_current_order()->get_id() );
+				var_dump( $pick->get_current_task()->get_type() );
+
+				exit();
+			}
+		);
+
+		add_action(
+			'admin_init1',
+			function() {
 				self::install();
 
 				$pick = new PickPack\Loop();

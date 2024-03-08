@@ -11,6 +11,7 @@ class Loop extends Order {
 		'date_end'            => null,
 		'query_args'          => array(),
 		'orders'              => array(),
+		'orders_processed'    => array(),
 		'current_order_index' => 0,
 		'total'               => 0,
 	);
@@ -93,6 +94,20 @@ class Loop extends Order {
 		return $this->get_prop( 'orders', $context );
 	}
 
+	public function has_order( $order_id ) {
+		return in_array( (int) $order_id, $this->get_orders(), true );
+	}
+
+	/**
+	 * Return orders processed
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return array The orders
+	 */
+	public function get_orders_processed( $context = 'view' ) {
+		return $this->get_prop( 'orders_processed', $context );
+	}
+
 	/**
 	 * Return total
 	 *
@@ -150,6 +165,15 @@ class Loop extends Order {
 	}
 
 	/**
+	 * Qrders
+	 *
+	 * @param array $orders The orders
+	 */
+	public function set_orders_processed( $orders ) {
+		$this->set_prop( 'orders_processed', array_unique( (array) $orders ) );
+	}
+
+	/**
 	 * Set total
 	 *
 	 * @param integer $total The total
@@ -164,11 +188,25 @@ class Loop extends Order {
 	 * @param integer $current_order_index The current order index
 	 */
 	public function set_current_order_index( $current_order_index ) {
+		$this->current_order = null;
+
 		$this->set_prop( 'current_order_index', (int) $current_order_index );
 	}
 
+	public function set_current_order_id( $current_order_id ) {
+		$orders = $this->get_orders();
+		$key    = array_search( $current_order_id, $orders, true );
+
+		if ( false !== $key ) {
+			$this->set_current_order_index( $key );
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
-	 * @return \Vendidero\Germanized\Shipments\Order
+	 * @return \Vendidero\Germanized\Shipments\Order|null
 	 */
 	public function get_current_order() {
 		$this->init();
@@ -195,6 +233,148 @@ class Loop extends Order {
 		return false;
 	}
 
+	public function get_progress() {
+		$total_tasks   = count( $this->get_tasks() );
+		$current_count = ( $this->get_current_order_index() * $total_tasks ) + $this->get_current_task_index();
+		$current_total = count( $this->get_orders() ) * $total_tasks;
+
+		return (int) floor( ( $current_count / $current_total ) * 100 );
+	}
+
+	public function get_next() {
+		$next = parent::get_next();
+
+		if ( ! $next ) {
+			if ( null !== $this->get_next_order_index() ) {
+				$tasks = $this->get_tasks();
+				$next  = $tasks[0];
+			}
+		}
+
+		return $next;
+	}
+
+	public function next() {
+		if ( $task = $this->get_next() ) {
+			if ( $this->is_last_task() ) {
+				$this->set_current_order_index( $this->get_next_order_index() );
+			}
+
+			$this->set_current_task_type( $task->get_type() );
+			$this->save();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public function get_prev() {
+		$prev = parent::get_prev();
+
+		if ( ! $prev ) {
+			if ( null !== $this->get_prev_order_index() ) {
+				$tasks = $this->get_tasks();
+				$prev  = $tasks[ count( $tasks ) - 1 ];
+			}
+		}
+
+		return $prev;
+	}
+
+	public function prev() {
+		if ( $task = $this->get_prev() ) {
+			if ( $this->is_first_task() ) {
+				$this->set_current_order_index( $this->get_prev_order_index() );
+			}
+
+			$this->set_current_task_type( $task->get_type() );
+			$this->save();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	protected function get_next_order_id() {
+		if ( $next = $this->get_next_order_index() ) {
+			return $this->get_orders()[ $next ];
+		}
+
+		return 0;
+	}
+
+	protected function get_next_order_index() {
+		$next_index = $this->get_current_order_index() + 1;
+
+		if ( $next_index < $this->get_total() ) {
+			return $next_index;
+		}
+
+		return null;
+	}
+
+	protected function get_prev_order_index() {
+		$prev_index = $this->get_current_order_index() - 1;
+
+		if ( $prev_index >= 0 ) {
+			return $prev_index;
+		}
+
+		return null;
+	}
+
+	protected function get_prev_order_id() {
+		$prev = $this->get_prev_order_index();
+
+		if ( null !== $prev ) {
+			return $this->get_orders()[ $prev ];
+		}
+
+		return 0;
+	}
+
+	public function process( $to_process = array() ) {
+		$result = parent::process( $to_process );
+
+		if ( ! is_wp_error( $result ) && $this->is_last_task() ) {
+			$processed   = $this->get_orders_processed();
+			$processed[] = $this->get_current_order()->get_id();
+
+			$this->set_orders_processed( $processed );
+			$this->save();
+		}
+
+		return $result;
+	}
+
+	public function get_url() {
+		$url = add_query_arg( array( 'order' => $this->get_current_order() ? $this->get_current_order()->get_id() : 0 ), parent::get_url() );
+
+		return $url;
+	}
+
+	public function get_next_url() {
+		$url = parent::get_next_url();
+
+		if ( $this->is_last_task() && ( $next_order = $this->get_next_order_id() ) ) {
+			$url = add_query_arg( array( 'order' => $next_order ), $url );
+		}
+
+		return $url;
+	}
+
+	public function get_prev_url() {
+		$url = parent::get_prev_url();
+
+		if ( $this->is_first_task() && ( $prev_order = $this->get_prev_order_id() ) ) {
+			$url = add_query_arg( array( 'order' => $prev_order ), $url );
+		}
+
+		return $url;
+	}
+
 	public function setup() {
 		$args = $this->get_query_args();
 
@@ -210,7 +390,7 @@ class Loop extends Order {
 			$loops_needed         = ceil( $total / $args['limit'] );
 
 			if ( 0 === $loops_needed ) {
-				$this->update_status( 'idling' );
+				$this->complete();
 			} else {
 				$this->update_meta_data( '_setup_found_orders', (int) $total );
 				$this->set_status( 'doing-setup' );
@@ -289,19 +469,46 @@ class Loop extends Order {
 				WC()->queue()->cancel_all( 'woocommerce_gzd_shipment_pick_pack_order_setup', array(), 'woocommerce-gzd-pick-pack-orders-' . $this->get_id() );
 
 				$this->set_total( count( $this->get_orders() ) );
-				$this->set_status( 'idling' );
-				$this->save();
+
+				if ( 0 === $this->get_total() ) {
+					$this->complete();
+				} else {
+					$this->set_status( 'idling' );
+					$this->save();
+				}
 
 				$this->log( 'Finished setup' );
 			}
 		}
 	}
 
-	protected function init() {
-		parent::init();
+	public function init( $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'order' => 0,
+			)
+		);
+
+		$args['order'] = absint( $args['order'] );
+
+		if ( ! empty( $args['order'] ) ) {
+			$this->set_current_order_id( $args['order'] );
+		}
+
+		parent::init( $args );
 
 		if ( is_null( $this->current_order ) ) {
+			$orders = $this->get_orders();
 
+			if ( array_key_exists( $this->get_current_order_index(), $orders ) ) {
+				$this->current_order = $this->get_order( $orders[ $this->get_current_order_index() ] );
+			}
+
+			if ( is_null( $this->current_order ) && count( $orders ) > 0 ) {
+				$this->set_current_order_index( 0 );
+				$this->current_order = $this->get_order( $orders[0] );
+			}
 		}
 	}
 }

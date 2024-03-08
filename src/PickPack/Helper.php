@@ -8,6 +8,16 @@ defined( 'ABSPATH' ) || exit;
 
 class Helper {
 
+	/**
+	 * @var null|Task[]
+	 */
+	protected static $task_types = null;
+
+	/**
+	 * @var null|Order
+	 */
+	protected static $order = null;
+
 	public static function init() {
 		add_action( 'admin_menu', array( __CLASS__, 'add_page' ), 25 );
 		add_action( 'admin_head', array( __CLASS__, 'hide_page_from_menu' ) );
@@ -45,31 +55,57 @@ class Helper {
 				return;
 			}
 
-			self::render_pick_pack_order( $pick_pack_order );
+			self::$order = $pick_pack_order;
+
+			$args          = array();
+			$args['task']  = isset( $_GET['task'] ) ? wc_clean( wp_unslash( $_GET['task'] ) ) : '';
+			$args['order'] = isset( $_GET['order'] ) ? wc_clean( wp_unslash( $_GET['order'] ) ) : 0;
+
+			self::$order->init( $args );
+
+			self::render_pick_pack_order();
 		} else {
 			self::render_new_pick_pack_order();
 		}
 	}
 
 	/**
-	 * @param Order $pick_pack_order
-	 *
+	 * @return Order|null
+	 */
+	protected static function get_current_order() {
+		return self::$order;
+	}
+
+	/**
 	 * @return void
 	 */
-	protected static function render_pick_pack_order( $pick_pack_order ) {
+	protected static function render_pick_pack_order() {
 		?>
-		<div class="wrap woocommerce woocommerce-pick-pack-order woocommerce-pick-pack-order-<?php echo esc_attr( $pick_pack_order->get_type() ); ?>" data-id="<?php echo esc_attr( $pick_pack_order->get_id() ); ?>" data-type="<?php echo esc_attr( $pick_pack_order->get_type() ); ?>">
+		<div class="wrap woocommerce woocommerce-pick-pack-order woocommerce-pick-pack-order-<?php echo esc_attr( self::get_current_order()->get_type() ); ?>" data-id="<?php echo esc_attr( self::get_current_order()->get_id() ); ?>" data-type="<?php echo esc_attr( self::get_current_order()->get_type() ); ?>">
 			<div class="pick-pack-order">
-				<form class="pick-pack-order-form pick-pack-order-form">
-					<header>
-						<div class="progress-bar-wrapper">
-							<progress max="100" value="<?php echo esc_attr( $pick_pack_order->get_percentage() ); ?>"></progress>
-							<span class="progress-desc"><?php printf( _x( 'Processed %1$d of approximately %2$d orders', 'shipments', 'woocommerce-germanized-shipments' ), $pick_pack_order->get_offset(), $pick_pack_order->get_total() ); ?></span>
-						</div>
+				<header>
+					<div class="progress-bar-wrapper">
+						<progress max="100" value="<?php echo esc_attr( self::get_current_order()->get_progress() ); ?>"></progress>
+					</div>
+				</header>
 
-						<h2><?php printf( _x( 'Order #%1$s: %2$s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( $pick_pack_order->get_current_order_number() ), $pick_pack_order->get_current_task_name() ); ?></h2>
-					</header>
-				</form>
+				<section>
+					<h2><?php echo esc_html( self::get_current_order()->get_current_task()->get_title() ); ?> <?php echo esc_html( self::get_current_order()->get_current_order() ? self::get_current_order()->get_current_order()->get_order_number() : '' ); ?></h2>
+
+					<?php self::get_current_order()->render(); ?>
+				</section>
+
+				<footer>
+					<nav>
+						<?php if ( self::get_current_order()->get_prev() ) : ?>
+							<a class="prev" href="<?php echo esc_url( self::get_current_order()->get_prev_url() ); ?>"><?php echo esc_html_x( 'Previous', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+						<?php endif; ?>
+
+						<?php if ( self::get_current_order()->get_next() ) : ?>
+							<a class="next" href="<?php echo esc_url( self::get_current_order()->get_next_url() ); ?>"><?php echo esc_html_x( 'Next', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+						<?php endif; ?>
+					</nav>
+				</footer>
 			</div>
 		</div>
 		<?php
@@ -92,7 +128,7 @@ class Helper {
 
 							<?php foreach ( self::get_available_types() as $type => $type_data ) : ?>
 								<div>
-									<input type="radio" id="order_type_<?php echo esc_attr( $type ); ?>" name="order_type" value="<?php echo esc_attr( $type ); ?>" <?php checked( 'manual', $type ); ?> />
+									<input type="radio" id="order_type_<?php echo esc_attr( $type ); ?>" name="order_type" value="<?php echo esc_attr( $type ); ?>" <?php checked( self::get_default_type(), $type ); ?> />
 									<label for="order_type_<?php echo esc_attr( $type ); ?>">
 										<span class="title"><?php echo esc_html( $type_data['label'] ); ?></span>
 										<span class="description"><?php echo esc_html( $type_data['description'] ); ?></span>
@@ -115,13 +151,14 @@ class Helper {
 							<fieldset class="form-row show-hide-pick-pack-order form-row-pick-pack-order-<?php echo esc_attr( $pick_pack_type ); ?>" id="order-<?php echo esc_attr( $pick_pack_type ); ?>-tasks">
 								<legend><?php echo esc_html_x( 'Tasks', 'shipments', 'woocommerce-germanized-shipments' ); ?></legend>
 
-								<?php foreach ( self::get_available_tasks( $pick_pack_type ) as $task_name => $task ) : ?>
+								<?php foreach ( self::get_available_tasks( $pick_pack_type ) as $task ) : ?>
 									<div>
-										<input type="checkbox" id="order_<?php echo esc_attr( $pick_pack_type ); ?>_task_<?php echo esc_attr( $task['name'] ); ?>" name="order_<?php echo esc_attr( $pick_pack_type ); ?>_tasks[]" value="<?php echo esc_attr( $task['name'] ); ?>" />
-										<label for="order_<?php echo esc_attr( $pick_pack_type ); ?>_task_<?php echo esc_attr( $task['name'] ); ?>">
-											<?php echo esc_attr( $task['title'] ); ?>
-											<?php if ( ! empty( $task['description'] ) ) : ?>
-												<?php echo wc_help_tip( $task['description'] ); ?>
+										<input type="checkbox" id="order_<?php echo esc_attr( $pick_pack_type ); ?>_task_<?php echo esc_attr( $task->get_type() ); ?>" name="order_<?php echo esc_attr( $pick_pack_type ); ?>_tasks[]" value="<?php echo esc_attr( $task->get_type() ); ?>" />
+										<label for="order_<?php echo esc_attr( $pick_pack_type ); ?>_task_<?php echo esc_attr( $task->get_type() ); ?>">
+											<?php echo esc_html( $task->get_title() ); ?>
+
+											<?php if ( ! empty( $task->get_description() ) ) : ?>
+												<?php echo wc_help_tip( $task->get_description() ); ?>
 											<?php endif; ?>
 										</label>
 									</div>
@@ -136,6 +173,33 @@ class Helper {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * @param $order_type
+	 *
+	 * @return Task[]
+	 */
+	public static function get_available_tasks( $order_type = null ) {
+		if ( is_null( self::$task_types ) ) {
+			self::$task_types = array();
+
+			foreach ( array_keys( Factory::get_task_types() ) as $task_type ) {
+				self::$task_types[ $task_type ] = Factory::get_task( $task_type );
+			}
+		}
+
+		$tasks = self::$task_types;
+
+		if ( ! is_null( $order_type ) ) {
+			foreach ( $tasks as $task_type => $task ) {
+				if ( ! $task->is_order_type_supported( $order_type ) ) {
+					unset( $tasks[ $task_type ] );
+				}
+			}
+		}
+
+		return $tasks;
 	}
 
 	public static function get_pick_pack_order( $order ) {
@@ -183,6 +247,10 @@ class Helper {
 				'description' => _x( 'Process orders step by step. Manually go through the pick & pack steps.', 'shipments', 'woocommerce-germanized-shipments' ),
 			),
 		);
+	}
+
+	public static function get_default_type() {
+		return 'loop';
 	}
 
 	public static function get_type( $type ) {

@@ -38,7 +38,15 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 		'current_notice_data',
 	);
 
-	protected $internal_meta_keys = array();
+	protected $internal_meta_keys = array(
+		'date_start',
+		'date_end',
+		'query_args',
+		'orders',
+		'orders_processed',
+		'current_order_index',
+		'total',
+	);
 
 	/*
 	|--------------------------------------------------------------------------
@@ -300,7 +308,7 @@ class PickPackOrder extends WC_Data_Store_WP implements WC_Object_Data_Store_Int
 				if ( $gmt && Package::is_valid_mysql_date( $gmt ) ) {
 					$meta_value = wc_string_to_timestamp( $gmt );
 				}
-			} elseif ( in_array( $prop, array( 'orders', 'query_args' ), true ) ) {
+			} elseif ( in_array( $prop, array( 'orders', 'query_args', 'orders_processed' ), true ) ) {
 				$meta_value = is_array( $meta_value ) ? $meta_value : array();
 			}
 

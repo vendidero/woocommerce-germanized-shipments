@@ -15,7 +15,7 @@ class Factory {
 	 * Get pick pack order.
 	 *
 	 * @param  mixed $pick_pack_order_id (default: false) Pick pack order id to get or empty if new.
-	 * @return Order|ManualOrder|false
+	 * @return Order|Loop|false
 	 */
 	public static function get_pick_pack_order( $pick_pack_order_id = false, $pick_pack_type = 'manual' ) {
 		$pick_pack_order_id = self::get_pick_pack_order_id( $pick_pack_order_id );
