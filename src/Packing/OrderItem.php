@@ -26,9 +26,11 @@ class OrderItem extends Item {
 		}
 
 		if ( $product = $this->get_product() ) {
-			$width  = empty( $product->get_width() ) ? 0 : wc_format_decimal( $product->get_width() );
-			$length = empty( $product->get_length() ) ? 0 : wc_format_decimal( $product->get_length() );
-			$depth  = empty( $product->get_height() ) ? 0 : wc_format_decimal( $product->get_height() );
+			$s_product = wc_gzd_shipments_get_product( $product );
+
+			$width  = empty( $s_product->get_shipping_width() ) ? 0 : wc_format_decimal( $s_product->get_shipping_width() );
+			$length = empty( $s_product->get_shipping_length() ) ? 0 : wc_format_decimal( $s_product->get_shipping_length() );
+			$depth  = empty( $s_product->get_shipping_height() ) ? 0 : wc_format_decimal( $s_product->get_shipping_height() );
 
 			$this->dimensions = array(
 				'width'  => (int) ceil( (float) wc_get_dimension( $width, 'mm' ) ),

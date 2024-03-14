@@ -110,6 +110,7 @@ class MethodHelper {
 					continue;
 				}
 
+				$s_product     = wc_gzd_shipments_get_product( $product );
 				$line_total    = (float) $item['line_total'];
 				$line_subtotal = (float) $item['line_subtotal'];
 
@@ -119,9 +120,9 @@ class MethodHelper {
 				}
 
 				$quantity = (int) ceil( (float) $item['quantity'] );
-				$width    = ( empty( $product->get_width() ) ? 0 : wc_format_decimal( $product->get_width() ) ) * $quantity;
-				$length   = ( empty( $product->get_length() ) ? 0 : wc_format_decimal( $product->get_length() ) ) * $quantity;
-				$height   = ( empty( $product->get_height() ) ? 0 : wc_format_decimal( $product->get_height() ) ) * $quantity;
+				$width    = ( empty( $s_product->get_shipping_width() ) ? 0 : wc_format_decimal( $s_product->get_shipping_width() ) ) * $quantity;
+				$length   = ( empty( $s_product->get_shipping_length() ) ? 0 : wc_format_decimal( $s_product->get_shipping_length() ) ) * $quantity;
+				$height   = ( empty( $s_product->get_shipping_height() ) ? 0 : wc_format_decimal( $s_product->get_shipping_height() ) ) * $quantity;
 				$weight   = ( empty( $product->get_weight() ) ? 0 : wc_format_decimal( $product->get_weight() ) ) * $quantity;
 
 				$package_data['total']      += $line_total;

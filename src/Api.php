@@ -34,7 +34,7 @@ class Api {
 		if ( $product = wc_get_product( $object ) ) {
 			$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 
-			$response->set_data( array_merge( $response->data, self::get_product_data( $product, $context ) ) );
+			$response->set_data( array_merge_recursive( $response->data, self::get_product_data( $product, $context ) ) );
 		}
 
 		return $response;
@@ -47,6 +47,11 @@ class Api {
 			$data['hs_code']             = $shipments_product->get_hs_code( $context );
 			$data['customs_description'] = $shipments_product->get_customs_description( $context );
 			$data['manufacture_country'] = $shipments_product->get_manufacture_country( $context );
+			$data['shipping_dimensions'] = array(
+				'length' => $shipments_product->get_shipping_length( $context ),
+				'width'  => $shipments_product->get_shipping_width( $context ),
+				'height' => $shipments_product->get_shipping_height( $context ),
+			);
 		}
 
 		return $data;
@@ -70,6 +75,28 @@ class Api {
 
 			if ( isset( $request['manufacture_country'] ) ) {
 				$shipments_product->set_manufacture_country( wc_clean( wp_unslash( $request['manufacture_country'] ) ) );
+			}
+
+			// Virtual.
+			if ( isset( $request['virtual'] ) && true === $request['virtual'] ) {
+				$shipments_product->set_shipping_length( '' );
+				$shipments_product->set_shipping_width( '' );
+				$shipments_product->set_shipping_height( '' );
+			} else {
+				// Height.
+				if ( isset( $request['shipping_dimensions']['height'] ) ) {
+					$shipments_product->set_shipping_height( $request['shipping_dimensions']['height'] );
+				}
+
+				// Width.
+				if ( isset( $request['shipping_dimensions']['width'] ) ) {
+					$shipments_product->set_shipping_width( $request['shipping_dimensions']['width'] );
+				}
+
+				// Length.
+				if ( isset( $request['shipping_dimensions']['length'] ) ) {
+					$shipments_product->set_shipping_length( $request['shipping_dimensions']['length'] );
+				}
 			}
 		}
 
@@ -138,6 +165,34 @@ class Api {
 			'readonly'    => true,
 		);
 
+		$dimension_unit_label = Package::get_dimensions_unit_label( get_option( 'woocommerce_dimension_unit', 'cm' ) );
+
+		$schema_properties['shipping_dimensions'] = array(
+			'description' => _x( 'Product shipping dimensions.', 'shipments', 'woocommerce-germanized-shipments' ),
+			'type'        => 'object',
+			'context'     => array( 'view', 'edit' ),
+			'properties'  => array(
+				'length' => array(
+					/* translators: %s: dimension unit */
+					'description' => sprintf( _x( 'Shipping length (%s).', 'shipments', 'woocommerce-germanized-shipments' ), $dimension_unit_label ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'width'  => array(
+					/* translators: %s: dimension unit */
+					'description' => sprintf( _x( 'Shipping width (%s).', 'shipments', 'woocommerce-germanized-shipments' ), $dimension_unit_label ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'height' => array(
+					/* translators: %s: dimension unit */
+					'description' => sprintf( _x( 'Shipping height (%s).', 'shipments', 'woocommerce-germanized-shipments' ), $dimension_unit_label ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+				),
+			),
+		);
+
 		return $schema_properties;
 	}
 
@@ -167,6 +222,34 @@ class Api {
 			'description' => _x( 'Country of manufacture (Customs)', 'shipments', 'woocommerce-germanized-shipments' ),
 			'type'        => 'string',
 			'context'     => array( 'view', 'edit' ),
+		);
+
+		$dimension_unit_label = Package::get_dimensions_unit_label( get_option( 'woocommerce_dimension_unit', 'cm' ) );
+
+		$schema_properties['shipping_dimensions'] = array(
+			'description' => _x( 'Product shipping dimensions.', 'shipments', 'woocommerce-germanized-shipments' ),
+			'type'        => 'object',
+			'context'     => array( 'view', 'edit' ),
+			'properties'  => array(
+				'length' => array(
+					/* translators: %s: dimension unit */
+					'description' => sprintf( _x( 'Shipping length (%s).', 'shipments', 'woocommerce-germanized-shipments' ), $dimension_unit_label ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'width'  => array(
+					/* translators: %s: dimension unit */
+					'description' => sprintf( _x( 'Shipping width (%s).', 'shipments', 'woocommerce-germanized-shipments' ), $dimension_unit_label ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+				),
+				'height' => array(
+					/* translators: %s: dimension unit */
+					'description' => sprintf( _x( 'Shipping height (%s).', 'shipments', 'woocommerce-germanized-shipments' ), $dimension_unit_label ),
+					'type'        => 'string',
+					'context'     => array( 'view', 'edit' ),
+				),
+			),
 		);
 
 		return $schema_properties;

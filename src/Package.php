@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments;
 
+use Automattic\WooCommerce\Utilities\I18nUtil;
 use Exception;
 use Vendidero\Germanized\Shipments\Caches\Helper;
 use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
@@ -424,6 +425,10 @@ class Package {
 
 			do_action( 'woocommerce_gzd_shipments_updated' );
 		}
+	}
+
+	public static function get_dimensions_unit_label( $unit ) {
+		return class_exists( 'Automattic\WooCommerce\Utilities\I18nUtil' ) ? I18nUtil::get_dimensions_unit_label( $unit ) : $unit;
 	}
 
 	/**

@@ -48,14 +48,60 @@ class Product {
 		return $this->product;
 	}
 
+	public function is_variation() {
+		return $this->get_product()->is_type( 'variation' );
+	}
+
 	protected function get_forced_parent_product() {
-		if ( $this->product->is_type( 'variation' ) ) {
+		if ( $this->is_variation() ) {
 			if ( $parent = wc_get_product( $this->product->get_parent_id() ) ) {
 				return $parent;
 			}
 		}
 
 		return $this->product;
+	}
+
+	public function get_shipping_length( $context = 'view' ) {
+		$length = $this->get_product()->get_meta( '_shipping_length', true, $context );
+
+		if ( 'view' === $context && '' === $length ) {
+			if ( $this->is_variation() ) {
+				$length = wc_gzd_shipments_get_product( $this->get_forced_parent_product() )->get_shipping_length( $context );
+			} else {
+				$length = $this->get_product()->get_length();
+			}
+		}
+
+		return $length;
+	}
+
+	public function get_shipping_width( $context = 'view' ) {
+		$width = $this->get_product()->get_meta( '_shipping_width', true, $context );
+
+		if ( 'view' === $context && '' === $width ) {
+			if ( $this->is_variation() ) {
+				$width = wc_gzd_shipments_get_product( $this->get_forced_parent_product() )->get_shipping_width( $context );
+			} else {
+				$width = $this->get_product()->get_width();
+			}
+		}
+
+		return $width;
+	}
+
+	public function get_shipping_height( $context = 'view' ) {
+		$height = $this->get_product()->get_meta( '_shipping_height', true, $context );
+
+		if ( 'view' === $context && '' === $height ) {
+			if ( $this->is_variation() ) {
+				$height = wc_gzd_shipments_get_product( $this->get_forced_parent_product() )->get_shipping_height( $context );
+			} else {
+				$height = $this->get_product()->get_height();
+			}
+		}
+
+		return $height;
 	}
 
 	public function get_customs_description( $context = 'view' ) {
@@ -122,6 +168,18 @@ class Product {
 
 	public function set_manufacture_country( $country ) {
 		$this->product->update_meta_data( '_manufacture_country', substr( wc_strtoupper( $country ), 0, 2 ) );
+	}
+
+	public function set_shipping_length( $length ) {
+		$this->product->update_meta_data( '_shipping_length', wc_format_decimal( $length ) );
+	}
+
+	public function set_shipping_width( $width ) {
+		$this->product->update_meta_data( '_shipping_width', wc_format_decimal( $width ) );
+	}
+
+	public function set_shipping_height( $height ) {
+		$this->product->update_meta_data( '_shipping_height', wc_format_decimal( $height ) );
 	}
 
 	public function set_customs_description( $description ) {

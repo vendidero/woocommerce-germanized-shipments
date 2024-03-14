@@ -66,7 +66,9 @@ class Admin {
 
 		// Product Options
 		add_action( 'woocommerce_product_options_shipping', array( __CLASS__, 'product_options' ), 9 );
+		add_action( 'woocommerce_variation_options_dimensions', array( __CLASS__, 'product_variation_options' ), 10, 3 );
 		add_action( 'woocommerce_admin_process_product_object', array( __CLASS__, 'save_product' ), 10, 1 );
+		add_action( 'woocommerce_admin_process_variation_object', array( __CLASS__, 'save_variation_product' ), 10, 2 );
 
 		// Observe base country setting
 		add_action( 'woocommerce_settings_save_general', array( __CLASS__, 'observe_base_country_setting' ), 100 );
@@ -608,14 +610,76 @@ class Admin {
 		}
 	}
 
+	/**
+	 * @param $loop
+	 * @param $variation_data
+	 * @param \WP_Post $variation
+	 *
+	 * @return void
+	 */
+	public static function product_variation_options( $loop, $variation_data, $variation ) {
+		if ( ! $variation_object = wc_get_product( $variation ) ) {
+			return;
+		}
+
+		$_parent_product          = wc_get_product( $variation_object->get_parent_id() );
+		$shipments_parent_product = wc_gzd_shipments_get_product( $_parent_product );
+
+		if ( wc_product_dimensions_enabled() ) {
+			$shipments_product = wc_gzd_shipments_get_product( $variation_object );
+			$parent_length     = $shipments_parent_product ? wc_format_localized_decimal( $shipments_parent_product->get_shipping_length() ) : '';
+			$parent_width      = $shipments_parent_product ? wc_format_localized_decimal( $shipments_parent_product->get_shipping_width() ) : '';
+			$parent_height     = $shipments_parent_product ? wc_format_localized_decimal( $shipments_parent_product->get_shipping_height() ) : '';
+			?>
+			<p class="form-field form-row dimensions_field shipping_dimensions_field hide_if_variation_virtual form-row-first">
+				<label for="product_shipping_length">
+					<?php
+					printf(
+						/* translators: %s dimension unit */
+						esc_html_x( 'Shipping dimensions (%s)', 'shipments', 'woocommerce-germanized-shipments' ),
+						esc_html( Package::get_dimensions_unit_label( get_option( 'woocommerce_dimension_unit' ) ) )
+					);
+					?>
+				</label>
+				<?php echo wc_help_tip( _x( 'Length x width x height in decimal form', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>
+				<span class="wrap">
+					<input id="product_shipping_length" placeholder="<?php echo $parent_length ? esc_attr( $parent_length ) : esc_attr( wc_format_localized_decimal( $variation_object->get_length() ) ); ?>" class="input-text wc_input_decimal" size="6" type="text" name="variable_shipping_length[<?php echo esc_attr( $loop ); ?>]" value="<?php echo esc_attr( wc_format_localized_decimal( $shipments_product->get_shipping_length( 'edit' ) ) ); ?>" />
+					<input placeholder="<?php echo $parent_width ? esc_attr( $parent_width ) : esc_attr( wc_format_localized_decimal( $variation_object->get_width() ) ); ?>" class="input-text wc_input_decimal" size="6" type="text" name="variable_shipping_width[<?php echo esc_attr( $loop ); ?>]" value="<?php echo esc_attr( wc_format_localized_decimal( $shipments_product->get_shipping_width( 'edit' ) ) ); ?>" />
+					<input placeholder="<?php echo $parent_height ? esc_attr( $parent_height ) : esc_attr( wc_format_localized_decimal( $variation_object->get_height() ) ); ?>" class="input-text wc_input_decimal last" size="6" type="text" name="variable_shipping_height[<?php echo esc_attr( $loop ); ?>]" value="<?php echo esc_attr( wc_format_localized_decimal( $shipments_product->get_shipping_height( 'edit' ) ) ); ?>" />
+				</span>
+			</p>
+			<?php
+		}
+	}
+
 	public static function product_options() {
-		global $post, $thepostid, $product_object;
+		global $product_object;
 
 		$_product          = wc_get_product( $product_object );
 		$shipments_product = wc_gzd_shipments_get_product( $_product );
-
-		$countries = WC()->countries->get_countries();
-		$countries = array_merge( array( '0' => _x( 'Select a country', 'shipments', 'woocommerce-germanized-shipments' ) ), $countries );
+		$countries         = WC()->countries->get_countries();
+		$countries         = array_merge( array( '0' => _x( 'Select a country', 'shipments', 'woocommerce-germanized-shipments' ) ), $countries );
+		?>
+		<?php if ( wc_product_dimensions_enabled() ) : ?>
+			<p class="form-field dimensions_field shipping_dimensions_field">
+				<label for="product_shipping_length">
+					<?php
+					printf(
+						/* translators: WooCommerce dimension unit */
+						esc_html_x( 'Shipping dimensions (%s)', 'shipments', 'woocommerce-germanized-shipments' ),
+						esc_html( Package::get_dimensions_unit_label( get_option( 'woocommerce_dimension_unit' ) ) )
+					);
+					?>
+				</label>
+				<span class="wrap">
+					<input id="product_shipping_length" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $_product->get_length() ) ); ?>" class="input-text wc_input_decimal" size="6" type="text" name="_shipping_length" value="<?php echo esc_attr( wc_format_localized_decimal( $shipments_product->get_shipping_length( 'edit' ) ) ); ?>" />
+					<input id="product_shipping_width" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $_product->get_width() ) ); ?>" class="input-text wc_input_decimal" size="6" type="text" name="_shipping_width" value="<?php echo esc_attr( wc_format_localized_decimal( $shipments_product->get_shipping_width( 'edit' ) ) ); ?>" />
+					<input id="product_shipping_height" placeholder="<?php echo esc_attr( wc_format_localized_decimal( $_product->get_height() ) ); ?>" class="input-text wc_input_decimal last" size="6" type="text" name="_shipping_height" value="<?php echo esc_attr( wc_format_localized_decimal( $shipments_product->get_shipping_height( 'edit' ) ) ); ?>" />
+				</span>
+				<?php echo wc_help_tip( _x( 'Length x width x height in decimal form', 'shipments', 'woocommerce-germanized-shipments' ) ); ?>
+			</p>
+		<?php endif; ?>
+		<?php
 
 		woocommerce_wp_checkbox(
 			array(
@@ -668,19 +732,33 @@ class Admin {
 	}
 
 	/**
+	 * @param \WC_Product_Variation $variation
+	 * @param $i
+	 *
+	 * @return void
+	 */
+	public static function save_variation_product( $variation, $i ) {
+		if ( $shipments_product = wc_gzd_shipments_get_product( $variation ) ) {
+			$shipments_product->set_shipping_length( isset( $_POST['variable_shipping_length'][ $i ] ) ? wc_clean( wp_unslash( $_POST['variable_shipping_length'][ $i ] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$shipments_product->set_shipping_width( isset( $_POST['variable_shipping_width'][ $i ] ) ? wc_clean( wp_unslash( $_POST['variable_shipping_width'][ $i ] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$shipments_product->set_shipping_height( isset( $_POST['variable_shipping_height'][ $i ] ) ? wc_clean( wp_unslash( $_POST['variable_shipping_height'][ $i ] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		}
+	}
+
+	/**
 	 * @param \WC_Product $product
 	 */
 	public static function save_product( $product ) {
-		$customs_description = isset( $_POST['_customs_description'] ) ? wc_clean( wp_unslash( $_POST['_customs_description'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$hs_code             = isset( $_POST['_hs_code'] ) ? wc_clean( wp_unslash( $_POST['_hs_code'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$country             = isset( $_POST['_manufacture_country'] ) ? wc_clean( wp_unslash( $_POST['_manufacture_country'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$is_non_returnable   = isset( $_POST['_is_non_returnable'] ) ? wc_clean( wp_unslash( $_POST['_is_non_returnable'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-
 		$shipments_product = wc_gzd_shipments_get_product( $product );
-		$shipments_product->set_hs_code( $hs_code );
-		$shipments_product->set_customs_description( $customs_description );
-		$shipments_product->set_manufacture_country( $country );
-		$shipments_product->set_is_non_returnable( $is_non_returnable );
+
+		$shipments_product->set_hs_code( isset( $_POST['_hs_code'] ) ? wc_clean( wp_unslash( $_POST['_hs_code'] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$shipments_product->set_customs_description( isset( $_POST['_customs_description'] ) ? wc_clean( wp_unslash( $_POST['_customs_description'] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$shipments_product->set_manufacture_country( isset( $_POST['_manufacture_country'] ) ? wc_clean( wp_unslash( $_POST['_manufacture_country'] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$shipments_product->set_is_non_returnable( isset( $_POST['_is_non_returnable'] ) ? wc_clean( wp_unslash( $_POST['_is_non_returnable'] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+
+		$shipments_product->set_shipping_length( isset( $_POST['_shipping_length'] ) ? wc_clean( wp_unslash( $_POST['_shipping_length'] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$shipments_product->set_shipping_width( isset( $_POST['_shipping_width'] ) ? wc_clean( wp_unslash( $_POST['_shipping_width'] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$shipments_product->set_shipping_height( isset( $_POST['_shipping_height'] ) ? wc_clean( wp_unslash( $_POST['_shipping_height'] ) ) : '' ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
 		/**
 		 * Remove legacy data upon saving in case it is not transmitted (e.g. DHL standalone plugin).
