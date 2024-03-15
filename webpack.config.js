@@ -45,8 +45,7 @@ const defaultRules = defaultConfig.module.rules.filter( ( rule ) => {
 } );
 
 const blocks = {
-    'checkout': {},
-    'cart': {}
+    'checkout-pickup-location-select': {}
 };
 
 const getBlockEntries = ( relativePath ) => {
@@ -81,12 +80,15 @@ const staticEntry = { ...staticCss, ...staticJs }
 const entries = {
     styling: {
         // Shared blocks code
-        'wc-shipments-blocks': './assets/js/index.js',
+        'wc-gzd-shipments-blocks': './assets/js/index.js',
         ...getBlockEntries( '{index,block,frontend}.{t,j}s{,x}' ),
+    },
+    core: {
+        blocksCheckout: './assets/js/packages/checkout/index.js',
     },
     main: {
         // Shared blocks code
-        'wc-shipments-blocks': './assets/js/index.js',
+        'wc-gzd-shipments-blocks': './assets/js/index.js',
         // Blocks
         ...getBlockEntries( 'index.{t,j}s{,x}' )
     },
@@ -101,12 +103,7 @@ const getEntryConfig = ( type = 'main', exclude = [] ) => {
 };
 
 const getAlias = ( options = {} ) => {
-    return {
-        '@shipments/base-components': path.resolve(
-            __dirname,
-            `/assets/js/base/components/`
-        ),
-    };
+    return {};
 };
 
 const wcDepMap = {
@@ -118,7 +115,8 @@ const wcDepMap = {
     '@woocommerce/shared-hocs': [ 'wc', 'wcBlocksSharedHocs' ],
     '@woocommerce/price-format': [ 'wc', 'priceFormat' ],
     '@woocommerce/blocks-checkout': [ 'wc', 'blocksCheckout' ],
-    '@woocommerce/interactivity': [ 'wc', '__experimentalInteractivity' ]
+    '@woocommerce/interactivity': [ 'wc', '__experimentalInteractivity' ],
+    '@woocommerceGzdShipments/blocks-checkout': [ 'wcGzdShipments', 'blocksCheckout' ],
 };
 
 const wcHandleMap = {
@@ -130,7 +128,8 @@ const wcHandleMap = {
     '@woocommerce/shared-hocs': 'wc-blocks-shared-hocs',
     '@woocommerce/price-format': 'wc-price-format',
     '@woocommerce/blocks-checkout': 'wc-blocks-checkout',
-    '@woocommerce/interactivity': 'wc-interactivity'
+    '@woocommerce/interactivity': 'wc-interactivity',
+    '@woocommerceGzdShipments/blocks-checkout': 'wc-gzd-shipments-blocks-checkout',
 };
 
 const requestToExternal = ( request ) => {
@@ -154,7 +153,7 @@ const getBaseConfig = ( entry ) => {
                 return `${ paramCase( chunkData.chunk.name ) }.js`;
             },
             path: path.resolve( __dirname, 'build/' ),
-            library: [ 'wcShipments', '[name]' ],
+            library: [ 'wcGzdShipments', '[name]' ],
             libraryTarget: 'window',
             // This fixes an issue with multiple webpack projects using chunking
             // overwriting each other's chunk loader function.
@@ -232,8 +231,8 @@ const StaticConfig = {
     output: {
         path: path.resolve( __dirname, './build/static/' ),
         filename: "[name].js",
-        devtoolNamespace: 'germanizedShipments',
-        library: [ 'germanizedShipments', 'static', '[name]' ],
+        devtoolNamespace: 'wcGzdShipments',
+        library: [ 'wcGzdShipments', 'static', '[name]' ],
         libraryTarget: 'window',
     }
 };
@@ -241,7 +240,7 @@ const StaticConfig = {
 const FrontendConfig = {
     ...getBaseConfig( 'frontend' ),
     output: {
-        devtoolNamespace: 'wcShipments',
+        devtoolNamespace: 'wcGzdShipments',
         path: path.resolve( __dirname, 'build/' ),
         // This is a cache busting mechanism which ensures that the script is loaded via the browser with a ?ver=hash
         // string. The hash is based on the built file contents.
@@ -259,6 +258,18 @@ const FrontendConfig = {
         // https://webpack.js.org/blog/2020-10-10-webpack-5-release/#automatic-unique-naming
         chunkLoadingGlobal: 'webpackWcShipmentsBlocksJsonp',
     }
+};
+
+const innerCoreConfig = getBaseConfig( 'core' );
+
+const CoreConfig = {
+    ...innerCoreConfig
+};
+
+const innerMainConfig = getBaseConfig( 'main' );
+
+const MainConfig = {
+    ...innerMainConfig
 };
 
 const innerStylingConfig = getBaseConfig( 'styling' );
@@ -312,7 +323,8 @@ const StylingConfig = {
 
 module.exports = [
     StaticConfig,
-    // MainConfig,
+    CoreConfig,
+    MainConfig,
     FrontendConfig,
     StylingConfig
 ];

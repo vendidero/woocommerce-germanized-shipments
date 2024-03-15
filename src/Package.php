@@ -4,8 +4,7 @@ namespace Vendidero\Germanized\Shipments;
 
 use Automattic\WooCommerce\Utilities\I18nUtil;
 use Exception;
-use Vendidero\Germanized\Shipments\Caches\Helper;
-use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
+use Vendidero\Germanized\Shipments\Registry\Container;
 use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
 
 defined( 'ABSPATH' ) || exit;
@@ -63,6 +62,34 @@ class Package {
 
 		add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
 		add_filter( 'woocommerce_shipping_method_add_rate_args', array( __CLASS__, 'manipulate_shipping_rates' ), 1000, 2 );
+	}
+
+	/**
+	 * Loads the dependency injection container for woocommerce blocks.
+	 *
+	 * @param boolean $reset Used to reset the container to a fresh instance.
+	 *                       Note: this means all dependencies will be
+	 *                       reconstructed.
+	 */
+	public static function container( $reset = false ) {
+		static $container;
+		if (
+			! $container instanceof Container
+			|| $reset
+		) {
+			$container = new Container();
+
+			// register Bootstrap.
+			$container->register(
+				Bootstrap::class,
+				function ( $container ) {
+					return new Bootstrap(
+						$container
+					);
+				}
+			);
+		}
+		return $container;
 	}
 
 	public static function manipulate_shipping_rates( $args, $method ) {
@@ -571,21 +598,7 @@ class Package {
 	}
 
 	private static function includes() {
-		if ( is_admin() ) {
-			Admin\Admin::init();
-		}
-
-		Ajax::init();
-		MethodHelper::init();
-		Automation::init();
-		Labels\Automation::init();
-		Labels\DownloadHandler::init();
-		Emails::init();
-		Validation::init();
-		Api::init();
-		FormHandler::init();
-		ReportHelper::init();
-		Helper::init();
+		self::container()->get( Bootstrap::class );
 
 		if ( self::is_frontend_request() ) {
 			include_once self::get_path() . '/includes/wc-gzd-shipment-template-hooks.php';
@@ -772,5 +785,23 @@ class Package {
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Return the path to the package.
+	 *
+	 * @return string
+	 */
+	public static function get_i18n_path() {
+		return apply_filters( 'woocommerce_gzd_shipments_get_i18n_path', self::get_path( 'i18n/languages' ) );
+	}
+
+	/**
+	 * Return the path to the package.
+	 *
+	 * @return string
+	 */
+	public static function get_i18n_textdomain() {
+		return apply_filters( 'woocommerce_gzd_shipments_get_i18n_textdomain', 'woocommerce-germanized-shipments' );
 	}
 }

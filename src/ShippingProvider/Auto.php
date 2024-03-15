@@ -348,6 +348,18 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return array();
 	}
 
+	public function supports_pickup_location_delivery( $address, $max_dimensions = array() ) {
+		return false;
+	}
+
+	public function is_valid_pickup_location( $location_code, $address ) {
+		return false;
+	}
+
+	public function get_pickup_locations( $address, $limit = 10 ) {
+		return array();
+	}
+
 	protected function get_label_settings_by_shipment_type( $shipment_type = 'simple' ) {
 		$settings = array();
 

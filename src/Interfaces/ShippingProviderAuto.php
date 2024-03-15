@@ -46,4 +46,10 @@ interface ShippingProviderAuto extends ShippingProvider, LabelConfigurationSet {
 	public function is_sandbox();
 
 	public function get_settings_help_pointers( $section = '' );
+
+	public function supports_pickup_location_delivery( $address, $max_dimensions = array() );
+
+	public function is_valid_pickup_location( $location_code, $address );
+
+	public function get_pickup_locations( $address, $limit = 10 );
 }
