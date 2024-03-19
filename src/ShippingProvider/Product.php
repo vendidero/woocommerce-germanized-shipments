@@ -413,7 +413,7 @@ class Product {
 			$supports_shipment = false;
 		}
 
-		if ( $supports_shipment && ! $this->supports_weight( $shipment->get_weight(), $shipment->get_weight_unit() ) ) {
+		if ( $supports_shipment && ! $this->supports_weight( $shipment->get_total_weight(), $shipment->get_weight_unit() ) ) {
 			$supports_shipment = false;
 		}
 
