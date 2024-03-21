@@ -167,8 +167,9 @@ class Helper {
 			return array();
 		}
 
-		$shipping_providers   = WC_Data_Store::load( 'shipping-provider' )->get_shipping_providers();
-		$registered_providers = $this->get_shipping_provider_class_names();
+		$this->shipping_providers = array();
+		$shipping_providers       = WC_Data_Store::load( 'shipping-provider' )->get_shipping_providers();
+		$registered_providers     = $this->get_shipping_provider_class_names();
 
 		foreach ( $registered_providers as $k => $provider ) {
 			if ( ! array_key_exists( $k, $shipping_providers ) ) {
@@ -179,7 +180,8 @@ class Helper {
 		// For the settings in the backend, and for non-shipping zone methods, we still need to load any registered classes here.
 		foreach ( $shipping_providers as $provider_name => $provider_class ) {
 			if ( $cache = \Vendidero\Germanized\Shipments\Caches\Helper::get_cache_object( 'shipping-providers' ) ) {
-				if ( $cache->get( $provider_name ) ) {
+				if ( $provider = $cache->get( $provider_name ) ) {
+					$this->shipping_providers[ $provider_name ] = $provider;
 					continue;
 				}
 			}
