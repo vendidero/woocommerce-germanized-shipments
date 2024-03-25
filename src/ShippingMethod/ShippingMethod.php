@@ -541,7 +541,8 @@ class ShippingMethod extends \WC_Shipping_Method {
 
 		if ( isset( $package['items_to_pack'], $package['package_data'] ) ) {
 			$cart_data                       = (array) $package['package_data'];
-			$boxes                           = \DVDoug\BoxPacker\BoxList::fromArray( $this->get_available_packaging_boxes( $cart_data ) );
+			$available_boxes                 = $this->get_available_packaging_boxes( $cart_data );
+			$boxes                           = \DVDoug\BoxPacker\BoxList::fromArray( $available_boxes );
 			$cost_calculation_mode           = $this->get_multiple_shipments_cost_calculation_mode();
 			$multiple_rules_calculation_mode = $this->get_multiple_rules_cost_calculation_mode();
 
@@ -712,23 +713,80 @@ class ShippingMethod extends \WC_Shipping_Method {
 					$packaging_ids = array_unique( array_merge( $packaging_ids, array( $packaging->get_id() ) ) );
 				}
 			}
-		}
 
-		if ( ! empty( $applied_rules ) ) {
-			$this->add_rate(
-				array(
-					'cost'      => $total_cost,
-					'label'     => $this->get_rate_label( $total_cost ),
-					'package'   => $package,
-					'meta_data' => array(
-						'_packed_items'    => $total_packed_items,
-						'_packed_item_map' => $total_packed_item_map,
-						'_packaging_ids'   => $packaging_ids,
-						'_rule_ids'        => $rule_ids,
-						'_packages'        => $applied_rules,
-					),
-				)
-			);
+			if ( ! empty( $applied_rules ) ) {
+				if ( Package::is_shipping_debug_mode() ) {
+					$notices            = array();
+					$available_box_list = array();
+
+					foreach ( $available_boxes as $box ) {
+						$available_box_list[] = $box->get_packaging()->get_title();
+					}
+
+					$notices[] = sprintf( _x( '### Debug information for %1$s:', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title() );
+					$notices[] = sprintf( _x( 'Available packaging options: %1$s', 'shipments', 'woocommerce-germanized-shipments' ), implode( ', ', $available_box_list ) );
+
+					$package_count = 0;
+
+					foreach ( $applied_rules as $applied_rule ) {
+						if ( $packaging = wc_gzd_get_packaging( $applied_rule['packaging_id'] ) ) {
+							$package_count++;
+
+							$notices[]        = sprintf( _x( '## Package %1$d/%2$d: %3$s: ', 'shipments', 'woocommerce-germanized-shipments' ), $package_count, count( $applied_rules ), $packaging->get_title() );
+							$rule_match_count = 0;
+
+							foreach ( $applied_rule['rules'] as $rule ) {
+								if ( $the_rule = $this->get_shipping_rule_by_id( $rule, $applied_rule['packaging_id'] ) ) {
+									$rule_match_count++;
+
+									$notices[] = sprintf( _x( 'Rule %1$d: %2$s', 'shipments', 'woocommerce-germanized-shipments' ), $rule, wc_price( $the_rule['costs'] ) );
+								}
+							}
+
+							foreach ( $applied_rule['items'] as $item_product_key => $quantity ) {
+								$product_ids   = explode( '_', $item_product_key );
+								$product_title = $product_ids[0];
+
+								if ( $product = wc_get_product( $product_ids[1] ) ) {
+									$product_title = $product->get_title();
+								}
+
+								$product_desc = ! empty( $product_ids[0] ) ? sprintf( _x( '%1$s (Parent: %2$s)', 'shipments', 'woocommerce-germanized-shipments' ), $product_title, $product_ids[0] ) : $product_title;
+								$notices[]    = sprintf( _x( '%1$s x %2$s', 'shipments', 'woocommerce-germanized-shipments' ), $quantity, $product_desc );
+							}
+						}
+					}
+
+					$notices[] = sprintf( _x( '## Total: %1$s (%2$s, %3$s)', 'shipments', 'woocommerce-germanized-shipments' ), wc_price( $total_cost ), $cost_calculation_mode, $multiple_rules_calculation_mode );
+
+					if ( ! Package::is_constant_defined( 'WOOCOMMERCE_CHECKOUT' ) && ! Package::is_constant_defined( 'WC_DOING_AJAX' ) ) {
+						$the_notice = '';
+
+						foreach ( $notices as $notice ) {
+							$the_notice .= $notice . '<br/>';
+						}
+
+						if ( ! wc_has_notice( $the_notice ) ) {
+							wc_add_notice( $the_notice );
+						}
+					}
+				}
+
+				$this->add_rate(
+					array(
+						'cost'      => $total_cost,
+						'label'     => $this->get_rate_label( $total_cost ),
+						'package'   => $package,
+						'meta_data' => array(
+							'_packed_items'    => $total_packed_items,
+							'_packed_item_map' => $total_packed_item_map,
+							'_packaging_ids'   => $packaging_ids,
+							'_rule_ids'        => $rule_ids,
+							'_packages'        => $applied_rules,
+						),
+					)
+				);
+			}
 		}
 	}
 
@@ -1097,7 +1155,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 					</div>
 				</td>
 				<td class="cb">
-					<input class="cb" name="<?php echo esc_attr( $field_key ); ?>[cb][{{ data.rule_id }}]" type="checkbox" value="{{ data.rule_id }}" data-attribute="cb" />
+					<input class="cb" name="<?php echo esc_attr( $field_key ); ?>[cb][{{ data.rule_id }}]" type="checkbox" value="{{ data.rule_id }}" data-attribute="cb" title="<?php echo esc_attr_x( 'Rule:', 'shipments', 'woocommerce-germanized-shipments' ); ?> {{ data.rule_id }}" />
 				</td>
 				<td class="packaging">
 					<select class="wc-enhanced-select shipping-packaging" name="<?php echo esc_attr( $field_key ); ?>[packaging][{{ data.rule_id }}]" data-attribute="packaging">

@@ -279,6 +279,12 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 		return ! empty( $this->get_inner_width( 'edit' ) ) || ! empty( $this->get_inner_length( 'edit' ) ) || ! empty( $this->get_inner_height( 'edit' ) );
 	}
 
+	public function has_shipping_class_restrictions() {
+		$classes = $this->get_available_shipping_classes( 'edit' );
+
+		return ! empty( $classes ) ? true : false;
+	}
+
 	/**
 	 * Returns the available shipping provider names.
 	 *
@@ -315,7 +321,9 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 		$classes  = $this->get_available_shipping_classes( 'edit' );
 		$supports = false;
 
-		if ( empty( $classes ) || in_array( $shipping_class, $classes, true ) ) {
+		if ( empty( $shipping_class ) && empty( $classes ) ) {
+			$supports = true;
+		} elseif ( empty( $classes ) || in_array( $shipping_class, $classes, true ) ) {
 			$supports = true;
 		}
 
