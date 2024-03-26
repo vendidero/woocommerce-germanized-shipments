@@ -2,6 +2,7 @@ import { ExperimentalOrderShippingPackages } from '@woocommerce/blocks-checkout'
 import { registerPlugin } from '@wordpress/plugins';
 import { useEffect, useCallback, useState, useMemo } from "@wordpress/element";
 import { useSelect, useDispatch, select, dispatch } from '@wordpress/data';
+import triggerFetch from '@wordpress/api-fetch';
 import { extensionCartUpdate } from '@woocommerce/blocks-checkout';
 import classnames from 'classnames';
 import { getSetting } from '@woocommerce/settings';
@@ -17,7 +18,7 @@ import {
 
 import { decodeEntities } from '@wordpress/html-entities';
 import { useDebouncedCallback, useDebounce } from 'use-debounce';
-import { getSelectedShippingProviders, Combobox } from '@woocommerceGzdShipments/blocks-checkout';
+import { getSelectedShippingProviders, Combobox, hasShippingProvider } from '@woocommerceGzdShipments/blocks-checkout';
 
 const PickupLocationSelect = ({
     extensions,
@@ -98,6 +99,19 @@ const PickupLocationSelect = ({
         if ( checkoutOptions.pickup_location ) {
             const currentLocation = getLocationByCode( checkoutOptions.pickup_location );
 
+            if ( ! currentLocation ) {
+                setOption( 'pickup_location', '' );
+                setOption( 'pickup_location_customer_number', '' );
+            }
+        }
+    }, [
+        locationOptions
+    ] );
+
+    useEffect(() => {
+        if ( checkoutOptions.pickup_location ) {
+            const currentLocation = getLocationByCode( checkoutOptions.pickup_location );
+
             if ( currentLocation ) {
                 setNeedsCustomerNumber( () => { return currentLocation.needs_customer_number } );
 
@@ -142,7 +156,7 @@ const PickupLocationSelect = ({
         pickupLocationDeliveryAvailable
     ] );
 
-    console.log( checkoutOptions );
+    console.log(checkoutOptions);
 
     if ( needsShipping && pickupLocationDeliveryAvailable ) {
         return (
@@ -159,8 +173,6 @@ const PickupLocationSelect = ({
                     value={ checkoutOptions.pickup_location }
                     required={ false }
                     onChange={ ( newLocationCode ) => {
-                        console.log('On change: ' + newLocationCode);
-
                         if ( availableLocations.hasOwnProperty( newLocationCode ) ) {
                             setOption( 'pickup_location', newLocationCode );
                         } else {

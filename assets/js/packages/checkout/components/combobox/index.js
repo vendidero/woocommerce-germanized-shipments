@@ -17,6 +17,7 @@ const Combobox = ( {
     className,
     label,
     onChange,
+    onSearch = null,
     options,
     value,
     required = false,

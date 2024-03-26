@@ -352,12 +352,101 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return false;
 	}
 
+	protected function fetch_pickup_location( $location_code, $address ) {
+		return null;
+	}
+
+	public function get_pickup_location_by_code( $location_code, $address ) {
+		$address         = $this->parse_pickup_location_address_args( $address );
+		$cache_key       = $this->get_pickup_location_cache_key( $location_code, $address );
+		$pickup_location = get_transient( $cache_key );
+
+		if ( false === $pickup_location ) {
+			$pickup_location = $this->fetch_pickup_location( $location_code, $address );
+
+			if ( ! is_null( $pickup_location ) ) {
+				set_transient( $cache_key, $pickup_location, DAY_IN_SECONDS );
+			} else {
+				$pickup_location = false;
+			}
+		}
+
+		return $pickup_location;
+	}
+
+	protected function parse_pickup_location_code( $location_code ) {
+		return $location_code;
+	}
+
+	protected function get_pickup_location_cache_key( $location_code, $address ) {
+		$address       = $this->parse_pickup_location_address_args( $address );
+		$location_code = $this->parse_pickup_location_code( $location_code );
+		$cache_key     = "woocommerce_gzd_shipments_{$this->get_name()}_pickup_location_" . sanitize_key( $location_code ) . '_' . sanitize_key( $address['country'] ) . '_' . $address['postcode'];
+
+		return $cache_key;
+	}
+
+	protected function get_pickup_locations_cache_key( $address ) {
+		$address   = $this->parse_pickup_location_address_args( $address );
+		$cache_key = "woocommerce_gzd_shipments_{$this->get_name()}_pickup_locations_" . sanitize_key( $address['country'] ) . '_' . sanitize_key( $address['postcode'] ) . '_' . sanitize_key( $address['address_1'] );
+
+		return $cache_key;
+	}
+
+	public function is_valid_pickup_location_customer_number( $number ) {
+		return true;
+	}
+
+	public function pickup_location_needs_customer_number( $location_code, $address ) {
+		$needs_customer_number = false;
+
+		if ( $pickup_location = $this->get_pickup_location_by_code( $location_code, $address ) ) {
+			$needs_customer_number = $pickup_location['needs_customer_number'];
+		}
+
+		return $needs_customer_number;
+	}
+
 	public function is_valid_pickup_location( $location_code, $address ) {
+		if ( $this->get_pickup_location_by_code( $location_code, $address ) ) {
+			return true;
+		}
+
 		return false;
 	}
 
+	protected function fetch_pickup_locations( $address, $limit = 10 ) {
+		return null;
+	}
+
+	protected function parse_pickup_location_address_args( $address ) {
+		return wp_parse_args(
+			$address,
+			array(
+				'city'      => '',
+				'postcode'  => '',
+				'country'   => '',
+				'address_1' => '',
+			)
+		);
+	}
+
 	public function get_pickup_locations( $address, $limit = 10 ) {
-		return array();
+		$cache_key        = $this->get_pickup_locations_cache_key( $address );
+		$pickup_locations = get_transient( $cache_key );
+		$address          = $this->parse_pickup_location_address_args( $address );
+
+		if ( false === $pickup_locations ) {
+			$pickup_locations = $this->fetch_pickup_locations( $address, $limit );
+
+			if ( ! is_null( $pickup_locations ) ) {
+				set_transient( $cache_key, $pickup_locations, DAY_IN_SECONDS );
+			} else {
+				$pickup_locations = array();
+			}
+		}
+
+		return $pickup_locations;
 	}
 
 	protected function get_label_settings_by_shipment_type( $shipment_type = 'simple' ) {
