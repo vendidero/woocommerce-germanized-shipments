@@ -2,6 +2,7 @@
 namespace Vendidero\Germanized\Shipments\Interfaces;
 
 use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
+use Vendidero\Germanized\Shipments\ShippingProvider\PickupLocation;
 
 /**
  * Shipment Label Interface
@@ -47,15 +48,23 @@ interface ShippingProviderAuto extends ShippingProvider, LabelConfigurationSet {
 
 	public function get_settings_help_pointers( $section = '' );
 
-	public function supports_pickup_location_delivery( $address, $max_dimensions = array() );
+	public function supports_pickup_location_delivery( $address, $max_dimensions = array(), $max_weight = 0.0 );
 
 	public function is_valid_pickup_location( $location_code, $address );
 
-	public function is_valid_pickup_location_customer_number( $number );
-
-	public function pickup_location_needs_customer_number( $location_code, $address );
-
+	/**
+	 * @param $location_code
+	 * @param $address
+	 *
+	 * @return PickupLocation|false
+	 */
 	public function get_pickup_location_by_code( $location_code, $address );
 
+	/**
+	 * @param $address
+	 * @param $limit
+	 *
+	 * @return PickupLocation[]
+	 */
 	public function get_pickup_locations( $address, $limit = 10 );
 }

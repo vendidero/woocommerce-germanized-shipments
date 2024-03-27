@@ -348,18 +348,32 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return array();
 	}
 
-	public function supports_pickup_location_delivery( $address, $max_dimensions = array() ) {
+	public function supports_pickup_location_delivery( $address, $max_dimensions = array(), $max_weight = 0.0 ) {
 		return false;
 	}
 
+	/**
+	 * @param $location_code
+	 * @param $address
+	 *
+	 * @return PickupLocation|null
+	 */
 	protected function fetch_pickup_location( $location_code, $address ) {
 		return null;
 	}
 
+	/**
+	 * @param $location_code
+	 * @param $address
+	 *
+	 * @return false|PickupLocation
+	 */
 	public function get_pickup_location_by_code( $location_code, $address ) {
 		$address         = $this->parse_pickup_location_address_args( $address );
 		$cache_key       = $this->get_pickup_location_cache_key( $location_code, $address );
 		$pickup_location = get_transient( $cache_key );
+
+		$pickup_location = false;
 
 		if ( false === $pickup_location ) {
 			$pickup_location = $this->fetch_pickup_location( $location_code, $address );
@@ -369,6 +383,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			} else {
 				$pickup_location = false;
 			}
+		} elseif ( ! is_a( $pickup_location, 'Vendidero\Germanized\Shipments\ShippingProvider\PickupLocation' ) ) {
+			$pickup_location = false;
 		}
 
 		return $pickup_location;
@@ -391,20 +407,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		$cache_key = "woocommerce_gzd_shipments_{$this->get_name()}_pickup_locations_" . sanitize_key( $address['country'] ) . '_' . sanitize_key( $address['postcode'] ) . '_' . sanitize_key( $address['address_1'] );
 
 		return $cache_key;
-	}
-
-	public function is_valid_pickup_location_customer_number( $number ) {
-		return true;
-	}
-
-	public function pickup_location_needs_customer_number( $location_code, $address ) {
-		$needs_customer_number = false;
-
-		if ( $pickup_location = $this->get_pickup_location_by_code( $location_code, $address ) ) {
-			$needs_customer_number = $pickup_location['needs_customer_number'];
-		}
-
-		return $needs_customer_number;
 	}
 
 	public function is_valid_pickup_location( $location_code, $address ) {
@@ -435,6 +437,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		$cache_key        = $this->get_pickup_locations_cache_key( $address );
 		$pickup_locations = get_transient( $cache_key );
 		$address          = $this->parse_pickup_location_address_args( $address );
+
+		$pickup_locations = false;
 
 		if ( false === $pickup_locations ) {
 			$pickup_locations = $this->fetch_pickup_locations( $address, $limit );

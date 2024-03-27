@@ -681,11 +681,13 @@ class ShippingMethod extends \WC_Shipping_Method {
 					 * included within the package.
 					 */
 					$item_map = array();
+					$weight   = 0.0;
 
 					foreach ( $items as $item ) {
 						$cart_item_wrapper = $item->getItem();
 						$product           = $cart_item_wrapper->get_product();
 						$product_key       = $product->get_parent_id() . '_' . $product->get_id();
+						$weight           += $cart_item_wrapper->getWeight();
 
 						if ( array_key_exists( $product_key, $item_map ) ) {
 							$item_map[ $product_key ]++;
@@ -706,6 +708,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 						'packaging_id' => $packaging->get_id(),
 						'rules'        => $package_applied_rules,
 						'items'        => $item_map,
+						'weight'       => $weight + $packaging->getEmptyWeight(),
 					);
 
 					$rule_ids      = array_unique( array_merge( $rule_ids, $package_applied_rules ) );

@@ -2,14 +2,8 @@ import { ExperimentalOrderShippingPackages } from '@woocommerce/blocks-checkout'
 import { registerPlugin } from '@wordpress/plugins';
 import { useEffect, useCallback, useState, useMemo } from "@wordpress/element";
 import { useSelect, useDispatch, select, dispatch } from '@wordpress/data';
-import triggerFetch from '@wordpress/api-fetch';
-import { extensionCartUpdate } from '@woocommerce/blocks-checkout';
-import classnames from 'classnames';
-import { getSetting } from '@woocommerce/settings';
 import { __, _x, sprintf } from '@wordpress/i18n';
-import { SVG } from '@wordpress/components';
-import _ from 'lodash';
-import { CART_STORE_KEY, CHECKOUT_STORE_KEY, PAYMENT_STORE_KEY, VALIDATION_STORE_KEY } from '@woocommerce/block-data';
+import { CART_STORE_KEY, CHECKOUT_STORE_KEY } from '@woocommerce/block-data';
 
 import {
     ValidatedTextInput,
@@ -17,15 +11,17 @@ import {
 } from '@woocommerce/blocks-checkout';
 
 import { decodeEntities } from '@wordpress/html-entities';
-import { useDebouncedCallback, useDebounce } from 'use-debounce';
-import { getSelectedShippingProviders, Combobox, hasShippingProvider } from '@woocommerceGzdShipments/blocks-checkout';
+import { getSelectedShippingProviders, Combobox, hasShippingProvider, getCheckoutData, hasPickupLocation } from '@woocommerceGzdShipments/blocks-checkout';
+
+import './style.scss';
 
 const PickupLocationSelect = ({
     extensions,
     cart,
     components
 }) => {
-    const [ needsCustomerNumber, setNeedsCustomerNumber ] = useState( false );
+    const [ supportsCustomerNumber, setSupportsCustomerNumber ] = useState( false );
+    const [ customerNumberIsMandatory, setCustomerNumberIsMandatory ] = useState( false );
 
     const {
         shippingRates,
@@ -54,16 +50,7 @@ const PickupLocationSelect = ({
         };
     } );
 
-    const { checkoutOptions } = useSelect( ( select ) => {
-        const store = select( CHECKOUT_STORE_KEY );
-
-        const extensionsData = store.getExtensionData();
-        const shipmentsData = extensionsData.hasOwnProperty( 'woocommerce-gzd-shipments' ) ? extensionsData['woocommerce-gzd-shipments'] : { 'pickup_location': '', 'pickup_location_customer_number': '' };
-
-        return {
-            checkoutOptions: shipmentsData
-        };
-    } );
+    const checkoutOptions = getCheckoutData();
 
     const availableLocations = useMemo(
         () =>
@@ -113,7 +100,8 @@ const PickupLocationSelect = ({
             const currentLocation = getLocationByCode( checkoutOptions.pickup_location );
 
             if ( currentLocation ) {
-                setNeedsCustomerNumber( () => { return currentLocation.needs_customer_number } );
+                setSupportsCustomerNumber( () => { return currentLocation.supports_customer_number } );
+                setCustomerNumberIsMandatory( () => { return currentLocation.customer_number_is_mandatory } );
 
                 const newShippingAddress = { ...shippingAddress };
 
@@ -156,8 +144,6 @@ const PickupLocationSelect = ({
         pickupLocationDeliveryAvailable
     ] );
 
-    console.log(checkoutOptions);
-
     if ( needsShipping && pickupLocationDeliveryAvailable ) {
         return (
             <div className="wc-gzd-shipments-pickup-location-delivery">
@@ -167,6 +153,7 @@ const PickupLocationSelect = ({
                 <Combobox
                     options={ locationOptions }
                     id="pickup-location"
+                    key="pickup-location"
                     name="pickup_location"
                     label={ _x( 'Pickup location', 'shipments', 'woocommerce-germanized-shipments' ) }
                     errorId="pickup-location"
@@ -181,14 +168,14 @@ const PickupLocationSelect = ({
                     } }
                 />
 
-                { needsCustomerNumber && (
+                { supportsCustomerNumber && (
                     <ValidatedTextInput
                         key="pickup_location_customer_number"
                         value={ checkoutOptions.pickup_location_customer_number }
                         id="pickup-location-customer-number"
                         label={ _x( "Customer Number", 'shipments', 'woocommerce-germanized-shipments' ) }
                         name="pickup_location_customer_number"
-                        required={ true }
+                        required={ customerNumberIsMandatory }
                         maxLength="20"
                         onChange={ ( newValue ) => {
                             setOption( 'pickup_location_customer_number', newValue );

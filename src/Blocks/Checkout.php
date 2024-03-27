@@ -5,6 +5,7 @@ use Automattic\WooCommerce\StoreApi\Exceptions\RouteException;
 use Automattic\WooCommerce\StoreApi\Schemas\ExtendSchema;
 use Automattic\WooCommerce\StoreApi\Schemas\V1\CartSchema;
 use Automattic\WooCommerce\StoreApi\Schemas\V1\CheckoutSchema;
+use Automattic\WooCommerce\StoreApi\Utilities\CartController;
 use Vendidero\Germanized\Shipments\Package;
 
 final class Checkout {
@@ -47,6 +48,8 @@ final class Checkout {
 			)
 		);
 
+		$data['pickup_location_customer_number'] = trim( preg_replace( '/\s+/', '', $data['pickup_location_customer_number'] ) );
+
 		return $data;
 	}
 
@@ -62,7 +65,8 @@ final class Checkout {
 		if ( $this->has_checkout_data( 'pickup_location', $request ) ) {
 			$pickup_location_code            = $gzd_data['pickup_location'];
 			$pickup_location_customer_number = $gzd_data['pickup_location_customer_number'];
-			$needs_customer_number           = false;
+			$supports_customer_number        = false;
+			$customer_number_is_mandatory    = false;
 			$is_valid                        = false;
 			$pickup_location                 = false;
 			$address_data                    = array(
@@ -74,32 +78,32 @@ final class Checkout {
 
 			if ( $provider = wc_gzd_get_order_shipping_provider( $order ) ) {
 				if ( is_a( $provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto' ) ) {
-					$pickup_location       = $provider->get_pickup_location_by_code( $pickup_location_code, $address_data );
-					$is_valid              = $provider->is_valid_pickup_location( $pickup_location_code, $address_data );
-					$needs_customer_number = $provider->pickup_location_needs_customer_number( $pickup_location_code, $address_data );
+					$pickup_location              = $provider->get_pickup_location_by_code( $pickup_location_code, $address_data );
+					$is_valid                     = $provider->is_valid_pickup_location( $pickup_location_code, $address_data );
+					$supports_customer_number     = $pickup_location ? $pickup_location->supports_customer_number() : false;
+					$customer_number_is_mandatory = $pickup_location ? $pickup_location->customer_number_is_mandatory() : false;
 
-					if ( $is_valid && $needs_customer_number ) {
-						if ( ! $provider->is_valid_pickup_location_customer_number( $pickup_location_customer_number ) ) {
+					if ( $is_valid && $customer_number_is_mandatory ) {
+						if ( ! $pickup_location ) {
 							throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException( 'pickup_location_customer_number_invalid', _x( 'Sorry, your pickup location customer number is invalid.', 'shipments', 'woocommerce-germanized-shipments' ), 400 );
+						} elseif ( ! $validation = $pickup_location->customer_number_is_valid( $pickup_location_customer_number ) ) {
+							if ( is_a( $validation, 'WP_Error' ) ) {
+								throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException( 'pickup_location_customer_number_invalid', $validation->get_error_message(), 400 );
+							} else {
+								throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException( 'pickup_location_customer_number_invalid', _x( 'Sorry, your pickup location customer number is invalid.', 'shipments', 'woocommerce-germanized-shipments' ), 400 );
+							}
 						}
 					}
 				}
 			}
 
 			if ( $is_valid && $pickup_location ) {
-				$pickup_location_code = $pickup_location['code'];
-
-				foreach ( $pickup_location['address_replacements'] as $address_field => $replacement ) {
-					$setter = "set_shipping_{$address_field}";
-
-					if ( is_callable( array( $order, $setter ) ) ) {
-						$order->{ $setter }( $replacement );
-					}
-				}
+				$pickup_location_code = $pickup_location->get_code();
+				$pickup_location->replace_address( $order );
 
 				$order->update_meta_data( '_pickup_location_code', $pickup_location_code );
 
-				if ( $needs_customer_number ) {
+				if ( $supports_customer_number ) {
 					$order->update_meta_data( '_pickup_location_customer_number', $pickup_location_customer_number );
 				}
 
@@ -110,16 +114,9 @@ final class Checkout {
 					$wc_customer = new \WC_Customer( $order->get_customer_id() );
 
 					$wc_customer->update_meta_data( 'pickup_location_code', $pickup_location_code );
+					$pickup_location->replace_address( $wc_customer );
 
-					foreach ( $pickup_location['address_replacements'] as $address_field => $replacement ) {
-						$setter = "set_shipping_{$address_field}";
-
-						if ( is_callable( array( $wc_customer, $setter ) ) ) {
-							$wc_customer->{ $setter }( $replacement );
-						}
-					}
-
-					if ( $needs_customer_number ) {
+					if ( $supports_customer_number ) {
 						$wc_customer->update_meta_data( 'pickup_location_customer_number', $pickup_location_customer_number );
 					}
 
@@ -128,16 +125,9 @@ final class Checkout {
 
 				$customer = wc()->customer;
 				$customer->update_meta_data( 'pickup_location_code', $pickup_location_code );
+				$pickup_location->replace_address( $customer );
 
-				foreach ( $pickup_location['address_replacements'] as $address_field => $replacement ) {
-					$setter = "set_shipping_{$address_field}";
-
-					if ( is_callable( array( $customer, $setter ) ) ) {
-						$customer->{ $setter }( $replacement );
-					}
-				}
-
-				if ( $needs_customer_number ) {
+				if ( $supports_customer_number ) {
 					$customer->update_meta_data( 'pickup_location_customer_number', $pickup_location_customer_number );
 				}
 				$customer->save();
@@ -221,55 +211,57 @@ final class Checkout {
 				'items'       => array(
 					'type'       => 'object',
 					'properties' => array(
-						'code'                  => array(
+						'code'                         => array(
 							'description' => _x( 'The location code.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 							'readonly'    => true,
 						),
-						'title'                 => array(
-							'description' => _x( 'The location title.', 'shipments', 'woocommerce-germanized-shipments' ),
+						'label'                        => array(
+							'description' => _x( 'The location label.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 							'readonly'    => true,
 						),
-						'lat'                   => array(
+						'latitude'                     => array(
 							'description' => _x( 'The location latitude.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 							'readonly'    => true,
 						),
-						'long'                  => array(
+						'longitude'                    => array(
 							'description' => _x( 'The location longitude.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 							'readonly'    => true,
 						),
-						'needs_customer_number' => array(
-							'description' => _x( 'Whether the location needs a customer number or not.', 'shipments', 'woocommerce-germanized-shipments' ),
+						'supports_customer_number'     => array(
+							'description' => _x( 'Whether the location supports a customer number or not.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'boolean',
 							'context'     => array( 'view', 'edit' ),
 							'readonly'    => true,
 							'default'     => false,
 						),
-						'type'                  => array(
+						'customer_number_is_mandatory' => array(
+							'description' => _x( 'Whether the customer number is mandatory or not.', 'shipments', 'woocommerce-germanized-shipments' ),
+							'type'        => 'boolean',
+							'context'     => array( 'view', 'edit' ),
+							'readonly'    => true,
+							'default'     => false,
+						),
+						'type'                         => array(
 							'description' => _x( 'The location type, e.g. locker.', 'shipments', 'woocommerce-germanized-shipments' ),
-							'type'        => 'enum',
-							'enum'        => array(
-								'locker',
-								'shop',
-								'servicepoint',
-							),
+							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 							'readonly'    => true,
 						),
-						'formatted_address'     => array(
+						'formatted_address'            => array(
 							'description' => _x( 'The location\'s formatted address.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'string',
 							'context'     => array( 'view', 'edit' ),
 							'readonly'    => true,
 						),
-						'address_replacements'  => array(
+						'address_replacements'         => array(
 							'description' => _x( 'The location\'s address replacements.', 'shipments', 'woocommerce-germanized-shipments' ),
 							'type'        => 'array',
 							'context'     => array( 'view', 'edit' ),
@@ -319,12 +311,13 @@ final class Checkout {
 	}
 
 	private function get_cart_data() {
-		$customer     = wc()->customer;
-		$provider     = false;
-		$is_available = false;
-		$locations    = array();
+		$customer        = wc()->customer;
+		$provider        = false;
+		$is_available    = false;
+		$locations       = array();
+		$shipping_method = wc_gzd_get_current_shipping_provider_method();
 
-		if ( $shipping_method = wc_gzd_get_current_shipping_provider_method() ) {
+		if ( $shipping_method ) {
 			$provider = $shipping_method->get_shipping_provider_instance();
 		}
 
@@ -336,13 +329,64 @@ final class Checkout {
 				'city'      => $customer->get_shipping_city(),
 			);
 
-			$locations    = $provider->get_pickup_locations( $address );
-			$is_available = $provider->supports_pickup_location_delivery( $address );
+			$locations      = $provider->get_pickup_locations( $address );
+			$max_weight     = 0;
+			$max_dimensions = array(
+				'length' => 0.0,
+				'width'  => 0.0,
+				'height' => 0.0,
+			);
+
+			if ( ! empty( $locations ) && $shipping_method && is_a( $shipping_method->get_method(), 'Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod' ) ) {
+				$controller              = new CartController();
+				$cart                    = wc()->cart;
+				$has_calculated_shipping = $cart->show_shipping();
+				$shipping_packages       = $has_calculated_shipping ? $controller->get_shipping_packages() : array();
+				$current_rate_id         = wc_gzd_get_current_shipping_method_id();
+
+				if ( isset( $shipping_packages[0]['rates'][ $current_rate_id ] ) ) {
+					$rate = $shipping_packages[0]['rates'][ $current_rate_id ];
+
+					if ( is_a( $rate, 'WC_Shipping_Rate' ) ) {
+						$meta = $rate->get_meta_data();
+
+						if ( isset( $meta['_packages'] ) ) {
+							foreach ( (array) $meta['_packages'] as $package_data ) {
+								$packaging_id = $package_data['packaging_id'];
+
+								if ( $packaging = wc_gzd_get_packaging( $packaging_id ) ) {
+									$package_weight = (float) wc_get_weight( $package_data['weight'], wc_gzd_get_packaging_weight_unit(), 'g' );
+
+									if ( (float) $packaging->get_length() > $max_dimensions['length'] ) {
+										$max_dimensions['length'] = (float) $packaging->get_length();
+									}
+									if ( (float) $packaging->get_width() > $max_dimensions['width'] ) {
+										$max_dimensions['width'] = (float) $packaging->get_width();
+									}
+									if ( (float) $packaging->get_height() > $max_dimensions['height'] ) {
+										$max_dimensions['height'] = (float) $packaging->get_height();
+									}
+
+									if ( $package_weight > $max_weight ) {
+										$max_weight = $package_weight;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			$is_available = $provider->supports_pickup_location_delivery( $address, $max_dimensions, $max_weight );
 		}
 
 		return array(
 			'pickup_location_delivery_available' => $is_available && ! empty( $locations ),
-			'pickup_locations'                   => $locations,
+			'pickup_locations'                   => array_map(
+				function( $location ) {
+					return $location->get_data(); },
+				$locations
+			),
 		);
 	}
 }
