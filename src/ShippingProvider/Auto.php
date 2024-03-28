@@ -348,7 +348,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return array();
 	}
 
-	public function supports_pickup_location_delivery( $address, $max_dimensions = array(), $max_weight = 0.0 ) {
+	public function supports_pickup_location_delivery( $address, $query_args = array() ) {
 		return false;
 	}
 
@@ -417,7 +417,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return false;
 	}
 
-	protected function fetch_pickup_locations( $address, $limit = 10 ) {
+	protected function fetch_pickup_locations( $address, $query_args = array() ) {
 		return null;
 	}
 
@@ -433,7 +433,30 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		);
 	}
 
-	public function get_pickup_locations( $address, $limit = 10 ) {
+	protected function parse_pickup_location_query_args( $query_args ) {
+		$query_args = wp_parse_args(
+			$query_args,
+			array(
+				'max_dimensions' => array(),
+				'max_weight'     => 0.0,
+				'limit'          => 10,
+			)
+		);
+
+		$query_args['max_dimensions'] = wp_parse_args(
+			$query_args['max_dimensions'],
+			array(
+				'length' => 0.0,
+				'width'  => 0.0,
+				'height' => 0.0,
+			)
+		);
+
+		return $query_args;
+	}
+
+	public function get_pickup_locations( $address, $query_args = array() ) {
+		$query_args       = $this->parse_pickup_location_query_args( $query_args );
 		$cache_key        = $this->get_pickup_locations_cache_key( $address );
 		$pickup_locations = get_transient( $cache_key );
 		$address          = $this->parse_pickup_location_address_args( $address );
@@ -441,7 +464,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		$pickup_locations = false;
 
 		if ( false === $pickup_locations ) {
-			$pickup_locations = $this->fetch_pickup_locations( $address, $limit );
+			$pickup_locations = $this->fetch_pickup_locations( $address, $query_args );
 
 			if ( ! is_null( $pickup_locations ) ) {
 				set_transient( $cache_key, $pickup_locations, DAY_IN_SECONDS );

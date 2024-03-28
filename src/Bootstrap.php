@@ -49,6 +49,7 @@ class Bootstrap {
 		$this->container->get( Validation::class )::init();
 		$this->container->get( Api::class )::init();
 		$this->container->get( FormHandler::class )::init();
+		$this->container->get( ParcelLocator::class )::init();
 		$this->container->get( Packaging\ReportHelper::class )::init();
 		$this->container->get( Caches\Helper::class )::init();
 
@@ -119,6 +120,12 @@ class Bootstrap {
 			FormHandler::class,
 			function ( $container ) {
 				return FormHandler::class;
+			}
+		);
+		$this->container->register(
+			ParcelLocator::class,
+			function ( $container ) {
+				return ParcelLocator::class;
 			}
 		);
 		$this->container->register(

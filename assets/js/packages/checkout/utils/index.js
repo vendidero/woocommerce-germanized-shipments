@@ -44,16 +44,32 @@ export const hasPickupLocation = () => {
 };
 
 export const getCheckoutData = () => {
-    const { checkoutOptions } = useSelect( ( select ) => {
+    return useSelect( ( select ) => {
         const store = select( CHECKOUT_STORE_KEY );
 
         const extensionsData = store.getExtensionData();
-        const shipmentsData = extensionsData.hasOwnProperty( 'woocommerce-gzd-shipments' ) ? extensionsData['woocommerce-gzd-shipments'] : { 'pickup_location': '', 'pickup_location_customer_number': '' };
-
-        return {
-            checkoutOptions: shipmentsData
+        const defaultData    = {
+            'pickup_location': '',
+            'pickup_location_customer_number': ''
         };
-    } );
 
-    return checkoutOptions;
+        return extensionsData.hasOwnProperty( 'woocommerce-gzd-shipments' ) ? extensionsData['woocommerce-gzd-shipments'] : defaultData;
+    } );
+};
+
+export const getCartData = () => {
+    return useSelect( ( select ) => {
+        const store = select( CART_STORE_KEY );
+
+        const extensionsData = store.getCartData().extensions;
+
+        const defaultData    = {
+            'pickup_location_delivery_available': false,
+            'pickup_locations': [],
+            'default_pickup_location': '',
+            'default_pickup_location_customer_number': '',
+        };
+
+        return extensionsData.hasOwnProperty( 'woocommerce-gzd-shipments' ) ? extensionsData['woocommerce-gzd-shipments'] : defaultData;
+    } );
 };

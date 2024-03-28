@@ -197,13 +197,13 @@ final class Checkout {
 
 	private function get_cart_schema() {
 		return array(
-			'pickup_location_delivery_available' => array(
+			'pickup_location_delivery_available'      => array(
 				'description' => _x( 'Whether pickup location delivery is available', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'        => 'boolean',
 				'context'     => array( 'view', 'edit' ),
 				'readonly'    => true,
 			),
-			'pickup_locations'                   => array(
+			'pickup_locations'                        => array(
 				'description' => _x( 'Available pickup locations', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'        => 'array',
 				'context'     => array( 'view', 'edit' ),
@@ -307,6 +307,20 @@ final class Checkout {
 					),
 				),
 			),
+			'default_pickup_location'                 => array(
+				'description' => _x( 'Pickup location', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'        => array( 'string', 'null' ),
+				'context'     => array( 'view', 'edit' ),
+				'default'     => '',
+				'readonly'    => true,
+			),
+			'default_pickup_location_customer_number' => array(
+				'description' => _x( 'Pickup location customer number', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'        => array( 'string', 'null' ),
+				'context'     => array( 'view', 'edit' ),
+				'default'     => '',
+				'readonly'    => true,
+			),
 		);
 	}
 
@@ -329,15 +343,34 @@ final class Checkout {
 				'city'      => $customer->get_shipping_city(),
 			);
 
-			$locations      = $provider->get_pickup_locations( $address );
-			$max_weight     = 0;
+			$max_weight     = wc()->cart->get_cart_contents_weight();
 			$max_dimensions = array(
 				'length' => 0.0,
 				'width'  => 0.0,
 				'height' => 0.0,
 			);
 
-			if ( ! empty( $locations ) && $shipping_method && is_a( $shipping_method->get_method(), 'Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod' ) ) {
+			foreach ( wc()->cart->get_cart() as $values ) {
+				if ( $product = wc_gzd_shipments_get_product( $values['data'] ) ) {
+					if ( $product->has_dimensions() ) {
+						$length = (float) wc_get_dimension( $product->get_shipping_length(), wc_gzd_get_packaging_dimension_unit() );
+						$width  = (float) wc_get_dimension( $product->get_shipping_width(), wc_gzd_get_packaging_dimension_unit() );
+						$height = (float) wc_get_dimension( $product->get_shipping_height(), wc_gzd_get_packaging_dimension_unit() );
+
+						if ( $length > $max_dimensions['length'] ) {
+							$max_dimensions['length'] = (float) $length;
+						}
+						if ( $width > $max_dimensions['width'] ) {
+							$max_dimensions['width'] = (float) $width;
+						}
+						if ( $height > $max_dimensions['height'] ) {
+							$max_dimensions['height'] = (float) $height;
+						}
+					}
+				}
+			}
+
+			if ( $shipping_method && is_a( $shipping_method->get_method(), 'Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod' ) ) {
 				$controller              = new CartController();
 				$cart                    = wc()->cart;
 				$has_calculated_shipping = $cart->show_shipping();
@@ -351,6 +384,13 @@ final class Checkout {
 						$meta = $rate->get_meta_data();
 
 						if ( isset( $meta['_packages'] ) ) {
+							$max_weight     = 0;
+							$max_dimensions = array(
+								'length' => 0.0,
+								'width'  => 0.0,
+								'height' => 0.0,
+							);
+
 							foreach ( (array) $meta['_packages'] as $package_data ) {
 								$packaging_id = $package_data['packaging_id'];
 
@@ -377,14 +417,33 @@ final class Checkout {
 				}
 			}
 
-			$is_available = $provider->supports_pickup_location_delivery( $address, $max_dimensions, $max_weight );
+			$is_available = $provider->supports_pickup_location_delivery(
+				$address,
+				array(
+					'max_dimensions' => $max_dimensions,
+					'max_weight'     => $max_weight,
+				)
+			);
+
+			if ( $is_available ) {
+				$locations = $provider->get_pickup_locations(
+					$address,
+					array(
+						'max_dimensions' => $max_dimensions,
+						'max_weight'     => $max_weight,
+					)
+				);
+			}
 		}
 
 		return array(
-			'pickup_location_delivery_available' => $is_available && ! empty( $locations ),
-			'pickup_locations'                   => array_map(
+			'pickup_location_delivery_available'      => $is_available && ! empty( $locations ),
+			'default_pickup_location'                 => WC()->customer->get_meta( 'pickup_location_code' ),
+			'default_pickup_location_customer_number' => WC()->customer->get_meta( 'pickup_location_customer_number' ),
+			'pickup_locations'                        => array_map(
 				function( $location ) {
-					return $location->get_data(); },
+					return $location->get_data();
+				},
 				$locations
 			),
 		);

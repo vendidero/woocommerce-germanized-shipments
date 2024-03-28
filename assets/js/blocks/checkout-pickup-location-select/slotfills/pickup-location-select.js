@@ -1,6 +1,6 @@
 import { ExperimentalOrderShippingPackages } from '@woocommerce/blocks-checkout';
 import { registerPlugin } from '@wordpress/plugins';
-import { useEffect, useCallback, useState, useMemo } from "@wordpress/element";
+import { useEffect, useCallback, useState, useMemo, useRef } from "@wordpress/element";
 import { useSelect, useDispatch, select, dispatch } from '@wordpress/data';
 import { __, _x, sprintf } from '@wordpress/i18n';
 import { CART_STORE_KEY, CHECKOUT_STORE_KEY } from '@woocommerce/block-data';
@@ -28,6 +28,8 @@ const PickupLocationSelect = ({
         needsShipping,
         pickupLocations,
         pickupLocationDeliveryAvailable,
+        defaultPickupLocation,
+        defaultCustomerNumber,
         customerData
     } = useSelect( ( select ) => {
         const isEditor = !! select( 'core/editor' );
@@ -37,7 +39,13 @@ const PickupLocationSelect = ({
             : store.getShippingRates();
 
         const cartData = store.getCartData();
-        const shipmentsData = cartData.extensions.hasOwnProperty( 'woocommerce-gzd-shipments' ) ? cartData.extensions['woocommerce-gzd-shipments'] : { 'pickup_location_delivery_available': false, 'pickup_locations': [] };
+        const defaultData    = {
+            'pickup_location_delivery_available': false,
+            'pickup_locations': [],
+            'default_pickup_location': '',
+            'default_pickup_location_customer_number': '',
+        };
+        const shipmentsData = cartData.extensions.hasOwnProperty( 'woocommerce-gzd-shipments' ) ? cartData.extensions['woocommerce-gzd-shipments'] : defaultData;
 
         return {
             shippingRates: rates,
@@ -46,7 +54,9 @@ const PickupLocationSelect = ({
             isLoadingRates: store.isCustomerDataUpdating(),
             isSelectingRate: store.isShippingRateBeingSelected(),
             pickupLocationDeliveryAvailable: shipmentsData['pickup_location_delivery_available'],
-            pickupLocations: shipmentsData['pickup_locations']
+            pickupLocations: shipmentsData['pickup_locations'],
+            defaultPickupLocation: shipmentsData['default_pickup_location'],
+            defaultCustomerNumber: shipmentsData['default_pickup_location_customer_number']
         };
     } );
 
@@ -61,6 +71,13 @@ const PickupLocationSelect = ({
     const getLocationByCode = useCallback( ( code ) => {
         return availableLocations.hasOwnProperty( code ) ? availableLocations[ code ] : null;
     }, [ availableLocations ] );
+
+    useEffect(() => {
+        if ( pickupLocationDeliveryAvailable && getLocationByCode( defaultPickupLocation ) ) {
+            setOption( 'pickup_location', defaultPickupLocation );
+            setOption( 'pickup_location_customer_number', defaultCustomerNumber );
+        }
+    }, [] );
 
     const setOption = useCallback( ( option, value ) => {
         checkoutOptions[ option ] = value;
@@ -81,19 +98,6 @@ const PickupLocationSelect = ({
 
     const shippingAddress = customerData.shippingAddress;
     const { setShippingAddress, setBillingAddress } = useDispatch( CART_STORE_KEY );
-
-    useEffect(() => {
-        if ( checkoutOptions.pickup_location ) {
-            const currentLocation = getLocationByCode( checkoutOptions.pickup_location );
-
-            if ( ! currentLocation ) {
-                setOption( 'pickup_location', '' );
-                setOption( 'pickup_location_customer_number', '' );
-            }
-        }
-    }, [
-        locationOptions
-    ] );
 
     useEffect(() => {
         if ( checkoutOptions.pickup_location ) {
@@ -122,8 +126,13 @@ const PickupLocationSelect = ({
         checkoutOptions.pickup_location
     ] );
 
+    /**
+     * Show a notice in case availability changes or location is not available any longer.
+     */
     useEffect(() => {
-        if ( ! pickupLocationDeliveryAvailable ) {
+        const currentLocation = getLocationByCode( checkoutOptions.pickup_location );
+
+        if ( ! pickupLocationDeliveryAvailable || ! currentLocation ) {
             let showNotice = checkoutOptions.pickup_location ? true : false;
 
             setOption( 'pickup_location', '' );
@@ -141,7 +150,8 @@ const PickupLocationSelect = ({
             }
         }
     }, [
-        pickupLocationDeliveryAvailable
+        pickupLocationDeliveryAvailable,
+        locationOptions
     ] );
 
     if ( needsShipping && pickupLocationDeliveryAvailable ) {
