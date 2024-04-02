@@ -241,7 +241,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 						'id'                => 'label_print_format_' . $product->get_id(),
 						'default'           => '',
 						'custom_attributes' => array( 'data-placeholder' => _x( 'Same as default format', 'shipments', 'woocommerce-germanized-shipments' ) ),
-						'options'           => array_merge( array( '' => _x( 'Same as default format', 'shipments', 'woocommerce-germanized-shipments' ) ), $this->get_print_formats( array( 'product_id' => $product->get_id() ) )->as_options() ),
+						'options'           => array( '' => _x( 'Same as default format', 'shipments', 'woocommerce-germanized-shipments' ) ) + $this->get_print_formats( array( 'product_id' => $product->get_id() ) )->as_options(),
 						'class'             => 'wc-enhanced-select-nostd',
 						'value'             => $this->get_setting( "label_print_format_{$product->get_id()}" ),
 					),
