@@ -268,13 +268,17 @@ abstract class Shipment extends WC_Data {
 	}
 
 	public function is_shipping_domestic() {
-		return Package::is_shipping_domestic(
-			$this->get_country(),
-			array(
-				'sender_country'  => $this->get_sender_country(),
-				'sender_postcode' => $this->get_sender_postcode(),
-				'postcode'        => $this->get_postcode(),
-			)
+		return apply_filters(
+			"{$this->get_general_hook_prefix()}is_shipping_domestic",
+			Package::is_shipping_domestic(
+				$this->get_country(),
+				array(
+					'sender_country'  => $this->get_sender_country(),
+					'sender_postcode' => $this->get_sender_postcode(),
+					'postcode'        => $this->get_postcode(),
+				)
+			),
+			$this
 		);
 	}
 
@@ -285,13 +289,17 @@ abstract class Shipment extends WC_Data {
 	 * @return bool
 	 */
 	public function is_shipping_inner_eu() {
-		if ( Package::is_shipping_inner_eu_country(
-			$this->get_country(),
-			array(
-				'sender_country'  => $this->get_sender_country(),
-				'sender_postcode' => $this->get_sender_postcode(),
-				'postcode'        => $this->get_postcode(),
-			)
+		if ( apply_filters(
+			"{$this->get_general_hook_prefix()}is_shipping_inner_eu",
+			Package::is_shipping_inner_eu_country(
+				$this->get_country(),
+				array(
+					'sender_country'  => $this->get_sender_country(),
+					'sender_postcode' => $this->get_sender_postcode(),
+					'postcode'        => $this->get_postcode(),
+				)
+			),
+			$this
 		) ) {
 			return true;
 		}
