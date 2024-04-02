@@ -373,8 +373,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		$cache_key       = $this->get_pickup_location_cache_key( $location_code, $address );
 		$pickup_location = get_transient( $cache_key );
 
-		$pickup_location = false;
-
 		if ( false === $pickup_location ) {
 			$pickup_location = $this->fetch_pickup_location( $location_code, $address );
 
@@ -417,6 +415,12 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return false;
 	}
 
+	/**
+	 * @param $address
+	 * @param $query_args
+	 *
+	 * @return null
+	 */
 	protected function fetch_pickup_locations( $address, $query_args = array() ) {
 		return null;
 	}
@@ -460,8 +464,6 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		$cache_key        = $this->get_pickup_locations_cache_key( $address );
 		$pickup_locations = get_transient( $cache_key );
 		$address          = $this->parse_pickup_location_address_args( $address );
-
-		$pickup_locations = false;
 
 		if ( false === $pickup_locations ) {
 			$pickup_locations = $this->fetch_pickup_locations( $address, $query_args );

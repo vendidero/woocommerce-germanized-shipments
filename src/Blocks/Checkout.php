@@ -7,6 +7,7 @@ use Automattic\WooCommerce\StoreApi\Schemas\V1\CartSchema;
 use Automattic\WooCommerce\StoreApi\Schemas\V1\CheckoutSchema;
 use Automattic\WooCommerce\StoreApi\Utilities\CartController;
 use Vendidero\Germanized\Shipments\Package;
+use Vendidero\Germanized\Shipments\PickupDelivery;
 
 final class Checkout {
 
@@ -343,96 +344,11 @@ final class Checkout {
 				'city'      => $customer->get_shipping_city(),
 			);
 
-			$max_weight     = wc()->cart->get_cart_contents_weight();
-			$max_dimensions = array(
-				'length' => 0.0,
-				'width'  => 0.0,
-				'height' => 0.0,
-			);
-
-			foreach ( wc()->cart->get_cart() as $values ) {
-				if ( $product = wc_gzd_shipments_get_product( $values['data'] ) ) {
-					if ( $product->has_dimensions() ) {
-						$length = (float) wc_get_dimension( $product->get_shipping_length(), wc_gzd_get_packaging_dimension_unit() );
-						$width  = (float) wc_get_dimension( $product->get_shipping_width(), wc_gzd_get_packaging_dimension_unit() );
-						$height = (float) wc_get_dimension( $product->get_shipping_height(), wc_gzd_get_packaging_dimension_unit() );
-
-						if ( $length > $max_dimensions['length'] ) {
-							$max_dimensions['length'] = (float) $length;
-						}
-						if ( $width > $max_dimensions['width'] ) {
-							$max_dimensions['width'] = (float) $width;
-						}
-						if ( $height > $max_dimensions['height'] ) {
-							$max_dimensions['height'] = (float) $height;
-						}
-					}
-				}
-			}
-
-			if ( $shipping_method && is_a( $shipping_method->get_method(), 'Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod' ) ) {
-				$controller              = new CartController();
-				$cart                    = wc()->cart;
-				$has_calculated_shipping = $cart->show_shipping();
-				$shipping_packages       = $has_calculated_shipping ? $controller->get_shipping_packages() : array();
-				$current_rate_id         = wc_gzd_get_current_shipping_method_id();
-
-				if ( isset( $shipping_packages[0]['rates'][ $current_rate_id ] ) ) {
-					$rate = $shipping_packages[0]['rates'][ $current_rate_id ];
-
-					if ( is_a( $rate, 'WC_Shipping_Rate' ) ) {
-						$meta = $rate->get_meta_data();
-
-						if ( isset( $meta['_packages'] ) ) {
-							$max_weight     = 0;
-							$max_dimensions = array(
-								'length' => 0.0,
-								'width'  => 0.0,
-								'height' => 0.0,
-							);
-
-							foreach ( (array) $meta['_packages'] as $package_data ) {
-								$packaging_id = $package_data['packaging_id'];
-
-								if ( $packaging = wc_gzd_get_packaging( $packaging_id ) ) {
-									$package_weight = (float) wc_get_weight( $package_data['weight'], wc_gzd_get_packaging_weight_unit(), 'g' );
-
-									if ( (float) $packaging->get_length() > $max_dimensions['length'] ) {
-										$max_dimensions['length'] = (float) $packaging->get_length();
-									}
-									if ( (float) $packaging->get_width() > $max_dimensions['width'] ) {
-										$max_dimensions['width'] = (float) $packaging->get_width();
-									}
-									if ( (float) $packaging->get_height() > $max_dimensions['height'] ) {
-										$max_dimensions['height'] = (float) $packaging->get_height();
-									}
-
-									if ( $package_weight > $max_weight ) {
-										$max_weight = $package_weight;
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-
-			$is_available = $provider->supports_pickup_location_delivery(
-				$address,
-				array(
-					'max_dimensions' => $max_dimensions,
-					'max_weight'     => $max_weight,
-				)
-			);
+			$query_args   = PickupDelivery::get_pickup_delivery_cart_args();
+			$is_available = $provider->supports_pickup_location_delivery( $address, $query_args );
 
 			if ( $is_available ) {
-				$locations = $provider->get_pickup_locations(
-					$address,
-					array(
-						'max_dimensions' => $max_dimensions,
-						'max_weight'     => $max_weight,
-					)
-				);
+				$locations = $provider->get_pickup_locations( $address, $query_args );
 			}
 		}
 

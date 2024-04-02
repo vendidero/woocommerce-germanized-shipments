@@ -1,7 +1,6 @@
 <?php
 namespace Vendidero\Germanized\Shipments;
 
-use Vendidero\Germanized\DHL\Api\LocationFinder;
 use Vendidero\Germanized\Shipments\Admin\Admin;
 use Vendidero\Germanized\Shipments\Registry\Container;
 use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
@@ -49,7 +48,7 @@ class Bootstrap {
 		$this->container->get( Validation::class )::init();
 		$this->container->get( Api::class )::init();
 		$this->container->get( FormHandler::class )::init();
-		$this->container->get( ParcelLocator::class )::init();
+		$this->container->get( PickupDelivery::class )::init();
 		$this->container->get( Packaging\ReportHelper::class )::init();
 		$this->container->get( Caches\Helper::class )::init();
 
@@ -123,9 +122,9 @@ class Bootstrap {
 			}
 		);
 		$this->container->register(
-			ParcelLocator::class,
+			PickupDelivery::class,
 			function ( $container ) {
-				return ParcelLocator::class;
+				return PickupDelivery::class;
 			}
 		);
 		$this->container->register(

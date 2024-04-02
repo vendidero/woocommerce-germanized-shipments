@@ -10,6 +10,8 @@ class PickupLocation {
 
 	protected $code = '';
 
+	protected $type = '';
+
 	protected $label = '';
 
 	protected $latitude = '';
@@ -74,6 +76,10 @@ class PickupLocation {
 		}
 
 		$this->address_replacement_map = (array) $args['address_replacement_map'];
+	}
+
+	public function get_id() {
+		return $this->get_code();
 	}
 
 	public function get_code() {
