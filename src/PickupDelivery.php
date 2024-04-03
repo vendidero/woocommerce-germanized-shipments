@@ -420,7 +420,6 @@ class PickupDelivery {
 			'label'            => $customer_number_field_label,
 			'current_location' => $current_location,
 			'default'          => $current_customer_number,
-			'required'         => $cu,
 		);
 
 		return $fields;
