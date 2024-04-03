@@ -1140,6 +1140,13 @@ class Order {
 		return apply_filters( 'woocommerce_gzd_shipment_order_supports_pickup_location', $supports_pickup_location, $this->get_order(), $this );
 	}
 
+	/**
+	 * @return bool|Interfaces\ShippingProvider
+	 */
+	public function get_shipping_provider() {
+		return wc_gzd_get_order_shipping_provider( $this->order );
+	}
+
 	public function has_pickup_location() {
 		$pickup_location_code = $this->get_pickup_location_code();
 

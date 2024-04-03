@@ -123,6 +123,9 @@ const PickupLocationSelect = ({
                     setShippingAddress( newShippingAddress );
                 }
             }
+        } else {
+            setSupportsCustomerNumber( () => { return false } );
+            setCustomerNumberIsMandatory( () => { return false } );
         }
     }, [
         checkoutOptions.pickup_location
@@ -169,6 +172,7 @@ const PickupLocationSelect = ({
                     name="pickup_location"
                     label={ _x( 'Pickup location', 'shipments', 'woocommerce-germanized-shipments' ) }
                     errorId="pickup-location"
+                    allowReset={ checkoutOptions.pickup_location ? true : false }
                     value={ checkoutOptions.pickup_location }
                     required={ false }
                     onChange={ ( newLocationCode ) => {

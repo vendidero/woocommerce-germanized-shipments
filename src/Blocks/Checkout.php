@@ -79,10 +79,15 @@ final class Checkout {
 
 			if ( $provider = wc_gzd_get_order_shipping_provider( $order ) ) {
 				if ( is_a( $provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto' ) ) {
-					$pickup_location              = $provider->get_pickup_location_by_code( $pickup_location_code, $address_data );
-					$is_valid                     = $provider->is_valid_pickup_location( $pickup_location_code, $address_data );
-					$supports_customer_number     = $pickup_location ? $pickup_location->supports_customer_number() : false;
-					$customer_number_is_mandatory = $pickup_location ? $pickup_location->customer_number_is_mandatory() : false;
+					$query_args                    = PickupDelivery::get_pickup_delivery_cart_args();
+					$query_args['payment_gateway'] = $order->get_payment_method();
+
+					if ( $provider->supports_pickup_location_delivery( $address_data, $query_args ) ) {
+						$pickup_location              = $provider->get_pickup_location_by_code( $pickup_location_code, $address_data );
+						$is_valid                     = $provider->is_valid_pickup_location( $pickup_location_code, $address_data );
+						$supports_customer_number     = $pickup_location ? $pickup_location->supports_customer_number() : false;
+						$customer_number_is_mandatory = $pickup_location ? $pickup_location->customer_number_is_mandatory() : false;
+					}
 				}
 			}
 

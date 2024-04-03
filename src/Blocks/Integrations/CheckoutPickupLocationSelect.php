@@ -32,6 +32,7 @@ class CheckoutPickupLocationSelect implements IntegrationInterface {
 
 		$this->assets->register_script( 'wc-gzd-shipments-checkout-pickup-location-select-block', $this->assets->get_block_asset_build_path( 'checkout-pickup-location-select' ), array( 'wc-gzd-shipments-blocks' ) );
 		$this->assets->register_style( 'wc-gzd-shipments-checkout-pickup-location-select-block', $this->assets->get_block_asset_build_path( 'style-checkout-pickup-location-select', 'css' ) );
+		$this->assets->register_style( 'wc-gzd-shipments-checkout', $this->assets->get_block_asset_build_path( 'style-blocksCheckout', 'css' ) );
 
 		$asset_registry = \Automattic\WooCommerce\Blocks\Package::container()->get( \Automattic\WooCommerce\Blocks\Assets\AssetDataRegistry::class );
 
@@ -39,6 +40,7 @@ class CheckoutPickupLocationSelect implements IntegrationInterface {
 			'woocommerce_blocks_enqueue_checkout_block_scripts_after',
 			function() {
 				wp_enqueue_style( 'wc-gzd-shipments-checkout-pickup-location-select-block' );
+				wp_enqueue_style( 'wc-gzd-shipments-checkout' );
 			}
 		);
 	}

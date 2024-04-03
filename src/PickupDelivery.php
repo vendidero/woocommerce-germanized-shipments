@@ -119,7 +119,7 @@ class PickupDelivery {
 		}
 
 		$pickup_location_code            = isset( $data['pickup_location'] ) ? trim( wc_clean( $data['pickup_location'] ) ) : '';
-		$pickup_location_customer_number = isset( $data['pickup_location_customer_number'] ) ? wc_clean( $data['pickup_location_customer_number'] ) : '';
+		$pickup_location_customer_number = isset( $data['pickup_location_customer_number'] ) ? trim( wc_clean( $data['pickup_location_customer_number'] ) ) : '';
 
 		if ( '-1' === $pickup_location_code || empty( $pickup_location_code ) ) {
 			$pickup_location_code = '';
@@ -135,31 +135,35 @@ class PickupDelivery {
 						'address_1' => $order->get_shipping_address_1(),
 					);
 
-					$pickup_location = $provider->get_pickup_location_by_code( $pickup_location_code, $address_data );
+					$query_args = self::get_pickup_delivery_cart_args();
 
-					if ( $pickup_location ) {
-						$order->update_meta_data( '_pickup_location_code', $pickup_location_code );
+					if ( $provider->supports_pickup_location_delivery( $address_data, $query_args ) ) {
+						$pickup_location = $provider->get_pickup_location_by_code( $pickup_location_code, $address_data );
 
-						if ( $pickup_location->supports_customer_number() ) {
-							$order->update_meta_data( '_pickup_location_customer_number', $pickup_location_customer_number );
+						if ( $pickup_location ) {
+							$order->update_meta_data( '_pickup_location_code', $pickup_location_code );
+
+							if ( $pickup_location->supports_customer_number() ) {
+								$order->update_meta_data( '_pickup_location_customer_number', $pickup_location_customer_number );
+							}
+
+							$pickup_location->replace_address( $order );
+
+							if ( $order->get_customer_id() ) {
+								$wc_customer = new \WC_Customer( $order->get_customer_id() );
+
+								$wc_customer->update_meta_data( 'pickup_location_code', $pickup_location_code );
+								$pickup_location->replace_address( $wc_customer );
+
+								if ( $pickup_location->supports_customer_number() ) {
+									$wc_customer->update_meta_data( 'pickup_location_customer_number', $pickup_location_customer_number );
+								}
+
+								$wc_customer->save();
+							}
 						}
-
-						$pickup_location->replace_address( $order );
 					}
 				}
-			}
-
-			if ( $order->get_customer_id() ) {
-				$wc_customer = new \WC_Customer( $order->get_customer_id() );
-
-				$wc_customer->update_meta_data( 'pickup_location_code', $pickup_location_code );
-				$pickup_location->replace_address( $wc_customer );
-
-				if ( $order->get_meta( '_pickup_location_customer_number' ) ) {
-					$wc_customer->update_meta_data( 'pickup_location_customer_number', $pickup_location_customer_number );
-				}
-
-				$wc_customer->save();
 			}
 		}
 	}
@@ -286,26 +290,6 @@ class PickupDelivery {
 			'height' => 0.0,
 		);
 
-		foreach ( wc()->cart->get_cart() as $values ) {
-			if ( $product = wc_gzd_shipments_get_product( $values['data'] ) ) {
-				if ( $product->has_dimensions() ) {
-					$length = (float) wc_get_dimension( $product->get_shipping_length(), wc_gzd_get_packaging_dimension_unit() );
-					$width  = (float) wc_get_dimension( $product->get_shipping_width(), wc_gzd_get_packaging_dimension_unit() );
-					$height = (float) wc_get_dimension( $product->get_shipping_height(), wc_gzd_get_packaging_dimension_unit() );
-
-					if ( $length > $max_dimensions['length'] ) {
-						$max_dimensions['length'] = (float) $length;
-					}
-					if ( $width > $max_dimensions['width'] ) {
-						$max_dimensions['width'] = (float) $width;
-					}
-					if ( $height > $max_dimensions['height'] ) {
-						$max_dimensions['height'] = (float) $height;
-					}
-				}
-			}
-		}
-
 		if ( $shipping_method && is_a( $shipping_method->get_method(), 'Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod' ) ) {
 			$controller              = new CartController();
 			$cart                    = wc()->cart;
@@ -320,12 +304,7 @@ class PickupDelivery {
 					$meta = $rate->get_meta_data();
 
 					if ( isset( $meta['_packages'] ) ) {
-						$max_weight     = 0;
-						$max_dimensions = array(
-							'length' => 0.0,
-							'width'  => 0.0,
-							'height' => 0.0,
-						);
+						$max_weight = 0.0;
 
 						foreach ( (array) $meta['_packages'] as $package_data ) {
 							$packaging_id = $package_data['packaging_id'];
@@ -353,9 +332,32 @@ class PickupDelivery {
 			}
 		}
 
+		if ( empty( $max_dimensions['length'] ) ) {
+			foreach ( wc()->cart->get_cart() as $values ) {
+				if ( $product = wc_gzd_shipments_get_product( $values['data'] ) ) {
+					if ( $product->has_dimensions() ) {
+						$length = (float) wc_get_dimension( $product->get_shipping_length(), wc_gzd_get_packaging_dimension_unit() );
+						$width  = (float) wc_get_dimension( $product->get_shipping_width(), wc_gzd_get_packaging_dimension_unit() );
+						$height = (float) wc_get_dimension( $product->get_shipping_height(), wc_gzd_get_packaging_dimension_unit() );
+
+						if ( $length > $max_dimensions['length'] ) {
+							$max_dimensions['length'] = (float) $length;
+						}
+						if ( $width > $max_dimensions['width'] ) {
+							$max_dimensions['width'] = (float) $width;
+						}
+						if ( $height > $max_dimensions['height'] ) {
+							$max_dimensions['height'] = (float) $height;
+						}
+					}
+				}
+			}
+		}
+
 		return array(
-			'max_weight'     => $max_weight,
-			'max_dimensions' => $max_dimensions,
+			'max_weight'      => $max_weight,
+			'max_dimensions'  => $max_dimensions,
+			'payment_gateway' => WC()->session ? WC()->session->get( 'chosen_payment_method' ) : '',
 		);
 	}
 

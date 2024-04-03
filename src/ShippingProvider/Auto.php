@@ -441,9 +441,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		$query_args = wp_parse_args(
 			$query_args,
 			array(
-				'max_dimensions' => array(),
-				'max_weight'     => 0.0,
-				'limit'          => 10,
+				'max_dimensions'  => array(),
+				'max_weight'      => 0.0,
+				'limit'           => 10,
+				'payment_gateway' => '',
 			)
 		);
 

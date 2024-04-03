@@ -8,7 +8,7 @@ import { withInstanceId } from '@wordpress/compose';
  * Internal dependencies
  */
 import RadioControlOption from '../radio-control/option';
-
+import "./style.scss";
 const RadioControlAccordion = ( {
     className,
     instanceId,
@@ -26,6 +26,7 @@ const RadioControlAccordion = ( {
         <div
             className={ classnames(
                 'wc-block-components-radio-control',
+                'wc-gzd-shipments-block-components-radio-control',
                 className
             ) }
         >

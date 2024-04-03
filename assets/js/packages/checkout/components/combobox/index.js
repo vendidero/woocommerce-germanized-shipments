@@ -9,6 +9,8 @@ import { ValidationInputError } from '@woocommerce/blocks-components';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { VALIDATION_STORE_KEY } from '@woocommerce/block-data';
 
+import "./style.scss";
+
 /**
  * Wrapper for the WordPress ComboboxControl which supports validation.
  */
@@ -20,6 +22,7 @@ const Combobox = ( {
     onSearch = null,
     options,
     value,
+    allowReset = false,
     required = false,
     errorId: incomingErrorId,
     autoComplete = 'off',
@@ -69,9 +72,10 @@ const Combobox = ( {
     return (
         <div
             id={ controlId }
-            className={ classnames( 'wc-block-components-combobox', className, {
+            className={ classnames( 'wc-block-components-combobox', className, 'wc-gzd-shipments-components-combobox', {
                 'is-active': value,
                 'has-error': error?.message && ! error?.hidden,
+                'has-reset': allowReset,
             } ) }
             ref={ controlRef }
         >
@@ -124,7 +128,7 @@ const Combobox = ( {
                 } }
                 options={ options }
                 value={ value || '' }
-                allowReset={ false }
+                allowReset={ allowReset }
                 autoComplete={ autoComplete }
                 // Note these aria properties are ignored by ComboboxControl. When we replace ComboboxControl we should support them.
                 aria-invalid={ error?.message && ! error?.hidden }
