@@ -1,20 +1,20 @@
 
 window.germanized = window.germanized || {};
-window.germanized.shipments_classic_checkout = window.germanized.shipments_classic_checkout || {};
+window.germanized.shipments_pickup_locations = window.germanized.shipments_pickup_locations || {};
 
 ( function( $, germanized ) {
 
     /**
      * Core
      */
-    germanized.shipments_classic_checkout = {
+    germanized.shipments_pickup_locations = {
 
         params: {},
         pickupLocations: {},
 
         init: function () {
-            var self  = germanized.shipments_classic_checkout;
-            self.params  = wc_gzd_shipments_classic_checkout_params;
+            var self  = germanized.shipments_pickup_locations;
+            self.params  = wc_gzd_shipments_pickup_locations_params;
 
             var $pickupSelect = $( '#pickup_location' );
 
@@ -29,24 +29,70 @@ window.germanized.shipments_classic_checkout = window.germanized.shipments_class
         },
 
         onSelectPickupLocation: function() {
-            var self = germanized.shipments_classic_checkout,
+            var self = germanized.shipments_pickup_locations,
                 $pickupSelect  = self.getPickupLocationSelect(),
-                $customerNumberField = $( '#pickup_location_customer_number_field' );
+                $customerNumberField = $( '#pickup_location_customer_number_field' ),
+                current = $pickupSelect.val();
 
             if ( "-1" === $pickupSelect.val() ) {
                 $customerNumberField.addClass( 'hidden' );
                 $customerNumberField.hide();
+            } else {
+                var currentLocation = self.getPickupLocation( current );
+
+                if ( currentLocation ) {
+                    self.updateCustomerNumberField( currentLocation );
+                }
             }
 
             $( document.body ).trigger( 'update_checkout' );
+        },
+
+        updateCustomerNumberField: function( currentLocation ) {
+            var $customerNumberField = $( '#pickup_location_customer_number_field' );
+
+            if ( currentLocation.supports_customer_number ) {
+                // Do not replace via .text() to prevent removing inner html elements, e.g. optional label.
+                $customerNumberField.find( 'label' )[0].firstChild.nodeValue = currentLocation.customer_number_field_label + ' ';
+
+                if ( currentLocation.customer_number_is_mandatory ) {
+                    if ( ! $customerNumberField.find( 'label .required' ).length ) {
+                        $customerNumberField.find( 'label' ).append( ' <abbr class="required">*</abbr>' );
+                    }
+
+                    $customerNumberField.find( 'label .optional' ).hide();
+                    $customerNumberField.addClass( 'validate-required' );
+                } else {
+                    $customerNumberField.find( 'label .required' ).remove();
+                    $customerNumberField.find( 'label .optional' ).show();
+
+                    $customerNumberField.removeClass( 'validate-required woocommerce-invalid woocommerce-invalid-required-field' );
+                }
+
+                $customerNumberField.removeClass( 'hidden' );
+                $customerNumberField.show();
+            } else {
+                $customerNumberField.addClass( 'hidden' );
+                $customerNumberField.hide();
+            }
         },
 
         getPickupLocationSelect: function() {
             return $( '#pickup_location' );
         },
 
+        getPickupLocation: function( locationCode ) {
+            var self = germanized.shipments_pickup_locations;
+
+            if ( self.pickupLocations.hasOwnProperty( locationCode ) ) {
+                return self.pickupLocations[ locationCode ];
+            }
+
+            return false;
+        },
+
         afterRefreshCheckout: function( e, ajaxData ) {
-            var self = germanized.shipments_classic_checkout,
+            var self = germanized.shipments_pickup_locations,
                 $pickupSelect = self.getPickupLocationSelect(),
                 $pickupSelectField = $pickupSelect.parents( '#pickup_location_field' ),
                 $customerNumberField = $( '#pickup_location_customer_number_field' ),
@@ -64,7 +110,7 @@ window.germanized.shipments_classic_checkout = window.germanized.shipments_class
                 self.pickupLocations = {};
             }
 
-            $( '#pickup_location' ).attr('data-locations', self.pickupLocations );
+            $pickupSelect.attr('data-locations', self.pickupLocations );
 
             if ( Object.keys( self.pickupLocations ).length ) {
                 $pickupSelectField.show();
@@ -73,39 +119,17 @@ window.germanized.shipments_classic_checkout = window.germanized.shipments_class
                 $pickupSelect.find( 'option:gt(0)' ).remove();
 
                 $.each( self.pickupLocations, function( code, pickupLocation ) {
-                    $pickupSelect.append( $( "<option></option>" ).attr("value", code ).text( pickupLocation.label ) );
+                    var label = $( '<textarea />' ).html( pickupLocation.formatted_address).text();
+                    $pickupSelect.append( $( "<option></option>" ).attr("value", code ).text( label ) );
                 });
 
-                if ( self.pickupLocations.hasOwnProperty( current ) ) {
-                    var currentLocation = self.pickupLocations[ current ];
+                var currentLocation = self.getPickupLocation( current );
 
-                    if ( currentLocation ) {
-                        $pickupSelect.find( 'option[value="' + currentLocation.code + '"' )[0].selected = true;
+                if ( currentLocation ) {
+                    $pickupSelect.find( 'option[value="' + currentLocation.code + '"' )[0].selected = true;
 
-                        self.replaceShippingAddress( currentLocation.address_replacements );
-
-                        if ( currentLocation.supports_customer_number ) {
-                            if ( currentLocation.customer_number_is_mandatory ) {
-                                if ( ! $customerNumberField.find( 'label abbr' ).length || ( ! $customerNumberField.find( 'label abbr' ).hasClass( 'required' ) ) ) {
-                                    $customerNumberField.find( 'label' ).append( ' <abbr class="required">*</abbr>' );
-                                }
-
-                                $customerNumberField.find( 'label span.optional' ).hide();
-                                $customerNumberField.addClass( 'validate-required' );
-                            } else {
-                                $customerNumberField.find( 'label abbr.required' ).remove();
-                                $customerNumberField.find( 'label span.optional' ).show();
-
-                                $customerNumberField.removeClass( 'validate-required woocommerce-invalid woocommerce-invalid-required-field' );
-                            }
-
-                            $customerNumberField.removeClass( 'hidden' );
-                            $customerNumberField.show();
-                        } else {
-                            $customerNumberField.addClass( 'hidden' );
-                            $customerNumberField.hide();
-                        }
-                    }
+                    self.replaceShippingAddress( currentLocation.address_replacements );
+                    self.updateCustomerNumberField( currentLocation );
                 } else {
                     $customerNumberField.addClass( 'hidden' );
                     $customerNumberField.hide();
@@ -140,7 +164,7 @@ window.germanized.shipments_classic_checkout = window.germanized.shipments_class
         },
 
         replaceShippingAddress: function( replacements ) {
-            var self = germanized.shipments_classic_checkout,
+            var self = germanized.shipments_pickup_locations,
                 $shipToDifferent = $( '#ship-to-different-address input' ),
             hasChanged = [];
 
@@ -170,7 +194,7 @@ window.germanized.shipments_classic_checkout = window.germanized.shipments_class
     };
 
     $( document ).ready( function() {
-        germanized.shipments_classic_checkout.init();
+        germanized.shipments_pickup_locations.init();
     });
 
 })( jQuery, window.germanized );

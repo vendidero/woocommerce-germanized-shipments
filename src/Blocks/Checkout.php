@@ -63,7 +63,7 @@ final class Checkout {
 	private function validate_checkout_data( $order, $request ) {
 		$gzd_data = $this->get_checkout_data_from_request( $request );
 
-		if ( $this->has_checkout_data( 'pickup_location', $request ) ) {
+		if ( $this->has_checkout_data( 'pickup_location', $request ) && ! empty( $gzd_data['pickup_location'] ) ) {
 			$pickup_location_code            = $gzd_data['pickup_location'];
 			$pickup_location_customer_number = $gzd_data['pickup_location_customer_number'];
 			$supports_customer_number        = false;
@@ -83,58 +83,55 @@ final class Checkout {
 					$is_valid                     = $provider->is_valid_pickup_location( $pickup_location_code, $address_data );
 					$supports_customer_number     = $pickup_location ? $pickup_location->supports_customer_number() : false;
 					$customer_number_is_mandatory = $pickup_location ? $pickup_location->customer_number_is_mandatory() : false;
-
-					if ( $is_valid && $customer_number_is_mandatory ) {
-						if ( ! $pickup_location ) {
-							throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException( 'pickup_location_customer_number_invalid', _x( 'Sorry, your pickup location customer number is invalid.', 'shipments', 'woocommerce-germanized-shipments' ), 400 );
-						} elseif ( ! $validation = $pickup_location->customer_number_is_valid( $pickup_location_customer_number ) ) {
-							if ( is_a( $validation, 'WP_Error' ) ) {
-								throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException( 'pickup_location_customer_number_invalid', $validation->get_error_message(), 400 );
-							} else {
-								throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException( 'pickup_location_customer_number_invalid', _x( 'Sorry, your pickup location customer number is invalid.', 'shipments', 'woocommerce-germanized-shipments' ), 400 );
-							}
-						}
-					}
 				}
 			}
 
-			if ( $is_valid && $pickup_location ) {
-				$pickup_location_code = $pickup_location->get_code();
-				$pickup_location->replace_address( $order );
-
-				$order->update_meta_data( '_pickup_location_code', $pickup_location_code );
-
-				if ( $supports_customer_number ) {
-					$order->update_meta_data( '_pickup_location_customer_number', $pickup_location_customer_number );
-				}
-
-				/**
-				 * Persist customer changes for logged-in customers.
-				 */
-				if ( $order->get_customer_id() ) {
-					$wc_customer = new \WC_Customer( $order->get_customer_id() );
-
-					$wc_customer->update_meta_data( 'pickup_location_code', $pickup_location_code );
-					$pickup_location->replace_address( $wc_customer );
-
-					if ( $supports_customer_number ) {
-						$wc_customer->update_meta_data( 'pickup_location_customer_number', $pickup_location_customer_number );
-					}
-
-					$wc_customer->save();
-				}
-
-				$customer = wc()->customer;
-				$customer->update_meta_data( 'pickup_location_code', $pickup_location_code );
-				$pickup_location->replace_address( $customer );
-
-				if ( $supports_customer_number ) {
-					$customer->update_meta_data( 'pickup_location_customer_number', $pickup_location_customer_number );
-				}
-				$customer->save();
-			} else {
+			if ( ! $is_valid || ! $pickup_location ) {
 				throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException( 'pickup_location_unknown', _x( 'Sorry, your current pickup location is not supported.', 'shipments', 'woocommerce-germanized-shipments' ), 400 );
+			} elseif ( $supports_customer_number && ( ! empty( $pickup_location_customer_number ) || $customer_number_is_mandatory ) ) {
+				if ( ! $validation = $pickup_location->customer_number_is_valid( $pickup_location_customer_number ) ) {
+					if ( is_a( $validation, 'WP_Error' ) ) {
+						throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException( 'pickup_location_customer_number_invalid', $validation->get_error_message(), 400 );
+					} else {
+						throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException( 'pickup_location_customer_number_invalid', _x( 'Sorry, your pickup location customer number is invalid.', 'shipments', 'woocommerce-germanized-shipments' ), 400 );
+					}
+				}
 			}
+
+			$pickup_location_code = $pickup_location->get_code();
+			$pickup_location->replace_address( $order );
+
+			$order->update_meta_data( '_pickup_location_code', $pickup_location_code );
+
+			if ( $supports_customer_number ) {
+				$order->update_meta_data( '_pickup_location_customer_number', $pickup_location_customer_number );
+			}
+
+			/**
+			 * Persist customer changes for logged-in customers.
+			 */
+			if ( $order->get_customer_id() ) {
+				$wc_customer = new \WC_Customer( $order->get_customer_id() );
+
+				$wc_customer->update_meta_data( 'pickup_location_code', $pickup_location_code );
+				$pickup_location->replace_address( $wc_customer );
+
+				if ( $supports_customer_number ) {
+					$wc_customer->update_meta_data( 'pickup_location_customer_number', $pickup_location_customer_number );
+				}
+
+				$wc_customer->save();
+			}
+
+			$customer = wc()->customer;
+			$customer->update_meta_data( 'pickup_location_code', $pickup_location_code );
+			$pickup_location->replace_address( $customer );
+
+			if ( $supports_customer_number ) {
+				$customer->update_meta_data( 'pickup_location_customer_number', $pickup_location_customer_number );
+			}
+
+			$customer->save();
 		}
 	}
 
@@ -249,6 +246,12 @@ final class Checkout {
 							'context'     => array( 'view', 'edit' ),
 							'readonly'    => true,
 							'default'     => false,
+						),
+						'customer_number_field_label'  => array(
+							'description' => _x( 'The customer number field label.', 'shipments', 'woocommerce-germanized-shipments' ),
+							'type'        => 'string',
+							'context'     => array( 'view', 'edit' ),
+							'readonly'    => true,
 						),
 						'type'                         => array(
 							'description' => _x( 'The location type, e.g. locker.', 'shipments', 'woocommerce-germanized-shipments' ),

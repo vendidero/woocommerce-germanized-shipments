@@ -2,8 +2,6 @@
 
 namespace Vendidero\Germanized\Shipments\ShippingProvider;
 
-use Vendidero\Germanized\Shipments\ShipmentError;
-
 defined( 'ABSPATH' ) || exit;
 
 class PickupLocation {
@@ -26,22 +24,19 @@ class PickupLocation {
 
 	protected $address_replacement_map = array();
 
-	protected $customer_number_validation_cb = null;
-
 	public function __construct( $args ) {
 		$args = wp_parse_args(
 			$args,
 			array(
-				'code'                          => '',
-				'type'                          => '',
-				'label'                         => '',
-				'latitude'                      => '',
-				'longitude'                     => '',
-				'supports_customer_number'      => false,
-				'customer_number_is_mandatory'  => false,
-				'customer_number_validation_cb' => null,
-				'address'                       => array(),
-				'address_replacement_map'       => array(),
+				'code'                         => '',
+				'type'                         => '',
+				'label'                        => '',
+				'latitude'                     => '',
+				'longitude'                    => '',
+				'supports_customer_number'     => false,
+				'customer_number_is_mandatory' => false,
+				'address'                      => array(),
+				'address_replacement_map'      => array(),
 			)
 		);
 
@@ -53,15 +48,14 @@ class PickupLocation {
 			throw new \Exception( 'A pickup location needs a code.', 500 );
 		}
 
-		$this->code                          = $args['code'];
-		$this->type                          = $args['type'];
-		$this->label                         = $args['label'];
-		$this->latitude                      = $args['latitude'];
-		$this->longitude                     = $args['longitude'];
-		$this->supports_customer_number      = wc_string_to_bool( $args['supports_customer_number'] );
-		$this->customer_number_is_mandatory  = wc_string_to_bool( $args['customer_number_is_mandatory'] );
-		$this->customer_number_validation_cb = $args['customer_number_validation_cb'];
-		$this->address                       = wp_parse_args(
+		$this->code                         = $args['code'];
+		$this->type                         = $args['type'];
+		$this->label                        = $args['label'];
+		$this->latitude                     = $args['latitude'];
+		$this->longitude                    = $args['longitude'];
+		$this->supports_customer_number     = wc_string_to_bool( $args['supports_customer_number'] );
+		$this->customer_number_is_mandatory = wc_string_to_bool( $args['customer_number_is_mandatory'] );
+		$this->address                      = wp_parse_args(
 			(array) $args['address'],
 			array(
 				'address_1',
@@ -70,10 +64,6 @@ class PickupLocation {
 				'country',
 			)
 		);
-
-		if ( $this->customer_number_validation_cb instanceof \Closure ) {
-			throw new \Exception( 'Closures as callbacks for customer number validation are not supported', 500 );
-		}
 
 		$this->address_replacement_map = (array) $args['address_replacement_map'];
 	}
@@ -114,11 +104,11 @@ class PickupLocation {
 	public function customer_number_is_valid( $customer_number ) {
 		$is_valid = $this->customer_number_is_mandatory() ? ! empty( $customer_number ) : true;
 
-		if ( null !== $this->customer_number_validation_cb ) {
-			$is_valid = call_user_func_array( $this->customer_number_validation_cb, array( $customer_number, $this ) );
-		}
-
 		return $is_valid;
+	}
+
+	public function get_customer_number_field_label() {
+		return _x( 'Customer Number', 'shipments', 'woocommerce-germanized-shipments' );
 	}
 
 	public function get_latitude() {
@@ -177,6 +167,7 @@ class PickupLocation {
 			'longitude'                    => $this->get_longitude(),
 			'supports_customer_number'     => $this->supports_customer_number(),
 			'customer_number_is_mandatory' => $this->customer_number_is_mandatory(),
+			'customer_number_field_label'  => $this->get_customer_number_field_label(),
 			'address'                      => $this->get_address(),
 			'address_replacement_map'      => $this->get_address_replacement_map(),
 			'address_replacements'         => $this->get_address_replacements(),

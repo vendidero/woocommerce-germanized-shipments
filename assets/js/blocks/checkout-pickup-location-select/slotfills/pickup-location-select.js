@@ -22,6 +22,7 @@ const PickupLocationSelect = ({
 }) => {
     const [ supportsCustomerNumber, setSupportsCustomerNumber ] = useState( false );
     const [ customerNumberIsMandatory, setCustomerNumberIsMandatory ] = useState( false );
+    const [ customerNumberFieldLabel, setCustomerNumberFieldLabel ] = useState( _x( 'Customer Number', 'shipments', 'woocommerce-germanized-shipments' ) );
 
     const {
         shippingRates,
@@ -106,6 +107,7 @@ const PickupLocationSelect = ({
             if ( currentLocation ) {
                 setSupportsCustomerNumber( () => { return currentLocation.supports_customer_number } );
                 setCustomerNumberIsMandatory( () => { return currentLocation.customer_number_is_mandatory } );
+                setCustomerNumberFieldLabel( () => { return currentLocation.customer_number_field_label } );
 
                 const newShippingAddress = { ...shippingAddress };
 
@@ -183,7 +185,7 @@ const PickupLocationSelect = ({
                         key="pickup_location_customer_number"
                         value={ checkoutOptions.pickup_location_customer_number }
                         id="pickup-location-customer-number"
-                        label={ _x( "Customer Number", 'shipments', 'woocommerce-germanized-shipments' ) }
+                        label={ customerNumberFieldLabel }
                         name="pickup_location_customer_number"
                         required={ customerNumberIsMandatory }
                         maxLength="20"
