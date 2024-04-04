@@ -114,7 +114,7 @@ class PickupDelivery {
 	 * @return void
 	 */
 	public static function register_classic_checkout_order_data( $order, $data ) {
-		if ( ! self::is_enabled() ) {
+		if ( ! self::is_available() ) {
 			return;
 		}
 
@@ -175,7 +175,7 @@ class PickupDelivery {
 	 * @return void
 	 */
 	public static function register_classic_checkout_validation( $data, $errors ) {
-		if ( ! self::is_enabled() ) {
+		if ( ! self::is_available() ) {
 			return;
 		}
 
@@ -225,7 +225,7 @@ class PickupDelivery {
 	}
 
 	public static function register_order_review_fragments( $fragments ) {
-		if ( ! self::is_enabled() ) {
+		if ( ! self::is_available() ) {
 			return $fragments;
 		}
 
@@ -265,7 +265,7 @@ class PickupDelivery {
 	}
 
 	public static function register_classic_checkout_scripts() {
-		if ( ! is_checkout() || ! wc()->cart->needs_shipping() || ! self::is_enabled() ) {
+		if ( ! is_checkout() || ! self::is_available() ) {
 			return;
 		}
 
@@ -365,8 +365,22 @@ class PickupDelivery {
 		return apply_filters( 'woocommerce_gzd_shipments_enable_pickup_delivery', true );
 	}
 
+	public static function is_available() {
+		$available = self::is_enabled();
+
+		if ( wc()->cart && ! wc()->cart->needs_shipping() ) {
+			$available = false;
+		}
+
+		if ( 'billing_only' === get_option( 'woocommerce_ship_to_destination' ) ) {
+			$available = false;
+		}
+
+		return apply_filters( 'woocommerce_gzd_shipments_pickup_delivery_available', $available );
+	}
+
 	public static function register_classic_checkout_fields( $fields ) {
-		if ( ! wc()->cart->needs_shipping() || ! self::is_enabled() ) {
+		if ( ! self::is_available() ) {
 			return $fields;
 		}
 

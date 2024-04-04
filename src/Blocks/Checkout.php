@@ -334,29 +334,32 @@ final class Checkout {
 	}
 
 	private function get_cart_data() {
-		$customer        = wc()->customer;
-		$provider        = false;
-		$is_available    = false;
-		$locations       = array();
-		$shipping_method = wc_gzd_get_current_shipping_provider_method();
+		$customer     = wc()->customer;
+		$provider     = false;
+		$is_available = false;
+		$locations    = array();
 
-		if ( $shipping_method ) {
-			$provider = $shipping_method->get_shipping_provider_instance();
-		}
+		if ( PickupDelivery::is_available() ) {
+			$shipping_method = wc_gzd_get_current_shipping_provider_method();
 
-		if ( $provider && is_a( $provider, '\Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto' ) ) {
-			$address = array(
-				'postcode'  => $customer->get_shipping_postcode(),
-				'country'   => $customer->get_shipping_country(),
-				'address_1' => $customer->get_shipping_address_1(),
-				'city'      => $customer->get_shipping_city(),
-			);
+			if ( $shipping_method ) {
+				$provider = $shipping_method->get_shipping_provider_instance();
+			}
 
-			$query_args   = PickupDelivery::get_pickup_delivery_cart_args();
-			$is_available = $provider->supports_pickup_location_delivery( $address, $query_args );
+			if ( $provider && is_a( $provider, '\Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto' ) ) {
+				$address = array(
+					'postcode'  => $customer->get_shipping_postcode(),
+					'country'   => $customer->get_shipping_country(),
+					'address_1' => $customer->get_shipping_address_1(),
+					'city'      => $customer->get_shipping_city(),
+				);
 
-			if ( $is_available ) {
-				$locations = $provider->get_pickup_locations( $address, $query_args );
+				$query_args   = PickupDelivery::get_pickup_delivery_cart_args();
+				$is_available = $provider->supports_pickup_location_delivery( $address, $query_args );
+
+				if ( $is_available ) {
+					$locations = $provider->get_pickup_locations( $address, $query_args );
+				}
 			}
 		}
 

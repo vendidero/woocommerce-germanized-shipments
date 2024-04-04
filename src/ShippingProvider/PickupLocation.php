@@ -92,6 +92,36 @@ class PickupLocation {
 		return $this->supports_customer_number;
 	}
 
+	public function supports_cart( $cart_data ) {
+		$cart_data = wp_parse_args(
+			$cart_data,
+			array(
+				'max_dimensions' => array(),
+				'max_weight'     => 0.0,
+			)
+		);
+
+		return $this->supports_dimensions( $cart_data['max_dimensions'] ) && $this->supports_weight( $cart_data['max_weight'] );
+	}
+
+	/**
+	 * @param array $dimensions
+	 *
+	 * @return boolean
+	 */
+	public function supports_dimensions( $dimensions ) {
+		return true;
+	}
+
+	/**
+	 * @param $weight
+	 *
+	 * @return boolean
+	 */
+	public function supports_weight( $weight ) {
+		return true;
+	}
+
 	public function customer_number_is_mandatory() {
 		return $this->customer_number_is_mandatory;
 	}

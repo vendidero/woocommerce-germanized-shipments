@@ -44,32 +44,25 @@ export const hasPickupLocation = () => {
 };
 
 export const getCheckoutData = () => {
-    return useSelect( ( select ) => {
-        const store = select( CHECKOUT_STORE_KEY );
+    const extensionsData = select( CHECKOUT_STORE_KEY ).getExtensionData();
 
-        const extensionsData = store.getExtensionData();
-        const defaultData    = {
-            'pickup_location': '',
-            'pickup_location_customer_number': ''
-        };
+    const defaultData    = {
+        'pickup_location': '',
+        'pickup_location_customer_number': ''
+    };
 
-        return extensionsData.hasOwnProperty( 'woocommerce-gzd-shipments' ) ? extensionsData['woocommerce-gzd-shipments'] : defaultData;
-    } );
+    return extensionsData.hasOwnProperty( 'woocommerce-gzd-shipments' ) ? extensionsData['woocommerce-gzd-shipments'] : defaultData;
 };
 
 export const getCartData = () => {
-    return useSelect( ( select ) => {
-        const store = select( CART_STORE_KEY );
+    const extensionsData = select( CART_STORE_KEY ).getCartData().extensions;
 
-        const extensionsData = store.getCartData().extensions;
+    const defaultData    = {
+        'pickup_location_delivery_available': false,
+        'pickup_locations': [],
+        'default_pickup_location': '',
+        'default_pickup_location_customer_number': '',
+    };
 
-        const defaultData    = {
-            'pickup_location_delivery_available': false,
-            'pickup_locations': [],
-            'default_pickup_location': '',
-            'default_pickup_location_customer_number': '',
-        };
-
-        return extensionsData.hasOwnProperty( 'woocommerce-gzd-shipments' ) ? extensionsData['woocommerce-gzd-shipments'] : defaultData;
-    } );
+    return extensionsData.hasOwnProperty( 'woocommerce-gzd-shipments' ) ? extensionsData['woocommerce-gzd-shipments'] : defaultData;
 };

@@ -419,7 +419,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @param $address
 	 * @param $query_args
 	 *
-	 * @return null
+	 * @return null|PickupLocation[]
 	 */
 	protected function fetch_pickup_locations( $address, $query_args = array() ) {
 		return null;
@@ -474,6 +474,19 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			} else {
 				$pickup_locations = array();
 			}
+		}
+
+		/**
+		 * Make sure that (cached) pickup locations support data.
+		 */
+		if ( ! empty( $pickup_locations ) ) {
+			foreach ( $pickup_locations as $k => $pickup_location ) {
+				if ( ! $pickup_location->supports_cart( $query_args ) ) {
+					unset( $pickup_locations[ $k ] );
+				}
+			}
+
+			$pickup_locations = array_values( $pickup_locations );
 		}
 
 		return $pickup_locations;
