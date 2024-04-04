@@ -538,6 +538,8 @@ class ShippingMethod extends \WC_Shipping_Method {
 
 	public function calculate_shipping( $package = array() ) {
 		$applied_rules = array();
+		$debug_notices = array();
+		$is_debug_mode = Package::is_shipping_debug_mode();
 
 		if ( isset( $package['items_to_pack'], $package['package_data'] ) ) {
 			$cart_data                       = (array) $package['package_data'];
@@ -552,83 +554,56 @@ class ShippingMethod extends \WC_Shipping_Method {
 			$total_packed_item_map = array();
 			$total_packed_items    = 0;
 			$packed_boxes          = Helper::pack( $package['items_to_pack'], $boxes, 'cart' );
+			$unpacked_items        = Helper::get_last_unpacked_items();
 
-			foreach ( $packed_boxes as $box ) {
-				$packaging        = $box->getBox();
-				$items            = $box->getItems();
-				$total_weight     = wc_get_weight( $items->getWeight(), strtolower( get_option( 'woocommerce_weight_unit' ) ), 'g' );
-				$volume           = wc_get_dimension( $items->getVolume(), strtolower( get_option( 'woocommerce_dimension_unit' ) ), 'mm' );
-				$item_count       = $items->count();
-				$total            = 0;
-				$subtotal         = 0;
-				$products         = array();
-				$shipping_classes = array();
+			if ( 0 === count( $unpacked_items ) ) {
+				foreach ( $packed_boxes as $box ) {
+					$packaging        = $box->getBox();
+					$items            = $box->getItems();
+					$total_weight     = wc_get_weight( $items->getWeight(), strtolower( get_option( 'woocommerce_weight_unit' ) ), 'g' );
+					$volume           = wc_get_dimension( $items->getVolume(), strtolower( get_option( 'woocommerce_dimension_unit' ) ), 'mm' );
+					$item_count       = $items->count();
+					$total            = 0;
+					$subtotal         = 0;
+					$products         = array();
+					$shipping_classes = array();
 
-				foreach ( $items as $item ) {
-					$cart_item = $item->getItem();
-					$total    += $cart_item->get_total();
-					$subtotal += $cart_item->get_subtotal();
-					$product   = $cart_item->get_product();
+					foreach ( $items as $item ) {
+						$cart_item = $item->getItem();
+						$total    += $cart_item->get_total();
+						$subtotal += $cart_item->get_subtotal();
+						$product   = $cart_item->get_product();
 
-					if ( $product && ! array_key_exists( $product->get_id(), $products ) ) {
-						$products[ $product->get_id() ] = $product;
+						if ( $product && ! array_key_exists( $product->get_id(), $products ) ) {
+							$products[ $product->get_id() ] = $product;
 
-						if ( ! empty( $product->get_shipping_class_id() ) ) {
-							$shipping_classes[] = $product->get_shipping_class_id();
+							if ( ! empty( $product->get_shipping_class_id() ) ) {
+								$shipping_classes[] = $product->get_shipping_class_id();
+							}
 						}
 					}
-				}
 
-				$total            = wc_remove_number_precision( $total );
-				$subtotal         = wc_remove_number_precision( $subtotal );
-				$shipping_classes = array_unique( $shipping_classes );
-				$package_data     = array_merge(
-					$cart_data,
-					array(
-						'package_total'            => $total,
-						'package_subtotal'         => $subtotal,
-						'package_weight'           => $total_weight,
-						'package_volume'           => $volume,
-						'package_item_count'       => $item_count,
-						'packaging_id'             => $packaging->get_id(),
-						'package_products'         => $products,
-						'package_shipping_classes' => $shipping_classes,
-					)
-				);
+					$total            = wc_remove_number_precision( $total );
+					$subtotal         = wc_remove_number_precision( $subtotal );
+					$shipping_classes = array_unique( $shipping_classes );
+					$package_data     = array_merge(
+						$cart_data,
+						array(
+							'package_total'            => $total,
+							'package_subtotal'         => $subtotal,
+							'package_weight'           => $total_weight,
+							'package_volume'           => $volume,
+							'package_item_count'       => $item_count,
+							'packaging_id'             => $packaging->get_id(),
+							'package_products'         => $products,
+							'package_shipping_classes' => $shipping_classes,
+						)
+					);
 
-				$package_applied_rules = array();
-				$applicable_rule_costs = array();
+					$package_applied_rules = array();
+					$applicable_rule_costs = array();
 
-				foreach ( array_reverse( $this->get_shipping_rules_by_packaging( $packaging->get_id() ) ) as $rule ) {
-					$rule         = $this->parse_rule( $rule );
-					$rule_applies = $this->rule_applies( $rule, $package_data );
-
-					if ( $rule_applies ) {
-						$applicable_rule_costs[] = $rule['costs'];
-						$package_applied_rules[] = $rule['rule_id'];
-					}
-
-					/**
-					 * In case a free shipping option is detected, stop + reset.
-					 */
-					if ( $rule_applies && 0.0 === $rule['costs'] ) {
-						$applicable_rule_costs = array(
-							$rule['costs'],
-						);
-
-						$package_applied_rules = array(
-							$rule['rule_id'],
-						);
-
-						break;
-					}
-				}
-
-				/**
-				 * In case no applicable rule has been found, parse fallback rules.
-				 */
-				if ( empty( $package_applied_rules ) ) {
-					foreach ( array_reverse( $this->get_fallback_shipping_rules() ) as $rule ) {
+					foreach ( array_reverse( $this->get_shipping_rules_by_packaging( $packaging->get_id() ) ) as $rule ) {
 						$rule         = $this->parse_rule( $rule );
 						$rule_applies = $this->rule_applies( $rule, $package_data );
 
@@ -652,140 +627,180 @@ class ShippingMethod extends \WC_Shipping_Method {
 							break;
 						}
 					}
-				}
-
-				if ( ! empty( $package_applied_rules ) ) {
-					$applicable_rules_total_cost = 0.0;
-
-					if ( 'sum' === $multiple_rules_calculation_mode ) {
-						$applicable_rules_total_cost = array_sum( $applicable_rule_costs );
-					} elseif ( 'min' === $multiple_rules_calculation_mode ) {
-						$applicable_rules_total_cost = min( $applicable_rule_costs );
-					} elseif ( 'max' === $multiple_rules_calculation_mode ) {
-						$applicable_rules_total_cost = max( $applicable_rule_costs );
-					}
-
-					if ( 'min' === $cost_calculation_mode ) {
-						if ( $applicable_rules_total_cost <= $total_cost || 0.0 === $total_cost ) {
-							$total_cost = $applicable_rules_total_cost;
-						}
-					} elseif ( 'max' === $cost_calculation_mode ) {
-						if ( $applicable_rules_total_cost >= $total_cost ) {
-							$total_cost = $applicable_rules_total_cost;
-						}
-					} else {
-						$total_cost += $applicable_rules_total_cost;
-					}
 
 					/**
-					 * Build an item map which contains a map of the cart items
-					 * included within the package.
+					 * In case no applicable rule has been found, parse fallback rules.
 					 */
-					$item_map = array();
+					if ( empty( $package_applied_rules ) ) {
+						foreach ( array_reverse( $this->get_fallback_shipping_rules() ) as $rule ) {
+							$rule         = $this->parse_rule( $rule );
+							$rule_applies = $this->rule_applies( $rule, $package_data );
 
-					foreach ( $items as $item ) {
-						$cart_item_wrapper = $item->getItem();
-						$product           = $cart_item_wrapper->get_product();
-						$product_key       = $product->get_parent_id() . '_' . $product->get_id();
+							if ( $rule_applies ) {
+								$applicable_rule_costs[] = $rule['costs'];
+								$package_applied_rules[] = $rule['rule_id'];
+							}
 
-						if ( array_key_exists( $product_key, $item_map ) ) {
-							$item_map[ $product_key ]++;
-						} else {
-							$item_map[ $product_key ] = 1;
+							/**
+							 * In case a free shipping option is detected, stop + reset.
+							 */
+							if ( $rule_applies && 0.0 === $rule['costs'] ) {
+								$applicable_rule_costs = array(
+									$rule['costs'],
+								);
+
+								$package_applied_rules = array(
+									$rule['rule_id'],
+								);
+
+								break;
+							}
 						}
-
-						if ( array_key_exists( $product_key, $total_packed_item_map ) ) {
-							$total_packed_item_map[ $product_key ]++;
-						} else {
-							$total_packed_item_map[ $product_key ] = 1;
-						}
-
-						$total_packed_items++;
 					}
 
-					$applied_rules[] = array(
-						'packaging_id' => $packaging->get_id(),
-						'rules'        => $package_applied_rules,
-						'items'        => $item_map,
-					);
+					if ( ! empty( $package_applied_rules ) ) {
+						$applicable_rules_total_cost = 0.0;
 
-					$rule_ids      = array_unique( array_merge( $rule_ids, $package_applied_rules ) );
-					$packaging_ids = array_unique( array_merge( $packaging_ids, array( $packaging->get_id() ) ) );
+						if ( 'sum' === $multiple_rules_calculation_mode ) {
+							$applicable_rules_total_cost = array_sum( $applicable_rule_costs );
+						} elseif ( 'min' === $multiple_rules_calculation_mode ) {
+							$applicable_rules_total_cost = min( $applicable_rule_costs );
+						} elseif ( 'max' === $multiple_rules_calculation_mode ) {
+							$applicable_rules_total_cost = max( $applicable_rule_costs );
+						}
+
+						if ( 'min' === $cost_calculation_mode ) {
+							if ( $applicable_rules_total_cost <= $total_cost || 0.0 === $total_cost ) {
+								$total_cost = $applicable_rules_total_cost;
+							}
+						} elseif ( 'max' === $cost_calculation_mode ) {
+							if ( $applicable_rules_total_cost >= $total_cost ) {
+								$total_cost = $applicable_rules_total_cost;
+							}
+						} else {
+							$total_cost += $applicable_rules_total_cost;
+						}
+
+						/**
+						 * Build an item map which contains a map of the cart items
+						 * included within the package.
+						 */
+						$item_map = array();
+
+						foreach ( $items as $item ) {
+							$cart_item_wrapper = $item->getItem();
+							$product           = $cart_item_wrapper->get_product();
+							$product_key       = $product->get_parent_id() . '_' . $product->get_id();
+
+							if ( array_key_exists( $product_key, $item_map ) ) {
+								$item_map[ $product_key ]++;
+							} else {
+								$item_map[ $product_key ] = 1;
+							}
+
+							if ( array_key_exists( $product_key, $total_packed_item_map ) ) {
+								$total_packed_item_map[ $product_key ]++;
+							} else {
+								$total_packed_item_map[ $product_key ] = 1;
+							}
+
+							$total_packed_items++;
+						}
+
+						$applied_rules[] = array(
+							'packaging_id' => $packaging->get_id(),
+							'rules'        => $package_applied_rules,
+							'items'        => $item_map,
+						);
+
+						$rule_ids      = array_unique( array_merge( $rule_ids, $package_applied_rules ) );
+						$packaging_ids = array_unique( array_merge( $packaging_ids, array( $packaging->get_id() ) ) );
+					}
+				}
+
+				if ( ! empty( $applied_rules ) ) {
+					if ( $is_debug_mode ) {
+						$package_count = 0;
+
+						foreach ( $applied_rules as $applied_rule ) {
+							if ( $packaging = wc_gzd_get_packaging( $applied_rule['packaging_id'] ) ) {
+								$package_count++;
+								$debug_notices[] = sprintf( _x( '## Package %1$d/%2$d: %3$s: ', 'shipments', 'woocommerce-germanized-shipments' ), $package_count, count( $applied_rules ), $packaging->get_title() );
+
+								foreach ( $applied_rule['rules'] as $rule ) {
+									if ( $the_rule = $this->get_shipping_rule_by_id( $rule, $applied_rule['packaging_id'] ) ) {
+										$debug_notices[] = sprintf( _x( 'Rule %1$d: %2$s', 'shipments', 'woocommerce-germanized-shipments' ), $rule, wc_price( $the_rule['costs'] ) );
+									}
+								}
+
+								foreach ( $applied_rule['items'] as $item_product_key => $quantity ) {
+									$product_ids   = explode( '_', $item_product_key );
+									$product_title = $product_ids[0];
+
+									if ( $product = wc_get_product( $product_ids[1] ) ) {
+										$product_title = $product->get_title();
+									}
+
+									$product_desc    = ! empty( $product_ids[0] ) ? sprintf( _x( '%1$s (Parent: %2$s)', 'shipments', 'woocommerce-germanized-shipments' ), $product_title, $product_ids[0] ) : $product_title;
+									$debug_notices[] = sprintf( _x( '%1$s x %2$s', 'shipments', 'woocommerce-germanized-shipments' ), $quantity, $product_desc );
+								}
+							}
+						}
+
+						$debug_notices[] = sprintf( _x( '## Total: %1$s (%2$s, %3$s)', 'shipments', 'woocommerce-germanized-shipments' ), wc_price( $total_cost ), $cost_calculation_mode, $multiple_rules_calculation_mode );
+					}
+
+					$this->add_rate(
+						array(
+							'cost'      => $total_cost,
+							'label'     => $this->get_rate_label( $total_cost ),
+							'package'   => $package,
+							'meta_data' => array(
+								'_packed_items'    => $total_packed_items,
+								'_packed_item_map' => $total_packed_item_map,
+								'_packaging_ids'   => $packaging_ids,
+								'_rule_ids'        => $rule_ids,
+								'_packages'        => $applied_rules,
+							),
+						)
+					);
+				} elseif ( $is_debug_mode ) {
+					$debug_notices[] = _x( 'None of the available rules applied.', 'shipments', 'woocommerce-germanized-shipments' );
+				}
+			} elseif ( $is_debug_mode ) {
+				foreach ( $unpacked_items as $item ) {
+					$product_desc = $item->get_id();
+
+					if ( $product = $item->get_product() ) {
+						$product_desc = $product->get_title();
+					}
+
+					$debug_notices[] = sprintf( _x( '%1$s does not fit the available packaging options', 'shipments', 'woocommerce-germanized-shipments' ), $product_desc );
 				}
 			}
+		}
 
-			if ( ! empty( $applied_rules ) ) {
-				if ( Package::is_shipping_debug_mode() ) {
-					$notices            = array();
-					$available_box_list = array();
+		if ( $is_debug_mode && ! Package::is_constant_defined( 'WOOCOMMERCE_CHECKOUT' ) && ! Package::is_constant_defined( 'WC_DOING_AJAX' ) && ! empty( $debug_notices ) ) {
+			$the_notice         = '';
+			$available_box_list = array();
 
-					foreach ( $available_boxes as $box ) {
-						$available_box_list[] = $box->get_packaging()->get_title();
-					}
+			foreach ( $available_boxes as $box ) {
+				$available_box_list[] = $box->get_packaging()->get_title();
+			}
 
-					$notices[] = sprintf( _x( '### Debug information for %1$s:', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title() );
-					$notices[] = sprintf( _x( 'Available packaging options: %1$s', 'shipments', 'woocommerce-germanized-shipments' ), implode( ', ', $available_box_list ) );
+			$general_debug_notices = array(
+				sprintf( _x( '### Debug information for %1$s:', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title() ),
+				sprintf( _x( 'Available packaging options: %1$s', 'shipments', 'woocommerce-germanized-shipments' ), implode( ', ', $available_box_list ) ),
+			);
 
-					$package_count = 0;
+			$debug_notices = array_merge( $general_debug_notices, $debug_notices );
 
-					foreach ( $applied_rules as $applied_rule ) {
-						if ( $packaging = wc_gzd_get_packaging( $applied_rule['packaging_id'] ) ) {
-							$package_count++;
+			foreach ( $debug_notices as $notice ) {
+				$the_notice .= $notice . '<br/>';
+			}
 
-							$notices[]        = sprintf( _x( '## Package %1$d/%2$d: %3$s: ', 'shipments', 'woocommerce-germanized-shipments' ), $package_count, count( $applied_rules ), $packaging->get_title() );
-							$rule_match_count = 0;
-
-							foreach ( $applied_rule['rules'] as $rule ) {
-								if ( $the_rule = $this->get_shipping_rule_by_id( $rule, $applied_rule['packaging_id'] ) ) {
-									$rule_match_count++;
-
-									$notices[] = sprintf( _x( 'Rule %1$d: %2$s', 'shipments', 'woocommerce-germanized-shipments' ), $rule, wc_price( $the_rule['costs'] ) );
-								}
-							}
-
-							foreach ( $applied_rule['items'] as $item_product_key => $quantity ) {
-								$product_ids   = explode( '_', $item_product_key );
-								$product_title = $product_ids[0];
-
-								if ( $product = wc_get_product( $product_ids[1] ) ) {
-									$product_title = $product->get_title();
-								}
-
-								$product_desc = ! empty( $product_ids[0] ) ? sprintf( _x( '%1$s (Parent: %2$s)', 'shipments', 'woocommerce-germanized-shipments' ), $product_title, $product_ids[0] ) : $product_title;
-								$notices[]    = sprintf( _x( '%1$s x %2$s', 'shipments', 'woocommerce-germanized-shipments' ), $quantity, $product_desc );
-							}
-						}
-					}
-
-					$notices[] = sprintf( _x( '## Total: %1$s (%2$s, %3$s)', 'shipments', 'woocommerce-germanized-shipments' ), wc_price( $total_cost ), $cost_calculation_mode, $multiple_rules_calculation_mode );
-
-					if ( ! Package::is_constant_defined( 'WOOCOMMERCE_CHECKOUT' ) && ! Package::is_constant_defined( 'WC_DOING_AJAX' ) ) {
-						$the_notice = '';
-
-						foreach ( $notices as $notice ) {
-							$the_notice .= $notice . '<br/>';
-						}
-
-						if ( ! wc_has_notice( $the_notice ) ) {
-							wc_add_notice( $the_notice );
-						}
-					}
-				}
-
-				$this->add_rate(
-					array(
-						'cost'      => $total_cost,
-						'label'     => $this->get_rate_label( $total_cost ),
-						'package'   => $package,
-						'meta_data' => array(
-							'_packed_items'    => $total_packed_items,
-							'_packed_item_map' => $total_packed_item_map,
-							'_packaging_ids'   => $packaging_ids,
-							'_rule_ids'        => $rule_ids,
-							'_packages'        => $applied_rules,
-						),
-					)
-				);
+			if ( ! wc_has_notice( $the_notice ) ) {
+				wc_add_notice( $the_notice );
 			}
 		}
 	}
