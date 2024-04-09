@@ -397,11 +397,15 @@ class Package {
 
 	public static function install() {
 		self::init();
+
+		if ( ! self::has_dependencies() ) {
+			return;
+		}
+
 		Install::install();
 	}
 
 	public static function install_integration() {
-		self::init();
 		self::install();
 	}
 
