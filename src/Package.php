@@ -18,7 +18,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '3.0.5';
+	const VERSION = '3.1.1';
 
 	public static $upload_dir_suffix = '';
 
@@ -424,11 +424,15 @@ class Package {
 
 	public static function install() {
 		self::init();
+
+		if ( ! self::has_dependencies() ) {
+			return;
+		}
+
 		Install::install();
 	}
 
 	public static function install_integration() {
-		self::init();
 		self::install();
 	}
 
@@ -476,6 +480,14 @@ class Package {
 		shuffle( $key );
 
 		return md5( serialize( $key ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize
+	}
+
+	public static function is_shipping_debug_mode() {
+		return apply_filters( 'woocommerce_gzd_shipments_is_shipping_debug_mode', 'yes' === get_option( 'woocommerce_shipping_debug_mode', 'no' ) );
+	}
+
+	public static function is_constant_defined( $constant ) {
+		return class_exists( 'Automattic\Jetpack\Constants' ) ? \Automattic\Jetpack\Constants::is_defined( $constant ) : defined( $constant );
 	}
 
 	public static function log( $message, $type = 'info', $source = '' ) {

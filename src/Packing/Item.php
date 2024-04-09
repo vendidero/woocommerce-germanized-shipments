@@ -60,7 +60,7 @@ abstract class Item implements PackingItem {
 		if ( $product = $this->get_product() ) {
 			$shipping_class = $product->get_shipping_class_id();
 
-			if ( ! empty( $shipping_class ) ) {
+			if ( $box->get_packaging()->has_shipping_class_restrictions() ) {
 				if ( ! $box->get_packaging()->supports_shipping_class( $shipping_class ) ) {
 					$fits = false;
 				}

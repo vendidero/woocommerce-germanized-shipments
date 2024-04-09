@@ -220,12 +220,11 @@ class Automation {
 
 		if ( $order_shipment = wc_gzd_get_shipment_order( $order ) ) {
 			/**
-			 * Sync existing shipments and items before creating new shipments
+			 * Sync existing shipments before creating new shipments
 			 */
 			foreach ( $order_shipment->get_simple_shipments() as $shipment ) {
 				if ( $shipment->is_editable() ) {
 					$shipment->sync();
-					$shipment->sync_items();
 					$shipment->save();
 				}
 			}
