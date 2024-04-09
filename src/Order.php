@@ -1124,6 +1124,51 @@ class Order {
 		return apply_filters( 'woocommerce_gzd_shipment_order_returnable_item_count', $count, $this );
 	}
 
+	public function supports_pickup_location() {
+		$supports_pickup_location = false;
+
+		if ( $provider = wc_gzd_get_order_shipping_provider( $this ) ) {
+			if ( is_a( $provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto' ) ) {
+				$supports_pickup_location = $provider->supports_pickup_location_delivery( $this->get_order()->get_address( 'shipping' ) );
+			}
+		}
+
+		if ( $this->has_pickup_location() ) {
+			$supports_pickup_location = true;
+		}
+
+		return apply_filters( 'woocommerce_gzd_shipment_order_supports_pickup_location', $supports_pickup_location, $this->get_order(), $this );
+	}
+
+	/**
+	 * @return bool|Interfaces\ShippingProvider
+	 */
+	public function get_shipping_provider() {
+		return wc_gzd_get_order_shipping_provider( $this->order );
+	}
+
+	public function has_pickup_location() {
+		$pickup_location_code = $this->get_pickup_location_code();
+
+		return apply_filters( 'woocommerce_gzd_shipment_order_has_pickup_location', ! empty( $pickup_location_code ), $this->get_order(), $this );
+	}
+
+	public function get_pickup_location_customer_number() {
+		$customer_number = '';
+
+		if ( $this->has_pickup_location() ) {
+			$customer_number = $this->get_order()->get_meta( '_pickup_location_customer_number', true );
+		}
+
+		return apply_filters( 'woocommerce_gzd_shipment_order_pickup_location_customer_number', $customer_number, $this->get_order(), $this );
+	}
+
+	public function get_pickup_location_code() {
+		$pickup_location_code = $this->get_order()->get_meta( '_pickup_location_code', true );
+
+		return apply_filters( 'woocommerce_gzd_shipment_order_pickup_location_code', $pickup_location_code, $this->get_order(), $this );
+	}
+
 	protected function has_local_pickup() {
 		$shipping_methods = $this->get_order()->get_shipping_methods();
 		$has_pickup       = false;

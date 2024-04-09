@@ -100,6 +100,36 @@ class Admin {
 
 		add_action( 'woocommerce_admin_field_dimensions', array( __CLASS__, 'register_dimensions_field' ), 30 );
 		add_filter( 'woocommerce_admin_settings_sanitize_option', array( __CLASS__, 'sanitize_dimensions_field' ), 10, 3 );
+
+		add_filter( 'woocommerce_admin_shipping_fields', array( __CLASS__, 'register_pickup_location_admin_fields' ), 10, 3 );
+	}
+
+	public static function register_pickup_location_admin_fields( $fields, $order = null, $context = 'edit' ) {
+		if ( ! $order instanceof \WC_Order ) {
+			return $fields;
+		}
+
+		$shipment_order = wc_gzd_get_shipment_order( $order );
+
+		if ( $shipment_order->supports_pickup_location() ) {
+			$fields['pickup_location_code'] = array(
+				'label' => _x( 'Pickup location', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'  => 'text',
+				'id'    => '_pickup_location_code',
+				'show'  => false,
+				'value' => $shipment_order->get_pickup_location_code(),
+			);
+
+			$fields['pickup_location_customer_number'] = array(
+				'label' => _x( 'Pickup customer number', 'shipments', 'woocommerce-germanized-shipments' ),
+				'show'  => false,
+				'id'    => '_pickup_location_customer_number',
+				'type'  => 'text',
+				'value' => $shipment_order->get_pickup_location_customer_number(),
+			);
+		}
+
+		return $fields;
 	}
 
 	public static function sanitize_toggle_field( $value, $option, $raw_value ) {

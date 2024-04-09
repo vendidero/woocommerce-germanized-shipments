@@ -348,6 +348,150 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return array();
 	}
 
+	public function supports_pickup_location_delivery( $address, $query_args = array() ) {
+		return false;
+	}
+
+	/**
+	 * @param $location_code
+	 * @param $address
+	 *
+	 * @return PickupLocation|null
+	 */
+	protected function fetch_pickup_location( $location_code, $address ) {
+		return null;
+	}
+
+	/**
+	 * @param $location_code
+	 * @param $address
+	 *
+	 * @return false|PickupLocation
+	 */
+	public function get_pickup_location_by_code( $location_code, $address ) {
+		$address         = $this->parse_pickup_location_address_args( $address );
+		$cache_key       = $this->get_pickup_location_cache_key( $location_code, $address );
+		$pickup_location = get_transient( $cache_key );
+
+		if ( false === $pickup_location ) {
+			$pickup_location = $this->fetch_pickup_location( $location_code, $address );
+
+			if ( ! is_null( $pickup_location ) ) {
+				set_transient( $cache_key, $pickup_location, DAY_IN_SECONDS );
+			} else {
+				$pickup_location = false;
+			}
+		} elseif ( ! is_a( $pickup_location, 'Vendidero\Germanized\Shipments\ShippingProvider\PickupLocation' ) ) {
+			$pickup_location = false;
+		}
+
+		return $pickup_location;
+	}
+
+	protected function parse_pickup_location_code( $location_code ) {
+		return $location_code;
+	}
+
+	protected function get_pickup_location_cache_key( $location_code, $address ) {
+		$address       = $this->parse_pickup_location_address_args( $address );
+		$location_code = $this->parse_pickup_location_code( $location_code );
+		$cache_key     = "woocommerce_gzd_shipments_{$this->get_name()}_pickup_location_" . sanitize_key( $location_code ) . '_' . sanitize_key( $address['country'] ) . '_' . $address['postcode'];
+
+		return $cache_key;
+	}
+
+	protected function get_pickup_locations_cache_key( $address ) {
+		$address   = $this->parse_pickup_location_address_args( $address );
+		$cache_key = "woocommerce_gzd_shipments_{$this->get_name()}_pickup_locations_" . sanitize_key( $address['country'] ) . '_' . sanitize_key( $address['postcode'] ) . '_' . sanitize_key( $address['address_1'] );
+
+		return $cache_key;
+	}
+
+	public function is_valid_pickup_location( $location_code, $address ) {
+		if ( $this->get_pickup_location_by_code( $location_code, $address ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * @param $address
+	 * @param $query_args
+	 *
+	 * @return null|PickupLocation[]
+	 */
+	protected function fetch_pickup_locations( $address, $query_args = array() ) {
+		return null;
+	}
+
+	protected function parse_pickup_location_address_args( $address ) {
+		return wp_parse_args(
+			$address,
+			array(
+				'city'      => '',
+				'postcode'  => '',
+				'country'   => '',
+				'address_1' => '',
+			)
+		);
+	}
+
+	protected function parse_pickup_location_query_args( $query_args ) {
+		$query_args = wp_parse_args(
+			$query_args,
+			array(
+				'max_dimensions'  => array(),
+				'max_weight'      => 0.0,
+				'limit'           => 10,
+				'payment_gateway' => '',
+			)
+		);
+
+		$query_args['max_dimensions'] = wp_parse_args(
+			$query_args['max_dimensions'],
+			array(
+				'length' => 0.0,
+				'width'  => 0.0,
+				'height' => 0.0,
+			)
+		);
+
+		return $query_args;
+	}
+
+	public function get_pickup_locations( $address, $query_args = array() ) {
+		$query_args       = $this->parse_pickup_location_query_args( $query_args );
+		$cache_key        = $this->get_pickup_locations_cache_key( $address );
+		$pickup_locations = get_transient( $cache_key );
+		$address          = $this->parse_pickup_location_address_args( $address );
+
+		if ( false === $pickup_locations ) {
+			$pickup_locations = $this->fetch_pickup_locations( $address, $query_args );
+
+			if ( ! is_null( $pickup_locations ) ) {
+				set_transient( $cache_key, $pickup_locations, DAY_IN_SECONDS );
+			} else {
+				$pickup_locations = array();
+			}
+		}
+
+		/**
+		 * Make sure that (cached) pickup locations support data.
+		 */
+		if ( ! empty( $pickup_locations ) ) {
+			foreach ( $pickup_locations as $k => $pickup_location ) {
+				if ( ! $pickup_location->supports_cart( $query_args ) ) {
+					unset( $pickup_locations[ $k ] );
+				}
+			}
+
+			$pickup_locations = array_values( $pickup_locations );
+		}
+
+		return $pickup_locations;
+	}
+
 	protected function get_label_settings_by_shipment_type( $shipment_type = 'simple' ) {
 		$settings = array();
 

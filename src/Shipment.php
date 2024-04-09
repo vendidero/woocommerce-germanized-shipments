@@ -13,6 +13,7 @@ use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentReturnLabel;
 use Vendidero\Germanized\Shipments\Labels\Label;
 use Vendidero\Germanized\Shipments\ShippingMethod\ProviderMethod;
+use Vendidero\Germanized\Shipments\ShippingProvider\PickupLocation;
 use WC_Data;
 use WC_Data_Store;
 use Exception;
@@ -83,6 +84,8 @@ abstract class Shipment extends WC_Data {
 
 	protected $items_to_pack = null;
 
+	protected $pickup_location = null;
+
 	/**
 	 * Item weights.
 	 *
@@ -136,27 +139,29 @@ abstract class Shipment extends WC_Data {
 	 * @var array
 	 */
 	protected $data = array(
-		'date_created'      => null,
-		'date_sent'         => null,
-		'status'            => '',
-		'weight'            => '',
-		'width'             => '',
-		'height'            => '',
-		'length'            => '',
-		'packaging_weight'  => '',
-		'weight_unit'       => '',
-		'dimension_unit'    => '',
-		'country'           => '',
-		'address'           => array(),
-		'tracking_id'       => '',
-		'shipping_provider' => '',
-		'shipping_method'   => '',
-		'total'             => 0,
-		'subtotal'          => 0,
-		'additional_total'  => 0,
-		'est_delivery_date' => null,
-		'packaging_id'      => 0,
-		'version'           => '',
+		'date_created'                    => null,
+		'date_sent'                       => null,
+		'status'                          => '',
+		'weight'                          => '',
+		'width'                           => '',
+		'height'                          => '',
+		'length'                          => '',
+		'packaging_weight'                => '',
+		'weight_unit'                     => '',
+		'dimension_unit'                  => '',
+		'country'                         => '',
+		'address'                         => array(),
+		'tracking_id'                     => '',
+		'shipping_provider'               => '',
+		'shipping_method'                 => '',
+		'pickup_location_code'            => '',
+		'pickup_location_customer_number' => '',
+		'total'                           => 0,
+		'subtotal'                        => 0,
+		'additional_total'                => 0,
+		'est_delivery_date'               => null,
+		'packaging_id'                    => 0,
+		'version'                         => '',
 	);
 
 	/**
@@ -873,6 +878,51 @@ abstract class Shipment extends WC_Data {
 	}
 
 	/**
+	 * Retrieves the pickup location code, in case existent.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
+	public function get_pickup_location_code( $context = 'view' ) {
+		return $this->get_prop( 'pickup_location_code', $context );
+	}
+
+	/**
+	 * Retrieves the pickup location customer number, in case existent.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
+	public function get_pickup_location_customer_number( $context = 'view' ) {
+		return $this->get_prop( 'pickup_location_customer_number', $context );
+	}
+
+	public function has_pickup_location() {
+		$code = $this->get_pickup_location_code();
+
+		return apply_filters( "{$this->get_general_hook_prefix()}has_pickup_location", ! empty( $code ), $this );
+	}
+
+	/**
+	 * @return false|PickupLocation
+	 */
+	public function get_pickup_location() {
+		if ( is_null( $this->pickup_location ) ) {
+			$this->pickup_location = false;
+
+			if ( $this->has_pickup_location() ) {
+				if ( $provider = $this->get_shipping_provider_instance() ) {
+					if ( is_a( $provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto' ) ) {
+						$this->pickup_location = $provider->get_pickup_location_by_code( $this->get_pickup_location_code(), $this->get_address() );
+					}
+				}
+			}
+		}
+
+		return $this->pickup_location;
+	}
+
+	/**
 	 * Returns the shipment tracking URL.
 	 *
 	 * @return string
@@ -1534,7 +1584,16 @@ abstract class Shipment extends WC_Data {
 	 * @return boolean
 	 */
 	public function send_to_external_pickup( $types = array() ) {
-		$types = is_array( $types ) ? $types : array( $types );
+		$types      = is_array( $types ) ? $types : array( $types );
+		$has_pickup = $this->has_pickup_location();
+
+		if ( ! empty( $types ) ) {
+			$has_pickup = false;
+
+			if ( $location = $this->get_pickup_location() ) {
+				$has_pickup = in_array( $location->get_type(), $types, true );
+			}
+		}
 
 		/**
 		 * Filter to decide whether a Shipment is to be sent to a external pickup location
@@ -1547,7 +1606,7 @@ abstract class Shipment extends WC_Data {
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( 'woocommerce_gzd_shipment_send_to_external_pickup', false, $types, $this );
+		return apply_filters( 'woocommerce_gzd_shipment_send_to_external_pickup', $has_pickup, $types, $this );
 	}
 
 	/**
@@ -1951,6 +2010,25 @@ abstract class Shipment extends WC_Data {
 	 */
 	public function set_tracking_id( $tracking_id ) {
 		$this->set_prop( 'tracking_id', $tracking_id );
+	}
+
+	/**
+	 * Set shipment pickup location code.
+	 *
+	 * @param string $location_code The location code.
+	 */
+	public function set_pickup_location_code( $location_code ) {
+		$this->set_prop( 'pickup_location_code', $location_code );
+		$this->pickup_location = null;
+	}
+
+	/**
+	 * Set shipment pickup location customer number.
+	 *
+	 * @param string $customer_number The customer number.
+	 */
+	public function set_pickup_location_customer_number( $customer_number ) {
+		$this->set_prop( 'pickup_location_customer_number', $customer_number );
 	}
 
 	/**

@@ -173,18 +173,20 @@ class SimpleShipment extends Shipment {
 			$args = wp_parse_args(
 				$args,
 				array(
-					'order_id'          => $order->get_id(),
-					'shipping_method'   => wc_gzd_get_shipment_order_shipping_method_id( $order ),
-					'shipping_provider' => ( ! empty( $provider ) ) ? $provider : $default_provider,
-					'packaging_id'      => $this->get_packaging_id( 'edit' ),
-					'address'           => $address_data,
-					'country'           => $country,
-					'weight'            => $this->get_weight( 'edit' ),
-					'packaging_weight'  => $this->get_packaging_weight( 'edit' ),
-					'length'            => $dimensions['length'],
-					'width'             => $dimensions['width'],
-					'height'            => $dimensions['height'],
-					'additional_total'  => $order_shipment->calculate_shipment_additional_total( $this ),
+					'order_id'                        => $order->get_id(),
+					'shipping_method'                 => wc_gzd_get_shipment_order_shipping_method_id( $order ),
+					'shipping_provider'               => ( ! empty( $provider ) ) ? $provider : $default_provider,
+					'packaging_id'                    => $this->get_packaging_id( 'edit' ),
+					'address'                         => $address_data,
+					'country'                         => $country,
+					'weight'                          => $this->get_weight( 'edit' ),
+					'packaging_weight'                => $this->get_packaging_weight( 'edit' ),
+					'pickup_location_code'            => $order_shipment->has_pickup_location() ? $order_shipment->get_pickup_location_code() : '',
+					'pickup_location_customer_number' => $order_shipment->has_pickup_location() ? $order_shipment->get_pickup_location_customer_number() : '',
+					'length'                          => $dimensions['length'],
+					'width'                           => $dimensions['width'],
+					'height'                          => $dimensions['height'],
+					'additional_total'                => $order_shipment->calculate_shipment_additional_total( $this ),
 				)
 			);
 
