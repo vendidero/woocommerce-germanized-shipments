@@ -178,8 +178,15 @@ const PickupLocationSelect = ({
                     onChange={ ( newLocationCode ) => {
                         if ( availableLocations.hasOwnProperty( newLocationCode ) ) {
                             setOption( 'pickup_location', newLocationCode );
+                        } else if ( ! newLocationCode ) {
+                            const newShippingAddress = { ...shippingAddress,  'address_1': ''  };
+                            setShippingAddress( newShippingAddress );
+
+                            setOption( 'pickup_location', '' );
+                            setOption( 'pickup_location_customer_number', '' );
                         } else {
                             setOption( 'pickup_location', '' );
+                            setOption( 'pickup_location_customer_number', '' );
                         }
                     } }
                 />
