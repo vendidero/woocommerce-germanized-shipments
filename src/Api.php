@@ -18,8 +18,8 @@ class Api {
 		add_filter( 'woocommerce_rest_api_get_rest_namespaces', array( __CLASS__, 'register_controllers' ) );
 
 		add_filter( 'woocommerce_rest_shop_order_schema', array( __CLASS__, 'order_shipments_schema' ), 10 );
-		add_filter( 'woocommerce_rest_prepare_shop_order_object', array( __CLASS__, 'prepare_order_shipments' ), 10, 3 );
-		add_filter( 'woocommerce_rest_shop_order_schema', array( __CLASS__, 'order_schema' ) );
+		add_filter( 'woocommerce_rest_prepare_shop_order_object', array( __CLASS__, 'prepare_order_shipments' ), 15, 3 );
+		add_filter( 'woocommerce_rest_pre_insert_shop_order_object', array( __CLASS__, 'insert_order_shipments' ), 10, 3 );
 
 		add_filter( 'woocommerce_rest_product_schema', array( __CLASS__, 'product_schema' ) );
 		add_filter( 'woocommerce_rest_product_variation_schema', array( __CLASS__, 'product_variation_schema' ) );
@@ -109,29 +109,6 @@ class Api {
 		}
 
 		return $status;
-	}
-
-	/**
-	 * Extend schema.
-	 *
-	 * @since 1.0.0
-	 *
-	 * @param array $schema_properties Data used to create the order.
-	 *
-	 * @return array
-	 */
-	public static function order_schema( $schema_properties ) {
-		$statuses = array_map( array( __CLASS__, 'remove_status_prefix' ), array_keys( wc_gzd_get_shipment_order_shipping_statuses() ) );
-
-		$schema_properties['shipping_status'] = array(
-			'description' => _x( 'Shipping status', 'shipments', 'woocommerce-germanized-shipments' ),
-			'type'        => 'string',
-			'enum'        => $statuses,
-			'context'     => array( 'view', 'edit' ),
-			'readonly'    => true,
-		);
-
-		return $schema_properties;
 	}
 
 	/**
@@ -256,6 +233,25 @@ class Api {
 	}
 
 	/**
+	 * @param \WC_Order $order
+	 * @param WP_REST_Request $request
+	 * @param bool $creating
+	 *
+	 * @return \WC_Order
+	 */
+	public static function insert_order_shipments( $order, $request, $creating ) {
+		if ( isset( $request['pickup_location_code'] ) ) {
+			$order->update_meta_data( '_pickup_location_code', wc_clean( $request['pickup_location_code'] ) );
+		}
+
+		if ( isset( $request['pickup_location_customer_number'] ) ) {
+			$order->update_meta_data( '_pickup_location_customer_number', wc_clean( $request['pickup_location_customer_number'] ) );
+		}
+
+		return $order;
+	}
+
+	/**
 	 * @param WP_REST_Response $response
 	 * @param $post
 	 * @param WP_REST_Request $request
@@ -263,14 +259,23 @@ class Api {
 	 * @return mixed
 	 */
 	public static function prepare_order_shipments( $response, $post, $request ) {
-		$order                                  = wc_get_order( $post );
-		$response_order_data                    = $response->get_data();
-		$response_order_data['shipments']       = array();
-		$response_order_data['shipping_status'] = 'no-shipping-needed';
+		$order               = wc_get_order( $post );
+		$response_order_data = $response->get_data();
+		$response_order_data = wp_parse_args(
+			$response_order_data,
+			array(
+				'shipments'                       => array(),
+				'shipping_status'                 => 'no-shipping-needed',
+				'shipping_provider'               => '',
+				'pickup_location_code'            => '',
+				'pickup_location_customer_number' => '',
+			)
+		);
 
 		if ( $order ) {
 			$order_shipment = wc_gzd_get_shipment_order( $order );
 			$shipments      = $order_shipment->get_shipments();
+			$provider       = $order_shipment->get_shipping_provider();
 
 			if ( ! empty( $shipments ) ) {
 				foreach ( $shipments as $shipment ) {
@@ -278,7 +283,10 @@ class Api {
 				}
 			}
 
-			$response_order_data['shipping_status'] = $order_shipment->get_shipping_status();
+			$response_order_data['shipping_status']                 = $order_shipment->get_shipping_status();
+			$response_order_data['shipping_provider']               = $provider ? $provider->get_name() : '';
+			$response_order_data['pickup_location_code']            = $order_shipment->get_pickup_location_code();
+			$response_order_data['pickup_location_customer_number'] = $order_shipment->get_pickup_location_customer_number();
 		}
 
 		$response->set_data( $response_order_data );
@@ -286,8 +294,10 @@ class Api {
 		return $response;
 	}
 
-	public static function order_shipments_schema( $schema ) {
-		$schema['shipments'] = array(
+	public static function order_shipments_schema( $schema_properties ) {
+		$statuses = array_map( array( __CLASS__, 'remove_status_prefix' ), array_keys( wc_gzd_get_shipment_order_shipping_statuses() ) );
+
+		$schema_properties['shipments'] = array(
 			'description' => _x( 'List of shipments.', 'shipments', 'woocommerce-germanized-shipments' ),
 			'type'        => 'array',
 			'context'     => array( 'view', 'edit' ),
@@ -295,7 +305,34 @@ class Api {
 			'items'       => ShipmentsController::get_single_item_schema(),
 		);
 
-		return $schema;
+		$schema_properties['shipping_status'] = array(
+			'description' => _x( 'Shipping status', 'shipments', 'woocommerce-germanized-shipments' ),
+			'type'        => 'string',
+			'enum'        => $statuses,
+			'context'     => array( 'view', 'edit' ),
+			'readonly'    => true,
+		);
+
+		$schema_properties['shipping_provider'] = array(
+			'description' => _x( 'Shipping provider', 'shipments', 'woocommerce-germanized-shipments' ),
+			'type'        => 'string',
+			'context'     => array( 'view', 'edit' ),
+			'readonly'    => true,
+		);
+
+		$schema_properties['pickup_location_code'] = array(
+			'description' => _x( 'Pickup location code', 'shipments', 'woocommerce-germanized-shipments' ),
+			'type'        => 'string',
+			'context'     => array( 'view', 'edit' ),
+		);
+
+		$schema_properties['pickup_location_customer_number'] = array(
+			'description' => _x( 'Pickup location customer number', 'shipments', 'woocommerce-germanized-shipments' ),
+			'type'        => 'string',
+			'context'     => array( 'view', 'edit' ),
+		);
+
+		return $schema_properties;
 	}
 
 	protected static function get_shipment_statuses() {
