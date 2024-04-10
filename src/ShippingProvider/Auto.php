@@ -400,9 +400,20 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return $cache_key;
 	}
 
-	protected function get_pickup_locations_cache_key( $address ) {
-		$address   = $this->parse_pickup_location_address_args( $address );
-		$cache_key = "woocommerce_gzd_shipments_{$this->get_name()}_pickup_locations_" . sanitize_key( $address['country'] ) . '_' . sanitize_key( $address['postcode'] ) . '_' . sanitize_key( $address['address_1'] );
+	protected function get_pickup_locations_cache_key( $address, $limit = 10 ) {
+		$address          = $this->parse_pickup_location_address_args( $address );
+		$cache_key_values = array(
+			$limit,
+			$address['country'],
+			$address['postcode'],
+			$address['address_1'],
+		);
+
+		$cache_key = "woocommerce_gzd_shipments_{$this->get_name()}_pickup_locations";
+
+		foreach ( $cache_key_values as $cache_key_value ) {
+			$cache_key .= '_' . sanitize_key( $cache_key_value );
+		}
 
 		return $cache_key;
 	}
@@ -462,7 +473,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	public function get_pickup_locations( $address, $query_args = array() ) {
 		$query_args       = $this->parse_pickup_location_query_args( $query_args );
-		$cache_key        = $this->get_pickup_locations_cache_key( $address );
+		$cache_key        = $this->get_pickup_locations_cache_key( $address, $query_args['limit'] );
 		$pickup_locations = get_transient( $cache_key );
 		$address          = $this->parse_pickup_location_address_args( $address );
 

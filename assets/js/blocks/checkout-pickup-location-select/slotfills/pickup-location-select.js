@@ -16,16 +16,58 @@ import { getSelectedShippingProviders, Combobox, hasShippingProvider, getCheckou
 import './style.scss';
 
 const PickupLocationSelect = ({
-    extensions,
-    cart,
-    components
+    isAvailable,
+    pickupLocations,
+    currentPickupLocation,
+    onChangePickupLocation,
+    onChangePickupLocationCustomerNumber,
+    currentPickupLocationCustomerNumber
 }) => {
-    const [ supportsCustomerNumber, setSupportsCustomerNumber ] = useState( false );
-    const [ customerNumberIsMandatory, setCustomerNumberIsMandatory ] = useState( false );
-    const [ customerNumberFieldLabel, setCustomerNumberFieldLabel ] = useState( _x( 'Customer Number', 'shipments', 'woocommerce-germanized-shipments' ) );
+    if ( isAvailable ) {
+        return (
+            <div className="wc-gzd-shipments-pickup-location-delivery">
+                <h4>
+                    { _x('Not at home? Choose a pickup location', 'shipments', 'woocommerce-germanized-shipments') }
+                </h4>
+                <Combobox
+                    options={ pickupLocations }
+                    id="pickup-location"
+                    key="pickup-location"
+                    name="pickup_location"
+                    label={ _x( 'Pickup location', 'shipments', 'woocommerce-germanized-shipments' ) }
+                    errorId="pickup-location"
+                    allowReset={ currentPickupLocation ? true : false }
+                    value={ currentPickupLocation ? currentPickupLocation.code : '' }
+                    required={ false }
+                    onChange={ onChangePickupLocation }
+                />
+
+                { currentPickupLocation && currentPickupLocation.supports_customer_number && (
+                    <ValidatedTextInput
+                        key="pickup_location_customer_number"
+                        value={ currentPickupLocationCustomerNumber }
+                        id="pickup-location-customer-number"
+                        label={ currentPickupLocation.customer_number_field_label }
+                        name="pickup_location_customer_number"
+                        required={ currentPickupLocation.customer_number_is_mandatory }
+                        maxLength="20"
+                        onChange={ onChangePickupLocationCustomerNumber }
+                    />
+                ) }
+            </div>
+        );
+    }
+
+    return null;
+};
+
+const render = () => {
+    const [ currentPickupLocation, setCurrentPickupLocation ] = useState( null );
+    const [ isChangingPickupLocation, setIsChangingPickupLocation ] = useState( false );
 
     const {
         shippingRates,
+        cartDataLoaded,
         needsShipping,
         pickupLocations,
         pickupLocationDeliveryAvailable,
@@ -50,6 +92,7 @@ const PickupLocationSelect = ({
 
         return {
             shippingRates: rates,
+            cartDataLoaded: store.hasFinishedResolution( 'getCartData' ),
             customerData: store.getCustomerData(),
             needsShipping: store.getNeedsShipping(),
             isLoadingRates: store.isCustomerDataUpdating(),
@@ -61,6 +104,8 @@ const PickupLocationSelect = ({
         };
     } );
 
+    const shippingAddress = customerData.shippingAddress;
+    const { setShippingAddress } = useDispatch( CART_STORE_KEY );
     const checkoutOptions = getCheckoutData();
 
     const availableLocations = useMemo(
@@ -73,19 +118,6 @@ const PickupLocationSelect = ({
         return availableLocations.hasOwnProperty( code ) ? availableLocations[ code ] : null;
     }, [ availableLocations ] );
 
-    useEffect(() => {
-        if ( pickupLocationDeliveryAvailable && getLocationByCode( defaultPickupLocation ) ) {
-            setOption( 'pickup_location', defaultPickupLocation );
-            setOption( 'pickup_location_customer_number', defaultCustomerNumber );
-        }
-    }, [] );
-
-    const setOption = useCallback( ( option, value ) => {
-        checkoutOptions[ option ] = value;
-
-        dispatch( CHECKOUT_STORE_KEY ).__internalSetExtensionData( 'woocommerce-gzd-shipments', checkoutOptions );
-    }, [ checkoutOptions ] );
-
     const locationOptions = useMemo(
         () =>
             pickupLocations.map(
@@ -97,17 +129,49 @@ const PickupLocationSelect = ({
         [ pickupLocations ]
     );
 
-    const shippingAddress = customerData.shippingAddress;
-    const { setShippingAddress, setBillingAddress } = useDispatch( CART_STORE_KEY );
+    const setOption = useCallback( ( option, value ) => {
+        checkoutOptions[ option ] = value;
+
+        if ( ! checkoutOptions['pickup_location'] ) {
+            checkoutOptions['pickup_location_customer_number'] = '';
+        }
+
+        dispatch( CHECKOUT_STORE_KEY ).__internalSetExtensionData( 'woocommerce-gzd-shipments', checkoutOptions );
+    }, [ checkoutOptions ] );
 
     useEffect(() => {
+        if ( cartDataLoaded && shippingAddress.address_1 && ! isChangingPickupLocation ) {
+            // Reset pickup location on manual shipping address change
+            setOption( 'pickup_location', '' );
+        }
+
+        setIsChangingPickupLocation( false );
+    }, [
+        shippingAddress.address_1,
+        shippingAddress.postcode,
+        shippingAddress.country,
+        cartDataLoaded
+    ] );
+
+    useEffect(() => {
+        if ( cartDataLoaded ) {
+            if ( pickupLocationDeliveryAvailable && getLocationByCode( defaultPickupLocation ) ) {
+                setOption( 'pickup_location', defaultPickupLocation );
+                setOption( 'pickup_location_customer_number', defaultCustomerNumber );
+            }
+        }
+    }, [
+        cartDataLoaded
+    ] );
+
+    useEffect(() => {
+        setIsChangingPickupLocation( true );
+
         if ( checkoutOptions.pickup_location ) {
             const currentLocation = getLocationByCode( checkoutOptions.pickup_location );
 
             if ( currentLocation ) {
-                setSupportsCustomerNumber( () => { return currentLocation.supports_customer_number } );
-                setCustomerNumberIsMandatory( () => { return currentLocation.customer_number_is_mandatory } );
-                setCustomerNumberFieldLabel( () => { return currentLocation.customer_number_field_label } );
+                setCurrentPickupLocation( () => { return currentLocation } );
 
                 const newShippingAddress = { ...shippingAddress };
 
@@ -122,10 +186,11 @@ const PickupLocationSelect = ({
                 if ( newShippingAddress !== shippingAddress ) {
                     setShippingAddress( newShippingAddress );
                 }
+            } else {
+                setCurrentPickupLocation( () => { return null } );
             }
         } else {
-            setSupportsCustomerNumber( () => { return false } );
-            setCustomerNumberIsMandatory( () => { return false } );
+            setCurrentPickupLocation( () => { return null } );
         }
     }, [
         checkoutOptions.pickup_location
@@ -141,7 +206,6 @@ const PickupLocationSelect = ({
             let showNotice = checkoutOptions.pickup_location ? true : false;
 
             setOption( 'pickup_location', '' );
-            setOption( 'pickup_location_customer_number', '' );
 
             if ( showNotice ) {
                 dispatch( 'core/notices' ).createNotice(
@@ -159,63 +223,44 @@ const PickupLocationSelect = ({
         locationOptions
     ] );
 
-    if ( needsShipping && pickupLocationDeliveryAvailable ) {
-        return (
-            <div className="wc-gzd-shipments-pickup-location-delivery">
-                <h4>
-                    { _x('Not at home? Choose a pickup location', 'shipments', 'woocommerce-germanized-shipments') }
-                </h4>
-                <Combobox
-                    options={ locationOptions }
-                    id="pickup-location"
-                    key="pickup-location"
-                    name="pickup_location"
-                    label={ _x( 'Pickup location', 'shipments', 'woocommerce-germanized-shipments' ) }
-                    errorId="pickup-location"
-                    allowReset={ checkoutOptions.pickup_location ? true : false }
-                    value={ checkoutOptions.pickup_location }
-                    required={ false }
-                    onChange={ ( newLocationCode ) => {
-                        if ( availableLocations.hasOwnProperty( newLocationCode ) ) {
-                            setOption( 'pickup_location', newLocationCode );
-                        } else if ( ! newLocationCode ) {
-                            const newShippingAddress = { ...shippingAddress,  'address_1': ''  };
-                            setShippingAddress( newShippingAddress );
+    const onChangePickupLocation = useCallback( ( pickupLocation ) => {
+        if ( availableLocations.hasOwnProperty( pickupLocation ) ) {
+            setOption( 'pickup_location', pickupLocation );
 
-                            setOption( 'pickup_location', '' );
-                            setOption( 'pickup_location_customer_number', '' );
-                        } else {
-                            setOption( 'pickup_location', '' );
-                            setOption( 'pickup_location_customer_number', '' );
-                        }
-                    } }
-                />
+            const { removeNotice } = dispatch( 'core/notices' );
 
-                { supportsCustomerNumber && (
-                    <ValidatedTextInput
-                        key="pickup_location_customer_number"
-                        value={ checkoutOptions.pickup_location_customer_number }
-                        id="pickup-location-customer-number"
-                        label={ customerNumberFieldLabel }
-                        name="pickup_location_customer_number"
-                        required={ customerNumberIsMandatory }
-                        maxLength="20"
-                        onChange={ ( newValue ) => {
-                            setOption( 'pickup_location_customer_number', newValue );
-                        } }
-                    />
-                ) }
-            </div>
-        );
-    }
+            removeNotice( 'wc-gzd-shipments-review-shipping-address', 'wc/checkout/shipping-address' );
+            removeNotice( 'wc-gzd-shipments-pickup-location-missing', 'wc/checkout/shipping-address' );
+        } else if ( ! pickupLocation ) {
+            setOption( 'pickup_location', '' );
 
-    return null;
-};
+            dispatch( 'core/notices' ).createNotice(
+                'warning',
+                _x( 'Please review your shipping address.', 'shipments', 'woocommerce-germanized-shipments' ),
+                {
+                    id: 'wc-gzd-shipments-review-shipping-address',
+                    context: 'wc/checkout/shipping-address',
+                }
+            );
+        } else {
+            setOption( 'pickup_location', '' );
+        }
+    }, [ availableLocations, shippingAddress, checkoutOptions ] );
 
-const render = () => {
+    const onChangePickupLocationCustomerNumber = useCallback( ( customerNumber ) => {
+        setOption( 'pickup_location_customer_number', customerNumber );
+    }, [ checkoutOptions ] );
+
     return (
         <ExperimentalOrderShippingPackages>
-            <PickupLocationSelect/>
+            <PickupLocationSelect
+                pickupLocations={ locationOptions }
+                isAvailable={ pickupLocationDeliveryAvailable && needsShipping }
+                currentPickupLocation={ currentPickupLocation }
+                onChangePickupLocation={ onChangePickupLocation }
+                onChangePickupLocationCustomerNumber={ onChangePickupLocationCustomerNumber }
+                currentPickupLocationCustomerNumber={ currentPickupLocation ? checkoutOptions.pickup_location_customer_number : '' }
+            />
         </ExperimentalOrderShippingPackages>
     );
 };
