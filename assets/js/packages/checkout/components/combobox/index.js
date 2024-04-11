@@ -2,7 +2,7 @@
  * External dependencies
  */
 import classnames from 'classnames';
-import { __ } from '@wordpress/i18n';
+import { _x } from '@wordpress/i18n';
 import { useEffect, useId, useRef } from '@wordpress/element';
 import { ComboboxControl } from 'wordpress-components';
 import { ValidationInputError } from '@woocommerce/blocks-components';
@@ -26,7 +26,7 @@ const Combobox = ( {
     required = false,
     errorId: incomingErrorId,
     autoComplete = 'off',
-    errorMessage = __( 'Please select a valid option', 'woocommerce' ),
+    errorMessage = _x( 'Please select a valid option', 'shipments', 'woocommerce-germanized-shipments' ),
 } ) => {
     const controlRef = useRef( null );
     const fallbackId = useId();
