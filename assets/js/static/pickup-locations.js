@@ -25,32 +25,27 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 $( document ).on( 'change', '#pickup_location_field #pickup_location', self.onSelectPickupLocation );
 
                 self.afterRefreshCheckout();
+            }
+        },
 
-                // Select2 Enhancement if it exists
-                if ( $().selectWoo ) {
-                    var wc_gzd_pickup_location_select_select2 = function() {
-                        $( 'select#pickup_location:visible, select#pickup_location:visible' ).each( function() {
-                            var $this = $( this );
+        maybeInitSelect2: function() {
+            if ( $().selectWoo ) {
+                $( 'select#pickup_location:visible, select#pickup_location:visible' ).each( function() {
+                    var $this = $( this );
 
-                            var select2_args = {
-                                placeholder: $this.attr( 'data-placeholder' ) || $this.attr( 'placeholder' ) || '',
-                                label: $this.attr( 'data-label' ) || null,
-                                width: '100%',
-                                allowClear: true
-                            };
-
-                            $this.find( 'option[value=""]' ).remove();
-
-                            $( this )
-                                .on( 'select2:select', function() {
-                                    $( this ).trigger( 'focus' ); // Maintain focus after select https://github.com/select2/select2/issues/4384
-                                } )
-                                .selectWoo( select2_args );
-                        });
+                    var select2_args = {
+                        placeholder: $this.attr( 'data-placeholder' ) || $this.attr( 'placeholder' ) || '',
+                        label: $this.attr( 'data-label' ) || null,
+                        width: '100%',
+                        allowClear: true
                     };
 
-                    wc_gzd_pickup_location_select_select2();
-                }
+                    $( this )
+                        .on( 'select2:select', function() {
+                            $( this ).trigger( 'focus' ); // Maintain focus after select https://github.com/select2/select2/issues/4384
+                        } )
+                        .selectWoo( select2_args );
+                });
             }
         },
 
@@ -187,6 +182,8 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
 
                 $pickupSelect.val( "" );
             }
+
+            self.maybeInitSelect2();
         },
 
         replaceShippingAddress: function( replacements ) {
