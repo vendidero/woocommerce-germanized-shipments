@@ -25,6 +25,32 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 $( document ).on( 'change', '#pickup_location_field #pickup_location', self.onSelectPickupLocation );
 
                 self.afterRefreshCheckout();
+
+                // Select2 Enhancement if it exists
+                if ( $().selectWoo ) {
+                    var wc_gzd_pickup_location_select_select2 = function() {
+                        $( 'select#pickup_location:visible, select#pickup_location:visible' ).each( function() {
+                            var $this = $( this );
+
+                            var select2_args = {
+                                placeholder: $this.attr( 'data-placeholder' ) || $this.attr( 'placeholder' ) || '',
+                                label: $this.attr( 'data-label' ) || null,
+                                width: '100%',
+                                allowClear: true
+                            };
+
+                            $this.find( 'option[value=""]' ).remove();
+
+                            $( this )
+                                .on( 'select2:select', function() {
+                                    $( this ).trigger( 'focus' ); // Maintain focus after select https://github.com/select2/select2/issues/4384
+                                } )
+                                .selectWoo( select2_args );
+                        });
+                    };
+
+                    wc_gzd_pickup_location_select_select2();
+                }
             }
         },
 
@@ -34,7 +60,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 $customerNumberField = $( '#pickup_location_customer_number_field' ),
                 current = $pickupSelect.val();
 
-            if ( "-1" === $pickupSelect.val() ) {
+            if ( ! $pickupSelect.val() ) {
                 $customerNumberField.addClass( 'hidden' );
                 $customerNumberField.hide();
             } else {
@@ -116,7 +142,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 $pickupSelectField.show();
                 $pickupSelectField.removeClass( 'hidden' );
 
-                $pickupSelect.find( 'option:gt(0)' ).remove();
+                $pickupSelect.find( 'option:not([value=""])' ).remove();
 
                 $.each( self.pickupLocations, function( code, pickupLocation ) {
                     var label = $( '<textarea />' ).html( pickupLocation.formatted_address).text();
@@ -134,10 +160,10 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                     $customerNumberField.addClass( 'hidden' );
                     $customerNumberField.hide();
 
-                    $pickupSelect.val( "-1" );
+                    $pickupSelect.val( "" );
                 }
             } else {
-                if ( "-1" !== current ) {
+                if ( "" !== current ) {
                     $( '#shipping_address_1' ).val( "" );
 
                     var $form = $( 'form.checkout' );
@@ -159,7 +185,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 $customerNumberField.addClass( 'hidden' );
                 $customerNumberField.hide();
 
-                $pickupSelect.val( "-1" );
+                $pickupSelect.val( "" );
             }
         },
 

@@ -81,10 +81,11 @@ class PickupDelivery {
 		);
 
 		$args['options']                             = array(
-			'-1' => _x( 'None', 'shipments-default-pickup-location', 'woocommerce-germanized-shipments' ),
+			'' => _x( 'None', 'shipments-default-pickup-location', 'woocommerce-germanized-shipments' ),
 		);
 		$args['custom_attributes']['data-locations'] = array();
 		$args['type']                                = 'select';
+		$args['placeholder']                         = _x( 'Select pickup location', 'shipments', 'woocommerce-germanized-shipments' );
 		$args['return']                              = true;
 
 		foreach ( $args['locations'] as $location ) {
@@ -270,7 +271,7 @@ class PickupDelivery {
 		}
 
 		wp_register_script( 'wc-gzd-shipments-pickup-locations', Package::get_assets_url( 'static/pickup-locations.js' ), array( 'jquery', 'wc-checkout' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_add_inline_style( 'woocommerce-layout', '#pickup_location_field.hidden, #pickup_location_customer_number_field.hidden { display: none; }' );
+		wp_add_inline_style( 'woocommerce-layout', '#pickup_location_field.hidden, #pickup_location_customer_number_field.hidden { display: none; } #pickup_location_field .select2-selection__clear { margin-right: 5px; padding: 0 3px; }' );
 
 		wp_localize_script(
 			'wc-gzd-shipments-pickup-locations',
