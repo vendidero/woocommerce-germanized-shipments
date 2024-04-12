@@ -381,7 +381,7 @@ class PickupDelivery {
 	}
 
 	public static function register_classic_checkout_fields( $fields ) {
-		if ( ! self::is_available() ) {
+		if ( ! self::is_available() || ! wc()->customer ) {
 			return $fields;
 		}
 

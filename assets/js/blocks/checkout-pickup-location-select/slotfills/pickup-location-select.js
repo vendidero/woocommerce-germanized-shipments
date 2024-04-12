@@ -145,7 +145,9 @@ const render = () => {
             setOption( 'pickup_location', '' );
         }
 
-        setIsChangingPickupLocation( false );
+        if ( isChangingPickupLocation ) {
+            setIsChangingPickupLocation( false );
+        }
     }, [
         shippingAddress.address_1,
         shippingAddress.postcode,
