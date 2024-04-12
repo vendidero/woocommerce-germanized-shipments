@@ -5,7 +5,7 @@
   "license": "GPL-3.0-or-later",
   "type": "wordpress-plugin",
   "prefer-stable": true,
-  "version": "dev-main",
+  "version": "3.2.1",
   "minimum-stability": "dev",
   "require": {
     "automattic/jetpack-autoloader": "^2.0.0",
