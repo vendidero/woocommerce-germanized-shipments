@@ -141,12 +141,7 @@ class ProviderMethod implements LabelConfigurationSet {
 		}
 
 		if ( ! $this->is_placeholder() && ! MethodHelper::method_is_excluded( $this->get_id() ) ) {
-			/**
-			 * Use WC_Shipping_Method::get_option() (which tests whether instance option exists) instead of
-			 * WC_Shipping_Method::get_instance_option() to prevent undefined key warnings for
-			 * methods that may have been saved be using our custom method filters.
-			 */
-			$value = $this->method->get_option( $key, $default );
+			$value = $this->supports_instance_settings() ? $this->method->get_instance_option( $key, $default ) : $this->method->get_option( $key, $default );
 		} else {
 			$value = $default;
 		}

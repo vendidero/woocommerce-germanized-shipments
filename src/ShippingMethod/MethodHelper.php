@@ -196,6 +196,51 @@ class MethodHelper {
 			add_filter( 'woocommerce_settings_api_form_fields_' . $method, array( __CLASS__, 'add_method_settings' ), 10, 1 );
 		}
 
+		$wc = wc();
+
+		/**
+		 * Prevent undefined index notices during REST API calls.
+		 *
+		 * @see WC_REST_Shipping_Zone_Methods_V2_Controller::get_settings()
+		 */
+		if ( is_callable( array( $wc, 'is_rest_api_request' ) ) && $wc->is_rest_api_request() ) {
+			add_filter(
+				'pre_option',
+				function( $pre, $option, $default_value ) {
+					if ( strstr( $option, 'woocommerce_' ) && '_settings' === substr( $option, -9 ) ) {
+						$option_clean = explode( '_', substr( $option, 0, -9 ) );
+						$last_part    = $option_clean[ count( $option_clean ) - 1 ];
+
+						/**
+						 * Do only filter settings for shipping methods with an instance
+						 */
+						if ( absint( $last_part ) > 0 ) {
+							add_filter(
+								"option_{$option}",
+								function( $option_value, $option_name ) {
+									if ( is_array( $option_value ) ) {
+										foreach ( self::get_method_settings() as $setting_id => $setting ) {
+											if ( ! array_key_exists( $setting_id, $option_value ) ) {
+												$option_value[ $setting_id ] = '';
+											}
+										}
+									}
+
+									return $option_value;
+								},
+								9999,
+								2
+							);
+						}
+					}
+
+					return $pre;
+				},
+				9999,
+				3
+			);
+		}
+
 		return $methods;
 	}
 
@@ -375,17 +420,6 @@ class MethodHelper {
 	}
 
 	public static function add_method_settings( $p_settings ) {
-		$wc = WC();
-
-		/**
-		 * Prevent undefined index notices during REST API calls.
-		 *
-		 * @see WC_REST_Shipping_Zone_Methods_V2_Controller::get_settings()
-		 */
-		if ( is_callable( array( $wc, 'is_rest_api_request' ) ) && $wc->is_rest_api_request() ) {
-			return $p_settings;
-		}
-
 		$shipping_provider_settings = self::get_method_settings();
 
 		return array_merge( $p_settings, $shipping_provider_settings );
