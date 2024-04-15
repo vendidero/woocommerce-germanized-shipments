@@ -103,6 +103,13 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 	}
 
 	/**
+	 * This method overwrites the base class's clone method to make it a no-op. In base class WC_Data, we are unsetting the meta_id to clone.
+	 *
+	 * @see WC_Abstract_Order::__clone()
+	 */
+	public function __clone() {}
+
+	/**
 	 * Merge changes with data and clear.
 	 * Overrides WC_Data::apply_changes.
 	 *

@@ -115,6 +115,13 @@ class Simple extends WC_Data implements ShippingProvider {
 		}
 	}
 
+	/**
+	 * This method overwrites the base class's clone method to make it a no-op. In base class WC_Data, we are unsetting the meta_id to clone.
+	 *
+	 * @see WC_Abstract_Order::__clone()
+	 */
+	public function __clone() {}
+
 	public function get_help_link() {
 		return '';
 	}

@@ -102,6 +102,40 @@ class Admin {
 		add_filter( 'woocommerce_admin_settings_sanitize_option', array( __CLASS__, 'sanitize_dimensions_field' ), 10, 3 );
 
 		add_filter( 'woocommerce_admin_shipping_fields', array( __CLASS__, 'register_pickup_location_admin_fields' ), 10, 3 );
+
+		add_filter( 'woocommerce_debug_tools', array( __CLASS__, 'register_remove_duplicate_provider_meta_tool' ), 10, 1 );
+	}
+
+	public static function register_remove_duplicate_provider_meta_tool( $tools ) {
+		global $wpdb;
+
+		$tools['remove_duplicate_provider_meta'] = array(
+			'name'     => _x( 'Remove duplicate shipping provider meta', 'shipments', 'woocommerce-germanized-shipments' ),
+			'button'   => _x( 'Remove duplicate meta', 'shipments', 'woocommerce-germanized-shipments' ),
+			'callback' => array( __CLASS__, 'remove_duplicate_provider_meta' ),
+			'desc'     => sprintf(
+				'<strong class="red">%1$s</strong> %2$s',
+				_x( 'Note:', 'shipments', 'woocommerce-germanized-shipments' ),
+				sprintf( _x( 'This tool deletes duplicate meta entries in your %s table. Please backup your database first.', 'shipments', 'woocommerce-germanized-shipments' ), $wpdb->gzd_shipping_providermeta )
+			),
+		);
+
+		return $tools;
+	}
+
+	public static function remove_duplicate_provider_meta() {
+		global $wpdb;
+
+		$sql    = "DELETE FROM `{$wpdb->gzd_shipping_providermeta}` WHERE `meta_id` NOT IN (SELECT * FROM (SELECT MAX(`pm`.`meta_id`) FROM `{$wpdb->gzd_shipping_providermeta}` pm GROUP BY `pm`.`gzd_shipping_provider_id`, `pm`.`meta_key`) x)";
+		$result = $wpdb->query( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		if ( false !== $result ) {
+			$result = absint( $result );
+
+			return sprintf( _x( 'Removed %d duplicate entries', 'shipments', 'woocommerce-germanized-shipments' ), $result );
+		} else {
+			return sprintf( _x( 'Error while deleting duplicate entries. You may manually run the following query within your favorite DB management tool to delete duplicate entries: %s', 'shipments', 'woocommerce-germanized-shipments' ), $sql );
+		}
 	}
 
 	public static function register_pickup_location_admin_fields( $fields, $order = null, $context = 'edit' ) {
