@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments;
 
+use Vendidero\Germanized\Shipments\Admin\Admin;
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
 use Vendidero\Germanized\Shipments\Labels\ConfigurationSetTrait;
 use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
@@ -26,6 +27,10 @@ class Install {
 				self::migrate_to_configuration_sets();
 			} elseif ( version_compare( $current_version, '3.0.1', '<' ) ) {
 				self::migrate_to_configuration_sets( 'dhl' );
+			}
+
+			if ( version_compare( $current_version, '3.2.2', '<' ) ) {
+				Admin::remove_duplicate_provider_meta();
 			}
 		}
 
