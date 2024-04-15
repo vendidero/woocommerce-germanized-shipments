@@ -307,7 +307,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		wp_cache_delete( 'all-providers', 'shipping-providers' );
 
 		if ( $cache = \Vendidero\Germanized\Shipments\Caches\Helper::get_cache_object( 'shipping-providers' ) ) {
-			$cache->remove( $provider->get_id() );
+			$cache->remove( $provider->get_name() );
 		}
 	}
 
