@@ -207,9 +207,9 @@ const render = () => {
         if ( ! pickupLocationDeliveryAvailable || ! currentLocation ) {
             let showNotice = checkoutOptions.pickup_location ? true : false;
 
-            setOption( 'pickup_location', '' );
-
             if ( showNotice ) {
+                setOption( 'pickup_location', '' );
+
                 dispatch( 'core/notices' ).createNotice(
                     'warning',
                     _x( 'Your pickup location chosen is not available any longer. Please review your shipping address.', 'shipments', 'woocommerce-germanized-shipments' ),
