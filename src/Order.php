@@ -188,7 +188,7 @@ class Order {
 	}
 
 	public function get_default_return_shipping_provider() {
-		$default_provider_instance = wc_gzd_get_order_shipping_provider( $this->get_order() );
+		$default_provider_instance = $this->get_shipping_provider();
 		$default_provider          = $default_provider_instance ? $default_provider_instance->get_name() : '';
 		$shipments                 = $this->get_simple_shipments();
 
@@ -282,7 +282,7 @@ class Order {
 				} else {
 					$available_packaging = wc_gzd_get_packaging_list();
 
-					if ( $provider = wc_gzd_get_order_shipping_provider( $this ) ) {
+					if ( $provider = $this->get_shipping_provider() ) {
 						$available_packaging = wc_gzd_get_packaging_list( array( 'shipping_provider' => $provider->get_name() ) );
 					}
 
@@ -1127,7 +1127,7 @@ class Order {
 	public function supports_pickup_location() {
 		$supports_pickup_location = false;
 
-		if ( $provider = wc_gzd_get_order_shipping_provider( $this ) ) {
+		if ( $provider = $this->get_shipping_provider() ) {
 			if ( is_a( $provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto' ) ) {
 				$supports_pickup_location = $provider->supports_pickup_location_delivery( $this->get_order()->get_address( 'shipping' ) );
 			}
