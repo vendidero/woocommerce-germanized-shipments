@@ -781,29 +781,36 @@ class ShippingMethod extends \WC_Shipping_Method {
 					$debug_notices[] = sprintf( _x( '%1$s does not fit the available packaging options', 'shipments', 'woocommerce-germanized-shipments' ), $product_desc );
 				}
 			}
-		}
 
-		if ( $is_debug_mode && ! Package::is_constant_defined( 'WOOCOMMERCE_CHECKOUT' ) && ! Package::is_constant_defined( 'WC_DOING_AJAX' ) && ! empty( $debug_notices ) ) {
-			$the_notice         = '';
-			$available_box_list = array();
+			if ( $is_debug_mode && ! Package::is_constant_defined( 'WOOCOMMERCE_CHECKOUT' ) && ! Package::is_constant_defined( 'WC_DOING_AJAX' ) && ! empty( $debug_notices ) ) {
+				$the_notice         = '';
+				$available_box_list = array();
 
-			foreach ( $available_boxes as $box ) {
-				$available_box_list[] = $box->get_packaging()->get_title();
-			}
+				foreach ( $available_boxes as $box ) {
+					$available_box_list[] = $box->get_packaging()->get_title();
+				}
 
-			$general_debug_notices = array(
-				sprintf( _x( '### Debug information for %1$s:', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title() ),
-				sprintf( _x( 'Available packaging options: %1$s', 'shipments', 'woocommerce-germanized-shipments' ), implode( ', ', $available_box_list ) ),
-			);
+				$general_debug_notices = array(
+					sprintf( _x( '### Debug information for %1$s:', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title() ),
+					sprintf( _x( 'Available packaging options: %1$s', 'shipments', 'woocommerce-germanized-shipments' ), implode( ', ', $available_box_list ) ),
+				);
 
-			$debug_notices = array_merge( $general_debug_notices, $debug_notices );
+				if ( empty( $applied_rules ) ) {
+					foreach ( $packed_boxes as $packed_box_index => $box ) {
+						$packaging               = $box->getBox();
+						$general_debug_notices[] = sprintf( _x( '## Packed box %1$d/%2$d: %3$s', 'shipments', 'woocommerce-germanized-shipments' ), ++$packed_box_index, count( $packed_boxes ), $packaging->getReference() );
+					}
+				}
 
-			foreach ( $debug_notices as $notice ) {
-				$the_notice .= $notice . '<br/>';
-			}
+				$debug_notices = array_merge( $general_debug_notices, $debug_notices );
 
-			if ( ! wc_has_notice( $the_notice ) ) {
-				wc_add_notice( $the_notice );
+				foreach ( $debug_notices as $notice ) {
+					$the_notice .= $notice . '<br/>';
+				}
+
+				if ( ! wc_has_notice( $the_notice ) ) {
+					wc_add_notice( $the_notice );
+				}
 			}
 		}
 	}
