@@ -375,18 +375,18 @@ class PickupDelivery {
 			foreach ( wc()->cart->get_cart() as $values ) {
 				if ( $product = wc_gzd_shipments_get_product( $values['data'] ) ) {
 					if ( $product->has_dimensions() ) {
-						$length = (float) wc_get_dimension( $product->get_shipping_length(), wc_gzd_get_packaging_dimension_unit() );
-						$width  = (float) wc_get_dimension( $product->get_shipping_width(), wc_gzd_get_packaging_dimension_unit() );
-						$height = (float) wc_get_dimension( $product->get_shipping_height(), wc_gzd_get_packaging_dimension_unit() );
+						$length = (float) wc_get_dimension( (float) $product->get_shipping_length(), wc_gzd_get_packaging_dimension_unit() );
+						$width  = (float) wc_get_dimension( (float) $product->get_shipping_width(), wc_gzd_get_packaging_dimension_unit() );
+						$height = (float) wc_get_dimension( (float) $product->get_shipping_height(), wc_gzd_get_packaging_dimension_unit() );
 
 						if ( $length > $max_dimensions['length'] ) {
-							$max_dimensions['length'] = (float) $length;
+							$max_dimensions['length'] = $length;
 						}
 						if ( $width > $max_dimensions['width'] ) {
-							$max_dimensions['width'] = (float) $width;
+							$max_dimensions['width'] = $width;
 						}
 						if ( $height > $max_dimensions['height'] ) {
-							$max_dimensions['height'] = (float) $height;
+							$max_dimensions['height'] = $height;
 						}
 					}
 				}
