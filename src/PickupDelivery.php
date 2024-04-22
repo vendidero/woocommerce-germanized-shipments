@@ -321,7 +321,7 @@ class PickupDelivery {
 	}
 
 	public static function get_pickup_delivery_cart_args() {
-		$max_weight      = wc()->cart->get_cart_contents_weight();
+		$max_weight      = wc_get_weight( (float) wc()->cart->get_cart_contents_weight(), wc_gzd_get_packaging_weight_unit() );
 		$shipping_method = wc_gzd_get_current_shipping_provider_method();
 		$max_dimensions  = array(
 			'length' => 0.0,

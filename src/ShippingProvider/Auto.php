@@ -477,7 +477,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		$pickup_locations = get_transient( $cache_key );
 		$address          = $this->parse_pickup_location_address_args( $address );
 
-		if ( false === $pickup_locations ) {
+		if ( false === $pickup_locations && ( ! empty( $address['postcode'] ) || ! empty( $address['city'] ) ) ) {
 			$pickup_locations = $this->fetch_pickup_locations( $address, $query_args );
 
 			if ( ! is_null( $pickup_locations ) ) {
