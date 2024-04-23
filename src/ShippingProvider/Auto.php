@@ -487,6 +487,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			}
 		}
 
+		if ( ! is_array( $pickup_locations ) ) {
+			$pickup_locations = array();
+		}
+
 		/**
 		 * Make sure that (cached) pickup locations support data.
 		 */
