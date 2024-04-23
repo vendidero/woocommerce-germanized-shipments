@@ -76,7 +76,7 @@ class PickupDelivery {
 				'current_location' => null,
 				'required'         => false,
 				'hidden'           => true,
-				'classes'          => array(),
+				'class'            => array(),
 			)
 		);
 
@@ -95,7 +95,7 @@ class PickupDelivery {
 		$args['return'] = true;
 
 		if ( $args['hidden'] ) {
-			$args['classes'][] = 'hidden';
+			$args['class'][] = 'hidden';
 		}
 
 		$field = woocommerce_form_field( $key, $args, $value );
@@ -114,7 +114,7 @@ class PickupDelivery {
 				'required'          => false,
 				'custom_attributes' => array(),
 				'hidden'            => true,
-				'classes'           => array(),
+				'class'             => array(),
 			)
 		);
 
@@ -133,12 +133,12 @@ class PickupDelivery {
 
 		$args['custom_attributes']['data-locations'] = wp_json_encode( $args['custom_attributes']['data-locations'] );
 
-		if ( ! empty( $args['options'] ) ) {
+		if ( count( $args['options'] ) > 1 ) {
 			$args['hidden'] = false;
 		}
 
 		if ( $args['hidden'] ) {
-			$args['classes'][] = 'hidden';
+			$args['class'][] = 'hidden';
 		}
 
 		$field = woocommerce_form_field( $key, $args, $value );

@@ -16,10 +16,10 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
             var self  = germanized.shipments_pickup_locations;
             self.params  = wc_gzd_shipments_pickup_locations_params;
 
-            var $pickupSelect = $( '#pickup_location' );
+            var $pickupSelect = self.getPickupLocationSelect();
 
             if ( $pickupSelect.length > 0 ) {
-                self.pickupLocations = $pickupSelect.length > 0 ? $pickupSelect.data( 'locations' ) : {};
+                self.pickupLocations = $pickupSelect.data( 'locations' );
 
                 $( document.body ).on( 'updated_checkout', self.afterRefreshCheckout );
                 $( document ).on( 'change', '#pickup_location_field #pickup_location', self.onSelectPickupLocation );
