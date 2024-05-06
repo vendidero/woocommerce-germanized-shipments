@@ -23,8 +23,20 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
 
                 $( document.body ).on( 'updated_checkout', self.afterRefreshCheckout );
                 $( document ).on( 'change', '#pickup_location_field #pickup_location', self.onSelectPickupLocation );
+                $( document ).on( 'change', '#ship-to-different-address-checkbox', self.onSelectDifferentShipping );
 
                 self.afterRefreshCheckout();
+            }
+        },
+
+        onSelectDifferentShipping: function() {
+            var self = germanized.shipments_pickup_locations,
+                $pickupSelect = self.getPickupLocationSelect();
+
+            if ( ! $( this ).is( ':checked' ) ) {
+                if ( $pickupSelect.val() ) {
+                    $pickupSelect.val( '' ).trigger( 'change' );
+                }
             }
         },
 
