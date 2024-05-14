@@ -58,6 +58,8 @@ interface ShipmentLabel {
 
 	public function get_print_format();
 
+	public function get_master_reference_number();
+
 	/**
 	 * Returns the label shipment type, e.g. simple or return.
 	 *

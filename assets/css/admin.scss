@@ -357,6 +357,8 @@ a.woocommerce-gzd-input-toggle-trigger {
     .woocommerce-help-tip {
       display: inline-flex;
       margin-bottom: 5px;
+      margin-left: 3px;
+      margin-top: 2px;
     }
 
     select, input[type=text], input[type=email], input[type=date] {
@@ -1395,6 +1397,8 @@ a.button.wc-gzd-shipment-action-button {
 
           .woocommerce-help-tip {
             float: none;
+            margin-left: 5px;
+            margin-bottom: 2px;
           }
         }
       }

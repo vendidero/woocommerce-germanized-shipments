@@ -804,6 +804,22 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			);
 		}
 
+		if ( $shipment->is_shipping_international() && Package::base_country_supports_master_reference_number() ) {
+			$settings = array_merge(
+				$settings,
+				array(
+					array(
+						'id'          => 'master_reference_number',
+						'label'       => _x( 'Master Reference Number', 'shipments', 'woocommerce-germanized-shipments' ),
+						'description' => _x( 'In case of a shipment with an export declaration (e.g. value of goods > 1000 EUR) - provide the assigned Master Reference Number (MRN) for customs purposes.', 'shipments', 'woocommerce-germanized-shipments' ),
+						'value'       => '',
+						'type'        => 'text',
+						'desc_tip'    => true,
+					),
+				)
+			);
+		}
+
 		return $settings;
 	}
 

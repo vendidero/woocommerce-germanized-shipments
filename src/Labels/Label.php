@@ -53,21 +53,22 @@ class Label extends WC_Data implements ShipmentLabel {
 	 * @var array
 	 */
 	protected $data = array(
-		'date_created'      => null,
-		'shipment_id'       => 0,
-		'product_id'        => '',
-		'parent_id'         => 0,
-		'number'            => '',
-		'shipping_provider' => '',
-		'weight'            => '',
-		'net_weight'        => '',
-		'length'            => '',
-		'width'             => '',
-		'height'            => '',
-		'path'              => '',
-		'created_via'       => '',
-		'services'          => array(),
-		'print_format'      => '',
+		'date_created'            => null,
+		'shipment_id'             => 0,
+		'product_id'              => '',
+		'parent_id'               => 0,
+		'number'                  => '',
+		'shipping_provider'       => '',
+		'weight'                  => '',
+		'net_weight'              => '',
+		'length'                  => '',
+		'width'                   => '',
+		'height'                  => '',
+		'path'                    => '',
+		'created_via'             => '',
+		'services'                => array(),
+		'print_format'            => '',
+		'master_reference_number' => '',
 	);
 
 	public function __construct( $data = 0 ) {
@@ -193,6 +194,10 @@ class Label extends WC_Data implements ShipmentLabel {
 
 	public function get_print_format( $context = 'view' ) {
 		return $this->get_prop( 'print_format', $context );
+	}
+
+	public function get_master_reference_number( $context = 'view' ) {
+		return $this->get_prop( 'master_reference_number', $context );
 	}
 
 	public function has_number() {
@@ -337,6 +342,10 @@ class Label extends WC_Data implements ShipmentLabel {
 
 	public function set_print_format( $format ) {
 		$this->set_prop( 'print_format', $format );
+	}
+
+	public function set_master_reference_number( $ref_number ) {
+		$this->set_prop( 'master_reference_number', $ref_number );
 	}
 
 	public function set_shipping_provider( $slug ) {
@@ -849,6 +858,7 @@ class Label extends WC_Data implements ShipmentLabel {
 				'shipment_id'                   => $shipment->get_id(),
 				'additional_fee'                => wc_format_decimal( $shipment->get_additional_total(), 2 ),
 				'place_of_commital'             => $shipment->get_sender_city(),
+				'master_reference_number'       => $this->get_master_reference_number(),
 				// e.g. EORI number
 				'sender_customs_ref_number'     => $shipment->get_sender_customs_reference_number(),
 				'receiver_customs_ref_number'   => $shipment->get_customs_reference_number(),
