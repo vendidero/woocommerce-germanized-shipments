@@ -61,7 +61,9 @@ final class Checkout {
 	 * @return void
 	 */
 	private function validate_checkout_data( $order, $request ) {
-		$gzd_data = $this->get_checkout_data_from_request( $request );
+		$gzd_data                        = $this->get_checkout_data_from_request( $request );
+		$pickup_location                 = false;
+		$pickup_location_customer_number = '';
 
 		if ( $this->has_checkout_data( 'pickup_location', $request ) && ! empty( $gzd_data['pickup_location'] ) ) {
 			$pickup_location_code            = $gzd_data['pickup_location'];
@@ -111,29 +113,37 @@ final class Checkout {
 			if ( $supports_customer_number ) {
 				$order->update_meta_data( '_pickup_location_customer_number', $pickup_location_customer_number );
 			}
+		}
 
-			/**
-			 * Persist customer changes for logged-in customers.
-			 */
-			if ( $order->get_customer_id() ) {
-				$wc_customer = new \WC_Customer( $order->get_customer_id() );
+		if ( $order->get_customer_id() ) {
+			$wc_customer = new \WC_Customer( $order->get_customer_id() );
 
-				$wc_customer->update_meta_data( 'pickup_location_code', $pickup_location_code );
+			$wc_customer->update_meta_data( 'pickup_location_code', '' );
+			$wc_customer->update_meta_data( 'pickup_location_customer_number', '' );
+
+			if ( $pickup_location ) {
+				$wc_customer->update_meta_data( 'pickup_location_code', $pickup_location->get_code() );
 				$pickup_location->replace_address( $wc_customer );
 
-				if ( $supports_customer_number ) {
+				if ( $pickup_location->supports_customer_number() ) {
 					$wc_customer->update_meta_data( 'pickup_location_customer_number', $pickup_location_customer_number );
 				}
-
-				$wc_customer->save();
 			}
 
-			$customer = wc()->customer;
-			$customer->update_meta_data( 'pickup_location_code', $pickup_location_code );
-			$pickup_location->replace_address( $customer );
+			$wc_customer->save();
+		}
 
-			if ( $supports_customer_number ) {
-				$customer->update_meta_data( 'pickup_location_customer_number', $pickup_location_customer_number );
+		if ( $customer = wc()->customer ) {
+			$customer->update_meta_data( 'pickup_location_code', '' );
+			$customer->update_meta_data( 'pickup_location_customer_number', '' );
+
+			if ( $pickup_location ) {
+				$customer->update_meta_data( 'pickup_location_code', $pickup_location->get_code() );
+				$pickup_location->replace_address( $customer );
+
+				if ( $pickup_location->supports_customer_number() ) {
+					$customer->update_meta_data( 'pickup_location_customer_number', $pickup_location_customer_number );
+				}
 			}
 
 			$customer->save();

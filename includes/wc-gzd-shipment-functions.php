@@ -37,6 +37,28 @@ function wc_gzd_country_to_alpha3( $country ) {
 	return Package::get_country_iso_alpha3( $country );
 }
 
+function wc_gzd_get_customer_preferred_shipping_provider( $user_id ) {
+	$default_provider = wc_gzd_get_default_shipping_provider();
+	$provider         = false;
+
+	if ( ! $default_provider ) {
+		$available        = wc_gzd_get_available_shipping_providers();
+		$default_provider = 1 === count( $available ) ? array_values( $available )[0] : false;
+	}
+
+	if ( $customer = new WC_Customer( $user_id ) ) {
+		if ( $last_order = $customer->get_last_order() ) {
+			$provider = wc_gzd_get_order_shipping_provider( $last_order );
+		}
+	}
+
+	if ( ! $provider && $default_provider ) {
+		$provider = wc_gzd_get_shipping_provider( $default_provider );
+	}
+
+	return apply_filters( 'woocommerce_gzd_customer_shipping_provider', $provider, $user_id );
+}
+
 function wc_gzd_country_to_alpha2( $country ) {
 	return Package::get_country_iso_alpha2( $country );
 }
