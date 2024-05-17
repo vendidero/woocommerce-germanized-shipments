@@ -860,6 +860,10 @@ class PickupDelivery {
 	 * @return mixed
 	 */
 	public static function set_formatted_shipping_address( $fields, $order ) {
+		if ( ! self::is_enabled() ) {
+			return $fields;
+		}
+
 		if ( ! empty( $fields ) && is_array( $fields ) ) {
 			$shipment_order  = wc_gzd_get_shipment_order( $order );
 			$customer_number = $shipment_order->get_pickup_location_customer_number();
@@ -873,6 +877,10 @@ class PickupDelivery {
 	}
 
 	public static function set_formatted_customer_shipping_address( $address, $customer_id, $name ) {
+		if ( ! self::is_enabled() ) {
+			return $address;
+		}
+
 		if ( 'shipping' === $name ) {
 			if ( self::is_pickup_location_delivery_available_for_customer( $customer_id ) ) {
 				if ( $customer_number = self::get_pickup_location_customer_number_by_customer( $customer_id ) ) {
@@ -977,6 +985,10 @@ class PickupDelivery {
 	}
 
 	public static function formatted_shipping_replacements( $fields, $args ) {
+        if ( ! self::is_enabled() ) {
+            return $fields;
+        }
+
 		if ( isset( $args['pickup_location_customer_number'] ) && ! empty( $args['pickup_location_customer_number'] ) ) {
 			$fields['{name}'] = $fields['{name}'] . "\n" . $args['pickup_location_customer_number'];
 		}
