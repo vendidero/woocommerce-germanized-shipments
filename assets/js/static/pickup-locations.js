@@ -111,6 +111,8 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 $notice.find( '.pickup-location-manage-link' ).text( currentPickupLocation.label );
                 $notice.find( '.currently-shipping-to' ).show();
                 $notice.find( '.choose-pickup-location' ).hide();
+
+                $( '#wc-gzd-shipments-pickup-location-search-form .pickup-location-remove ' ).show();
             } else {
                 $current.attr( 'data-current-location', '' );
                 $current.val( '' );
@@ -118,10 +120,10 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 self.getCustomerNumberField().addClass( 'hidden' );
                 self.getCustomerNumberField().hide();
 
-                console.log($( '.wc-gzd-shipments-managed-by-pickup-location' ).find( 'input[type=text]' ));
-
                 $( '.wc-gzd-shipments-managed-by-pickup-location' ).find( 'input[type=text]' ).val( '' );
                 $( '.wc-gzd-shipments-managed-by-pickup-location' ).find( ':input' ).prop( 'readonly', false );
+
+                $( '#wc-gzd-shipments-pickup-location-search-form .pickup-location-remove ' ).hide();
 
                 $( '.wc-gzd-shipments-managed-by-pickup-location' ).removeClass( 'wc-gzd-shipments-managed-by-pickup-location' );
                 $( '.wc-gzd-shipments-managed-by-pickup-location-notice' ).remove();
@@ -384,8 +386,8 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                         if ( $row.length > 0 ) {
                             $row.addClass( 'wc-gzd-shipments-managed-by-pickup-location' );
 
-                            if ( 'country' !== addressField && $row.find( '.wc-gzd-shipments-managed-by-pickup-location-notice' ).length <= 0 ) {
-                                $row.find( ':input' ).after( '<span class="wc-gzd-shipments-managed-by-pickup-location-notice">' + self.params.i18n_managed_by_pickup_location + '</span>' );
+                            if ( $row.find( '.wc-gzd-shipments-managed-by-pickup-location-notice' ).length <= 0 ) {
+                                $row.find( 'label' ).after( '<span class="wc-gzd-shipments-managed-by-pickup-location-notice">' + self.params.i18n_managed_by_pickup_location + '</span>' );
                             }
                         } else {
                             $( '#shipping_' + addressField ).addClass( 'wc-gzd-shipments-managed-by-pickup-location' );

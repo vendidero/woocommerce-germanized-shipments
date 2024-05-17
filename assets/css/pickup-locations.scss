@@ -27,9 +27,29 @@
   }
 
   .wc-gzd-shipments-managed-by-pickup-location {
-    .woocommerce-input-wrapper {
-      position: relative;
+    position: relative;
+  }
+}
+
+.wc-gzd-shipments-managed-by-pickup-location {
+  select + .select2-container {
+    pointer-events: none;
+    touch-action: none;
+
+    .select2-selection {
+      background: #eee;
+      box-shadow: none;
     }
+
+    .select2-selection__arrow,
+    .select2-selection__clear {
+      display: none;
+    }
+  }
+
+  select {
+    pointer-events: none;
+    touch-action: none;
   }
 }
 
@@ -39,8 +59,8 @@
   line-height: 1em;
   position: absolute;
   right: 0;
-  top: 0;
-  margin-right: 1em;
+  bottom: auto;
+  margin-top: -1.5rem;
 }
 
 body.wc-gzd-body-modal-active {

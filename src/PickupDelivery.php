@@ -18,6 +18,7 @@ class PickupDelivery {
 		add_filter( 'woocommerce_order_formatted_shipping_address', array( __CLASS__, 'set_formatted_shipping_address' ), 20, 2 );
 		add_filter( 'woocommerce_my_account_my_address_formatted_address', array( __CLASS__, 'set_formatted_customer_shipping_address' ), 10, 3 );
 		add_filter( 'woocommerce_formatted_address_replacements', array( __CLASS__, 'formatted_shipping_replacements' ), 20, 2 );
+		add_filter( 'woocommerce_get_order_address', array( __CLASS__, 'register_order_address_customer_number' ), 20, 3 );
 
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ), 100 );
 
@@ -40,7 +41,26 @@ class PickupDelivery {
 		add_filter( 'woocommerce_form_field_wc_gzd_shipments_pickup_location_customer_number', array( __CLASS__, 'register_pickup_location_customer_number_field' ), 10, 4 );
 		add_filter( 'woocommerce_form_field_wc_gzd_shipments_pickup_location_notice', array( __CLASS__, 'register_pickup_location_notice_field' ), 10, 4 );
 
+		add_filter( 'woocommerce_customer_meta_fields', array( __CLASS__, 'register_admin_profile_fields' ), 50 );
 		add_filter( 'woocommerce_admin_shipping_fields', array( __CLASS__, 'register_pickup_location_admin_fields' ), 10, 3 );
+	}
+
+	public static function register_admin_profile_fields( $fields ) {
+		if ( ! self::is_enabled() ) {
+			return $fields;
+		}
+
+		$fields['shipping']['fields']['pickup_location_code'] = array(
+			'label'       => _x( 'Pickup location', 'shipments', 'woocommerce-germanized-shipments' ),
+			'description' => _x( 'The number of a valid pickup location.', 'shipments', 'woocommerce-germanized-shipments' ),
+		);
+
+		$fields['shipping']['fields']['pickup_location_customer_number'] = array(
+			'label'       => _x( 'Pickup customer number', 'shipments', 'woocommerce-germanized-shipments' ),
+			'description' => _x( 'The customer number, if needed, for the pickup location.', 'shipments', 'woocommerce-germanized-shipments' ),
+		);
+
+		return $fields;
 	}
 
 	public static function register_customer_address_modal() {
@@ -187,7 +207,6 @@ class PickupDelivery {
 
 				if ( $current_location_code ) {
 					if ( $current_location = $provider->get_pickup_location_by_code( $current_location_code, $result['address'] ) ) {
-
 						if ( $retrieve_locations ) {
 							$result['locations'][] = $current_location;
 						}
@@ -685,7 +704,7 @@ class PickupDelivery {
 			'wc_gzd_shipments_pickup_locations_params',
 			array(
 				'wc_ajax_url'                     => \WC_AJAX::get_endpoint( '%%endpoint%%' ),
-				'i18n_managed_by_pickup_location' => _x( 'Managed by pickup location', 'shipments', 'woocommerce-germanized-shipments' ),
+				'i18n_managed_by_pickup_location' => sprintf( _x( 'Managed by %1$s', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="#" class="pickup-location-notice-link wc-gzd-modal-launcher" data-modal-id="pickup-location">' . _x( 'pickup location', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ),
 				'i18n_pickup_location_delivery_unavailable' => _x( 'Pickup location delivery is not available any longer. Please review your shipping address.', 'shipments', 'woocommerce-germanized-shipments' ),
 			)
 		);
@@ -932,6 +951,29 @@ class PickupDelivery {
 
 	public static function get_pickup_location_code_by_user( $customer_id = false ) {
 		return self::get_pickup_location_code_by_customer( $customer_id );
+	}
+
+	/**
+	 * @param array $address
+	 * @param $address_type
+	 * @param WC_Order $order
+	 *
+	 * @return array
+	 */
+	public static function register_order_address_customer_number( $address, $address_type, $order ) {
+		if ( ! self::is_enabled() ) {
+			return $address;
+		}
+
+		if ( 'shipping' === $address_type ) {
+			if ( $shipment_order = wc_gzd_get_shipment_order( $order ) ) {
+				if ( $customer_number = $shipment_order->get_pickup_location_customer_number() ) {
+					$address['pickup_location_customer_number'] = $customer_number;
+				}
+			}
+		}
+
+		return $address;
 	}
 
 	public static function formatted_shipping_replacements( $fields, $args ) {

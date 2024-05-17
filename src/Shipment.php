@@ -806,7 +806,15 @@ abstract class Shipment extends WC_Data {
 	 * @return string[]
 	 */
 	public function get_address( $context = 'view' ) {
-		return $this->get_prop( 'address', $context );
+		$address = $this->get_prop( 'address', $context );
+
+		if ( 'view' === $context ) {
+			if ( $customer_number = $this->get_pickup_location_customer_number() ) {
+				$address['pickup_location_customer_number'] = $customer_number;
+			}
+		}
+
+		return $address;
 	}
 
 	/**
