@@ -52,7 +52,7 @@ class Label extends WC_Data_Store_WP implements WC_Object_Data_Store_Interface {
 		'_height',
 		'_created_via',
 		'_print_format',
-		'_master_reference_number',
+		'_export_reference_number',
 	);
 
 	/*

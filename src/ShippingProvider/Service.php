@@ -341,7 +341,7 @@ class Service {
 			array(
 				array(
 					'title'   => $this->get_label(),
-					'desc'    => $this->get_description() . ( ! empty( $this->get_long_description() ) ? ' ' . $this->get_long_description() : '' ),
+					'desc'    => $this->get_description() . ( ! empty( $this->get_long_description() ) ? ' <div class="wc-gzd-additional-desc">' . $this->get_long_description() . '</div>' : '' ),
 					'id'      => $setting_id,
 					'value'   => $value,
 					'default' => $this->get_default_value(),
