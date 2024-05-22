@@ -22,7 +22,7 @@ class PickupDelivery {
 
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'register_assets' ), 100 );
 
-		add_action( 'woocommerce_after_edit_address_form_shipping', array( __CLASS__, 'register_customer_address_modal' ) );
+		add_action( 'woocommerce_after_edit_account_address_form', array( __CLASS__, 'register_customer_address_modal' ) );
 		add_action( 'woocommerce_after_save_address_validation', array( __CLASS__, 'register_customer_address_validation' ), 10, 4 );
 		add_filter( 'woocommerce_address_to_edit', array( __CLASS__, 'register_customer_address_fields' ), 10, 2 );
 
@@ -235,7 +235,7 @@ class PickupDelivery {
 		?>
 		<div class="wc-gzd-modal-background"></div>
 
-		<div class="wc-gzd-modal-content" data-id="pickup-location">
+		<div class="wc-gzd-modal-content" data-id="pickup-location" style="display: none;">
 			<div class="wc-gzd-modal-content-inner">
 				<header>
 					<h4><?php echo esc_html_x( 'Choose a pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?></h4>
@@ -616,15 +616,12 @@ class PickupDelivery {
 		}
 
 		$pickup_delivery_data = self::get_pickup_location_data( 'checkout', true );
+		$locations            = array();
 
 		if ( ! empty( $pickup_delivery_data['locations'] ) ) {
-			$new_locations = array();
-
 			foreach ( $pickup_delivery_data['locations'] as $location ) {
-				$new_locations[ $location->get_code() ] = $location->get_data();
+				$locations[ $location->get_code() ] = $location->get_data();
 			}
-
-			$locations = $new_locations;
 		}
 
 		$fragments['.gzd-shipments-pickup-locations']          = wp_json_encode( $locations );
@@ -684,7 +681,7 @@ class PickupDelivery {
 	protected static function is_edit_address_page() {
 		global $wp;
 
-		return is_account_page() && isset( $wp->query_vars['edit-address'] ) && 'shipping' === $wp->query_vars['edit-address'];
+		return is_account_page() && isset( $wp->query_vars['edit-address'] );
 	}
 
 	public static function register_assets() {
@@ -985,9 +982,9 @@ class PickupDelivery {
 	}
 
 	public static function formatted_shipping_replacements( $fields, $args ) {
-        if ( ! self::is_enabled() ) {
-            return $fields;
-        }
+		if ( ! self::is_enabled() ) {
+			return $fields;
+		}
 
 		if ( isset( $args['pickup_location_customer_number'] ) && ! empty( $args['pickup_location_customer_number'] ) ) {
 			$fields['{name}'] = $fields['{name}'] . "\n" . $args['pickup_location_customer_number'];

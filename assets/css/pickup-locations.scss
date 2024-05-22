@@ -6,61 +6,69 @@
   margin-right: 5px; padding: 0 3px;
 }
 
-.woocommerce form {
-  #current_pickup_location_field {
-    display: none;
-  }
-
-  .pickup_location_notice {
-    margin-top: -.5rem;
-
-    p {
-      margin: 0;
-      padding: 0;
-    }
-
-    a.pickup-location-remove {
-      color: var(--wc-subtext);
-      font-size: 0.9em;
-      margin-top: 1rem;
-    }
-  }
-
-  .wc-gzd-shipments-managed-by-pickup-location {
-    position: relative;
-  }
-}
-
-.wc-gzd-shipments-managed-by-pickup-location {
-  select + .select2-container {
-    pointer-events: none;
-    touch-action: none;
-
-    .select2-selection {
-      background: #eee;
-      box-shadow: none;
-    }
-
-    .select2-selection__arrow,
-    .select2-selection__clear {
+.woocommerce-checkout, .woocommerce-account {
+  .woocommerce form {
+    #current_pickup_location_field {
       display: none;
     }
-  }
 
-  select {
-    pointer-events: none;
-    touch-action: none;
-  }
-}
+    .pickup_location_notice {
+      margin-top: -.5rem;
 
-.wc-gzd-shipments-managed-by-pickup-location-notice {
-  font-size: 0.7em;
-  color: var(--wc-subtext);
-  line-height: 1em;
-  position: absolute;
-  right: 0;
-  bottom: auto;
-  margin-top: -1.5rem;
+      p {
+        margin: 0;
+        padding: 0;
+      }
+
+      a.pickup-location-remove {
+        color: var(--wc-subtext);
+        font-size: 0.9em;
+        margin-top: 1rem;
+      }
+    }
+
+    .wc-gzd-shipments-managed-by-pickup-location {
+      position: relative;
+    }
+
+    .wc-gzd-shipments-managed-by-pickup-location {
+      .woocommerce-input-wrapper {
+        input.input-text:read-only {
+          background-color: #eee;
+        }
+      }
+
+      select + .select2-container {
+        pointer-events: none;
+        touch-action: none;
+
+        .select2-selection {
+          background: #eee;
+          box-shadow: none;
+        }
+
+        .select2-selection__arrow,
+        .select2-selection__clear {
+          display: none;
+        }
+      }
+
+      select {
+        pointer-events: none;
+        touch-action: none;
+      }
+    }
+
+    .wc-gzd-shipments-managed-by-pickup-location-notice {
+      font-size: 0.7em;
+      color: var(--wc-subtext);
+      line-height: 1em;
+      position: absolute;
+      right: 0;
+      bottom: auto;
+      margin-top: -1.5rem;
+    }
+  }
 }
 
 body.wc-gzd-body-modal-active {
@@ -190,5 +198,5 @@ body.wc-gzd-body-modal-active {
 }
 
 .wc-gzd-modal-background.active, .wc-gzd-modal-content.active {
-  display: block;
+  display: block !important;
 }
