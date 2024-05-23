@@ -148,7 +148,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 }
             });
 
-            params['action'] = 'woocommerce_gzd_shipments_search_pickup_locations';
+            params += '&action=woocommerce_gzd_shipments_search_pickup_locations&context=' + self.params.context;
 
             $.ajax({
                 type: "POST",
@@ -197,9 +197,11 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
             if ( ! $( this ).is( ':checked' ) ) {
                 self.disablePickupLocationDelivery();
 
-                $( '#billing_pickup_location_notice' ).show();
+                if ( self.isAvailable() ) {
+                    $( '#billing_pickup_location_notice' ).removeClass( 'hidden' ).show();
+                }
             } else {
-                $( '#billing_pickup_location_notice' ).hide();
+                $( '#billing_pickup_location_notice' ).addClass( 'hidden' ).hide();
             }
         },
 
@@ -343,7 +345,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 $.scroll_to_notices( scrollElement );
             }
 
-            $( '.pickup_location_notice' ).hide();
+            $( '.pickup_location_notice' ).addClass( 'hidden' ).hide();
         },
 
         enable: function() {
@@ -351,13 +353,19 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
 
             self.available = true;
 
-            $( '.pickup_location_notice' ).show();
+            $( '.pickup_location_notice' ).removeClass( 'hidden' ).show();
 
             if ( $( '#ship-to-different-address-checkbox' ).is( ':checked' ) || self.hasPickupLocationDelivery() ) {
-                $( '#billing_pickup_location_notice' ).hide();
+                $( '#billing_pickup_location_notice' ).addClass( 'hidden' ).hide();
             } else {
-                $( '#billing_pickup_location_notice' ).show();
+                $( '#billing_pickup_location_notice' ).removeClass( 'hidden' ).show();
             }
+        },
+
+        isAvailable: function() {
+            var self= germanized.shipments_pickup_locations;
+
+            return self.available;
         },
 
         replaceShippingAddress: function( replacements ) {

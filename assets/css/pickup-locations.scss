@@ -1,4 +1,4 @@
-.pickup_location_notice.hidden, #pickup_location_field.hidden, #pickup_location_customer_number_field.hidden {
+#pickup_location_field.hidden {
   display: none;
 }
 
@@ -8,6 +8,10 @@
 
 .woocommerce-checkout, .woocommerce-account {
   .woocommerce form {
+    .pickup_location_notice.hidden, #pickup_location_customer_number_field.hidden {
+      display: none !important;
+    }
+
     #current_pickup_location_field {
       display: none;
     }
