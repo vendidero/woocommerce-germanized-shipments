@@ -1569,3 +1569,13 @@ function wc_gzd_get_shipment_error( $error ) {
 		return \Vendidero\Germanized\Shipments\ShipmentError::from_wp_error( $error );
 	}
 }
+
+function wc_gzd_shipments_substring( $string, $start, $length = null ) {
+	if ( function_exists( 'mb_substr' ) ) {
+		$string = mb_substr( $string, $start, $length );
+	} else {
+		$string = substr( $string, $start, $length );
+	}
+
+	return $string;
+}
