@@ -82,6 +82,11 @@ class FormHandler {
 			try {
 				$email       = sanitize_email( wp_unslash( $_POST['email'] ) );
 				$order_id    = wc_clean( wp_unslash( $_POST['order_id'] ) );
+
+				if ( empty( $email ) || empty( $order_id ) ) {
+					throw new Exception( '<strong>' . _x( 'Error:', 'shipments', 'woocommerce-germanized-shipments' ) . '</strong> ' . _x( 'Please fill out all required fields.', 'shipments', 'woocommerce-germanized-shipments' ) );
+				}
+
 				$db_order_id = self::find_order( $order_id, $email );
 
 				if ( ! $db_order_id || ( ! $order = wc_get_order( $db_order_id ) ) ) {

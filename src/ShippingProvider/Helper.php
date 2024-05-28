@@ -241,11 +241,15 @@ class Helper {
 	}
 
 	/**
-	 * @param $name
+	 * @param string|ShippingProvider $name
 	 *
 	 * @return false|Simple|Auto|ShippingProvider
 	 */
 	public function get_shipping_provider( $name ) {
+		if ( is_a( $name, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
+			$name = $name->get_name();
+		}
+
 		$providers = $this->get_shipping_providers();
 
 		return ( array_key_exists( $name, $providers ) ? $providers[ $name ] : false );
