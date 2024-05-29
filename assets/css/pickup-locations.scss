@@ -2,12 +2,16 @@
   display: none;
 }
 
+.pickup_location_notice.hidden, #pickup_location_customer_number_field.hidden {
+  display: none !important;
+}
+
 #pickup_location_field .select2-selection__clear {
   margin-right: 5px; padding: 0 3px;
 }
 
 .woocommerce-checkout, .woocommerce-account {
-  .woocommerce form {
+  .woocommerce form, form.checkout {
     .pickup_location_notice.hidden, #pickup_location_customer_number_field.hidden {
       display: none !important;
     }
@@ -71,6 +75,15 @@
       right: 0;
       bottom: auto;
       margin-top: -1.5rem;
+    }
+
+    @media (max-width: 400px) {
+      .wc-gzd-shipments-managed-by-pickup-location-notice {
+        position: relative;
+        margin-top: -1em;
+        margin-bottom: .7rem;
+        display: block;
+      }
     }
   }
 }
