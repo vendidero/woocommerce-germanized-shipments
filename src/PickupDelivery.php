@@ -358,6 +358,8 @@ class PickupDelivery {
 				<p>
 					<span class="pickup-location-notice-title"><?php echo esc_html_x( 'Not at home?', 'shipments', 'woocommerce-germanized-shipments' ); ?></span>
 					<a href="#" class="pickup-location-notice-link wc-gzd-modal-launcher" data-modal-id="pickup-location"><?php echo esc_html_x( 'Choose a pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+
+					<?php do_action( 'woocommerce_gzd_shipments_after_pickup_location_choose_notice', $args ); ?>
 				</p>
 			</div>
 			<div class="currently-shipping-to" <?php echo ( ! $args['current_location'] ? 'style="display: none;"' : '' ); ?>>
