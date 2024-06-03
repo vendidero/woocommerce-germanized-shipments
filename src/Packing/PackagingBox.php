@@ -30,9 +30,9 @@ class PackagingBox implements PackingBox {
 	public function __construct( $packaging ) {
 		$this->packaging = $packaging;
 
-		$width  = empty( $this->packaging->get_width() ) ? 0 : wc_format_decimal( $this->packaging->get_width() );
-		$length = empty( $this->packaging->get_length() ) ? 0 : wc_format_decimal( $this->packaging->get_length() );
-		$depth  = empty( $this->packaging->get_height() ) ? 0 : wc_format_decimal( $this->packaging->get_height() );
+		$width  = empty( $this->packaging->get_width() ) ? 0 : (float) wc_format_decimal( $this->packaging->get_width() );
+		$length = empty( $this->packaging->get_length() ) ? 0 : (float) wc_format_decimal( $this->packaging->get_length() );
+		$depth  = empty( $this->packaging->get_height() ) ? 0 : (float) wc_format_decimal( $this->packaging->get_height() );
 
 		$this->dimensions = array(
 			'width'  => (int) floor( (float) wc_get_dimension( $width, 'mm', wc_gzd_get_packaging_dimension_unit() ) ),
@@ -41,9 +41,9 @@ class PackagingBox implements PackingBox {
 		);
 
 		if ( $this->packaging->has_inner_dimensions() ) {
-			$inner_width  = empty( $this->packaging->get_inner_width() ) ? 0 : wc_format_decimal( $this->packaging->get_inner_width() );
-			$inner_length = empty( $this->packaging->get_inner_length() ) ? 0 : wc_format_decimal( $this->packaging->get_inner_length() );
-			$inner_depth  = empty( $this->packaging->get_inner_height() ) ? 0 : wc_format_decimal( $this->packaging->get_inner_height() );
+			$inner_width  = empty( $this->packaging->get_inner_width() ) ? 0 : (float) wc_format_decimal( $this->packaging->get_inner_width() );
+			$inner_length = empty( $this->packaging->get_inner_length() ) ? 0 : (float) wc_format_decimal( $this->packaging->get_inner_length() );
+			$inner_depth  = empty( $this->packaging->get_inner_height() ) ? 0 : (float) wc_format_decimal( $this->packaging->get_inner_height() );
 
 			$this->inner_dimensions = array(
 				'width'  => (int) floor( (float) wc_get_dimension( $inner_width, 'mm', wc_gzd_get_packaging_dimension_unit() ) ),
@@ -52,10 +52,10 @@ class PackagingBox implements PackingBox {
 			);
 		}
 
-		$weight       = empty( $this->packaging->get_weight() ) ? 0 : wc_format_decimal( $this->packaging->get_weight() );
+		$weight       = empty( $this->packaging->get_weight() ) ? 0 : (float) wc_format_decimal( $this->packaging->get_weight() );
 		$this->weight = (int) floor( (float) wc_get_weight( $weight, 'g', wc_gzd_get_packaging_weight_unit() ) );
 
-		$max_content_weight = empty( $this->packaging->get_max_content_weight() ) ? 0 : wc_format_decimal( $this->packaging->get_max_content_weight() );
+		$max_content_weight = empty( $this->packaging->get_max_content_weight() ) ? 0 : (float) wc_format_decimal( $this->packaging->get_max_content_weight() );
 		$this->max_weight   = (int) floor( (float) wc_get_weight( $max_content_weight, 'g', wc_gzd_get_packaging_weight_unit() ) );
 
 		/**

@@ -233,10 +233,10 @@ class Order {
 				if ( $product = $order_item->get_product() ) {
 					$s_product = wc_gzd_shipments_get_product( $product );
 
-					$width  = ( empty( $s_product->get_shipping_width() ) ? 0 : wc_format_decimal( $s_product->get_shipping_width() ) ) * $quantity;
-					$length = ( empty( $s_product->get_shipping_length() ) ? 0 : wc_format_decimal( $s_product->get_shipping_length() ) ) * $quantity;
-					$height = ( empty( $s_product->get_shipping_height() ) ? 0 : wc_format_decimal( $s_product->get_shipping_height() ) ) * $quantity;
-					$weight = ( empty( $s_product->get_weight() ) ? 0 : wc_format_decimal( $product->get_weight() ) ) * $quantity;
+					$width  = ( empty( $s_product->get_shipping_width() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_width() ) ) * $quantity;
+					$length = ( empty( $s_product->get_shipping_length() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_length() ) ) * $quantity;
+					$height = ( empty( $s_product->get_shipping_height() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_height() ) ) * $quantity;
+					$weight = ( empty( $s_product->get_weight() ) ? 0 : (float) wc_format_decimal( $product->get_weight() ) ) * $quantity;
 
 					$package_data['weight'] += $weight;
 					$package_data['volume'] += ( $width * $length * $height );

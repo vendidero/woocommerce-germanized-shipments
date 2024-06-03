@@ -27,9 +27,9 @@ class ShipmentItem extends Item {
 			$weight_unit    = get_option( 'woocommerce_weight_unit', 'kg' );
 		}
 
-		$width  = empty( $this->item->get_width() ) ? 0 : wc_format_decimal( $this->item->get_width() );
-		$length = empty( $this->item->get_length() ) ? 0 : wc_format_decimal( $this->item->get_length() );
-		$depth  = empty( $this->item->get_height() ) ? 0 : wc_format_decimal( $this->item->get_height() );
+		$width  = empty( $this->item->get_width() ) ? 0 : (float) wc_format_decimal( $this->item->get_width() );
+		$length = empty( $this->item->get_length() ) ? 0 : (float) wc_format_decimal( $this->item->get_length() );
+		$depth  = empty( $this->item->get_height() ) ? 0 : (float) wc_format_decimal( $this->item->get_height() );
 
 		$this->dimensions = array(
 			'width'  => (int) ceil( (float) wc_get_dimension( $width, 'mm', $dimension_unit ) ),
@@ -37,7 +37,7 @@ class ShipmentItem extends Item {
 			'depth'  => (int) ceil( (float) wc_get_dimension( $depth, 'mm', $dimension_unit ) ),
 		);
 
-		$weight        = empty( $this->item->get_weight() ) ? 0 : wc_format_decimal( $this->item->get_weight() );
+		$weight        = empty( $this->item->get_weight() ) ? 0 : (float) wc_format_decimal( $this->item->get_weight() );
 		$quantity      = (int) ceil( (float) $item->get_quantity() );
 		$line_total    = (int) wc_add_number_precision( $this->item->get_total() );
 		$line_subtotal = (int) wc_add_number_precision( $this->item->get_subtotal() );

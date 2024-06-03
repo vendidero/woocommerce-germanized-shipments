@@ -821,7 +821,7 @@ class Label extends WC_Data implements ShipmentLabel {
 				$category = $item->get_name();
 			}
 
-			$product_value = $product_total < 0.01 ? wc_format_decimal( apply_filters( "{$this->get_general_hook_prefix()}customs_item_min_price", 0.01, $item, $this, $shipment ), 2 ) : wc_format_decimal( $product_total, 2 );
+			$product_value = $product_total < 0.01 ? (float) wc_format_decimal( apply_filters( "{$this->get_general_hook_prefix()}customs_item_min_price", 0.01, $item, $this, $shipment ), 2 ) : (float) wc_format_decimal( $product_total, 2 );
 
 			$customs_items[ $key ] = apply_filters(
 				"{$this->get_general_hook_prefix()}customs_item",

@@ -1033,7 +1033,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 		foreach ( $ids as $id ) {
 			$rule_id   = $index++;
 			$packaging = 'all' === $option_value['packaging'][ $id ] ? 'all' : absint( $option_value['packaging'][ $id ] );
-			$costs     = wc_format_decimal( isset( $option_value['costs'][ $id ] ) ? wc_clean( $option_value['costs'][ $id ] ) : 0, false, true );
+			$costs     = (float) wc_format_decimal( isset( $option_value['costs'][ $id ] ) ? wc_clean( $option_value['costs'][ $id ] ) : 0, false, true );
 
 			$rule = array(
 				'rule_id'    => $rule_id,
@@ -1095,14 +1095,14 @@ class ShippingMethod extends \WC_Shipping_Method {
 									$decimals = 0;
 								}
 
-								$value = wc_format_decimal( $value, $decimals, true );
+								$value = (float) wc_format_decimal( $value, $decimals, true );
 							} else {
-								$value = wc_format_decimal( $value, false, true );
+								$value = (float) wc_format_decimal( $value, false, true );
 							}
 						} elseif ( 'price' === $field['data_type'] ) {
-							$value = wc_format_decimal( $value, wc_get_price_decimals(), true );
+							$value = (float) wc_format_decimal( $value, wc_get_price_decimals(), true );
 						} elseif ( 'decimal' === $field['data_type'] ) {
-							$value = wc_format_decimal( $value );
+							$value = (float) wc_format_decimal( $value );
 						} elseif ( 'array' === $field['data_type'] ) {
 							$value = (array) $value;
 						}

@@ -28,9 +28,9 @@ class OrderItem extends Item {
 		if ( $product = $this->get_product() ) {
 			$s_product = wc_gzd_shipments_get_product( $product );
 
-			$width  = empty( $s_product->get_shipping_width() ) ? 0 : wc_format_decimal( $s_product->get_shipping_width() );
-			$length = empty( $s_product->get_shipping_length() ) ? 0 : wc_format_decimal( $s_product->get_shipping_length() );
-			$depth  = empty( $s_product->get_shipping_height() ) ? 0 : wc_format_decimal( $s_product->get_shipping_height() );
+			$width  = empty( $s_product->get_shipping_width() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_width() );
+			$length = empty( $s_product->get_shipping_length() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_length() );
+			$depth  = empty( $s_product->get_shipping_height() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_height() );
 
 			$this->dimensions = array(
 				'width'  => (int) ceil( (float) wc_get_dimension( $width, 'mm' ) ),
@@ -38,7 +38,7 @@ class OrderItem extends Item {
 				'depth'  => (int) ceil( (float) wc_get_dimension( $depth, 'mm' ) ),
 			);
 
-			$weight       = empty( $this->product->get_weight() ) ? 0 : wc_format_decimal( $this->product->get_weight() );
+			$weight       = empty( $this->product->get_weight() ) ? 0 : (float) wc_format_decimal( $this->product->get_weight() );
 			$this->weight = (int) ceil( (float) wc_get_weight( $weight, 'g' ) );
 		}
 
