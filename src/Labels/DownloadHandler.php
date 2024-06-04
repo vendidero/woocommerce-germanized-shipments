@@ -27,7 +27,6 @@ class DownloadHandler {
 			if ( wp_verify_nonce( wp_unslash( $_REQUEST['_wpnonce'] ), 'download-export-shipment-label' ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 				$args = array(
 					'force' => isset( $_GET['force'] ) ? wc_clean( wp_unslash( $_GET['force'] ) ) : 'no', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-					'path'  => isset( $_GET['print'] ) ? wc_clean( wp_unslash( $_GET['print'] ) ) : 'no', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				);
 
 				$args = self::parse_args( $args );
@@ -53,6 +52,7 @@ class DownloadHandler {
 			$args = self::parse_args(
 				array(
 					'force' => wc_string_to_bool( isset( $_GET['force'] ) ? wc_clean( wp_unslash( $_GET['force'] ) ) : false ),
+					'type'  => isset( $_GET['type'] ) ? wc_clean( wp_unslash( $_GET['type'] ) ) : '',
 				)
 			);
 
@@ -63,8 +63,8 @@ class DownloadHandler {
 
 				if ( $has_permission ) {
 					if ( $label = $shipment->get_label() ) {
-						$file     = $label->get_file( $args['path'] );
-						$filename = $label->get_filename( $args['path'] );
+						$file     = $label->get_file( $args['type'] );
+						$filename = $label->get_filename( $args['type'] );
 
 						if ( file_exists( $file ) ) {
 							self::download( $file, $filename, $args['force'] );
@@ -80,7 +80,7 @@ class DownloadHandler {
 			$args,
 			array(
 				'force' => false,
-				'path'  => '',
+				'type'  => '',
 			)
 		);
 

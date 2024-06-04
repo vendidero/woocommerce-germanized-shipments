@@ -289,6 +289,10 @@ class ShipmentItem extends WC_Data {
 			$prop = $legacy;
 		}
 
+		if ( 'view' === $context && empty( $prop ) ) {
+			$prop = Package::get_base_country();
+		}
+
 		return $prop;
 	}
 

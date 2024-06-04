@@ -53,9 +53,9 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 $pickupSelect = self.getPickupLocationSelect();
 
             if ( $pickupSelect.val() ) {
-                $( '.pickup-location-search-actions' ).find( '.submit-pickup-location' ).show();
+                $( '.pickup-location-search-actions' ).find( '.submit-pickup-location' ).removeClass( 'hidden' ).show();
             } else {
-                $( '.pickup-location-search-actions' ).find( '.submit-pickup-location' ).hide();
+                $( '.pickup-location-search-actions' ).find( '.submit-pickup-location' ).addClass( 'hidden' ).hide();
             }
         },
 
@@ -112,7 +112,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 $notice.find( '.currently-shipping-to' ).show();
                 $notice.find( '.choose-pickup-location' ).hide();
 
-                $( '#wc-gzd-shipments-pickup-location-search-form .pickup-location-remove ' ).show();
+                $( '#wc-gzd-shipments-pickup-location-search-form .pickup-location-remove' ).removeClass( 'hidden' ).show();
             } else {
                 $current.attr( 'data-current-location', '' );
                 $current.val( '' );
@@ -123,7 +123,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 $( '.wc-gzd-shipments-managed-by-pickup-location' ).find( 'input[type=text]' ).val( '' );
                 $( '.wc-gzd-shipments-managed-by-pickup-location' ).find( ':input' ).prop( 'readonly', false );
 
-                $( '#wc-gzd-shipments-pickup-location-search-form .pickup-location-remove ' ).hide();
+                $( '#wc-gzd-shipments-pickup-location-search-form .pickup-location-remove' ).addClass( 'hidden' ).hide();
 
                 $( '.wc-gzd-shipments-managed-by-pickup-location' ).removeClass( 'wc-gzd-shipments-managed-by-pickup-location' );
                 $( '.wc-gzd-shipments-managed-by-pickup-location-notice' ).remove();

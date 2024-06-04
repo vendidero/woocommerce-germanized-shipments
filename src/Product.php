@@ -136,7 +136,7 @@ class Product {
 		}
 
 		if ( '' === $data && 'view' === $context ) {
-			return wc_get_base_location()['country'];
+			return Package::get_base_country();
 		}
 
 		return $data;
