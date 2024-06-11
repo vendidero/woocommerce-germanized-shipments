@@ -834,7 +834,14 @@ class PickupDelivery {
 			'priority'         => 62,
 		);
 
-		$fields['order']['current_pickup_location'] = array(
+		$enable_order_notes_field            = apply_filters( 'woocommerce_enable_order_notes_field', 'yes' === get_option( 'woocommerce_enable_order_comments', 'yes' ) );
+		$current_pickup_location_field_group = 'order';
+
+		if ( apply_filters( 'woocommerce_gzd_shipments_render_current_pickup_location_in_billing', ! $enable_order_notes_field ) ) {
+			$current_pickup_location_field_group = 'billing';
+		}
+
+		$fields[ $current_pickup_location_field_group ]['current_pickup_location'] = array(
 			'type'             => 'wc_gzd_shipments_current_pickup_location',
 			'current_location' => $pickup_delivery_data['current_location'],
 			'default'          => $pickup_delivery_data['current_location_code'],
