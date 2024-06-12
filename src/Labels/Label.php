@@ -839,6 +839,7 @@ class Label extends WC_Data implements ShipmentLabel {
 					'gross_weight_in_g'   => $item_gross_weights[ $key ],
 					'single_value'        => $product_value,
 					'value'               => wc_format_decimal( $product_value * $item->get_quantity(), 2 ),
+					'sku'                 => $item->get_sku(),
 				),
 				$item,
 				$shipment,

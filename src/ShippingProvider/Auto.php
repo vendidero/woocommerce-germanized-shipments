@@ -1092,6 +1092,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 						}
 					}
 
+					do_action( "{$this->get_general_hook_prefix()}error_while_creating_label", $label, $result, $this );
+
 					return $result;
 				}
 			}
