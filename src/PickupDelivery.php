@@ -432,6 +432,8 @@ class PickupDelivery {
 		$args['return']                                     = true;
 		$args['custom_attributes']['data-current-location'] = $args['current_location'] ? wp_json_encode( $args['current_location']->get_data() ) : '';
 
+		do_action( 'woocommerce_gzd_shipments_current_pickup_location_field_rendered' );
+
 		$field = woocommerce_form_field( $key, $args, $value );
 
 		return $field;
@@ -704,6 +706,18 @@ class PickupDelivery {
 	}
 
 	public static function get_pickup_delivery_cart_args() {
+		if ( ! wc()->cart ) {
+			return array(
+				'max_weight'      => 0.0,
+				'max_dimensions'  => array(
+					'length' => 0.0,
+					'width'  => 0.0,
+					'height' => 0.0,
+				),
+				'payment_gateway' => '',
+			);
+		}
+
 		$max_weight      = wc_get_weight( (float) wc()->cart->get_cart_contents_weight(), wc_gzd_get_packaging_weight_unit() );
 		$shipping_method = wc_gzd_get_current_shipping_provider_method();
 		$max_dimensions  = array(
@@ -841,12 +855,25 @@ class PickupDelivery {
 			$current_pickup_location_field_group = 'billing';
 		}
 
-		$fields[ $current_pickup_location_field_group ]['current_pickup_location'] = array(
+		$current_pickup_location_field = array(
 			'type'             => 'wc_gzd_shipments_current_pickup_location',
 			'current_location' => $pickup_delivery_data['current_location'],
 			'default'          => $pickup_delivery_data['current_location_code'],
 			'label'            => '',
 		);
+
+		$fields[ $current_pickup_location_field_group ]['current_pickup_location'] = $current_pickup_location_field;
+
+		if ( 'order' === $current_pickup_location_field_group ) {
+			add_action(
+				'woocommerce_after_order_notes',
+				function( $checkout ) use ( $current_pickup_location_field ) {
+					if ( ! did_action( 'woocommerce_gzd_shipments_current_pickup_location_field_rendered' ) ) {
+						woocommerce_form_field( 'current_pickup_location', $current_pickup_location_field, $checkout->get_value( 'current_pickup_location' ) );
+					}
+				}
+			);
+		}
 
 		return $fields;
 	}
