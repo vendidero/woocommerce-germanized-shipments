@@ -22,6 +22,8 @@ class PackagingBox implements PackingBox {
 
 	protected $weight = 0;
 
+	protected $costs = 0.0;
+
 	/**
 	 * Box constructor.
 	 *
@@ -64,6 +66,14 @@ class PackagingBox implements PackingBox {
 		if ( empty( $this->max_weight ) ) {
 			$this->max_weight = 50000;
 		}
+	}
+
+	public function set_costs( $costs ) {
+		$this->costs = (float) wc_format_decimal( $costs );
+	}
+
+	public function get_costs() {
+		return $this->costs;
 	}
 
 	public function get_id() {

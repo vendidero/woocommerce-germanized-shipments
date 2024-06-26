@@ -412,12 +412,29 @@ table.wc-gzd-shipments-shipping-rules {
     vertical-align: middle;
     line-height: 24px;
     padding: 1em !important;
+    width: 12ch;
     font-size: 14px;
     background: #fff;
     display: table-cell !important;
 
+    &.actions {
+      width: 15ch;
+    }
+
+    &.packaging {
+      width: 10ch;
+
+      .select2 {
+        max-width: 300px;
+      }
+    }
+
+    &.cb, &.sort {
+      width: 1em;
+    }
+
     &.conditions {
-      width: 45%;
+      width: 60ch;
     }
 
     &.actions {
@@ -583,7 +600,7 @@ table.wc-gzd-shipments-shipping-rules {
 
       &.costs {
         p.form-field input {
-          max-width: 110px;
+          max-width: 85%;
         }
       }
 

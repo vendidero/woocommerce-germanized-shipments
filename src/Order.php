@@ -7,6 +7,7 @@ use Vendidero\Germanized\Shipments\Admin\Settings;
 use Vendidero\Germanized\Shipments\Packing\Helper;
 use Vendidero\Germanized\Shipments\Packing\ItemList;
 use Vendidero\Germanized\Shipments\Packing\OrderItem;
+use Vendidero\Germanized\Shipments\Packing\PackagingList;
 use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
 use Vendidero\Germanized\Shipments\ShippingMethod\ProviderMethod;
 use Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod;
@@ -290,7 +291,8 @@ class Order {
 				}
 
 				$items        = $this->get_items_to_pack_left_for_shipping();
-				$packed_boxes = Helper::pack( $items, $packaging_boxes, 'order' );
+				$boxes        = PackagingList::fromArray( $packaging_boxes );
+				$packed_boxes = Helper::pack( $items, $boxes, 'order' );
 
 				if ( empty( $packaging_boxes ) && 0 === count( $packed_boxes ) ) {
 					$shipment = wc_gzd_create_shipment( $this, array( 'props' => array( 'status' => $default_status ) ) );
