@@ -78,32 +78,12 @@ class MethodHelper {
 				'item_count'       => 0,
 			);
 
-			$items          = new ItemList();
-			$bundled_by_map = array();
+			$items = new ItemList();
+
+			do_action( 'woocommerce_gzd_shipments_before_prepare_cart_contents' );
 
 			foreach ( $content['contents'] as $content_key => $item ) {
-				$item = apply_filters( 'woocommerce_gzd_shipments_cart_item', $item, $content_key );
-
-				/**
-				 * Product Bundles cart item compatibility:
-				 * In case the current item belongs to a parent bundle item (which contains the actual price)
-				 * copy the pricing data from the parent once, e.g. for the first bundled item.
-				 */
-				if ( isset( $item['bundled_by'] ) && 0.0 === (float) $item['line_total'] && function_exists( 'wc_pb_get_bundled_cart_item_container' ) ) {
-					$bundled_by = $item['bundled_by'];
-
-					if ( ! in_array( $bundled_by, $bundled_by_map, true ) ) {
-						if ( $container = wc_pb_get_bundled_cart_item_container( $item ) ) {
-							$item['line_total']        = (float) $container['line_total'];
-							$item['line_subtotal']     = (float) $container['line_subtotal'];
-							$item['line_tax']          = (float) $container['line_tax'];
-							$item['line_subtotal_tax'] = (float) $container['line_subtotal_tax'];
-
-							$bundled_by_map[] = $bundled_by;
-						}
-					}
-				}
-
+				$item    = apply_filters( 'woocommerce_gzd_shipments_cart_item', $item, $content_key );
 				$product = $item['data'];
 
 				if ( ! is_a( $product, 'WC_Product' ) ) {
@@ -142,6 +122,8 @@ class MethodHelper {
 				$cart_item = new CartItem( $item, wc()->cart->display_prices_including_tax() );
 				$items->insert( $cart_item, $quantity );
 			}
+
+			do_action( 'woocommerce_gzd_shipments_after_prepare_cart_contents' );
 
 			/**
 			 * In case prices have already been calculated, use the official

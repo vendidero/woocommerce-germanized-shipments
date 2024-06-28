@@ -17,13 +17,13 @@ class Packer {
 	}
 
 	public function set_boxes( $boxes ) {
-		if ( ! is_a( $boxes, '\DVDoug\BoxPacker\BoxList' ) ) {
+		if ( ! is_a( $boxes, 'Vendidero\Germanized\Shipments\Packing\PackagingList' ) ) {
 			$first_box = ! empty( $boxes ) ? array_values( $boxes )[0] : false;
 
 			if ( ! empty( $boxes ) && ! is_a( $first_box, 'Vendidero\Germanized\Shipments\Packing\PackagingBox' ) ) {
-				$boxes = \DVDoug\BoxPacker\BoxList::fromArray( Helper::get_packaging_boxes( $boxes ) );
+				$boxes = PackagingList::fromArray( Helper::get_packaging_boxes( $boxes ) );
 			} else {
-				$boxes = \DVDoug\BoxPacker\BoxList::fromArray( $boxes );
+				$boxes = PackagingList::fromArray( $boxes );
 			}
 		}
 

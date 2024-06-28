@@ -795,7 +795,23 @@ class ShippingMethod extends \WC_Shipping_Method {
 
 			if ( $is_debug_mode && ! Package::is_constant_defined( 'WOOCOMMERCE_CHECKOUT' ) && ! Package::is_constant_defined( 'WC_DOING_AJAX' ) && ! empty( $debug_notices ) ) {
 				$the_notice         = '';
+				$cart_wide_notice   = '';
 				$available_box_list = array();
+				$cart_wide_notices  = array();
+
+				$cart_wide_notices[] = _x( '### Items available to pack:', 'shipments', 'woocommerce-germanized-shipments' );
+
+				foreach ( $package['items_to_pack'] as $item_to_pack ) {
+					$cart_wide_notices[] = $item_to_pack->getDescription() . ' (' . wc_gzd_format_shipment_dimensions( $item_to_pack->get_dimensions(), 'mm' ) . ', ' . wc_gzd_format_shipment_weight( $item_to_pack->getWeight(), 'g' ) . ')';
+				}
+
+				foreach ( $cart_wide_notices as $notice ) {
+					$cart_wide_notice .= $notice . '<br/>';
+				}
+
+				if ( ! wc_has_notice( $cart_wide_notice ) ) {
+					wc_add_notice( $cart_wide_notice );
+				}
 
 				foreach ( $available_boxes as $box ) {
 					$available_box_list[] = $box->get_packaging()->get_title();
@@ -1001,7 +1017,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 			$costs[ $packaging_id ] = array(
 				'min' => 0.0,
 				'max' => 0.0,
-                'avg' => 0.0
+				'avg' => 0.0,
 			);
 
 			foreach ( $packaging_rules as $packaging_rule ) {
@@ -1043,9 +1059,9 @@ class ShippingMethod extends \WC_Shipping_Method {
 				$costs[ $packaging_id ]['avg'] += $cost;
 			}
 
-            if ( count( $packaging_rules ) > 0 ) {
-	            $costs[ $packaging_id ]['avg'] = $costs[ $packaging_id ]['avg'] / count( $packaging_rules );
-            }
+			if ( count( $packaging_rules ) > 0 ) {
+				$costs[ $packaging_id ]['avg'] = $costs[ $packaging_id ]['avg'] / count( $packaging_rules );
+			}
 		}
 
 		$cache = array(

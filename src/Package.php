@@ -36,6 +36,7 @@ class Package {
 		self::maybe_set_upload_dir();
 		self::init_hooks();
 		self::includes();
+		self::load_compatibilities();
 
 		do_action( 'woocommerce_gzd_shipments_init' );
 	}
@@ -90,6 +91,23 @@ class Package {
 			);
 		}
 		return $container;
+	}
+
+	public static function load_compatibilities() {
+		$compatibilities = apply_filters(
+			'woocommerce_gzd_shipments_compatibilities',
+			array(
+				'bundles' => '\Vendidero\Germanized\Shipments\Compatibility\Bundles',
+			)
+		);
+
+		foreach ( $compatibilities as $compatibility ) {
+			if ( is_a( $compatibility, '\Vendidero\Germanized\Shipments\Interfaces\Compatibility', true ) ) {
+				if ( $compatibility::is_active() ) {
+					$compatibility::init();
+				}
+			}
+		}
 	}
 
 	public static function manipulate_shipping_rates( $args, $method ) {

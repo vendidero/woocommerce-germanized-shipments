@@ -577,12 +577,17 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 		}
 
 		if ( ! empty( $items ) ) {
-
 			$shipment_type = $shipment->get_type();
 
 			$items = array_map(
-				function( $item_id ) use ( $shipment_type ) {
-					return wc_gzd_get_shipment_item( $item_id, $shipment_type );
+				function( $item_id ) use ( $shipment_type, $shipment ) {
+					$item = wc_gzd_get_shipment_item( $item_id, $shipment_type );
+
+					if ( $item ) {
+						$item->set_shipment( $shipment );
+					}
+
+					return $item;
 				},
 				array_combine( wp_list_pluck( $items, 'shipment_item_id' ), $items )
 			);

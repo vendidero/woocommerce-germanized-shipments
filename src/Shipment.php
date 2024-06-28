@@ -2246,6 +2246,7 @@ abstract class Shipment extends WC_Data {
 
 		// Set parent.
 		$item->set_shipment_id( $this->get_id() );
+		$item->set_shipment( $this );
 
 		// Append new row with generated temporary ID.
 		$item_id = $item->get_id();

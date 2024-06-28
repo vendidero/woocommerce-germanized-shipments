@@ -26,11 +26,9 @@ class CartItem extends Item {
 			throw new \Exception( 'Invalid item' );
 		}
 
-		$s_product = wc_gzd_shipments_get_product( $this->get_product() );
-
-		$width  = empty( $s_product->get_shipping_width() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_width() );
-		$length = empty( $s_product->get_shipping_length() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_length() );
-		$depth  = empty( $s_product->get_shipping_height() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_height() );
+		$width  = empty( $this->get_product()->get_shipping_width() ) ? 0 : (float) wc_format_decimal( $this->get_product()->get_shipping_width() );
+		$length = empty( $this->get_product()->get_shipping_length() ) ? 0 : (float) wc_format_decimal( $this->get_product()->get_shipping_length() );
+		$depth  = empty( $this->get_product()->get_shipping_height() ) ? 0 : (float) wc_format_decimal( $this->get_product()->get_shipping_height() );
 
 		$this->dimensions = array(
 			'width'  => (int) wc_get_dimension( $width, 'mm' ),
@@ -54,7 +52,7 @@ class CartItem extends Item {
 	}
 
 	protected function load_product() {
-		$this->product = $this->item['data'];
+		$this->product = wc_gzd_shipments_get_product( $this->item['data'] );
 	}
 
 	/**

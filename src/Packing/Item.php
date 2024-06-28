@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments\Packing;
 
 use Vendidero\Germanized\Shipments\Interfaces\PackingItem;
+use Vendidero\Germanized\Shipments\Product;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -36,7 +37,7 @@ abstract class Item implements PackingItem {
 	}
 
 	/**
-	 * @return null|\WC_Product
+	 * @return null|Product
 	 */
 	public function get_product() {
 		if ( is_null( $this->product ) ) {
@@ -99,9 +100,13 @@ abstract class Item implements PackingItem {
 		$description = $this->get_id();
 
 		if ( $product = $this->get_product() ) {
+			$title = $product->get_title();
+
 			if ( $product->get_sku() ) {
 				$description = $this->get_product()->get_sku();
 			}
+
+			$description = $title . ' (' . $description . ')';
 		}
 
 		return apply_filters( 'woocommerce_gzd_packing_item_description', $description, $this );
@@ -133,6 +138,10 @@ abstract class Item implements PackingItem {
 	 */
 	public function getWeight(): int {
 		return apply_filters( 'woocommerce_gzd_packing_item_weight_in_g', $this->weight, $this );
+	}
+
+	public function get_dimensions() {
+		return $this->dimensions;
 	}
 
 	/**

@@ -377,8 +377,21 @@ class ShipmentItem extends WC_Data {
 				)
 			);
 
-			$product   = $this->get_product();
-			$s_product = wc_gzd_shipments_get_product( $product );
+			$product = null;
+
+			if ( $shipment = $this->get_shipment() ) {
+				if ( $order_shipment = $shipment->get_order_shipment() ) {
+					$product = $order_shipment->get_order_item_product( $item );
+				}
+			}
+
+			if ( ! $product && is_callable( array( $item, 'get_product' ) ) ) {
+				if ( $product = $item->get_product() ) {
+					$product = wc_gzd_shipments_get_product( $product );
+				}
+
+				$product = apply_filters( 'woocommerce_gzd_shipments_order_item_product', $product, $item );
+			}
 
 			/**
 			 * Calculate the order item total per unit to make sure it is independent from
@@ -410,12 +423,12 @@ class ShipmentItem extends WC_Data {
 					'total'               => $total + $tax_total,
 					'subtotal'            => $subtotal + $tax_subtotal,
 					'weight'              => $product ? wc_get_weight( $product->get_weight(), $shipment->get_weight_unit() ) : '',
-					'length'              => $s_product ? wc_get_dimension( (float) $s_product->get_shipping_length(), $shipment->get_dimension_unit() ) : '',
-					'width'               => $s_product ? wc_get_dimension( (float) $s_product->get_shipping_width(), $shipment->get_dimension_unit() ) : '',
-					'height'              => $s_product ? wc_get_dimension( (float) $s_product->get_shipping_height(), $shipment->get_dimension_unit() ) : '',
-					'hs_code'             => $s_product ? $s_product->get_hs_code() : '',
-					'customs_description' => $s_product ? $s_product->get_customs_description() : '',
-					'manufacture_country' => $s_product ? $s_product->get_manufacture_country() : '',
+					'length'              => $product ? wc_get_dimension( (float) $product->get_shipping_length(), $shipment->get_dimension_unit() ) : '',
+					'width'               => $product ? wc_get_dimension( (float) $product->get_shipping_width(), $shipment->get_dimension_unit() ) : '',
+					'height'              => $product ? wc_get_dimension( (float) $product->get_shipping_height(), $shipment->get_dimension_unit() ) : '',
+					'hs_code'             => $product ? $product->get_hs_code() : '',
+					'customs_description' => $product ? $product->get_customs_description() : '',
+					'manufacture_country' => $product ? $product->get_manufacture_country() : '',
 					'attributes'          => $attributes,
 				)
 			);
@@ -439,7 +452,6 @@ class ShipmentItem extends WC_Data {
 	public function get_order_item() {
 		if ( is_null( $this->order_item ) && 0 < $this->get_order_item_id() ) {
 			if ( $shipment = $this->get_shipment() ) {
-
 				if ( $order = $shipment->get_order() ) {
 					$this->order_item = $order->get_item( $this->get_order_item_id() );
 				}

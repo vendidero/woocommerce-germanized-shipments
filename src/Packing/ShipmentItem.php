@@ -60,6 +60,6 @@ class ShipmentItem extends Item {
 	}
 
 	protected function load_product() {
-		$this->product = $this->item->get_product();
+		$this->product = wc_gzd_shipments_get_product( $this->item->get_product() );
 	}
 }

@@ -25,9 +25,7 @@ class OrderItem extends Item {
 			throw new \Exception( 'Invalid item' );
 		}
 
-		if ( $product = $this->get_product() ) {
-			$s_product = wc_gzd_shipments_get_product( $product );
-
+		if ( $s_product = $this->get_product() ) {
 			$width  = empty( $s_product->get_shipping_width() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_width() );
 			$length = empty( $s_product->get_shipping_length() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_length() );
 			$depth  = empty( $s_product->get_shipping_height() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_height() );
@@ -57,7 +55,9 @@ class OrderItem extends Item {
 	}
 
 	protected function load_product() {
-		$this->product = $this->item->get_product();
+		if ( $product = $this->item->get_product() ) {
+			$this->product = apply_filters( 'woocommerce_gzd_shipments_order_item_product', wc_gzd_shipments_get_product( $product ), $this->item );
+		}
 	}
 
 	public function get_id() {
