@@ -20,6 +20,10 @@ class ShipmentItem extends WC_Data {
 
 	protected $product = null;
 
+	protected $children = null;
+
+	protected $parent = null;
+
 	/**
 	 * Order Data array. This is the core order data exposed in APIs since 3.0.0.
 	 *
@@ -30,6 +34,7 @@ class ShipmentItem extends WC_Data {
 		'shipment_id'         => 0,
 		'order_item_id'       => 0,
 		'parent_id'           => 0,
+		'item_parent_id'      => 0,
 		'quantity'            => 1,
 		'product_id'          => 0,
 		'weight'              => '',
@@ -126,6 +131,10 @@ class ShipmentItem extends WC_Data {
 	|--------------------------------------------------------------------------
 	*/
 
+	public function get_general_hook_prefix() {
+		return 'woocommerce_' . $this->object_type . '_';
+	}
+
 	public function get_type() {
 		return 'simple';
 	}
@@ -161,13 +170,23 @@ class ShipmentItem extends WC_Data {
 	}
 
 	/**
-	 * Get item parent id.
+	 * Get parent id, e.g. the item linked to a return item.
 	 *
 	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
 	 * @return int
 	 */
 	public function get_parent_id( $context = 'view' ) {
 		return $this->get_prop( 'parent_id', $context );
+	}
+
+	/**
+	 * Get item parent id inside the current shipment.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return int
+	 */
+	public function get_item_parent_id( $context = 'view' ) {
+		return $this->get_prop( 'item_parent_id', $context );
 	}
 
 	/**
@@ -360,6 +379,7 @@ class ShipmentItem extends WC_Data {
 
 			unset( $default_data['id'] );
 			unset( $default_data['shipment_id'] );
+			unset( $default_data['item_parent_id'] );
 
 			$default_data['parent_id'] = $item->get_id();
 			$args                      = wp_parse_args( $args, $default_data );
@@ -430,6 +450,7 @@ class ShipmentItem extends WC_Data {
 					'customs_description' => $product ? $product->get_customs_description() : '',
 					'manufacture_country' => $product ? $product->get_manufacture_country() : '',
 					'attributes'          => $attributes,
+					'item_parent_id'      => 0,
 				)
 			);
 		}
@@ -487,6 +508,7 @@ class ShipmentItem extends WC_Data {
 	public function set_shipment_id( $value ) {
 		$this->order_item = null;
 		$this->shipment   = null;
+		$this->children   = null;
 
 		$this->set_prop( 'shipment_id', absint( $value ) );
 	}
@@ -547,6 +569,92 @@ class ShipmentItem extends WC_Data {
 	 */
 	public function set_parent_id( $value ) {
 		$this->set_prop( 'parent_id', absint( $value ) );
+	}
+
+	/**
+	 * Set item parent id.
+	 *
+	 * @param int $value parent id.
+	 */
+	public function set_item_parent_id( $value ) {
+		$this->set_prop( 'item_parent_id', absint( $value ) );
+	}
+
+	/**
+	 * @param ShipmentItem $item
+	 *
+	 * @return void
+	 */
+	public function add_child( $item, $key = '' ) {
+		$key      = empty( $key ) ? $item->get_id() : $key;
+		$children = is_null( $this->children ) ? array() : $this->children;
+
+		$children[ $key ] = $item;
+		$this->children   = $children;
+	}
+
+	public function remove_child( $key ) {
+		if ( ! is_null( $this->children ) ) {
+			if ( isset( $this->children[ $key ] ) ) {
+				unset( $this->children[ $key ] );
+			}
+		}
+	}
+
+	/**
+	 * @return ShipmentItem|ShipmentReturnItem|null
+	 */
+	public function get_parent() {
+		if ( ! $this->get_item_parent_id() ) {
+			return null;
+		}
+
+		if ( is_null( $this->parent ) ) {
+			if ( $this->get_shipment() ) {
+				if ( $item = $this->get_shipment()->get_item( $this->get_item_parent_id() ) ) {
+					$this->parent = $item;
+				}
+			} elseif ( $this->get_id() > 0 ) {
+				if ( $item = wc_gzd_get_shipment_item( $this->get_item_parent_id() ) ) {
+					$this->parent = $item;
+				}
+			}
+		}
+
+		return $this->parent;
+	}
+
+	/**
+	 * @return ShipmentItem[]
+	 */
+	public function get_children() {
+		if ( is_null( $this->children ) ) {
+			$this->children = array();
+
+			if ( $this->get_shipment() ) {
+				$items = $this->get_shipment()->get_items();
+
+				foreach ( $items as $k => $item ) {
+					if ( empty( $item->get_item_parent_id() ) ) {
+						continue;
+					}
+
+					if ( $item->get_item_parent_id() === $this->get_id() ) {
+						$this->children[ $k ] = $item;
+					}
+				}
+			} elseif ( $this->get_id() > 0 ) {
+				$this->children = $this->data_store->read_children( $this );
+			}
+		}
+
+		return $this->children;
+	}
+
+	public function has_children() {
+		$children = $this->get_children();
+
+		return ! empty( $children ) ? true : false;
 	}
 
 	public function set_sku( $sku ) {
@@ -631,4 +739,8 @@ class ShipmentItem extends WC_Data {
 	| Other Methods
 	|--------------------------------------------------------------------------
 	*/
+
+	public function is_readonly() {
+		return apply_filters( "{$this->get_general_hook_prefix()}is_readonly", $this->get_item_parent_id() > 0 ? true : false, $this );
+	}
 }

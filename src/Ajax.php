@@ -45,6 +45,7 @@ class Ajax {
 			'edit_shipping_provider_status',
 			'create_shipment_label_load',
 			'create_shipment_label_submit',
+			'preview_shipment_load',
 			'remove_shipment_label',
 			'send_return_shipment_notification_email',
 			'confirm_return_request',
@@ -168,6 +169,40 @@ class Ajax {
 				}
 			}
 		}
+	}
+
+	public static function preview_shipment_load() {
+		check_ajax_referer( 'preview-shipment-load', 'security' );
+
+		if ( ! current_user_can( 'edit_shop_orders' ) || ! isset( $_POST['reference_id'] ) ) {
+			wp_die( -1 );
+		}
+
+		$shipment_id    = absint( $_POST['reference_id'] );
+		$html           = '';
+		$response       = array();
+		$response_error = array(
+			'success' => false,
+			'message' => '',
+		);
+
+		if ( ! $shipment = wc_gzd_get_shipment( $shipment_id ) ) {
+			wp_send_json( $response_error );
+		}
+
+		ob_start();
+		include Package::get_path() . '/includes/admin/views/html-preview-shipment.php';
+		$html = ob_get_clean();
+
+		$response = array(
+			'fragments'   => array(
+				'.wc-gzd-preview-shipment' => $html,
+			),
+			'shipment_id' => $shipment_id,
+			'success'     => true,
+		);
+
+		wp_send_json( $response );
 	}
 
 	public static function create_shipment_label_load() {

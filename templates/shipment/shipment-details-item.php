@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @param boolean      $show Whether to show or hide the item.
  * @param ShipmentItem $item The shipment item instance.
  *
- * @since 3.0.0
+ * @since 3.1.0
  * @package Vendidero/Germanized/Shipments
  */
 if ( ! apply_filters( 'woocommerce_gzd_shipment_item_visible', true, $item ) ) {
@@ -45,10 +45,9 @@ if ( ! apply_filters( 'woocommerce_gzd_shipment_item_visible', true, $item ) ) {
  * @since 3.0.1
  * @package Vendidero/Germanized/Shipments
  */
-$item_class = apply_filters( 'woocommerce_gzd_shipment_item_class', 'woocommerce-table__line-item shipment_item', $item, $shipment );
+$item_class = apply_filters( 'woocommerce_gzd_shipment_item_class', 'woocommerce-table__line-item shipment_item ' . ( $item->get_item_parent_id() > 0 ? 'shipment_item-is-child' : '' ) . ( $item->has_children() ? 'shipment_item-is-parent' : '' ), $item, $shipment );
 ?>
 <tr class="<?php echo esc_attr( $item_class ); ?>">
-
 	<td class="woocommerce-table__product-name product-name">
 		<?php
 		$is_visible = $product && $product->is_visible();

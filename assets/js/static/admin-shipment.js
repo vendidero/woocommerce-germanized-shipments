@@ -467,7 +467,15 @@ window.germanized.admin = window.germanized.admin || {};
 
             if ( $item.length > 0 ) {
                 $item.slideUp( 150, function() {
-                    $( this ).remove();
+                    if ( $item.hasClass( 'shipment-item-is-parent' ) ) {
+                        $children = $item.parents( '.shipment-item-list' ).find( '.shipment-item-parent-' + data['item_id'] );
+
+                        $children.each( function( $child ) {
+                            $( this ) .remove();
+                        } );
+                    }
+
+                    $item.remove();
                 });
             }
 

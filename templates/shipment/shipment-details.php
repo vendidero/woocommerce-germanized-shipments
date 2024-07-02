@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Vendidero/Germanized/Shipments/Templates
- * @version 3.2.0
+ * @version 3.3.0
  */
 use Vendidero\Germanized\Shipments\Shipment;
 
@@ -27,7 +27,7 @@ if ( ! $shipment ) {
 $order                 = $shipment->get_order(); // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
 $show_receiver_details = is_user_logged_in() && $order && $order->get_user_id() === get_current_user_id();
 $show_tracking         = $show_receiver_details && $shipment->has_tracking();
-$shipment_items        = $shipment->get_items();
+$shipment_items        = $shipment->get_items( 'customer' );
 
 if ( is_a( $shipment, 'Vendidero\Germanized\Shipments\ReturnShipment' ) ) {
 	if ( $shipment->hide_return_address() ) {
@@ -51,14 +51,12 @@ if ( is_a( $shipment, 'Vendidero\Germanized\Shipments\ReturnShipment' ) ) {
 	<h2 class="woocommerce-shipment-details__title"><?php echo esc_html_x( 'Shipment details', 'shipments', 'woocommerce-germanized-shipments' ); ?></h2>
 
 	<table class="woocommerce-table woocommerce-table--shipment-details shop_table shipment_details">
-
 		<thead>
 		<tr>
 			<th class="woocommerce-table__product-name product-name"><?php echo esc_html_x( 'Product', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
 			<th class="woocommerce-table__product-table product-quantity"><?php echo esc_html_x( 'Quantity', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
 		</tr>
 		</thead>
-
 		<tbody>
 		<?php
 		/**

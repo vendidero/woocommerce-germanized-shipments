@@ -508,9 +508,19 @@ class Order {
 	}
 
 	/**
-	 * @return Shipment[] Shipments
+	 * @param array $args
+	 *
+	 * @return Shipment[]|SimpleShipment[]|ReturnShipment[] Shipments
 	 */
-	public function get_shipments() {
+	public function get_shipments( $args = array() ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'shipped_only' => false,
+				'type'         => '',
+			)
+		);
+
 		if ( is_null( $this->shipments ) ) {
 			$this->shipments = wc_gzd_get_shipments(
 				array(
@@ -534,41 +544,66 @@ class Order {
 
 		$shipments = (array) $this->shipments;
 
+		if ( ! empty( $args['type'] ) || $args['shipped_only'] ) {
+			foreach ( $shipments as $k => $shipment ) {
+				if ( $args['type'] !== $shipment->get_type() ) {
+					unset( $shipments[ $k ] );
+				}
+				if ( $args['shipped_only'] && ! $shipment->is_shipped() ) {
+					unset( $shipments[ $k ] );
+				}
+			}
+
+			$shipments = array_values( $shipments );
+		}
+
 		return $shipments;
+	}
+
+	public function get_shipment_count( $type = 'simple' ) {
+		return count( $this->get_shipments( array( 'type' => $type ) ) );
+	}
+
+	public function get_shipment_position_number( $shipment ) {
+		$number   = 1;
+		$shipment = is_numeric( $shipment ) ? $this->get_shipment( $shipment ) : $shipment;
+
+		if ( $shipment ) {
+			$shipments = $this->get_shipments( array( 'type' => $shipment->get_type() ) );
+
+			foreach ( $shipments as $k => $loop_shipment ) {
+				if ( $shipment->get_id() === $loop_shipment->get_id() ) {
+					break;
+				}
+				$number++;
+			}
+		}
+
+		return apply_filters( 'woocommerce_gzd_shipment_order_shipment_position_number', $number, $shipment, $this );
 	}
 
 	/**
 	 * @return SimpleShipment[]
 	 */
 	public function get_simple_shipments( $shipped_only = false ) {
-		$simple = array();
-
-		foreach ( $this->get_shipments() as $shipment ) {
-			if ( 'simple' === $shipment->get_type() ) {
-				if ( $shipped_only && ! $shipment->is_shipped() ) {
-					continue;
-				}
-
-				$simple[] = $shipment;
-			}
-		}
-
-		return $simple;
+		return $this->get_shipments(
+			array(
+				'type'         => 'simple',
+				'shipped_only' => $shipped_only,
+			)
+		);
 	}
 
 	/**
 	 * @return ReturnShipment[]
 	 */
-	public function get_return_shipments() {
-		$returns = array();
-
-		foreach ( $this->get_shipments() as $shipment ) {
-			if ( 'return' === $shipment->get_type() ) {
-				$returns[] = $shipment;
-			}
-		}
-
-		return $returns;
+	public function get_return_shipments( $shipped_only = false ) {
+		return $this->get_shipments(
+			array(
+				'type'         => 'return',
+				'shipped_only' => $shipped_only,
+			)
+		);
 	}
 
 	public function add_shipment( &$shipment ) {
@@ -882,13 +917,14 @@ class Order {
 				'shipment_id'              => 0,
 				'delivered_only'           => false,
 				'exclude_current_shipment' => false,
+				'exclude_children'         => true,
 			)
 		);
 
 		$items    = array();
 		$shipment = $args['shipment_id'] ? $this->get_shipment( $args['shipment_id'] ) : false;
 
-		foreach ( $this->get_returnable_items() as $item ) {
+		foreach ( $this->get_returnable_items( $args['exclude_children'] ) as $item ) {
 			$quantity_left = $this->get_item_quantity_left_for_returning( $item->get_order_item_id(), $args );
 
 			if ( $shipment ) {
@@ -1032,7 +1068,7 @@ class Order {
 	 *
 	 * @return ShipmentItem[] Shippable items.
 	 */
-	public function get_returnable_items() {
+	public function get_returnable_items( $exclude_children = true ) {
 		$items = array();
 
 		foreach ( $this->get_simple_shipments() as $shipment ) {
@@ -1041,7 +1077,7 @@ class Order {
 			}
 
 			foreach ( $shipment->get_items() as $item ) {
-				if ( $this->order_item_is_non_returnable( $item->get_order_item_id() ) ) {
+				if ( $this->order_item_is_non_returnable( $item->get_order_item_id() ) || ( $exclude_children && $item->get_item_parent_id() > 0 ) ) {
 					continue;
 				}
 
@@ -1123,7 +1159,7 @@ class Order {
 	public function get_returnable_item_count() {
 		$count = 0;
 
-		foreach ( $this->get_returnable_items() as $item ) {
+		foreach ( $this->get_returnable_items( false ) as $item ) {
 			$count += absint( $item->get_quantity() );
 		}
 

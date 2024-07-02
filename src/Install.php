@@ -438,12 +438,14 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_items (
   shipment_item_order_item_id bigint(20) unsigned NOT NULL,
   shipment_item_product_id bigint(20) unsigned NOT NULL,
   shipment_item_parent_id bigint(20) unsigned NOT NULL,
+  shipment_item_item_parent_id bigint(20) unsigned NOT NULL,
   shipment_item_quantity smallint(4) unsigned NOT NULL DEFAULT '1',
   PRIMARY KEY  (shipment_item_id),
   KEY shipment_id (shipment_id),
   KEY shipment_item_order_item_id (shipment_item_order_item_id),
   KEY shipment_item_product_id (shipment_item_product_id),
-  KEY shipment_item_parent_id (shipment_item_parent_id)
+  KEY shipment_item_parent_id (shipment_item_parent_id),
+  KEY shipment_item_item_parent_id (shipment_item_item_parent_id)
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipment_itemmeta (
   meta_id bigint(20) unsigned NOT NULL auto_increment,

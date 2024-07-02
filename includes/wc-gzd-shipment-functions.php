@@ -581,9 +581,7 @@ function wc_gzd_shipment_wp_error_has_errors( $error ) {
  * @return ShipmentReturnItem|WP_Error
  */
 function wc_gzd_create_return_shipment_item( $shipment, $shipment_item, $args = array() ) {
-
 	try {
-
 		if ( ! $shipment_item || ! is_a( $shipment_item, '\Vendidero\Germanized\Shipments\ShipmentItem' ) ) {
 			throw new Exception( _x( 'Invalid shipment item', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
@@ -593,7 +591,6 @@ function wc_gzd_create_return_shipment_item( $shipment, $shipment_item, $args = 
 		$item->set_shipment( $shipment );
 		$item->sync( $args );
 		$item->save();
-
 	} catch ( Exception $e ) {
 		return new WP_Error( 'error', $e->getMessage() );
 	}

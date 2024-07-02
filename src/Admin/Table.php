@@ -35,8 +35,8 @@ class Table extends WP_List_Table {
 	 *
 	 * @see WP_List_Table::__construct() for more information on default arguments.
 	 *
-	 * @global WP_Post_Type $post_type_object
-	 * @global wpdb         $wpdb
+	 * @global \WP_Post_Type $post_type_object
+	 * @global \wpdb         $wpdb
 	 *
 	 * @param array $args An associative array of arguments.
 	 */
@@ -74,6 +74,7 @@ class Table extends WP_List_Table {
 			'weight',
 			'dimensions',
 			'packaging',
+			'items',
 		);
 	}
 
@@ -830,6 +831,37 @@ class Table extends WP_List_Table {
 			echo wp_kses_post( $title ) . ' ';
 		}
 
+		echo '<a href="#" class="shipment-preview has-shipment-modal" data-id="wc-gzd-modal-preview-shipment" data-load-async="1" data-reference="' . esc_attr( $shipment->get_id() ) . '" data-nonce-params="wc_gzd_admin_shipments_table_params">' . esc_html_x( 'Preview', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+
+		?>
+		<script type="text/template" id="tmpl-wc-gzd-modal-preview-shipment-<?php echo esc_attr( $shipment->get_id() ); ?>" class="wc-gzd-shipment-preview-<?php echo esc_attr( $shipment->get_type() ); ?>">
+			<div class="wc-backbone-modal wc-gzd-admin-shipment-modal wc-gzd-modal-preview-shipment">
+				<div class="wc-backbone-modal-content">
+					<section class="wc-backbone-modal-main" role="main">
+						<header class="wc-backbone-modal-header">
+							<h1><?php printf( esc_html_x( '%1$s %2$s', 'shipments-preview-title', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_shipment_label_title( $shipment->get_type() ) ), esc_html( $shipment->get_shipment_number() ) ); ?></h1>
+							<div class="wc-backbone-modal-header-header-right">
+								<mark class="shipment-status shipment-type-<?php echo esc_attr( $shipment->get_type() ); ?>-status status-<?php echo esc_attr( $shipment->get_status() ); ?>"><?php echo esc_html( wc_gzd_get_shipment_status_name( $shipment->get_status() ) ); ?></mark>
+								<button class="modal-close modal-close-link dashicons dashicons-no-alt">
+									<span class="screen-reader-text">Close modal panel</span>
+								</button>
+							</div>
+						</header>
+						<article class="germanized-shipments germanized-preview-shipment">
+							<div class="wc-gzd-preview-shipment"></div>
+						</article>
+						<footer>
+							<div class="inner">
+								<a id="btn-ok" class="button button-primary button-large" href="<?php echo esc_url( $shipment->get_edit_shipment_url() ); ?>"><?php echo esc_html_x( 'Edit', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+							</div>
+						</footer>
+					</section>
+				</div>
+			</div>
+			<div class="wc-backbone-modal-backdrop modal-close"></div>
+		</script>
+		<?php
+
 		echo '<p class="shipment-title-meta">';
 
 		if ( $packaging = $shipment->get_packaging() ) {
@@ -987,7 +1019,7 @@ class Table extends WP_List_Table {
 		<table class="wc-gzd-shipments-preview">
 			<tbody>
 			<?php foreach ( $shipment->get_items() as $item ) : ?>
-				<tr class="wc-gzd-shipment-item-preview wc-gzd-shipment-item-preview-<?php echo esc_attr( $item->get_id() ); ?>">
+				<tr class="wc-gzd-shipment-item-preview wc-gzd-shipment-item-preview-<?php echo esc_attr( $item->get_id() ); ?> <?php echo esc_attr( $item->get_item_parent_id() > 0 ? 'shipment-item-is-child shipment-item-parent-' . $item->get_item_parent_id() : '' ); ?> <?php echo esc_attr( $item->has_children() ? 'shipment-item-is-parent' : '' ); ?>">
 					<td class="wc-gzd-shipment-item-column-name">
 						<?php if ( $product = $item->get_product() ) : ?>
 							<a href="<?php echo esc_url( get_edit_post_link( $product->get_parent_id() > 0 ? $product->get_parent_id() : $product->get_id() ) ); ?>"><?php echo wp_kses_post( $item->get_name() ); ?></a>
@@ -1139,13 +1171,13 @@ class Table extends WP_List_Table {
 		if ( ( $order = $shipment->get_order() ) && is_callable( array( $order, 'get_edit_order_url' ) ) ) {
 			echo '<a href="' . esc_url( $order->get_edit_order_url() ) . '">' . esc_html( $order->get_order_number() ) . '</a>';
 		} else {
-			echo esc_html( $shipment->get_order_id() );
+			echo esc_html( $shipment->get_order_number() );
 		}
 	}
 
 	/**
 	 *
-	 * @param int|WC_GZD_Shipment $shipment
+	 * @param int|Shipment $shipment
 	 */
 	public function single_row( $shipment ) {
 		$GLOBALS['shipment'] = $shipment;

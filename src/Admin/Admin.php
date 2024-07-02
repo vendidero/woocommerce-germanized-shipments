@@ -1700,6 +1700,7 @@ class Admin {
 					'bulk_actions'                       => $bulk_actions,
 					'create_shipment_label_load_nonce'   => wp_create_nonce( 'create-shipment-label-load' ),
 					'create_shipment_label_submit_nonce' => wp_create_nonce( 'create-shipment-label-submit' ),
+					'preview_shipment_load_nonce'        => wp_create_nonce( 'preview-shipment-load' ),
 				)
 			);
 		}

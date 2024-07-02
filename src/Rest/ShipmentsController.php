@@ -665,6 +665,8 @@ class ShipmentsController extends \WC_REST_Controller {
 			'customs_description',
 			'manufacture_country',
 			'return_reason_code',
+			'parent_id',
+			'item_parent_id',
 		);
 
 		foreach ( $props_to_set as $prop ) {
@@ -1178,6 +1180,8 @@ class ShipmentsController extends \WC_REST_Controller {
 				'hs_code'             => $item->get_hs_code( $context ),
 				'customs_description' => $item->get_customs_description( $context ),
 				'manufacture_country' => $item->get_manufacture_country( $context ),
+				'parent_id'           => $item->get_parent_id( $context ),
+				'item_parent_id'      => $item->get_item_parent_id( $context ),
 				'attributes'          => $item->get_attributes( $context ),
 				'meta_data'           => $item->get_meta_data(),
 			);
@@ -1807,6 +1811,16 @@ class ShipmentsController extends \WC_REST_Controller {
 							),
 							'customs_description' => array(
 								'description' => _x( 'Item customs description.', 'shipments', 'woocommerce-germanized-shipments' ),
+								'type'        => 'string',
+								'context'     => array( 'view', 'edit' ),
+							),
+							'parent_id'           => array(
+								'description' => _x( 'Item parent id, e.g. the return item\'s parent.', 'shipments', 'woocommerce-germanized-shipments' ),
+								'type'        => 'string',
+								'context'     => array( 'view', 'edit' ),
+							),
+							'item_parent_id'      => array(
+								'description' => _x( 'The parent item id inside the current shipment.', 'shipments', 'woocommerce-germanized-shipments' ),
 								'type'        => 'string',
 								'context'     => array( 'view', 'edit' ),
 							),

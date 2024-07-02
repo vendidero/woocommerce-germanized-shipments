@@ -23,7 +23,13 @@ class ShipmentReturnItem extends ShipmentItem {
 	}
 
 	public function get_return_reason_code( $context = 'view' ) {
-		return $this->get_prop( 'return_reason_code', $context );
+		$reason_code = $this->get_prop( 'return_reason_code', $context );
+
+		if ( 'view' === $context && ( $parent = $this->get_parent() ) ) {
+			$reason_code = $parent->get_return_reason_code();
+		}
+
+		return $reason_code;
 	}
 
 	public function set_return_reason_code( $code ) {

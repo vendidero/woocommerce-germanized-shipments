@@ -5,7 +5,7 @@
  * Functions for the templating system.
  *
  * @package  WooCommerce\Functions
- * @version  2.5.0
+ * @version  2.6.0
  */
 
 use Vendidero\Germanized\Shipments\Shipment;
@@ -50,7 +50,7 @@ if ( ! function_exists( 'wc_gzd_get_email_shipment_items' ) ) {
 				'woocommerce_gzd_email_shipment_items_args',
 				array(
 					'shipment'      => $shipment,
-					'items'         => $shipment->get_items(),
+					'items'         => $shipment->get_items( 'customer' ),
 					'show_sku'      => $args['show_sku'],
 					'show_image'    => $args['show_image'],
 					'image_size'    => $args['image_size'],

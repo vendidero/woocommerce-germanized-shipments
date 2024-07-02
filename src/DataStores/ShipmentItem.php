@@ -44,6 +44,7 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
 		'name',
 		'product_id',
 		'parent_id',
+		'item_parent_id',
 	);
 
 	protected $must_exist_meta_keys = array();
@@ -69,12 +70,13 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
 		$wpdb->insert(
 			$wpdb->gzd_shipment_items,
 			array(
-				'shipment_id'                 => $item->get_shipment_id(),
-				'shipment_item_quantity'      => $item->get_quantity(),
-				'shipment_item_order_item_id' => $item->get_order_item_id(),
-				'shipment_item_product_id'    => $item->get_product_id(),
-				'shipment_item_parent_id'     => $item->get_parent_id(),
-				'shipment_item_name'          => $item->get_name(),
+				'shipment_id'                  => $item->get_shipment_id(),
+				'shipment_item_quantity'       => $item->get_quantity(),
+				'shipment_item_order_item_id'  => $item->get_order_item_id(),
+				'shipment_item_product_id'     => $item->get_product_id(),
+				'shipment_item_parent_id'      => $item->get_parent_id(),
+				'shipment_item_item_parent_id' => $item->get_item_parent_id(),
+				'shipment_item_name'           => $item->get_name(),
 			)
 		);
 
@@ -112,12 +114,13 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
 			$wpdb->update(
 				$wpdb->gzd_shipment_items,
 				array(
-					'shipment_id'                 => $item->get_shipment_id(),
-					'shipment_item_order_item_id' => $item->get_order_item_id(),
-					'shipment_item_quantity'      => $item->get_quantity(),
-					'shipment_item_product_id'    => $item->get_product_id(),
-					'shipment_item_parent_id'     => $item->get_parent_id(),
-					'shipment_item_name'          => $item->get_name(),
+					'shipment_id'                  => $item->get_shipment_id(),
+					'shipment_item_order_item_id'  => $item->get_order_item_id(),
+					'shipment_item_quantity'       => $item->get_quantity(),
+					'shipment_item_product_id'     => $item->get_product_id(),
+					'shipment_item_parent_id'      => $item->get_parent_id(),
+					'shipment_item_item_parent_id' => $item->get_item_parent_id(),
+					'shipment_item_name'           => $item->get_name(),
 				),
 				array( 'shipment_item_id' => $item->get_id() )
 			);
@@ -207,12 +210,13 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
 
 		$item->set_props(
 			array(
-				'shipment_id'   => $data->shipment_id,
-				'order_item_id' => $data->shipment_item_order_item_id,
-				'quantity'      => $data->shipment_item_quantity,
-				'product_id'    => $data->shipment_item_product_id,
-				'parent_id'     => $data->shipment_item_parent_id,
-				'name'          => $data->shipment_item_name,
+				'shipment_id'    => $data->shipment_id,
+				'order_item_id'  => $data->shipment_item_order_item_id,
+				'quantity'       => $data->shipment_item_quantity,
+				'product_id'     => $data->shipment_item_product_id,
+				'parent_id'      => $data->shipment_item_parent_id,
+				'item_parent_id' => $data->shipment_item_item_parent_id,
+				'name'           => $data->shipment_item_name,
 			)
 		);
 
@@ -325,8 +329,47 @@ class ShipmentItem extends WC_Data_Store_WP implements WC_Object_Data_Store_Inte
 	 */
 	public function clear_cache( &$item ) {
 		wp_cache_delete( 'item-' . $item->get_id(), 'shipment-items' );
+		wp_cache_delete( 'item-children-' . $item->get_id(), 'shipment-items' );
 		wp_cache_delete( 'shipment-items-' . $item->get_shipment_id(), 'shipments' );
 		wp_cache_delete( $item->get_id(), $this->meta_type . '_meta' );
+	}
+
+	/**
+	 * Read item's children from database.
+	 *
+	 * @param \Vendidero\Germanized\Shipments\ShipmentItem $item The item.
+	 *
+	 * @return array|\Vendidero\Germanized\Shipments\ShipmentItem[]
+	 */
+	public function read_children( &$item ) {
+		// Get from cache if available.
+		$items = wp_cache_get( 'item-children-' . $item->get_id(), 'shipment-items' );
+
+		if ( false === $items ) {
+			global $wpdb;
+
+			$get_items_sql = $wpdb->prepare( "SELECT * FROM {$wpdb->gzd_shipment_items} WHERE shipment_item_item_parent_id = %d ORDER BY shipment_item_id;", $item->get_id() );
+			$items         = $wpdb->get_results( $get_items_sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+			foreach ( $items as $child ) {
+				wp_cache_set( 'item-' . $item->get_id(), $child, 'shipment-items' );
+			}
+
+			wp_cache_set( 'item-children-' . $item->get_id(), $items, 'shipment-items' );
+		}
+
+		if ( ! empty( $items ) ) {
+			$items = array_map(
+				function( $item ) {
+					return wc_gzd_get_shipment_item( $item->shipment_item_id, $item->shipment_item_type );
+				},
+				$items
+			);
+		} else {
+			$items = array();
+		}
+
+		return $items;
 	}
 
 	/**

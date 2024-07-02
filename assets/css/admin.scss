@@ -283,6 +283,66 @@ a.woocommerce-gzd-input-toggle-trigger {
   }
 }
 
+.wc-gzd-modal-preview-shipment {
+  .wc-backbone-modal-header {
+    display: flex;
+    justify-content: space-between;
+
+    .shipment-status {
+      margin-right: 54px;
+    }
+  }
+
+  h2 {
+    margin-top: 0;
+  }
+
+  .wc-gzd-preview-shipment-item-list {
+    margin-left: -1.5em;
+    width: calc(100% + 3em);
+    margin-top: 1.5em;
+  }
+
+  .wc-gzd-preview-shipment-items {
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+
+    th, td {
+      padding: 1em 1.5em;
+      border: 0;
+      border-bottom: 1px solid #eee;
+      margin: 0;
+      background: 0 0;
+      box-shadow: none;
+      text-align: right;
+      vertical-align: top;
+
+      &:first-child {
+        text-align: left;
+      }
+    }
+
+    tr {
+      th {
+        border-color: #ccc;
+      }
+
+      &:last-child {
+        td {
+          border-bottom: none;
+        }
+      }
+
+      &.shipment-item-is-child {
+        td:first-child {
+          padding-left: 2.5em;
+        }
+      }
+    }
+  }
+}
+
 .wc-gzd-admin-shipment-modal {
   .wc-backbone-modal-content {
     min-width: 600px;
@@ -1033,6 +1093,41 @@ a.button.wc-gzd-shipment-action-button {
     td.column-title {
       font-weight: bold;
 
+      .shipment-preview {
+        float: right;
+        width: 16px;
+        padding: 20px 4px 4px 4px;
+        height: 0;
+        overflow: hidden;
+        position: relative;
+        border: 2px solid transparent;
+        border-radius: 4px;
+
+        &:hover {
+          border: 2px solid var(--wp-admin-theme-color, #00a0d2);
+        }
+
+        &::before {
+          font-family: WooCommerce;
+          speak: never;
+          font-weight: 400;
+          font-variant: normal;
+          text-transform: none;
+          margin: 0;
+          text-indent: 0;
+          position: absolute;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          text-align: center;
+          content: "\e010";
+          line-height: 16px;
+          font-size: 14px;
+          vertical-align: middle;
+          top: 4px;
+        }
+      }
+
       .shipment-title-meta {
         margin-top: 0;
         font-weight: normal;
@@ -1106,6 +1201,12 @@ a.button.wc-gzd-shipment-action-button {
             &:last-child {
               td {
                 border-bottom: none !important;
+              }
+            }
+
+            &.shipment-item-is-child {
+              td.wc-gzd-shipment-item-column-name {
+                padding-left: .5em;
               }
             }
           }
@@ -1472,6 +1573,12 @@ a.button.wc-gzd-shipment-action-button {
           .shipment-item {
             padding: .5em;
             border-bottom: 1px solid #dfdfdf;
+
+            &.shipment-item-is-child {
+              .shipment-item-name {
+                padding-left: 2.5em;
+              }
+            }
 
             &:last-child {
               border-bottom: none;

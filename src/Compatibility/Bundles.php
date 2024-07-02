@@ -61,7 +61,7 @@ class Bundles implements Compatibility {
 				$parent_id = $map[ $order_item_id ];
 
 				foreach ( $shipment_items as $shipment_item ) {
-					$shipment_item->set_parent_id( $parent_id );
+					$shipment_item->set_item_parent_id( $parent_id );
 				}
 			}
 		}

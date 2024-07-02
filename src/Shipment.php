@@ -2128,15 +2128,32 @@ abstract class Shipment extends WC_Data {
 	 *
 	 * @return ShipmentItem[]
 	 */
-	public function get_items() {
+	public function get_items( $context = 'admin' ) {
 		$items = array();
 
 		if ( is_null( $this->items ) ) {
 			$this->items = array_filter( $this->data_store->read_items( $this ) );
 
+			foreach ( $this->items as $k => $item ) {
+				if ( $item->get_item_parent_id() > 0 && isset( $this->items[ $item->get_item_parent_id() ] ) ) {
+					$this->items[ $item->get_item_parent_id() ]->add_child( $item );
+				}
+			}
+
 			$items = (array) $this->items;
 		} else {
 			$items = (array) $this->items;
+		}
+
+		/**
+		 * By default, remove children in customer context.
+		 */
+		if ( 'customer' === $context ) {
+			foreach ( $items as $k => $item ) {
+				if ( $item->get_item_parent_id() > 0 ) {
+					unset( $items[ $k ] );
+				}
+			}
 		}
 
 		/**
@@ -2153,7 +2170,7 @@ abstract class Shipment extends WC_Data {
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		return apply_filters( "{$this->get_hook_prefix()}items", $items, $this );
+		return apply_filters( "{$this->get_hook_prefix()}items", $items, $this, $context );
 	}
 
 	/**
@@ -2212,6 +2229,19 @@ abstract class Shipment extends WC_Data {
 		$this->items_to_delete[] = $item;
 
 		unset( $this->items[ $item->get_id() ] );
+
+		if ( $item->has_children() ) {
+			foreach ( $item->get_children() as $child ) {
+				// Unset and remove later.
+				$this->items_to_delete[] = $child;
+
+				if ( isset( $this->items[ $child->get_id() ] ) ) {
+					unset( $this->items[ $child->get_id() ] );
+				}
+
+				$item->remove_child( $child->get_id() );
+			}
+		}
 
 		$this->reset_content_data();
 		$this->calculate_totals();

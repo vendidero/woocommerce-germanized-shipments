@@ -340,7 +340,6 @@ class ReturnShipment extends Shipment {
 	 */
 	public function sync_items( $args = array() ) {
 		try {
-
 			if ( ! $order_shipment = $this->get_order_shipment() ) {
 				throw new Exception( _x( 'Invalid shipment order', 'shipments', 'woocommerce-germanized-shipments' ) );
 			}
@@ -362,7 +361,6 @@ class ReturnShipment extends Shipment {
 			);
 
 			foreach ( $available_items as $order_item_id => $item_data ) {
-
 				if ( $item = $order_shipment->get_simple_shipment_item( $order_item_id ) ) {
 					$quantity           = $item_data['max_quantity'];
 					$return_reason_code = '';
@@ -415,11 +413,30 @@ class ReturnShipment extends Shipment {
 					} else {
 						$shipment_item->sync( $sync_data );
 					}
+
+					if ( $item->has_children() ) {
+						$children = $item->get_children();
+
+						foreach ( $children as $child_item ) {
+							$child_order_item_id = $child_item->get_order_item_id();
+							$sync_child_data     = array(
+								'quantity'       => $child_item->get_quantity(),
+								'item_parent_id' => $shipment_item->get_id(),
+							);
+
+							if ( ! $shipment_child_item = $this->get_item_by_order_item_id( $child_order_item_id ) ) {
+								$shipment_child_item = wc_gzd_create_return_shipment_item( $this, $child_item, $sync_child_data );
+
+								$this->add_item( $shipment_child_item );
+							} else {
+								$shipment_child_item->sync( $sync_child_data );
+							}
+						}
+					}
 				}
 			}
 
 			foreach ( $this->get_items() as $item ) {
-
 				// Remove non-existent items
 				if ( ! $shipment_item = $order_shipment->get_simple_shipment_item( $item->get_order_item_id() ) ) {
 					$this->remove_item( $item->get_id() );
