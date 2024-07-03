@@ -10,6 +10,7 @@ use Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto;
 use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\Labels\ConfigurationSetTrait;
 use Vendidero\Germanized\Shipments\Labels\Factory;
+use Vendidero\Germanized\Shipments\Labels\Label;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Packaging;
 use Vendidero\Germanized\Shipments\Shipment;
@@ -29,6 +30,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		'label_return_auto_enable'           => false,
 		'label_return_auto_shipment_status'  => 'gzd-processing',
 		'label_auto_shipment_status_shipped' => false,
+		'label_references'                   => array(),
 		'configuration_sets'                 => array(),
 	);
 
@@ -97,6 +99,101 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return $this->get_prop( 'label_auto_shipment_status', $context );
 	}
 
+	public function get_label_references( $context = 'view' ) {
+		$references = array_filter( (array) $this->get_prop( 'label_references', $context ) );
+
+		if ( 'view' === $context ) {
+			foreach ( $this->get_supported_shipment_types() as $shipment_type ) {
+				if ( ! isset( $references[ $shipment_type ] ) || ! is_array( $references[ $shipment_type ] ) ) {
+					$references[ $shipment_type ] = array();
+				}
+
+				foreach ( $this->get_supported_label_reference_types( $shipment_type ) as $ref_type => $ref_type_data ) {
+					$ref_type_data = wp_parse_args(
+						$ref_type_data,
+						array(
+							'default' => '',
+						)
+					);
+
+					if ( ! isset( $references[ $shipment_type ][ $ref_type ] ) ) {
+						$references[ $shipment_type ][ $ref_type ] = $ref_type_data['default'];
+					}
+				}
+			}
+		}
+
+		return $references;
+	}
+
+	public function get_supported_label_reference_types( $shipment_type = 'simple' ) {
+		return array();
+	}
+
+	/**
+	 * @param string $shipment_type
+	 * @param Label|null $label
+	 *
+	 * @return array
+	 */
+	public function get_label_reference_placeholders( $shipment_type = 'simple', $label = null ) {
+		$placeholders = array(
+			'{shipment_number}' => _x( 'Shipment number, e.g. 5', 'shipments', 'woocommerce-germanized-shipments' ),
+			'{order_number}'    => _x( 'Order number, e.g. 1234', 'shipments', 'woocommerce-germanized-shipments' ),
+			'{item_count}'      => _x( 'Number of items included in the shipment, e.g. 5', 'shipments', 'woocommerce-germanized-shipments' ),
+		);
+
+		if ( $label ) {
+			if ( $shipment = $label->get_shipment() ) {
+				$placeholders['{shipment_number}'] = $shipment->get_shipment_number();
+				$placeholders['{order_number}']    = $shipment->get_order_number();
+				$placeholders['{item_count}']      = $shipment->get_item_count();
+			}
+		}
+
+		return apply_filters( "{$this->get_hook_prefix()}label_reference_placeholders", $placeholders, $shipment_type, $label );
+	}
+
+	/**
+	 * @param string $shipment_type
+	 * @param string $reference_type
+	 *
+	 * @return string
+	 */
+	public function get_label_reference( $shipment_type = 'simple', $reference_type = '', $context = 'view' ) {
+		$references = $this->get_label_references( $context );
+		$reference  = '';
+
+		if ( array_key_exists( $shipment_type, $references ) ) {
+			$references = $references[ $shipment_type ];
+
+			if ( array_key_exists( $reference_type, $references ) ) {
+				$reference = $references[ $reference_type ];
+			}
+		}
+
+		return $reference;
+	}
+
+	/**
+	 * @param Label $label
+	 * @param string $shipment_type
+	 * @param string $reference_type
+	 *
+	 * @return string
+	 */
+	public function get_formatted_label_reference( $label, $shipment_type = 'simple', $reference_type = '' ) {
+		$reference = $this->get_label_reference( $shipment_type, $reference_type );
+
+		if ( ! empty( $reference ) ) {
+			$placeholders = $this->get_label_reference_placeholders( $shipment_type, $label );
+
+			$reference = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $reference );
+		}
+
+		return apply_filters( "{$this->get_hook_prefix()}formatted_label_reference", $reference, $label, $shipment_type, $reference_type );
+	}
+
 	public function get_label_return_auto_enable( $context = 'view' ) {
 		return $this->get_prop( 'label_return_auto_enable', $context );
 	}
@@ -123,6 +220,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	public function set_label_auto_shipment_status( $status ) {
 		$this->set_prop( 'label_auto_shipment_status', $status );
+	}
+
+	public function set_label_references( $references ) {
+		$this->set_prop( 'label_references', $references );
 	}
 
 	public function set_label_return_auto_enable( $enable ) {
@@ -509,7 +610,64 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	}
 
 	protected function get_label_settings_by_shipment_type( $shipment_type = 'simple' ) {
-		$settings = array();
+		$settings               = array();
+		$reference_settings     = array();
+		$label_placeholders     = $this->get_label_reference_placeholders( $shipment_type );
+		$formatted_placeholders = '<ul class="wc-gzd-shipments-available-placeholders">';
+
+		foreach ( $label_placeholders as $placeholder => $title ) {
+			$formatted_placeholders .= sprintf( '<li><code>%s</code>: %s</li>', esc_attr( $placeholder ), esc_html( $title ) );
+		}
+
+		$formatted_placeholders .= '</ul>';
+
+		foreach ( $this->get_supported_label_reference_types( $shipment_type ) as $reference_type => $reference_type_data ) {
+			$reference_type_data  = wp_parse_args(
+				(array) $reference_type_data,
+				array(
+					'label'      => '',
+					'default'    => '',
+					'max_length' => -1,
+				)
+			);
+			$shipment_label_title = wc_gzd_get_shipment_label_title( $shipment_type );
+
+			$reference_settings[] = array(
+				'title'       => $reference_type_data['label'],
+				'desc'        => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Adjust %1$s printed on the %2$s label. Use the following placeholders to format the reference: %3$s', 'shipments', 'woocommerce-germanized-shipments' ), $reference_type_data['label'], $shipment_label_title, $formatted_placeholders ) . ( -1 !== $reference_type_data['max_length'] ? sprintf( _x( 'Please keep in mind that the formatted reference cannot exceed %1$s characters.', 'shipments', 'woocommerce-germanized-shipments' ), $reference_type_data['max_length'] ) : '' ) . '</div>',
+				'id'          => "shipping_provider_label_reference_{$shipment_type}_{$reference_type}",
+				'placeholder' => $reference_type_data['default'],
+				'value'       => $this->get_label_reference( $shipment_type, $reference_type, 'edit' ),
+				'default'     => $reference_type_data['default'],
+				'type'        => 'textarea',
+				'css'         => 'width: 100%; min-height: 60px; margin-top: 1em;',
+			);
+		}
+
+		if ( ! empty( $reference_settings ) ) {
+			$settings = array_merge(
+				$settings,
+				array(
+					array(
+						'title' => _x( 'Label references', 'shipments', 'woocommerce-germanized-shipments' ),
+						'type'  => 'title',
+						'id'    => 'shipping_provider_label_references',
+					),
+				)
+			);
+
+			$settings = array_merge( $settings, $reference_settings );
+
+			$settings = array_merge(
+				$settings,
+				array(
+					array(
+						'type' => 'sectionend',
+						'id'   => 'shipping_provider_label_references',
+					),
+				)
+			);
+		}
 
 		foreach ( $this->get_available_label_zones( $shipment_type ) as $zone ) {
 			$setting_id          = 'shipping_provider_' . $shipment_type . '_label_' . $zone;
@@ -1393,6 +1551,25 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				$configuration_set->update_setting( $setting_name_clean, $value );
 				$this->update_configuration_set( $configuration_set );
 			}
+		} elseif ( 'label_reference_' === substr( $setting_name_clean, 0, 16 ) ) {
+			$label_reference   = explode( '_', substr( $setting_name_clean, 16 ) );
+			$ref_shipment_type = $label_reference[0];
+			$ref_type          = implode( '_', array_slice( $label_reference, 1 ) );
+			$references        = $this->get_label_references( 'edit' );
+
+			if ( ! isset( $references[ $ref_shipment_type ] ) ) {
+				$references[ $ref_shipment_type ] = array();
+			}
+
+			if ( empty( $value ) ) {
+				if ( isset( $references[ $ref_shipment_type ][ $ref_type ] ) ) {
+					unset( $references[ $ref_shipment_type ][ $ref_type ] );
+				}
+			} else {
+				$references[ $ref_shipment_type ][ $ref_type ] = $value;
+			}
+
+			$this->set_label_references( $references );
 		} else {
 			parent::update_setting( $setting, $value );
 		}
