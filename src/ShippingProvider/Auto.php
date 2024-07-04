@@ -633,14 +633,15 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			$shipment_label_title = wc_gzd_get_shipment_label_title( $shipment_type );
 
 			$reference_settings[] = array(
-				'title'       => $reference_type_data['label'],
-				'desc'        => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Adjust %1$s printed on the %2$s label. Use the following placeholders to format the reference: %3$s', 'shipments', 'woocommerce-germanized-shipments' ), $reference_type_data['label'], $shipment_label_title, $formatted_placeholders ) . ( -1 !== $reference_type_data['max_length'] ? sprintf( _x( 'Please keep in mind that the formatted reference cannot exceed %1$s characters.', 'shipments', 'woocommerce-germanized-shipments' ), $reference_type_data['max_length'] ) : '' ) . '</div>',
-				'id'          => "shipping_provider_label_reference_{$shipment_type}_{$reference_type}",
-				'placeholder' => $reference_type_data['default'],
-				'value'       => $this->get_label_reference( $shipment_type, $reference_type, 'edit' ),
-				'default'     => $reference_type_data['default'],
-				'type'        => 'textarea',
-				'css'         => 'width: 100%; min-height: 60px; margin-top: 1em;',
+				'title'        => $reference_type_data['label'],
+				'desc'         => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Adjust %1$s printed on the %2$s label. Use the following placeholders to format the reference: %3$s', 'shipments', 'woocommerce-germanized-shipments' ), $reference_type_data['label'], $shipment_label_title, $formatted_placeholders ) . ( -1 !== $reference_type_data['max_length'] ? sprintf( _x( 'Please keep in mind that the formatted reference cannot exceed %1$s characters.', 'shipments', 'woocommerce-germanized-shipments' ), $reference_type_data['max_length'] ) : '' ) . '</div>',
+				'id'           => "shipping_provider_label_reference_{$shipment_type}_{$reference_type}",
+				'placeholder'  => $reference_type_data['default'],
+				'value'        => $this->get_label_reference( $shipment_type, $reference_type, 'edit' ),
+				'default'      => $reference_type_data['default'],
+				'skip_install' => true,
+				'type'         => 'textarea',
+				'css'          => 'width: 100%; min-height: 60px; margin-top: 1em;',
 			);
 		}
 

@@ -852,7 +852,7 @@ class Table extends WP_List_Table {
 						</article>
 						<footer>
 							<div class="inner">
-								<a id="btn-ok" class="button button-primary button-large" href="<?php echo esc_url( $shipment->get_edit_shipment_url() ); ?>"><?php echo esc_html_x( 'Edit', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+								<a class="button button-primary button-large" href="<?php echo esc_url( $shipment->get_edit_shipment_url() ); ?>"><?php echo esc_html_x( 'Edit', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 							</div>
 						</footer>
 					</section>
