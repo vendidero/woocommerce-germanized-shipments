@@ -142,7 +142,8 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 $form      = $( this ),
                 params     = $form.serialize(),
                 $pickupSelect = self.getPickupLocationSelect(),
-                current = $pickupSelect.val();
+                current = $pickupSelect.val(),
+                oldLocations = self.pickupLocations;
 
             $( '#wc-gzd-shipments-pickup-location-search-form' ).block({
                 message: null,
@@ -161,7 +162,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 success: function( data ) {
                     if ( data.success ) {
                         self.pickupLocations = data.locations;
-                        self.updatePickupLocationSelect();
+                        self.updatePickupLocationSelect( oldLocations );
 
                         $( '#wc-gzd-shipments-pickup-location-search-form' ).unblock();
                     }
@@ -173,7 +174,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
             return false;
         },
 
-        updatePickupLocationSelect: function() {
+        updatePickupLocationSelect: function( oldLocations = [] ) {
             var self     = germanized.shipments_pickup_locations,
                 $pickupSelect = self.getPickupLocationSelect(),
                 current = $pickupSelect.val();
@@ -189,13 +190,21 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 $pickupSelect.append( $( "<option></option>" ).attr("value", code ).text( label ) );
             });
 
-            var currentLocation = self.getPickupLocation( current );
+            var currentLocation = self.getPickupLocation( current, false );
 
             if ( currentLocation ) {
                 $pickupSelect.find( 'option[value="' + currentLocation.code + '"' )[0].selected = true;
             }
 
-            $pickupSelect.trigger( 'change' );
+            /**
+             * Do only trigger select change if available pickup locations really changed
+             * to prevent possible incompatibilities with other extensions.
+             */
+            try {
+                if ( JSON.stringify( self.pickupLocations ) !== JSON.stringify( oldLocations ) ) {
+                    $pickupSelect.trigger( 'change' );
+                }
+            } catch (e) {}
         },
 
         onSelectDifferentShipping: function() {
@@ -282,12 +291,12 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
             return $( '#pickup_location' );
         },
 
-        getPickupLocation: function( locationCode ) {
+        getPickupLocation: function( locationCode, allowFallback = true ) {
             var self = germanized.shipments_pickup_locations;
 
             if ( self.pickupLocations.hasOwnProperty( locationCode ) ) {
                 return self.pickupLocations[ locationCode ];
-            } else {
+            } else if ( allowFallback ) {
                 var $select = $( '#current_pickup_location' );
 
                 if ( $select.attr( 'data-current-location' ) ) {
@@ -306,7 +315,8 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
 
         afterRefreshCheckout: function( e, ajaxData ) {
             var self = germanized.shipments_pickup_locations,
-                supportsPickupLocationDelivery = false;
+                supportsPickupLocationDelivery = false,
+                oldLocations = self.pickupLocations;
 
             ajaxData = ( typeof ajaxData === 'undefined' ) ? {
                 'fragments': {
@@ -322,7 +332,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
                 if ( ajaxData.fragments.hasOwnProperty( '.gzd-shipments-pickup-locations' ) && Object.keys( self.pickupLocations ).length <= 0 ) {
                     self.pickupLocations = JSON.parse( ajaxData.fragments['.gzd-shipments-pickup-locations'] );
 
-                    self.updatePickupLocationSelect();
+                    self.updatePickupLocationSelect( oldLocations );
                 }
             }
 

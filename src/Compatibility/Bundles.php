@@ -68,13 +68,13 @@ class Bundles implements Compatibility {
 	}
 
 	/**
-	 * @param Product $product
+	 * @param Product|null $product
 	 * @param \WC_Order_Item_Product $item
 	 *
 	 * @return Product
 	 */
 	public static function get_product_from_item( $product, $item ) {
-		if ( ! $order = $item->get_order() ) {
+		if ( ! $order = $item->get_order() || ! $product ) {
 			return $product;
 		}
 
