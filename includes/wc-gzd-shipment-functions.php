@@ -1432,7 +1432,6 @@ function wc_gzd_customer_return_needs_manual_confirmation( $order ) {
  * @return array
  */
 function wc_gzd_get_account_shipments_actions( $shipment ) {
-
 	if ( ! is_object( $shipment ) ) {
 		$shipment_id = absint( $shipment );
 		$shipment    = wc_gzd_get_shipment( $shipment_id );

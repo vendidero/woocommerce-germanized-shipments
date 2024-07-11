@@ -30,11 +30,11 @@ if ( $label ) {
 	}
 
 	$actions['delete'] = array(
-		'url'               => $label->get_download_url(),
+		'url'               => '#',
 		'classes'           => 'remove-shipment-label delete',
 		'name'              => _x( 'Delete label', 'shipments', 'woocommerce-germanized-shipments' ),
 		'action'            => 'delete_label',
-		'target'            => '_blank',
+		'target'            => 'self',
 		'custom_attributes' => array(
 			'data-shipment' => $shipment->get_id(),
 		),

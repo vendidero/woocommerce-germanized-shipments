@@ -131,6 +131,30 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	}
 
 	/**
+	 * @param $ref_type
+	 * @param $shipment_type
+	 *
+	 * @return array|false
+	 */
+	public function get_supported_label_reference_type( $ref_type, $shipment_type = 'simple' ) {
+		$ref_types = $this->get_supported_label_reference_types( $shipment_type );
+		$type      = false;
+
+		if ( array_key_exists( $ref_type, $ref_types ) ) {
+			$type = wp_parse_args(
+				$ref_types[ $ref_type ],
+				array(
+					'max_length' => -1,
+					'label'      => '',
+					'default'    => '',
+				)
+			);
+		}
+
+		return $type;
+	}
+
+	/**
 	 * @param string $shipment_type
 	 * @param Label|null $label
 	 *
@@ -183,15 +207,25 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	 * @return string
 	 */
 	public function get_formatted_label_reference( $label, $shipment_type = 'simple', $reference_type = '' ) {
-		$reference = $this->get_label_reference( $shipment_type, $reference_type );
+		$reference  = $this->get_label_reference( $shipment_type, $reference_type );
+		$max_length = -1;
+
+		if ( $ref_type = $this->get_supported_label_reference_type( $reference_type, $shipment_type ) ) {
+			$max_length = $ref_type['max_length'];
+		}
 
 		if ( ! empty( $reference ) ) {
 			$placeholders = $this->get_label_reference_placeholders( $shipment_type, $label );
-
-			$reference = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $reference );
+			$reference    = str_replace( array_keys( $placeholders ), array_values( $placeholders ), $reference );
 		}
 
-		return apply_filters( "{$this->get_hook_prefix()}formatted_label_reference", $reference, $label, $shipment_type, $reference_type );
+		$formatted_ref = apply_filters( "{$this->get_hook_prefix()}formatted_label_reference", $reference, $label, $shipment_type, $reference_type );
+
+		if ( -1 !== $max_length ) {
+			$formatted_ref = wc_gzd_shipments_substring( $formatted_ref, 0, $max_length );
+		}
+
+		return $formatted_ref;
 	}
 
 	public function get_label_return_auto_enable( $context = 'view' ) {
