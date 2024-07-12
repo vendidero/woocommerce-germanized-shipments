@@ -2067,7 +2067,7 @@ abstract class Shipment extends WC_Data {
 	}
 
 	public function sync_packaging() {
-		$available_packaging = $this->get_selectable_packaging();
+		$available_packaging = $this->get_available_packaging();
 		$default_packaging   = $this->get_default_packaging();
 		$packaging_id        = $this->get_packaging_id( 'edit' );
 
