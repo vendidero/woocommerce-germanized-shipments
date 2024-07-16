@@ -54,6 +54,7 @@ class Admin {
 		add_action( 'woocommerce_gzd_admin_settings_after_save_shipments_packaging', array( __CLASS__, 'save_packaging_list' ), 10 );
 
 		add_action( 'woocommerce_admin_field_packaging_reports', array( __CLASS__, 'output_packaging_reports' ) );
+		add_action( 'woocommerce_admin_field_shipments_country_select', array( __CLASS__, 'output_custom_country_select' ) );
 
 		// Menu count
 		add_action( 'admin_head', array( __CLASS__, 'menu_return_count' ) );
@@ -1114,6 +1115,53 @@ class Admin {
 		$html = ob_get_clean();
 
 		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	}
+
+	/**
+	 * Register this custom country field as the builtin country field misses
+	 * custom attributes (e.g. for custom show/hide logic)
+	 *
+	 * @param array $value
+	 *
+	 * @return void
+	 */
+	public static function output_custom_country_select( $value ) {
+		// Custom attribute handling.
+		$custom_attributes = array();
+
+		if ( ! empty( $value['custom_attributes'] ) && is_array( $value['custom_attributes'] ) ) {
+			foreach ( $value['custom_attributes'] as $attribute => $attribute_value ) {
+				$custom_attributes[] = esc_attr( $attribute ) . '="' . esc_attr( $attribute_value ) . '"';
+			}
+		}
+
+		// Description handling.
+		$field_description = \WC_Admin_Settings::get_field_description( $value );
+		$description       = $field_description['description'];
+		$tooltip_html      = $field_description['tooltip_html'];
+
+		$country_setting = (string) $value['value'];
+
+		if ( strstr( $country_setting, ':' ) ) {
+			$country_setting = explode( ':', $country_setting );
+			$country         = current( $country_setting );
+			$state           = end( $country_setting );
+		} else {
+			$country = $country_setting;
+			$state   = '*';
+		}
+		?>
+		<tr class="<?php echo esc_attr( $value['row_class'] ); ?>">
+			<th scope="row" class="titledesc">
+				<label for="<?php echo esc_attr( $value['id'] ); ?>"><?php echo esc_html( $value['title'] ); ?> <?php echo wp_kses_post( $tooltip_html ); ?></label>
+			</th>
+			<td class="forminp">
+				<select name="<?php echo esc_attr( $value['field_name'] ); ?>" style="<?php echo esc_attr( $value['css'] ); ?>" data-placeholder="<?php echo esc_attr_x( 'Choose a country / region&hellip;', 'shipments', 'woocommerce-germanized-shipments' ); ?>" aria-label="<?php echo esc_attr_x( 'Country / Region', 'shipments', 'woocommerce-germanized-shipments' ); ?>" class="wc-enhanced-select" <?php echo implode( ' ', $custom_attributes ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>>
+					<?php WC()->countries->country_dropdown_options( $country, $state ); ?>
+				</select> <?php echo wp_kses_post( $description ); ?>
+			</td>
+		</tr>
+		<?php
 	}
 
 	public static function output_packaging_reports( $value ) {

@@ -1319,16 +1319,10 @@ abstract class Shipment extends WC_Data {
 				$value = $provider->$getter( $context );
 			}
 		} else {
-			$key   = "woocommerce_gzd_shipments_shipper_address_{$prop}";
-			$value = get_option( $key, '' );
+			$sender_address = wc_gzd_get_shipment_setting_address_fields();
 
-			if ( 'country' === $prop ) {
-				$value = wc_format_country_state_string( $value )['country'];
-			} elseif ( 'state' === $prop ) {
-				$key   = 'woocommerce_gzd_shipments_shipper_address_country';
-				$value = get_option( $key, '' );
-
-				$value = wc_format_country_state_string( $value )['state'];
+			if ( array_key_exists( $prop, $sender_address ) ) {
+				$value = $sender_address[ $prop ];
 			}
 		}
 

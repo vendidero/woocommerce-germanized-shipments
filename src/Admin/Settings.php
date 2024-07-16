@@ -296,7 +296,7 @@ class Settings {
 		$type = 'text';
 
 		if ( 'country' === $prop ) {
-			$type = 'single_select_country';
+			$type = 'shipments_country_select';
 		}
 
 		return $type;
@@ -330,37 +330,21 @@ class Settings {
 			),
 		);
 
-		// Use WooCommerce address data as fallback/default data on install
-		$default_shipper_address_data = array(
-			'company'   => get_option( 'name' ),
-			'address_1' => get_option( 'woocommerce_store_address' ),
-			'address_2' => get_option( 'woocommerce_store_address_2' ),
-			'city'      => get_option( 'woocommerce_store_city' ),
-			'postcode'  => get_option( 'woocommerce_store_postcode' ),
-			'email'     => get_option( 'woocommerce_email_from_address' ),
-			'country'   => get_option( 'woocommerce_default_country' ),
-		);
-
 		foreach ( $shipper_fields as $field => $value ) {
 			if ( in_array( $field, self::get_address_fields_to_skip(), true ) ) {
 				continue;
-			}
-
-			$default_value = '';
-
-			if ( array_key_exists( $field, $default_shipper_address_data ) ) {
-				$default_value = $default_shipper_address_data[ $field ];
 			}
 
 			$settings = array_merge(
 				$settings,
 				array(
 					array(
-						'title'    => self::get_address_label_by_prop( $field ),
-						'type'     => self::get_address_field_type_by_prop( $field ),
-						'id'       => "woocommerce_gzd_shipments_shipper_address_{$field}",
-						'default'  => $default_value,
-						'desc_tip' => self::get_address_desc_by_prop( $field ),
+						'title'        => self::get_address_label_by_prop( $field ),
+						'type'         => self::get_address_field_type_by_prop( $field ),
+						'id'           => "woocommerce_gzd_shipments_shipper_address_{$field}",
+						'default'      => 'country' === $field ? $value . ':' . $shipper_fields['state'] : $value,
+						'desc_tip'     => self::get_address_desc_by_prop( $field ),
+						'skip_install' => true,
 					),
 				)
 			);
@@ -373,11 +357,17 @@ class Settings {
 					'type' => 'sectionend',
 					'id'   => 'shipments_shipper_address',
 				),
-
 				array(
 					'title' => _x( 'Return Address', 'shipments', 'woocommerce-germanized-shipments' ),
 					'type'  => 'title',
 					'id'    => 'shipments_return_address',
+				),
+				array(
+					'title'   => _x( 'Alternate return?', 'shipments', 'woocommerce-germanized-shipments' ),
+					'desc'    => _x( 'Optionally configure a separate return address', 'shipments', 'woocommerce-germanized-shipments' ),
+					'id'      => 'woocommerce_gzd_shipments_use_alternate_return',
+					'default' => ! empty( get_option( 'woocommerce_gzd_shipments_return_address_address_1', '' ) ) ? 'yes' : 'no',
+					'type'    => 'gzd_toggle',
 				),
 			)
 		);
@@ -391,12 +381,15 @@ class Settings {
 				$settings,
 				array(
 					array(
-						'title'       => self::get_address_label_by_prop( $field ),
-						'type'        => self::get_address_field_type_by_prop( $field ),
-						'id'          => "woocommerce_gzd_shipments_return_address_{$field}",
-						'default'     => '',
-						'placeholder' => $value,
-						'desc_tip'    => self::get_address_desc_by_prop( $field ),
+						'title'             => self::get_address_label_by_prop( $field ),
+						'type'              => self::get_address_field_type_by_prop( $field ),
+						'id'                => "woocommerce_gzd_shipments_return_address_{$field}",
+						'default'           => 'country' === $field ? $value . ':' . $return_fields['state'] : $value,
+						'desc_tip'          => self::get_address_desc_by_prop( $field ),
+						'skip_install'      => true,
+						'custom_attributes' => array(
+							'data-show_if_woocommerce_gzd_shipments_use_alternate_return' => '',
+						),
 					),
 				)
 			);
@@ -407,7 +400,7 @@ class Settings {
 			array(
 				array(
 					'type' => 'sectionend',
-					'id'   => 'shipments_return_address',
+					'id'   => 'shipments_shipper_address',
 				),
 			)
 		);
