@@ -2978,6 +2978,10 @@ abstract class Shipment extends WC_Data {
 				}
 			}
 
+			if ( ! $this->get_id() ) {
+				throw new \Exception( 'Error while saving shipment.' );
+			}
+
 			$this->save_items();
 
 			if ( $cache = Helper::get_cache_object( 'shipments' ) ) {
