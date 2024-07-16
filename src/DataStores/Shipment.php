@@ -559,6 +559,10 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	public function read_items( $shipment ) {
 		global $wpdb;
 
+		if ( $shipment->get_id() <= 0 ) {
+			return array();
+		}
+
 		// Get from cache if available.
 		$items = 0 < $shipment->get_id() ? wp_cache_get( 'shipment-items-' . $shipment->get_id(), 'shipments' ) : false;
 

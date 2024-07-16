@@ -461,7 +461,6 @@ function wc_gzd_create_shipment( $order_shipment, $args = array() ) {
 
 function wc_gzd_create_shipment_item( $shipment, $order_item, $args = array() ) {
 	try {
-
 		if ( ! $order_item || ! is_a( $order_item, 'WC_Order_Item' ) ) {
 			throw new Exception( _x( 'Invalid order item', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
@@ -471,8 +470,10 @@ function wc_gzd_create_shipment_item( $shipment, $order_item, $args = array() ) 
 		$item->set_order_item_id( $order_item->get_id() );
 		$item->set_shipment( $shipment );
 		$item->sync( $args );
-		$item->save();
 
+		if ( $shipment->get_id() > 0 ) {
+			$item->save();
+		}
 	} catch ( Exception $e ) {
 		return new WP_Error( 'error', $e->getMessage() );
 	}
