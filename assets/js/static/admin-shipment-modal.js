@@ -158,6 +158,9 @@ window.germanized.admin = window.germanized.admin || {};
                 }
             }
 
+            // Make sure to propagate show/if logic by firing a change event on the shown/hidden input.
+            $wrapper.find( ':input[data-show-if-' + fieldId + ']' ).trigger( 'change' );
+
             /**
              * Hide the show more trigger in case no visible field is found within the wrapper.
              * Explicitly check for the display style as the wrapper may be in collapsed state.
@@ -266,7 +269,9 @@ window.germanized.admin = window.germanized.admin || {};
                         });
                     }
 
+                    self.$modal.find( '#btn-ok' ).prop( 'disabled', false );
                     self.$modal.find( '.wc-backbone-modal-content' ).unblock();
+
                     cSuccess.apply( self, [ data, self ] );
 
                     /**
@@ -286,7 +291,9 @@ window.germanized.admin = window.germanized.admin || {};
                         self.afterRefresh();
                     }
                 } else {
+                    self.$modal.find( '#btn-ok' ).prop( 'disabled', false );
                     self.$modal.find( '.wc-backbone-modal-content' ).unblock();
+
                     cError.apply( self, [ data, self ] );
 
                     self.printNotices( $content, data );
@@ -454,7 +461,12 @@ window.germanized.admin = window.germanized.admin || {};
         var self       = event.data.adminShipmentModal,
             $content   = self.getModalMainContent(),
             $form      = $content.find( 'form' ),
-            params     = self.getFormData( $form );
+            params     = self.getFormData( $form ),
+            $submit    = self.$modal.find( '#btn-ok' );
+
+        if ( $submit.length > 0 ) {
+            $submit.prop( 'disabled', true );
+        }
 
         params['security']     = self.getNonce( 'submit' );
         params['reference_id'] = self.referenceId;
