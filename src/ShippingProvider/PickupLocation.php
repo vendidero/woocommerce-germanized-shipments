@@ -88,6 +88,18 @@ class PickupLocation {
 		return $this->address;
 	}
 
+	public function get_postcode() {
+		return $this->address['postcode'];
+	}
+
+	public function get_country() {
+		return $this->address['country'];
+	}
+
+	public function get_city() {
+		return $this->address['city'];
+	}
+
 	public function supports_customer_number() {
 		return $this->supports_customer_number;
 	}
