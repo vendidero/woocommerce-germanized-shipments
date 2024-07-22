@@ -1344,6 +1344,7 @@ class ShipmentsController extends \WC_REST_Controller {
 				'tracking_id',
 				'date_created',
 				'order_id',
+				'date_sent',
 				'weight',
 			),
 			'sanitize_callback' => 'sanitize_key',
