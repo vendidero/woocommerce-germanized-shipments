@@ -565,7 +565,7 @@ class ShipmentQuery extends WC_Object_Query {
 		$meta_query_clauses = $this->meta_query->get_clauses();
 		$_orderby           = '';
 
-		if ( in_array( $orderby, array( 'country', 'status', 'tracking_id', 'date_created', 'order_id' ), true ) ) {
+		if ( in_array( $orderby, array( 'country', 'status', 'tracking_id', 'date_created', 'order_id', 'date_sent' ), true ) ) {
 			$_orderby = 'shipment_' . $orderby;
 		} elseif ( 'date' === $orderby ) {
 			$_orderby = 'shipment_date_created';
