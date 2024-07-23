@@ -305,6 +305,13 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 	}
 
 	/**
+	 * @return null|\WP_Error|true
+	 */
+	public function test_connection() {
+		return null;
+	}
+
+	/**
 	 * @param \Vendidero\Germanized\Shipments\Shipment $shipment
 	 *
 	 * @return mixed|void

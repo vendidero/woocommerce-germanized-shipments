@@ -263,20 +263,31 @@ a.woocommerce-gzd-input-toggle-trigger {
   }
 }
 
-.wc-gzd-admin-settings-shipping_provider {
-  .wc-gzd-shipment-api-connection-status {
-    padding: .2em .5em;
-    border-radius: 3px;
-    display: inline-flex;
-    white-space: nowrap;
-    border: 1px solid #CCC;
+.wc-gzd-shipment-api-connection-status {
+  white-space: nowrap;
+  border: 1px solid #CCC;
 
-    &.connection-status-error {
+  &.page-title-action {
+    margin-left: 1em;
+    position: inherit;
+  }
+
+  &.connection-status-error {
+    border-color: #761919;
+    color: #761919;
+    cursor: help;
+
+    &:hover {
       border-color: #761919;
       color: #761919;
     }
+  }
 
-    &.connection-status-success {
+  &.connection-status-success {
+    border-color: #5b841b;
+    color: #5b841b;
+
+    &:hover {
       border-color: #5b841b;
       color: #5b841b;
     }

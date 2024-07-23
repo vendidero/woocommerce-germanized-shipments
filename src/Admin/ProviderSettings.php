@@ -183,6 +183,18 @@ class ProviderSettings {
 			if ( ! empty( $provider->get_signup_link() ) ) {
 				$label = $label . '<a class="page-title-action" href="' . esc_url( $provider->get_signup_link() ) . '" target="_blank">' . _x( 'Not yet a customer?', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
 			}
+
+			if ( is_a( $provider, 'Vendidero\Germanized\Shipments\ShippingProvider\Auto' ) ) {
+				$connection_test_result = $provider->test_connection();
+
+				if ( $provider->is_activated() && null !== $connection_test_result ) {
+					$is_error      = is_wp_error( $connection_test_result ) || false === $connection_test_result;
+					$error_message = is_wp_error( $connection_test_result ) ? $connection_test_result->get_error_message() : '';
+					$error_message = empty( $error_message ) ? _x( 'Not connected', 'shipments', 'woocommerce-germanized-shipments' ) : $error_message;
+
+					$label = $label . '<span class="page-title-action wc-gzd-shipment-api-connection-status ' . ( $is_error ? 'connection-status-error help_tip' : 'connection-status-success' ) . '" data-tip="' . esc_html( $is_error ? $error_message : '' ) . '">' . esc_html( $is_error ? _x( 'Status: Not Connected', 'shipments', 'woocommerce-germanized-shipments' ) : _x( 'Status: Connected', 'shipments', 'woocommerce-germanized-shipments' ) ) . '</span>';
+				}
+			}
 		} elseif ( ! $provider ) {
 			$label = $label . '<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=new' ) ) . '" class="page-title-action">' . _x( 'Add provider', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
 
