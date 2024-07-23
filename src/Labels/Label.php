@@ -65,6 +65,7 @@ class Label extends WC_Data implements ShipmentLabel {
 		'width'                   => '',
 		'height'                  => '',
 		'path'                    => '',
+		'plain_path'              => '',
 		'created_via'             => '',
 		'services'                => array(),
 		'print_format'            => '',
@@ -277,7 +278,13 @@ class Label extends WC_Data implements ShipmentLabel {
 	}
 
 	public function get_path( $context = 'view', $file_path = '' ) {
-		return $this->get_prop( 'path', $context );
+		$path_name = empty( $file_path ) ? 'path' : "{$file_path}_path";
+
+		return $this->get_prop( $path_name, $context );
+	}
+
+	public function get_plain_path( $context = 'view' ) {
+		return $this->get_path( $context, 'plain' );
 	}
 
 	public function get_services( $context = 'view' ) {
@@ -381,7 +388,13 @@ class Label extends WC_Data implements ShipmentLabel {
 	}
 
 	public function set_path( $path, $file_type = '' ) {
-		$this->set_prop( 'path', $path );
+		$path_name = empty( $file_type ) ? 'path' : "{$file_type}_path";
+
+		$this->set_prop( $path_name, $path );
+	}
+
+	public function set_plain_path( $path ) {
+		$this->set_path( $path, 'plain' );
 	}
 
 	public function set_services( $services ) {
@@ -441,7 +454,17 @@ class Label extends WC_Data implements ShipmentLabel {
 	}
 
 	public function get_additional_file_types() {
-		return array();
+		return array(
+			'plain',
+		);
+	}
+
+	public function get_plain_file() {
+		if ( ! $this->get_path( 'view', 'plain' ) ) {
+			return $this->get_file();
+		}
+
+		return $this->get_file( 'plain' );
 	}
 
 	public function get_file( $file_type = '' ) {
@@ -450,6 +473,24 @@ class Label extends WC_Data implements ShipmentLabel {
 		}
 
 		return $this->get_file_by_path( $path );
+	}
+
+	public function get_stream( $file_type = '' ) {
+		if ( ! $this->get_file( $file_type ) ) {
+			return '';
+		}
+
+		try {
+			$result = file_get_contents( $this->get_path( $file_type ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		} catch ( \Exception $e ) {
+			$result = '';
+		}
+
+		if ( ! is_string( $result ) ) {
+			$result = '';
+		}
+
+		return $result;
 	}
 
 	protected function get_new_filename( $file_type = '' ) {
