@@ -89,14 +89,27 @@ class Order {
 		return apply_filters( 'woocommerce_gzd_shipment_order_shipping_status', ( in_array( $shipping_status, array( 'shipped', 'delivered' ), true ) || ( 'partially-delivered' === $shipping_status && ! $this->needs_shipping( array( 'sent_only' => true ) ) ) ), $this );
 	}
 
-	public function get_last_tracking_id() {
-		$tracking_id = '';
+	/**
+	 * @return Shipment|false
+	 */
+	public function get_last_shipment_with_tracking() {
+		$last_shipment = false;
 
 		foreach ( array_reverse( $this->get_simple_shipments( true ) ) as $shipment ) {
 			if ( ! empty( $shipment->get_tracking_id() ) ) {
-				$tracking_id = $shipment->get_tracking_id();
+				$last_shipment = $shipment;
 				break;
 			}
+		}
+
+		return apply_filters( 'woocommerce_gzd_shipment_order_last_shipment_with_tracking', $last_shipment, $this );
+	}
+
+	public function get_last_tracking_id() {
+		$tracking_id = '';
+
+		if ( $last_shipment = $this->get_last_shipment_with_tracking() ) {
+			$tracking_id = $last_shipment->get_tracking_id();
 		}
 
 		return apply_filters( 'woocommerce_gzd_shipment_order_last_tracking_id', $tracking_id, $this );

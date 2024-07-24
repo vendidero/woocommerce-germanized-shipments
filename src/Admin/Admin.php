@@ -592,7 +592,11 @@ class Admin {
 				$status_html     = '<span class="order-shipping-status status-' . esc_attr( $shipping_status ) . '">' . esc_html( wc_gzd_get_shipment_order_shipping_status_name( $shipping_status ) ) . '</span>';
 
 				if ( in_array( $shipping_status, array( 'shipped', 'partially-shipped' ), true ) && $shipment_order->get_shipments() ) {
-					echo '<a target="_blank" href="' . esc_url( add_query_arg( array( 'order_id' => $the_order->get_id() ), admin_url( 'admin.php?page=wc-gzd-shipments' ) ) ) . '">' . wp_kses_post( $status_html ) . '</a>';
+					if ( $last_shipment = $shipment_order->get_last_shipment_with_tracking() ) {
+						echo '<a target="_blank" href="' . esc_url( $last_shipment->get_tracking_url() ) . '" class="help_tip" data-tip="' . esc_attr( $last_shipment->get_tracking_id() ) . '">' . wp_kses_post( $status_html ) . '</a>';
+					} else {
+						echo '<a target="_blank" href="' . esc_url( add_query_arg( array( 'order_id' => $the_order->get_id() ), admin_url( 'admin.php?page=wc-gzd-shipments' ) ) ) . '" class="help_tip" data-tip="">' . wp_kses_post( $status_html ) . '</a>';
+					}
 				} else {
 					echo wp_kses_post( $status_html );
 				}
