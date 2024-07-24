@@ -27,6 +27,34 @@ class Install {
 			} elseif ( version_compare( $current_version, '3.0.1', '<' ) ) {
 				self::migrate_to_configuration_sets( 'dhl' );
 			}
+
+			if ( version_compare( $current_version, '3.5.0', '<' ) ) {
+				if ( $provider = wc_gzd_get_shipping_provider( 'dhl' ) ) {
+					if ( is_a( $provider, '\Vendidero\Germanized\Shipments\ShippingProvider\Auto' ) && $provider->is_activated() ) {
+						if ( 'yes' === $provider->get_setting( 'parcel_pickup_packstation_enable' ) || 'yes' === $provider->get_setting( 'parcel_pickup_postoffice_enable' ) || 'yes' === $provider->get_setting( 'parcel_pickup_parcelshop_enable' ) ) {
+							$provider->update_setting( 'pickup_locations_enable', 'yes' );
+							$provider->update_setting( 'pickup_locations_max_results', $provider->get_setting( 'parcel_pickup_max_results', 20 ) );
+						} else {
+							$provider->update_setting( 'pickup_locations_enable', 'no' );
+						}
+
+						$provider->save();
+					}
+				}
+
+				if ( $provider = wc_gzd_get_shipping_provider( 'deutsche_post' ) ) {
+					if ( is_a( $provider, '\Vendidero\Germanized\Shipments\ShippingProvider\Auto' ) && $provider->is_activated() ) {
+						if ( 'yes' === $provider->get_setting( 'parcel_pickup_packstation_enable' ) ) {
+							$provider->update_setting( 'pickup_locations_enable', 'yes' );
+							$provider->update_setting( 'pickup_locations_max_results', $provider->get_setting( 'parcel_pickup_max_results', 20 ) );
+						} else {
+							$provider->update_setting( 'pickup_locations_enable', 'no' );
+						}
+
+						$provider->save();
+					}
+				}
+			}
 		}
 
 		self::maybe_create_packaging();

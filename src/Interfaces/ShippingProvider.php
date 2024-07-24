@@ -25,6 +25,8 @@ interface ShippingProvider {
 
 	public function get_help_link();
 
+	public function get_section_help_link( $section );
+
 	public function get_signup_link();
 
 	public function is_pro();

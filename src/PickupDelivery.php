@@ -168,6 +168,7 @@ class PickupDelivery {
 				'postcode'  => '',
 				'address_1' => '',
 			),
+			'provider'                         => '',
 			'supports_pickup_delivery'         => false,
 			'current_location_code'            => '',
 			'current_location'                 => null,
@@ -195,7 +196,8 @@ class PickupDelivery {
 			);
 		}
 
-		$result['address'] = array_replace_recursive( $result['address'], $address_args );
+		$result['address']  = array_replace_recursive( $result['address'], $address_args );
+		$result['provider'] = $provider ? $provider->get_name() : '';
 
 		if ( is_a( $provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto' ) ) {
 			if ( $provider->supports_pickup_location_delivery( $result['address'], $query_args ) ) {
@@ -284,6 +286,7 @@ class PickupDelivery {
 								'pickup_location',
 								array(
 									'type'             => 'wc_gzd_shipments_pickup_location',
+									'provider'         => $pickup_delivery_data['provider'],
 									'locations'        => $pickup_delivery_data['locations'],
 									'current_location' => $pickup_delivery_data['current_location'],
 									'default'          => $pickup_delivery_data['current_location'] ? $pickup_delivery_data['current_location']->get_code() : '',
@@ -446,6 +449,7 @@ class PickupDelivery {
 				'locations'         => array(),
 				'id'                => $key,
 				'priority'          => '',
+				'provider'          => '',
 				'required'          => false,
 				'custom_attributes' => array(),
 				'current_location'  => null,
@@ -479,6 +483,7 @@ class PickupDelivery {
 		}
 
 		$args['custom_attributes']['data-locations'] = wp_json_encode( $args['custom_attributes']['data-locations'] );
+		$args['custom_attributes']['data-provider']  = $args['provider'];
 
 		if ( count( $args['options'] ) > 0 ) {
 			$args['hidden'] = false;
@@ -630,6 +635,7 @@ class PickupDelivery {
 			}
 		}
 
+		$fragments['.gzd-shipments-current-provider']          = $pickup_delivery_data['provider'];
 		$fragments['.gzd-shipments-pickup-locations']          = wp_json_encode( $locations );
 		$fragments['.gzd-shipments-pickup-location-supported'] = $pickup_delivery_data['supports_pickup_delivery'];
 

@@ -168,6 +168,12 @@ class ProviderSettings {
 		$sections      = self::get_sections();
 		$section_label = isset( $sections[ $section ] ) ? $sections[ $section ] : '';
 
+		if ( $provider = self::get_current_provider() ) {
+			if ( $help_link = $provider->get_section_help_link( $section ) ) {
+				$section_label = $section_label . '<a class="page-title-action" href="' . esc_url( $help_link ) . '" target="_blank">' . _x( 'Learn more', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+			}
+		}
+
 		return $section_label;
 	}
 

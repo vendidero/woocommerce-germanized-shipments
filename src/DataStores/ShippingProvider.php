@@ -332,7 +332,19 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 		}
 
 		foreach ( $meta_keys as $meta_key ) {
-			$props[ substr( $meta_key, 1 ) ] = get_metadata( 'gzd_shipping_provider', $provider->get_id(), $meta_key, true );
+			if ( function_exists( 'get_metadata_raw' ) ) {
+				$value = get_metadata_raw( 'gzd_shipping_provider', $provider->get_id(), $meta_key, true );
+			} else {
+				$value = null;
+
+				if ( metadata_exists( 'gzd_shipping_provider', $provider->get_id(), $meta_key ) ) {
+					$value = get_metadata( 'gzd_shipping_provider', $provider->get_id(), $meta_key, true );
+				}
+			}
+
+			if ( ! is_null( $value ) ) {
+				$props[ substr( $meta_key, 1 ) ] = $value;
+			}
 		}
 
 		$provider->set_props( $props );

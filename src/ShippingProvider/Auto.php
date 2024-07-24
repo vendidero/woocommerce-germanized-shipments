@@ -31,6 +31,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		'label_return_auto_shipment_status'  => 'gzd-processing',
 		'label_auto_shipment_status_shipped' => false,
 		'label_references'                   => array(),
+		'pickup_locations_enable'            => true,
+		'pickup_locations_max_results'       => 20,
 		'configuration_sets'                 => array(),
 	);
 
@@ -97,6 +99,18 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	public function get_label_auto_shipment_status( $context = 'view' ) {
 		return $this->get_prop( 'label_auto_shipment_status', $context );
+	}
+
+	public function get_pickup_locations_enable( $context = 'view' ) {
+		return $this->get_prop( 'pickup_locations_enable', $context );
+	}
+
+	public function get_pickup_locations_max_results( $context = 'view' ) {
+		return $this->get_prop( 'pickup_locations_max_results', $context );
+	}
+
+	public function enable_pickup_location_delivery() {
+		return $this->get_pickup_locations_enable();
 	}
 
 	public function get_label_references( $context = 'view' ) {
@@ -272,6 +286,14 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		$this->set_prop( 'label_return_auto_shipment_status', $status );
 	}
 
+	public function set_pickup_locations_enable( $enable ) {
+		$this->set_prop( 'pickup_locations_enable', wc_string_to_bool( $enable ) );
+	}
+
+	public function set_pickup_locations_max_results( $max_results ) {
+		$this->set_prop( 'pickup_locations_max_results', absint( $max_results ) );
+	}
+
 	public function get_label_classname( $type ) {
 		$classname = '\Vendidero\Germanized\Shipments\Labels\Label';
 
@@ -348,6 +370,16 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return apply_filters( "{$this->get_hook_prefix()}label_fields_html", $html, $shipment, $this );
 	}
 
+	public function get_section_help_link( $section ) {
+		$help_link = parent::get_section_help_link( $section );
+
+		if ( 'pickup_locations' === $section ) {
+			$help_link = 'https://vendidero.de/dokument/lieferung-an-eine-abholstation';
+		}
+
+		return $help_link;
+	}
+
 	protected function get_printing_settings() {
 		$settings = array(
 			array(
@@ -397,6 +429,49 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				array(
 					'type' => 'sectionend',
 					'id'   => 'shipping_provider_label_format_options',
+				),
+			)
+		);
+
+		return $settings;
+	}
+
+	protected function get_pickup_locations_settings() {
+		$settings = array(
+			array(
+				'title' => _x( 'Pickup Locations', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'  => 'title',
+				'id'    => 'shipping_provider_pickup_locations_options',
+			),
+			array(
+				'title'   => _x( 'Enable', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc'    => _x( 'Allow customers to choose a pickup location within checkout.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'id'      => 'pickup_locations_enable',
+				'type'    => 'gzd_toggle',
+				'default' => 'yes',
+				'value'   => wc_bool_to_string( $this->get_setting( 'pickup_locations_enable', 'yes' ) ),
+			),
+			array(
+				'title'             => _x( 'Limit results', 'shipments', 'woocommerce-germanized-shipments' ),
+				'type'              => 'number',
+				'id'                => 'pickup_locations_max_results',
+				'value'             => $this->get_setting( 'pickup_locations_max_results', 20 ),
+				'desc_tip'          => _x( 'Limit the number of pickup locations presented to the customer.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'default'           => 20,
+				'css'               => 'max-width: 60px;',
+				'custom_attributes' => array(
+					'max'                                  => 50,
+					'data-show_if_pickup_locations_enable' => '',
+				),
+			),
+		);
+
+		$settings = array_merge(
+			$settings,
+			array(
+				array(
+					'type' => 'sectionend',
+					'id'   => 'shipping_provider_pickup_locations_options',
 				),
 			)
 		);
@@ -488,6 +563,10 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 
 	public function get_settings_help_pointers( $section = '' ) {
 		return array();
+	}
+
+	public function supports_pickup_locations() {
+		return false;
 	}
 
 	public function supports_pickup_location_delivery( $address, $query_args = array() ) {
@@ -596,7 +675,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 			array(
 				'max_dimensions'  => array(),
 				'max_weight'      => 0.0,
-				'limit'           => 10,
+				'limit'           => $this->get_pickup_locations_max_results(),
 				'payment_gateway' => '',
 			)
 		);
@@ -913,6 +992,15 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				'automation' => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ),
 			)
 		);
+
+		if ( $this->supports_pickup_locations() ) {
+			$sections = array_merge(
+				$sections,
+				array(
+					'pickup_locations' => _x( 'Pickup Locations', 'shipments', 'woocommerce-germanized-shipments' ),
+				)
+			);
+		}
 
 		$sections = array_replace_recursive( $sections, parent::get_setting_sections() );
 

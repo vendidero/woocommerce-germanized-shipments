@@ -48,6 +48,8 @@ interface ShippingProviderAuto extends ShippingProvider, LabelConfigurationSet {
 
 	public function get_settings_help_pointers( $section = '' );
 
+	public function supports_pickup_locations();
+
 	public function supports_pickup_location_delivery( $address, $query_args = array() );
 
 	public function is_valid_pickup_location( $location_code, $address );

@@ -126,6 +126,10 @@ class Simple extends WC_Data implements ShippingProvider {
 		return '';
 	}
 
+	public function get_section_help_link( $section ) {
+		return '';
+	}
+
 	public function get_signup_link() {
 		return '';
 	}
