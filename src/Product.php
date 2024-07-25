@@ -66,10 +66,10 @@ class Product {
 		$length = $this->get_product()->get_meta( '_shipping_length', true, $context );
 
 		if ( 'view' === $context && '' === $length ) {
-			if ( $this->is_variation() ) {
+			$length = $this->get_product()->get_length();
+
+			if ( $this->is_variation() && '' === $length ) {
 				$length = wc_gzd_shipments_get_product( $this->get_forced_parent_product() )->get_shipping_length( $context );
-			} else {
-				$length = $this->get_product()->get_length();
 			}
 		}
 
@@ -80,10 +80,10 @@ class Product {
 		$width = $this->get_product()->get_meta( '_shipping_width', true, $context );
 
 		if ( 'view' === $context && '' === $width ) {
-			if ( $this->is_variation() ) {
+			$width = $this->get_product()->get_width();
+
+			if ( $this->is_variation() && '' === $width ) {
 				$width = wc_gzd_shipments_get_product( $this->get_forced_parent_product() )->get_shipping_width( $context );
-			} else {
-				$width = $this->get_product()->get_width();
 			}
 		}
 
@@ -94,10 +94,10 @@ class Product {
 		$height = $this->get_product()->get_meta( '_shipping_height', true, $context );
 
 		if ( 'view' === $context && '' === $height ) {
-			if ( $this->is_variation() ) {
+			$height = $this->get_product()->get_height();
+
+			if ( $this->is_variation() && '' === $height ) {
 				$height = wc_gzd_shipments_get_product( $this->get_forced_parent_product() )->get_shipping_height( $context );
-			} else {
-				$height = $this->get_product()->get_height();
 			}
 		}
 
