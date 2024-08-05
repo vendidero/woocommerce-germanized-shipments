@@ -450,7 +450,7 @@ class ShipmentItem extends WC_Data {
 					'customs_description' => $product ? $product->get_customs_description() : '',
 					'manufacture_country' => $product ? $product->get_manufacture_country() : '',
 					'attributes'          => $attributes,
-					'item_parent_id'      => 0,
+					'item_parent_id'      => $this->get_item_parent_id() ? $this->get_item_parent_id() : 0,
 				)
 			);
 		}

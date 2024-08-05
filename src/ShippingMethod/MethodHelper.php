@@ -69,13 +69,14 @@ class MethodHelper {
 
 		foreach ( $cart_contents as $index => $content ) {
 			$package_data = array(
-				'total'            => 0.0,
-				'subtotal'         => 0.0,
-				'weight'           => 0.0,
-				'volume'           => 0.0,
-				'products'         => array(),
-				'shipping_classes' => array(),
-				'item_count'       => 0,
+				'total'                        => 0.0,
+				'subtotal'                     => 0.0,
+				'weight'                       => 0.0,
+				'volume'                       => 0.0,
+				'products'                     => array(),
+				'shipping_classes'             => array(),
+				'has_missing_shipping_classes' => false,
+				'item_count'                   => 0,
 			);
 
 			$items = new ItemList();
@@ -116,6 +117,8 @@ class MethodHelper {
 
 					if ( ! empty( $product->get_shipping_class_id() ) ) {
 						$package_data['shipping_classes'][] = $product->get_shipping_class_id();
+					} else {
+						$package_data['has_missing_shipping_classes'] = true;
 					}
 				}
 

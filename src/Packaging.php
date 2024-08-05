@@ -292,6 +292,12 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 		return ! empty( $classes ) ? true : false;
 	}
 
+	public function has_shipping_provider_restrictions() {
+		$providers = $this->get_available_shipping_provider( 'edit' );
+
+		return ! empty( $providers ) ? true : false;
+	}
+
 	/**
 	 * Returns the available shipping provider names.
 	 *

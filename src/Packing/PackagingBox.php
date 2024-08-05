@@ -76,6 +76,14 @@ class PackagingBox implements PackingBox {
 		return $this->costs;
 	}
 
+	public function has_shipping_class_restrictions() {
+		return $this->get_packaging()->has_shipping_class_restrictions();
+	}
+
+	public function has_shipping_provider_restrictions() {
+		return $this->get_packaging()->has_shipping_provider_restrictions();
+	}
+
 	public function get_id() {
 		return $this->packaging->get_id();
 	}

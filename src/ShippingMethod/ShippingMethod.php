@@ -259,6 +259,10 @@ class ShippingMethod extends \WC_Shipping_Method {
 					'label'       => _x( 'none of', 'shipments', 'woocommerce-germanized-shipments' ),
 					'is_negation' => true,
 				),
+				'exactly' => array(
+					'label'       => _x( 'Exactly', 'shipments', 'woocommerce-germanized-shipments' ),
+					'is_negation' => false,
+				),
 			)
 		);
 	}
@@ -360,7 +364,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 							},
 						),
 					),
-					'operators' => array( 'any_of', 'none_of' ),
+					'operators' => array( 'any_of', 'none_of', 'exactly' ),
 					'is_global' => true,
 				),
 				'package_shipping_classes' => array(
@@ -376,7 +380,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 							},
 						),
 					),
-					'operators' => array( 'any_of', 'none_of' ),
+					'operators' => array( 'any_of', 'none_of', 'exactly' ),
 				),
 			)
 		);
@@ -569,15 +573,16 @@ class ShippingMethod extends \WC_Shipping_Method {
 
 			if ( 0 === count( $unpacked_items ) ) {
 				foreach ( $packed_boxes as $box ) {
-					$packaging        = $box->getBox();
-					$items            = $box->getItems();
-					$total_weight     = wc_get_weight( $items->getWeight(), strtolower( get_option( 'woocommerce_weight_unit' ) ), 'g' );
-					$volume           = wc_get_dimension( $items->getVolume(), strtolower( get_option( 'woocommerce_dimension_unit' ) ), 'mm' );
-					$item_count       = $items->count();
-					$total            = 0;
-					$subtotal         = 0;
-					$products         = array();
-					$shipping_classes = array();
+					$packaging                    = $box->getBox();
+					$items                        = $box->getItems();
+					$total_weight                 = wc_get_weight( $items->getWeight(), strtolower( get_option( 'woocommerce_weight_unit' ) ), 'g' );
+					$volume                       = wc_get_dimension( $items->getVolume(), strtolower( get_option( 'woocommerce_dimension_unit' ) ), 'mm' );
+					$item_count                   = $items->count();
+					$total                        = 0;
+					$subtotal                     = 0;
+					$products                     = array();
+					$shipping_classes             = array();
+					$has_missing_shipping_classes = false;
 
 					foreach ( $items as $item ) {
 						$cart_item = $item->getItem();
@@ -590,6 +595,8 @@ class ShippingMethod extends \WC_Shipping_Method {
 
 							if ( ! empty( $product->get_shipping_class_id() ) ) {
 								$shipping_classes[] = $product->get_shipping_class_id();
+							} else {
+								$has_missing_shipping_classes = true;
 							}
 						}
 					}
@@ -608,6 +615,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 							'packaging_id'             => $packaging->get_id(),
 							'package_products'         => $products,
 							'package_shipping_classes' => $shipping_classes,
+							'package_has_missing_shipping_classes' => $has_missing_shipping_classes,
 						)
 					);
 
@@ -882,18 +890,19 @@ class ShippingMethod extends \WC_Shipping_Method {
 		$package_data = wp_parse_args(
 			$package_data,
 			array(
-				'package_weight'           => 0.0,
-				'package_volume'           => 0.0,
-				'package_total'            => 0.0,
-				'package_subtotal'         => 0.0,
-				'package_products'         => array(),
-				'package_shipping_classes' => array(),
-				'weight'                   => 0.0,
-				'volume'                   => 0.0,
-				'total'                    => 0.0,
-				'subtotal'                 => 0.0,
-				'products'                 => array(),
-				'shipping_classes'         => array(),
+				'package_weight'                       => 0.0,
+				'package_volume'                       => 0.0,
+				'package_total'                        => 0.0,
+				'package_subtotal'                     => 0.0,
+				'package_products'                     => array(),
+				'package_shipping_classes'             => array(),
+				'package_has_missing_shipping_classes' => false,
+				'weight'                               => 0.0,
+				'volume'                               => 0.0,
+				'total'                                => 0.0,
+				'subtotal'                             => 0.0,
+				'products'                             => array(),
+				'shipping_classes'                     => array(),
 			)
 		);
 
@@ -947,11 +956,16 @@ class ShippingMethod extends \WC_Shipping_Method {
 				} elseif ( 'shipping_classes' === $condition_type_name || 'package_shipping_classes' === $condition_type_name ) {
 					$classes = isset( $condition['classes'] ) && ! empty( $condition['classes'] ) ? array_map( 'absint', (array) $condition['classes'] ) : array();
 
-					if ( array_intersect( $package_data[ $condition_type_name ], $classes ) ) {
-						if ( 'any_of' === $operator_name ) {
-							$condition_applies = true;
-						} elseif ( 'none_of' === $operator_name ) {
-							$condition_applies = false;
+					if ( 'exactly' === $operator_name ) {
+						$has_missing_shipping_classes = 'package_shipping_classes' === $condition_type_name ? $package_data['package_has_missing_shipping_classes'] : $package_data['has_missing_shipping_classes'];
+						$condition_applies            = ! $has_missing_shipping_classes && $package_data[ $condition_type_name ] === $classes;
+					} else {
+						if ( array_intersect( $package_data[ $condition_type_name ], $classes ) ) {
+							if ( 'any_of' === $operator_name ) {
+								$condition_applies = true;
+							} elseif ( 'none_of' === $operator_name ) {
+								$condition_applies = false;
+							}
 						}
 					}
 				}
