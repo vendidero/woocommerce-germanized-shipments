@@ -184,6 +184,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		if ( $label ) {
 			if ( $shipment = $label->get_shipment() ) {
 				$placeholders['{shipment_number}'] = $shipment->get_shipment_number();
+				$placeholders['{shipment_id}']     = $shipment->get_id();
 				$placeholders['{order_number}']    = $shipment->get_order_number();
 				$placeholders['{item_count}']      = $shipment->get_item_count();
 			}
