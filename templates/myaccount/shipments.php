@@ -12,7 +12,7 @@
  *
  * @see https://github.com/vendidero/woocommerce-germanized/wiki/Overriding-Germanized-Templates
  * @package Germanized/Shipments/Templates/Emails/Plain
- * @version 1.1.3
+ * @version 1.2.0
  */
 use Vendidero\Germanized\Shipments\Shipment;
 
@@ -65,10 +65,13 @@ do_action( 'woocommerce_gzd_before_account_shipments', $shipments, $order ); ?>
 						?>
 
 					<?php elseif ( 'shipment-number' === $column_id ) : ?>
-						<a href="<?php echo esc_url( $shipment->get_view_shipment_url() ); ?>">
+						<?php if ( current_user_can( 'view_order', $shipment->get_order_id() ) ) : ?>
+							<a href="<?php echo esc_url( $shipment->get_view_shipment_url() ); ?>">
+								<?php echo esc_html( sprintf( _x( '%1$s #%2$s', 'shipment title', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label_title( $shipment->get_type() ), $shipment->get_shipment_number() ) ); ?>
+							</a>
+						<?php else : ?>
 							<?php echo esc_html( sprintf( _x( '%1$s #%2$s', 'shipment title', 'woocommerce-germanized-shipments' ), wc_gzd_get_shipment_label_title( $shipment->get_type() ), $shipment->get_shipment_number() ) ); ?>
-						</a>
-
+						<?php endif; ?>
 					<?php elseif ( 'shipment-date' === $column_id ) : ?>
 						<time datetime="<?php echo esc_attr( $shipment->get_date_created()->date( 'c' ) ); ?>"><?php echo esc_html( wc_format_datetime( $shipment->get_date_created() ) ); ?></time>
 

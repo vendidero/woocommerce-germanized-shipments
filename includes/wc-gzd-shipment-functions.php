@@ -1220,11 +1220,14 @@ function wc_gzd_get_account_shipments_columns( $type = 'simple' ) {
 		$type
 	);
 
+	if ( ! is_user_logged_in() ) {
+		$columns = array_diff_key( $columns, array( 'shipment-actions' => '' ) );
+	}
+
 	return $columns;
 }
 
 function wc_gzd_get_order_customer_add_return_url( $order ) {
-
 	if ( ! $shipment_order = wc_gzd_get_shipment_order( $order ) ) {
 		return false;
 	}
