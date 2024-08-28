@@ -158,7 +158,7 @@ class PickupDelivery {
 		return $address_fields;
 	}
 
-	protected static function get_pickup_location_data( $context = 'checkout', $retrieve_locations = false, $address_args = array() ) {
+	public static function get_pickup_location_data( $context = 'checkout', $retrieve_locations = false, $address_args = array(), $current_provider = '' ) {
 		$customer   = wc()->customer;
 		$query_args = array();
 		$provider   = false;
@@ -186,6 +186,10 @@ class PickupDelivery {
 			$provider = wc_gzd_get_customer_preferred_shipping_provider( $customer );
 		} elseif ( 'checkout' === $context ) {
 			$query_args = self::get_pickup_delivery_cart_args();
+		}
+
+		if ( ! empty( $current_provider ) ) {
+			$provider = wc_gzd_get_shipping_provider( $current_provider );
 		}
 
 		if ( $customer ) {

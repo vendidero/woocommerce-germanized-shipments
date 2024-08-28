@@ -53,8 +53,22 @@ class Bootstrap {
 		$this->container->get( Caches\Helper::class )::init();
 
 		if ( Package::load_blocks() ) {
-			$this->container->get( Blocks\Checkout::class );
+			if ( did_action( 'woocommerce_blocks_loaded' ) ) {
+				$this->load_blocks();
+			} else {
+				add_action(
+					'woocommerce_blocks_loaded',
+					function() {
+						$this->load_blocks();
+					}
+				);
+			}
 		}
+	}
+
+	protected function load_blocks() {
+		$this->container->get( Blocks\Checkout::class );
+		$this->container->get( Blocks\StoreApi\StoreApi::class )->init();
 	}
 
 	/**
@@ -142,7 +156,7 @@ class Bootstrap {
 		$this->container->register(
 			Blocks\Checkout::class,
 			function ( $container ) {
-				return new Blocks\Checkout();
+				return new Blocks\Checkout( $container->get( Blocks\StoreApi\SchemaController::class ) );
 			}
 		);
 		$this->container->register(
@@ -155,6 +169,24 @@ class Bootstrap {
 			Blocks\Assets::class,
 			function ( $container ) {
 				return new Blocks\Assets();
+			}
+		);
+		$this->container->register(
+			Blocks\StoreApi\StoreApi::class,
+			function ( $container ) {
+				return new Blocks\StoreApi\StoreApi();
+			}
+		);
+		$this->container->register(
+			Blocks\StoreApi\SchemaController::class,
+			function ( $container ) {
+				return new Blocks\StoreApi\SchemaController();
+			}
+		);
+		$this->container->register(
+			Blocks\StoreApi\RoutesController::class,
+			function ( $container ) {
+				return new Blocks\StoreApi\RoutesController( $container->get( Blocks\StoreApi\SchemaController::class ) );
 			}
 		);
 	}

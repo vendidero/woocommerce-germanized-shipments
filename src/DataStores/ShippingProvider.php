@@ -152,6 +152,7 @@ class ShippingProvider extends WC_Data_Store_WP implements WC_Object_Data_Store_
 			'gls',
 			'ups',
 			'hermes',
+			'fedex',
 		);
 
 		return apply_filters( 'woocommerce_gzd_shipments_shipping_provider_is_reserved_name', in_array( $name, $reserved_names, true ) );

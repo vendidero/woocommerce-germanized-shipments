@@ -6,12 +6,20 @@ use Automattic\WooCommerce\StoreApi\Schemas\ExtendSchema;
 use Automattic\WooCommerce\StoreApi\Schemas\V1\CartSchema;
 use Automattic\WooCommerce\StoreApi\Schemas\V1\CheckoutSchema;
 use Automattic\WooCommerce\StoreApi\Utilities\CartController;
+use Vendidero\Germanized\Shipments\Blocks\StoreApi\SchemaController;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\PickupDelivery;
 
 final class Checkout {
 
-	public function __construct() {
+	/**
+	 * @var SchemaController
+	 */
+	private $schema_controller = null;
+
+	public function __construct( $schema_controller ) {
+		$this->schema_controller = $schema_controller;
+
 		$this->register_endpoint_data();
 		$this->register_integrations();
 		$this->register_validation_and_storage();
@@ -209,122 +217,14 @@ final class Checkout {
 	}
 
 	private function get_cart_schema() {
-		return array(
+		$pickup_location_schema = $this->schema_controller->get( 'search-pickup-locations' )->get_item_schema();
+
+		$schema = array(
 			'pickup_location_delivery_available'      => array(
 				'description' => _x( 'Whether pickup location delivery is available', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'        => 'boolean',
 				'context'     => array( 'view', 'edit' ),
 				'readonly'    => true,
-			),
-			'pickup_locations'                        => array(
-				'description' => _x( 'Available pickup locations', 'shipments', 'woocommerce-germanized-shipments' ),
-				'type'        => 'array',
-				'context'     => array( 'view', 'edit' ),
-				'readonly'    => true,
-				'items'       => array(
-					'type'       => 'object',
-					'properties' => array(
-						'code'                         => array(
-							'description' => _x( 'The location code.', 'shipments', 'woocommerce-germanized-shipments' ),
-							'type'        => 'string',
-							'context'     => array( 'view', 'edit' ),
-							'readonly'    => true,
-						),
-						'label'                        => array(
-							'description' => _x( 'The location label.', 'shipments', 'woocommerce-germanized-shipments' ),
-							'type'        => 'string',
-							'context'     => array( 'view', 'edit' ),
-							'readonly'    => true,
-						),
-						'latitude'                     => array(
-							'description' => _x( 'The location latitude.', 'shipments', 'woocommerce-germanized-shipments' ),
-							'type'        => 'string',
-							'context'     => array( 'view', 'edit' ),
-							'readonly'    => true,
-						),
-						'longitude'                    => array(
-							'description' => _x( 'The location longitude.', 'shipments', 'woocommerce-germanized-shipments' ),
-							'type'        => 'string',
-							'context'     => array( 'view', 'edit' ),
-							'readonly'    => true,
-						),
-						'supports_customer_number'     => array(
-							'description' => _x( 'Whether the location supports a customer number or not.', 'shipments', 'woocommerce-germanized-shipments' ),
-							'type'        => 'boolean',
-							'context'     => array( 'view', 'edit' ),
-							'readonly'    => true,
-							'default'     => false,
-						),
-						'customer_number_is_mandatory' => array(
-							'description' => _x( 'Whether the customer number is mandatory or not.', 'shipments', 'woocommerce-germanized-shipments' ),
-							'type'        => 'boolean',
-							'context'     => array( 'view', 'edit' ),
-							'readonly'    => true,
-							'default'     => false,
-						),
-						'customer_number_field_label'  => array(
-							'description' => _x( 'The customer number field label.', 'shipments', 'woocommerce-germanized-shipments' ),
-							'type'        => 'string',
-							'context'     => array( 'view', 'edit' ),
-							'readonly'    => true,
-						),
-						'type'                         => array(
-							'description' => _x( 'The location type, e.g. locker.', 'shipments', 'woocommerce-germanized-shipments' ),
-							'type'        => 'string',
-							'context'     => array( 'view', 'edit' ),
-							'readonly'    => true,
-						),
-						'formatted_address'            => array(
-							'description' => _x( 'The location\'s formatted address.', 'shipments', 'woocommerce-germanized-shipments' ),
-							'type'        => 'string',
-							'context'     => array( 'view', 'edit' ),
-							'readonly'    => true,
-						),
-						'address_replacements'         => array(
-							'description' => _x( 'The location\'s address replacements.', 'shipments', 'woocommerce-germanized-shipments' ),
-							'type'        => 'array',
-							'context'     => array( 'view', 'edit' ),
-							'readonly'    => true,
-							'items'       => array(
-								'type'       => 'object',
-								'properties' => array(
-									'address_1' => array(
-										'description' => _x( 'The location address.', 'shipments', 'woocommerce-germanized-shipments' ),
-										'type'        => 'string',
-										'context'     => array( 'view', 'edit' ),
-										'readonly'    => true,
-										'default'     => '',
-									),
-									'address_2' => array(
-										'description' => _x( 'The location address 2.', 'shipments', 'woocommerce-germanized-shipments' ),
-										'type'        => 'string',
-										'context'     => array( 'view', 'edit' ),
-										'readonly'    => true,
-										'default'     => '',
-									),
-									'postcode'  => array(
-										'description' => _x( 'The location postcode.', 'shipments', 'woocommerce-germanized-shipments' ),
-										'type'        => 'string',
-										'context'     => array( 'view', 'edit' ),
-										'readonly'    => true,
-									),
-									'city'      => array(
-										'description' => _x( 'The location city.', 'shipments', 'woocommerce-germanized-shipments' ),
-										'type'        => 'string',
-										'context'     => array( 'view', 'edit' ),
-										'readonly'    => true,
-									),
-									'country'   => array(
-										'description' => _x( 'The location country.', 'shipments', 'woocommerce-germanized-shipments' ),
-										'type'        => 'string',
-										'context'     => array( 'view', 'edit' ),
-										'readonly'    => true,
-									),
-								),
-							),
-						),
-					),
-				),
 			),
 			'default_pickup_location'                 => array(
 				'description' => _x( 'Pickup location', 'shipments', 'woocommerce-germanized-shipments' ),
@@ -341,6 +241,10 @@ final class Checkout {
 				'readonly'    => true,
 			),
 		);
+
+		$schema = array_merge( $schema, $pickup_location_schema );
+
+		return $schema;
 	}
 
 	private function get_cart_data() {

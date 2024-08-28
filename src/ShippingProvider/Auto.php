@@ -721,8 +721,8 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 				$cache_key                     = $this->get_pickup_location_cache_key( $pickup_location->get_id(), $pickup_location->get_address() );
 				$single_cached_pickup_location = get_transient( $cache_key );
 
-				if ( false === $single_cached_pickup_location ) {
-					set_transient( $cache_key, $single_cached_pickup_location, DAY_IN_SECONDS );
+				if ( false === $single_cached_pickup_location || '' === $single_cached_pickup_location ) {
+					set_transient( $cache_key, $pickup_location, DAY_IN_SECONDS );
 				}
 
 				if ( ! $pickup_location->supports_cart( $query_args ) ) {

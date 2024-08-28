@@ -174,26 +174,36 @@ const getBaseConfig = ( entry ) => {
                             loader: 'sass-loader',
                             options: {
                                 sassOptions: {
-                                    includePaths: [ 'assets/css' ],
+                                    includePaths: [ 'assets/css/abstracts' ],
                                 },
                                 additionalData: ( content, loaderContext ) => {
-                                    const {
-                                        resourcePath,
-                                        rootContext,
-                                    } = loaderContext;
+                                    const { resourcePath, rootContext } =
+                                        loaderContext;
                                     const relativePath = path.relative(
                                         rootContext,
                                         resourcePath
                                     );
 
                                     if (
-                                        relativePath.startsWith( 'assets/css/' )
+                                        relativePath.startsWith(
+                                            'assets/css/abstracts/'
+                                        ) ||
+                                        relativePath.startsWith(
+                                            'assets\\css\\abstracts\\'
+                                        )
                                     ) {
                                         return content;
                                     }
 
-                                    // Add code here to prepend to all .scss/.sass files.
                                     return (
+                                        '@use "sass:math";' +
+                                        '@use "sass:string";' +
+                                        '@use "sass:color";' +
+                                        '@use "sass:map";' +
+                                        '@import "_colors"; ' +
+                                        '@import "_variables"; ' +
+                                        '@import "_breakpoints"; ' +
+                                        '@import "_mixins"; ' +
                                         content
                                     );
                                 },
