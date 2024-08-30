@@ -644,8 +644,8 @@ abstract class Shipment extends WC_Data {
 		if ( is_null( $this->weights ) ) {
 			$this->weights = array();
 
-			foreach ( $this->get_items() as $item ) {
-				$this->weights[ $item->get_id() ] = ( ( $item->get_weight() === '' ? 0 : $item->get_weight() ) * $item->get_quantity() );
+			foreach ( $this->get_items() as $k => $item ) {
+				$this->weights[ $k ] = ( ( $item->get_weight() === '' ? 0 : $item->get_weight() ) * $item->get_quantity() );
 			}
 
 			if ( empty( $this->weights ) ) {
@@ -665,8 +665,8 @@ abstract class Shipment extends WC_Data {
 		if ( is_null( $this->lengths ) ) {
 			$this->lengths = array();
 
-			foreach ( $this->get_items() as $item ) {
-				$this->lengths[ $item->get_id() ] = $item->get_length() === '' ? 0 : $item->get_length();
+			foreach ( $this->get_items() as $k => $item ) {
+				$this->lengths[ $k ] = $item->get_length() === '' ? 0 : $item->get_length();
 			}
 
 			if ( empty( $this->lengths ) ) {
@@ -681,11 +681,11 @@ abstract class Shipment extends WC_Data {
 		if ( is_null( $this->volumes ) ) {
 			$this->volumes = array();
 
-			foreach ( $this->get_items() as $item ) {
+			foreach ( $this->get_items() as $k => $item ) {
 				$dimensions = $item->get_dimensions();
 				$volume     = ( '' !== $dimensions['length'] ? (float) $dimensions['length'] : 0 ) * ( '' !== $dimensions['width'] ? (float) $dimensions['width'] : 0 ) * ( '' !== $dimensions['height'] ? (float) $dimensions['height'] : 0 );
 
-				$this->volumes[ $item->get_id() ] = $volume * (float) $item->get_quantity();
+				$this->volumes[ $k ] = $volume * (float) $item->get_quantity();
 			}
 
 			if ( empty( $this->volumes ) ) {
@@ -705,8 +705,8 @@ abstract class Shipment extends WC_Data {
 		if ( is_null( $this->widths ) ) {
 			$this->widths = array();
 
-			foreach ( $this->get_items() as $item ) {
-				$this->widths[ $item->get_id() ] = $item->get_width() === '' ? 0 : $item->get_width();
+			foreach ( $this->get_items() as $k => $item ) {
+				$this->widths[ $k ] = $item->get_width() === '' ? 0 : $item->get_width();
 			}
 
 			if ( empty( $this->widths ) ) {
@@ -726,8 +726,8 @@ abstract class Shipment extends WC_Data {
 		if ( is_null( $this->heights ) ) {
 			$this->heights = array();
 
-			foreach ( $this->get_items() as $item ) {
-				$this->heights[ $item->get_id() ] = ( $item->get_height() === '' ? 0 : $item->get_height() ) * $item->get_quantity();
+			foreach ( $this->get_items() as $k => $item ) {
+				$this->heights[ $k ] = ( $item->get_height() === '' ? 0 : $item->get_height() ) * $item->get_quantity();
 			}
 
 			if ( empty( $this->heights ) ) {
@@ -2291,7 +2291,7 @@ abstract class Shipment extends WC_Data {
 	/**
 	 * Reset item content data.
 	 */
-	protected function reset_content_data() {
+	public function reset_content_data() {
 		$this->weights = null;
 		$this->lengths = null;
 		$this->widths  = null;

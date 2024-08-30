@@ -28,6 +28,29 @@ class Shipment extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTestC
 		$this->assertEquals( 25, $shipment->get_total_weight() );
 	}
 
+	function test_shipment_content_weight() {
+		$shipment = new \Vendidero\Germanized\Shipments\SimpleShipment();
+
+		$item = new \Vendidero\Germanized\Shipments\ShipmentItem();
+		$item->set_weight( 1.5 );
+
+		$item_2 = new \Vendidero\Germanized\Shipments\ShipmentItem();
+		$item_2->set_quantity( 3 );
+		$item_2->set_weight( 5 );
+
+		$shipment->add_item( $item );
+		$shipment->add_item( $item_2 );
+
+		$this->assertEquals( 16.5, $shipment->get_content_weight() );
+
+		$item_2->set_quantity( 2 );
+		$this->assertEquals( 11.5, $shipment->get_content_weight() );
+
+		$item_2->set_quantity( 3 );
+		$item_2->set_weight( 3 );
+		$this->assertEquals( 10.5, $shipment->get_content_weight() );
+	}
+
 	function test_sync_shipment() {
 		$shipment = ShipmentHelper::create_simple_shipment();
 		$shipment->set_packaging_id( 0 );

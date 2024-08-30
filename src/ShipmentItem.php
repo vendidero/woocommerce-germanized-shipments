@@ -668,6 +668,10 @@ class ShipmentItem extends WC_Data {
 	 */
 	public function set_weight( $weight ) {
 		$this->set_prop( 'weight', '' === $weight ? '' : wc_format_decimal( $weight ) );
+
+		if ( $shipment = $this->get_shipment() ) {
+			$shipment->reset_content_data();
+		}
 	}
 
 	/**
@@ -677,6 +681,10 @@ class ShipmentItem extends WC_Data {
 	 */
 	public function set_width( $width ) {
 		$this->set_prop( 'width', '' === $width ? '' : wc_format_decimal( $width ) );
+
+		if ( $shipment = $this->get_shipment() ) {
+			$shipment->reset_content_data();
+		}
 	}
 
 	/**
@@ -686,6 +694,10 @@ class ShipmentItem extends WC_Data {
 	 */
 	public function set_length( $length ) {
 		$this->set_prop( 'length', '' === $length ? '' : wc_format_decimal( $length ) );
+
+		if ( $shipment = $this->get_shipment() ) {
+			$shipment->reset_content_data();
+		}
 	}
 
 	/**
@@ -695,6 +707,10 @@ class ShipmentItem extends WC_Data {
 	 */
 	public function set_height( $height ) {
 		$this->set_prop( 'height', '' === $height ? '' : wc_format_decimal( $height ) );
+
+		if ( $shipment = $this->get_shipment() ) {
+			$shipment->reset_content_data();
+		}
 	}
 
 	public function get_dimensions( $context = 'view' ) {
@@ -707,6 +723,10 @@ class ShipmentItem extends WC_Data {
 
 	public function set_quantity( $quantity ) {
 		$this->set_prop( 'quantity', absint( $quantity ) );
+
+		if ( $shipment = $this->get_shipment() ) {
+			$shipment->reset_content_data();
+		}
 	}
 
 	public function set_name( $name ) {
