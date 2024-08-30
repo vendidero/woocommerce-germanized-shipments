@@ -242,7 +242,7 @@ final class Checkout {
 			),
 		);
 
-		$schema = array_merge( $schema, $pickup_location_schema );
+		$schema['pickup_locations'] = $pickup_location_schema['properties']['pickup_locations'];
 
 		return $schema;
 	}
