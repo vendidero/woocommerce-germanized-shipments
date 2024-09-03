@@ -1,17 +1,17 @@
 
-window.germanized = window.germanized || {};
-window.germanized.shipments_modal = window.germanized.shipments_modal || {};
+window.shipments = window.shipments || {};
+window.shipments.shipments_modal = window.shipments.shipments_modal || {};
 
-( function( $, germanized ) {
+( function( $, shipments ) {
 
     /**
      * Core
      */
-    germanized.shipments_modal = {
+    shipments.shipments_modal = {
         params: {},
 
         init: function () {
-            var self  = germanized.shipments_modal;
+            var self  = shipments.shipments_modal;
 
             $( document ).on( 'click', '.wc-gzd-modal-launcher, .wc-gzd-modal-background, .wc-gzd-modal-close', self.onTriggerModal );
             $( document ).on( 'click', '.wc-gzd-modal-content.active', self.detectBgClick );
@@ -57,7 +57,7 @@ window.germanized.shipments_modal = window.germanized.shipments_modal || {};
     };
 
     $( document ).ready( function() {
-        germanized.shipments_modal.init();
+        shipments.shipments_modal.init();
     });
 
-})( jQuery, window.germanized );
+})( jQuery, window.shipments );

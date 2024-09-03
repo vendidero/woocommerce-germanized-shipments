@@ -1,9 +1,9 @@
-window.germanized = window.germanized || {};
-window.germanized.admin = window.germanized.admin || {};
+window.shipments = window.shipments || {};
+window.shipments.admin = window.shipments.admin || {};
 
-( function( $, admin ) {
+( function( $, shipments ) {
 
-    $.GermanizedShipment = function( shipmentId ) {
+    $.shipmentsShipment = function( shipmentId ) {
 
         /*
          * Variables accessible
@@ -31,7 +31,7 @@ window.germanized.admin = window.germanized.admin || {};
          */
         this.construct = function( shipmentId ) {
             this.vars.id        = shipmentId;
-            this.vars.params    = germanized.admin.shipments.getParams();
+            this.vars.params    = shipments.admin.shipments.getParams();
 
             this.refreshDom();
         };
@@ -50,7 +50,7 @@ window.germanized.admin = window.germanized.admin || {};
             } );
 
             self.vars.modals = [];
-            $modals = $( '#shipment-' + self.vars.id + ' a.has-shipment-modal' ).wc_gzd_admin_shipment_modal();
+            $modals = $( '#shipment-' + self.vars.id + ' a.has-shipment-modal' ).wc_gzd_shipments_admin_shipment_modal();
 
             $modals.each( function() {
                 self.vars.modals.push( $( this ).data( 'self' ) );
@@ -68,8 +68,8 @@ window.germanized.admin = window.germanized.admin || {};
             $( '#shipment-' + self.vars.id + ' #shipment-items-' + self.vars.id )
                 .on( 'change.gzd-shipment', '.item-quantity', self.onChangeQuantity.bind( self ) )
                 .on( 'click.gzd-shipment', 'a.remove-shipment-item', self.onRemoveItem.bind( self ) )
-                .on( 'wc_gzd_admin_shipment_modal_after_load_success.gzd-shipment', 'a.add-shipment-item', self.onLoadedItemsSuccess.bind( self ) )
-                .on( 'wc_gzd_admin_shipment_modal_after_submit_success.gzd-shipment', 'a.add-shipment-item', self.onAddedItem.bind( self ) )
+                .on( 'wc_gzd_shipments_admin_shipment_modal_after_load_success.gzd-shipment', 'a.add-shipment-item', self.onLoadedItemsSuccess.bind( self ) )
+                .on( 'wc_gzd_shipments_admin_shipment_modal_after_submit_success.gzd-shipment', 'a.add-shipment-item', self.onAddedItem.bind( self ) )
                 .on( 'click.gzd-shipment', 'a.sync-shipment-items', self.onSyncItems.bind( self ) );
 
             $( '#shipment-' + self.vars.id + ' #shipment-footer-' + self.vars.id )
@@ -124,22 +124,22 @@ window.germanized.admin = window.germanized.admin || {};
             var params = {
                 'action'       : 'woocommerce_gzd_refresh_shipment_packaging',
                 'shipment_id'  : this.getId(),
-                'security'     : germanized.admin.shipments.getParams().refresh_packaging_nonce
+                'security'     : shipments.admin.shipments.getParams().refresh_packaging_nonce
             };
 
             this.blockPackaging();
-            germanized.admin.shipments.doAjax( params, this.unblockPackaging.bind( this ), this.unblockPackaging.bind( this ) );
+            shipments.admin.shipments.doAjax( params, this.unblockPackaging.bind( this ), this.unblockPackaging.bind( this ) );
         };
 
         this.onSendReturnNotification = function() {
             var params = {
                 'action'       : 'woocommerce_gzd_send_return_shipment_notification_email',
                 'shipment_id'  : this.getId(),
-                'security'     : germanized.admin.shipments.getParams().send_return_notification_nonce
+                'security'     : shipments.admin.shipments.getParams().send_return_notification_nonce
             };
 
             this.block();
-            germanized.admin.shipments.doAjax( params, this.unblock.bind( this ), this.unblock.bind( this ) );
+            shipments.admin.shipments.doAjax( params, this.unblock.bind( this ), this.unblock.bind( this ) );
 
             return false;
         };
@@ -148,17 +148,17 @@ window.germanized.admin = window.germanized.admin || {};
             var params = {
                 'action'       : 'woocommerce_gzd_confirm_return_request',
                 'shipment_id'  : this.getId(),
-                'security'     : germanized.admin.shipments.getParams().confirm_return_request_nonce
+                'security'     : shipments.admin.shipments.getParams().confirm_return_request_nonce
             };
 
             this.block();
-            germanized.admin.shipments.doAjax( params, this.unblock.bind( this ), this.unblock.bind( this ) );
+            shipments.admin.shipments.doAjax( params, this.unblock.bind( this ), this.unblock.bind( this ) );
 
             return false;
         };
 
         this.onRemoveLabel = function() {
-            var answer = window.confirm( germanized.admin.shipments.getParams().i18n_remove_label_notice );
+            var answer = window.confirm( shipments.admin.shipments.getParams().i18n_remove_label_notice );
 
             if ( answer ) {
                 this.removeLabel();
@@ -171,11 +171,11 @@ window.germanized.admin = window.germanized.admin || {};
             var params = {
                 'action'       : 'woocommerce_gzd_remove_shipment_label',
                 'shipment_id'  : this.getId(),
-                'security'     : germanized.admin.shipments.getParams().remove_label_nonce
+                'security'     : shipments.admin.shipments.getParams().remove_label_nonce
             };
 
             this.block();
-            germanized.admin.shipments.doAjax( params, this.unblock.bind( this ), this.unblock.bind( this ) );
+            shipments.admin.shipments.doAjax( params, this.unblock.bind( this ), this.unblock.bind( this ) );
         };
 
         this.onChangeProvider = function() {
@@ -215,7 +215,7 @@ window.germanized.admin = window.germanized.admin || {};
                 'quantity'     : newQuantity
             };
 
-            germanized.admin.shipments.doAjax( params, this.onChangeQuantitySuccess.bind( this ) );
+            shipments.admin.shipments.doAjax( params, this.onChangeQuantitySuccess.bind( this ) );
         };
 
         this.onChangeQuantitySuccess = function( data ) {
@@ -314,7 +314,7 @@ window.germanized.admin = window.germanized.admin || {};
                 'shipment_id': this.getId()
             };
 
-            germanized.admin.shipments.doAjax( params, this.onSyncItemsSuccess.bind( this ), this.onSyncItemsError.bind( this ) );
+            shipments.admin.shipments.doAjax( params, this.onSyncItemsSuccess.bind( this ), this.onSyncItemsError.bind( this ) );
         };
 
         this.onSyncItemsSuccess = function( data ) {
@@ -329,7 +329,7 @@ window.germanized.admin = window.germanized.admin || {};
             adminShipmentModal.doAjax( {
                 'action'       : 'woocommerce_gzd_get_available_shipment_items',
                 'reference_id' : adminShipmentModal.reference_id,
-                'security'     : germanized.admin.shipments.getParams().edit_shipments_nonce
+                'security'     : shipments.admin.shipments.getParams().edit_shipments_nonce
             }, this.onLoadedItemsSuccess.bind( this ) );
 
             return false;
@@ -368,7 +368,7 @@ window.germanized.admin = window.germanized.admin || {};
                 'quantity'         : quantity
             };
 
-            germanized.admin.shipments.doAjax( params, this.onAddItemSuccess.bind( this ), this.onAddItemError.bind( this ) );
+            shipments.admin.shipments.doAjax( params, this.onAddItemSuccess.bind( this ), this.onAddItemError.bind( this ) );
         };
 
         this.addReturn = function( items ) {
@@ -381,14 +381,14 @@ window.germanized.admin = window.germanized.admin || {};
 
             $.extend( params, items );
 
-            germanized.admin.shipments.doAjax( params, this.onAddReturnSuccess.bind( this ), this.onAddReturnError.bind( this ) );
+            shipments.admin.shipments.doAjax( params, this.onAddReturnSuccess.bind( this ), this.onAddReturnError.bind( this ) );
         };
 
         this.onAddReturnSuccess = function( data ) {
             this.getShipment().find( '.shipment-return-list' ).append( data.new_shipment );
 
             this.refreshDom();
-            germanized.admin.shipments.initShipments();
+            shipments.admin.shipments.initShipments();
 
             this.unblock();
         };
@@ -459,7 +459,7 @@ window.germanized.admin = window.germanized.admin || {};
 
             this.blockItems();
 
-            germanized.admin.shipments.doAjax( params, this.onRemoveItemSuccess.bind( this ) );
+            shipments.admin.shipments.doAjax( params, this.onRemoveItemSuccess.bind( this ) );
         };
 
         this.onRemoveItemSuccess = function( data ) {
@@ -492,4 +492,4 @@ window.germanized.admin = window.germanized.admin || {};
         this.construct( shipmentId );
     };
 
-})( jQuery, window.germanized.admin );
+})( jQuery, window.shipments );

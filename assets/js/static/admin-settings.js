@@ -1,13 +1,13 @@
-window.germanized = window.germanized || {};
-window.germanized.admin = window.germanized.admin || {};
+window.shipments = window.shipments || {};
+window.shipments.admin = window.shipments.admin || {};
 
-( function( $, admin ) {
-    admin.shipment_settings = {
+( function( $, shipments ) {
+    shipments.admin.shipment_settings = {
         params: {},
 
         init: function() {
-            var self = germanized.admin.shipment_settings;
-            self.params = wc_gzd_admin_shipment_settings_params;
+            var self = shipments.admin.shipment_settings;
+            self.params = wc_gzd_shipments_admin_settings_params;
 
             $( document )
                 .on( 'click', 'a.woocommerce-gzd-shipment-input-toggle-trigger', self.onInputToggleClick )
@@ -17,7 +17,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         getCleanInputId: function( $mainInput ) {
-            var self = germanized.admin.shipment_settings,
+            var self = shipments.admin.shipment_settings,
                 fieldId = $mainInput.attr( 'id' ) ? $mainInput.attr( 'id' ) : $mainInput.attr( 'name' );
 
             if ( self.params.hasOwnProperty( 'clean_input_callback' ) ) {
@@ -26,11 +26,11 @@ window.germanized.admin = window.germanized.admin || {};
                     objectName = '',
                     methodName = '';
 
-                if ( callback.substring( 0, 17 ) === 'germanized.admin.' ) {
+                if ( callback.substring( 0, 17 ) === 'shipments.admin.' ) {
                     callback = callback.slice( 17 );
 
                     params = callback.split( "." );
-                    objectName = germanized.admin[params[0]];
+                    objectName = shipments.admin[params[0]];
                     methodName = params[1];
                 } else {
                     params = callback.split( "." );
@@ -51,7 +51,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         getInputByIdOrName: function( $wrapper , cleanName ) {
-            var self = germanized.admin.shipment_settings;
+            var self = shipments.admin.shipment_settings;
             cleanName = self.getCleanDataId( cleanName );
 
             return $wrapper.find( ':input' ).filter( function() {
@@ -74,7 +74,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         onChangeInput: function() {
-            var self             = germanized.admin.shipment_settings,
+            var self             = shipments.admin.shipment_settings,
                 $mainInput       = $( this ),
                 $wrapper         = $( this ).parents( 'form' ),
                 mainId           = self.getCleanInputId( $mainInput ),
@@ -166,7 +166,7 @@ window.germanized.admin = window.germanized.admin || {};
     };
 
     $( document ).ready( function() {
-        germanized.admin.shipment_settings.init();
+        shipments.admin.shipment_settings.init();
     });
 
-})( jQuery, window.germanized.admin );
+})( jQuery, window.shipments );

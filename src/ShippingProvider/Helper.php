@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments\ShippingProvider;
 
+use Vendidero\Germanized\Shipments\Extensions\Extensions;
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
 use Vendidero\Germanized\Shipments\Package;
 use WC_Data_Store;
@@ -24,6 +25,11 @@ class Helper {
 	 * @var Simple[]|null
 	 */
 	public $shipping_providers = null;
+
+	/**
+	 * @var null|\Vendidero\Germanized\Shipments\ShippingProvider\Placeholder[]
+	 */
+	private $integrations = null;
 
 	/**
 	 * Stores shipping providers loaded.
@@ -76,6 +82,72 @@ class Helper {
 		 * @package Vendidero/Germanized/Shipments
 		 */
 		do_action( 'woocommerce_gzd_shipping_providers_init' );
+	}
+
+	/**
+	 * @return Placeholder[]
+	 */
+	public function get_available_shipping_provider_integrations( $inactive_only = false ) {
+		if ( is_null( $this->integrations ) ) {
+			$this->integrations = array();
+			$available          = array(
+				'dhl'           => array(
+					'title'               => _x( 'DHL', 'shipments', 'woocommerce-germanized-shipments' ),
+					'countries_supported' => array( 'DE' ),
+					'is_builtin'          => false,
+					'is_pro'              => false,
+					'extension_name'      => 'woocommerce-germanized-dhl',
+				),
+				'deutsche_post' => array(
+					'title'               => _x( 'Deutsche Post', 'shipments', 'woocommerce-germanized-shipments' ),
+					'countries_supported' => array( 'DE' ),
+					'is_builtin'          => false,
+					'is_pro'              => false,
+					'extension_name'      => 'woocommerce-germanized-dhl',
+				),
+				'dpd'           => array(
+					'title'               => _x( 'DPD', 'shipments', 'woocommerce-germanized-shipments' ),
+					'countries_supported' => array( 'DE', 'AT' ),
+					'is_builtin'          => false,
+					'is_pro'              => true,
+					'extension_name'      => 'woocommerce-germanized-dpd',
+				),
+				'gls'           => array(
+					'title'               => _x( 'GLS', 'shipments', 'woocommerce-germanized-shipments' ),
+					'countries_supported' => array( 'DE', 'AT', 'CH', 'BE', 'LU', 'FR', 'IE', 'ES' ),
+					'is_builtin'          => false,
+					'is_pro'              => true,
+					'extension_name'      => 'woocommerce-germanized-gls',
+				),
+				'hermes'        => array(
+					'title'               => _x( 'Hermes', 'shipments', 'woocommerce-germanized-shipments' ),
+					'countries_supported' => array( 'DE' ),
+					'is_builtin'          => false,
+					'is_pro'              => true,
+					'extension_name'      => 'woocommerce-germanized-hermes',
+				),
+			);
+
+			foreach ( $available as $key => $placeholder_args ) {
+				$this->integrations[ $key ] = new Placeholder( 0, $placeholder_args );
+			}
+		}
+
+		$filtered_integrations = array();
+
+		foreach ( $this->integrations as $key => $integration ) {
+			if ( ! $integration->is_base_country_supported() ) {
+				continue;
+			} elseif ( $integration->is_builtin() ) {
+				continue;
+			} elseif ( $inactive_only && ! empty( $integration->get_extension_name() ) && Extensions::is_provider_integration_active( $key, $integration->get_extension_name() ) ) {
+				continue;
+			}
+
+			$filtered_integrations[ $key ] = $integration;
+		}
+
+		return $filtered_integrations;
 	}
 
 	/**

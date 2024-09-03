@@ -123,8 +123,8 @@ class ShippingMethod extends \WC_Shipping_Method {
 		$decimal       = ( ! empty( wc_get_price_decimal_separator() ) ) ? wc_get_price_decimal_separator() : $decimal_point;
 
 		wp_localize_script(
-			'wc-gzd-admin-shipping-rules',
-			'wc_gzd_admin_shipping_rules_params',
+			'wc-gzd-shipments-admin-shipping-rules',
+			'wc_gzd_shipments_admin_shipping_rules_params',
 			array(
 				'rules'                   => $this->get_option( 'shipping_rules', array() ),
 				'decimal_separator'       => $decimal,
@@ -147,7 +147,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 				),
 			)
 		);
-		wp_enqueue_script( 'wc-gzd-admin-shipping-rules' );
+		wp_enqueue_script( 'wc-gzd-shipments-admin-shipping-rules' );
 
 		parent::admin_options();
 	}

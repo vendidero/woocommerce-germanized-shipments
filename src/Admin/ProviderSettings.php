@@ -96,7 +96,7 @@ class ProviderSettings {
 						),
 					),
 					'activate' => array(
-						'target'       => '.wc-gzd-setting-tab-rows tr:first-child .wc-gzd-shipping-provider-activated .woocommerce-gzd-input-toggle-trigger',
+						'target'       => '.wc-gzd-setting-tab-rows tr:first-child .wc-gzd-shipping-provider-activated .woocommerce-gzd-shipments-input-toggle-trigger',
 						'next'         => 'new',
 						'next_url'     => '',
 						'next_trigger' => array(),
@@ -261,8 +261,14 @@ class ProviderSettings {
 	}
 
 	protected static function provider_screen() {
-		$helper    = Helper::instance();
-		$providers = $helper->get_shipping_providers();
+		$helper       = Helper::instance();
+		$providers    = $helper->get_shipping_providers();
+		$integrations = $helper->get_available_shipping_provider_integrations();
+
+		foreach ( $integrations as $integration ) {
+			$providers[ $integration->get_name() ] = $integration;
+		}
+
 		$providers = apply_filters( 'woocommerce_gzd_shipment_admin_provider_list', $providers );
 
 		include_once Package::get_path() . '/includes/admin/views/html-settings-provider-list.php';

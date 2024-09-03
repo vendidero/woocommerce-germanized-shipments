@@ -10,6 +10,7 @@ use Exception;
 use Vendidero\Germanized\Shipments\Admin\Settings;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
+use Vendidero\Germanized\Shipments\SecretBox;
 use Vendidero\Germanized\Shipments\Shipment;
 use Vendidero\Germanized\Shipments\ShipmentError;
 use WC_Data;
@@ -181,7 +182,7 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	public function get_edit_link( $section = '' ) {
-		$url = admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider&provider=' . esc_attr( $this->get_name() ) );
+		$url = admin_url( 'admin.php?page=wc-settings&tab=shipments-shipping_provider&provider=' . esc_attr( $this->get_name() ) );
 		$url = add_query_arg( array( 'section' => $section ), $url );
 
 		return esc_url_raw( $url );
@@ -894,7 +895,7 @@ class Simple extends WC_Data implements ShippingProvider {
 			array(
 				array(
 					'title'       => _x( 'Tracking URL', 'shipments', 'woocommerce-germanized-shipments' ),
-					'desc'        => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Adjust the placeholder used to construct the tracking URL for this shipping provider. You may use on of the following placeholders to insert the tracking id or other dynamic data: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>' . implode( ', ', array_keys( $this->get_tracking_placeholders() ) ) . '</code>' ) . '</div>',
+					'desc'        => '<div class="wc-gzd-shipments-additional-desc">' . sprintf( _x( 'Adjust the placeholder used to construct the tracking URL for this shipping provider. You may use on of the following placeholders to insert the tracking id or other dynamic data: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>' . implode( ', ', array_keys( $this->get_tracking_placeholders() ) ) . '</code>' ) . '</div>',
 					'id'          => 'shipping_provider_tracking_url_placeholder',
 					'placeholder' => $this->get_default_tracking_url_placeholder(),
 					'value'       => $this->get_tracking_url_placeholder( 'edit' ),
@@ -905,7 +906,7 @@ class Simple extends WC_Data implements ShippingProvider {
 
 				array(
 					'title'       => _x( 'Tracking description', 'shipments', 'woocommerce-germanized-shipments' ),
-					'desc'        => '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Adjust the placeholder used to construct the tracking description for this shipping provider (e.g. used within notification emails). You may use on of the following placeholders to insert the tracking id or other dynamic data: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>' . implode( ', ', array_keys( $this->get_tracking_placeholders() ) ) . '</code>' ) . '</div>',
+					'desc'        => '<div class="wc-gzd-shipments-additional-desc">' . sprintf( _x( 'Adjust the placeholder used to construct the tracking description for this shipping provider (e.g. used within notification emails). You may use on of the following placeholders to insert the tracking id or other dynamic data: %s', 'shipments', 'woocommerce-germanized-shipments' ), '<code>' . implode( ', ', array_keys( $this->get_tracking_placeholders() ) ) . '</code>' ) . '</div>',
 					'id'          => 'shipping_provider_tracking_desc_placeholder',
 					'placeholder' => $this->get_default_tracking_desc_placeholder(),
 					'value'       => $this->get_tracking_desc_placeholder( 'edit' ),
@@ -961,12 +962,10 @@ class Simple extends WC_Data implements ShippingProvider {
 		}
 
 		if ( strstr( $key, 'password' ) && ! is_null( $value ) ) {
-			if ( class_exists( 'WC_GZD_Secret_Box_Helper' ) ) {
-				$result = \WC_GZD_Secret_Box_Helper::decrypt( $value );
+			$result = SecretBox::decrypt( $value );
 
-				if ( ! is_wp_error( $result ) ) {
-					$value = $result;
-				}
+			if ( ! is_wp_error( $result ) ) {
+				$value = $result;
 			}
 
 			$value = $this->retrieve_password( $value );
@@ -1062,21 +1061,21 @@ class Simple extends WC_Data implements ShippingProvider {
 			array(
 				array(
 					'title'       => _x( 'Customer returns', 'shipments', 'woocommerce-germanized-shipments' ),
-					'desc'        => _x( 'Allow customers to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'This option will allow your customers to submit return requests to orders. Return requests will be visible within your %1$s. To learn more about return requests by customers and/or guests, please check the %2$s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . esc_url( admin_url( 'admin.php?page=wc-gzd-return-shipments' ) ) . '">' . _x( 'Return Dashboard', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>', '<a href="https://vendidero.de/dokument/retouren-konfigurieren-und-verwalten" target="_blank">' . _x( 'docs', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
+					'desc'        => _x( 'Allow customers to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-shipments-additional-desc">' . sprintf( _x( 'This option will allow your customers to submit return requests to orders. Return requests will be visible within your %1$s. To learn more about return requests by customers and/or guests, please check the %2$s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . esc_url( admin_url( 'admin.php?page=wc-gzd-return-shipments' ) ) . '">' . _x( 'Return Dashboard', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>', '<a href="https://vendidero.de/dokument/retouren-konfigurieren-und-verwalten" target="_blank">' . _x( 'docs', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
 					'id'          => 'supports_customer_returns',
 					'placeholder' => '',
 					'value'       => wc_bool_to_string( $this->get_supports_customer_returns( 'edit' ) ),
 					'default'     => 'no',
-					'type'        => 'gzd_toggle',
+					'type'        => 'gzd_shipments_toggle',
 				),
 
 				array(
 					'title'             => _x( 'Guest returns', 'shipments', 'woocommerce-germanized-shipments' ),
-					'desc'              => _x( 'Allow guests to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . sprintf( _x( 'Guests will need to provide their email address and the order id to receive a one-time link to submit a return request. The placeholder %s might be used to place the request form on your site.', 'shipments', 'woocommerce-germanized-shipments' ), '<code>[gzd_return_request_form]</code>' ) . '</div>',
+					'desc'              => _x( 'Allow guests to submit return requests to shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-shipments-additional-desc">' . sprintf( _x( 'Guests will need to provide their email address and the order id to receive a one-time link to submit a return request. The placeholder %s might be used to place the request form on your site.', 'shipments', 'woocommerce-germanized-shipments' ), '<code>[gzd_return_request_form]</code>' ) . '</div>',
 					'id'                => 'supports_guest_returns',
 					'default'           => 'no',
 					'value'             => wc_bool_to_string( $this->get_supports_guest_returns( 'edit' ) ),
-					'type'              => 'gzd_toggle',
+					'type'              => 'gzd_shipments_toggle',
 					'custom_attributes' => array(
 						'data-show_if_shipping_provider_supports_customer_returns' => '',
 					),
@@ -1084,12 +1083,12 @@ class Simple extends WC_Data implements ShippingProvider {
 
 				array(
 					'title'             => _x( 'Manual confirmation', 'shipments', 'woocommerce-germanized-shipments' ),
-					'desc'              => _x( 'Return requests need manual confirmation.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-additional-desc">' . _x( 'By default return request need manual confirmation e.g. a shop manager needs to review return requests which by default are added with the status "requested" after a customer submitted a return request. If you choose to disable this option, customer return requests will be added as "processing" and an email confirmation including instructions will be sent immediately to the customer.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
+					'desc'              => _x( 'Return requests need manual confirmation.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-shipments-additional-desc">' . _x( 'By default return request need manual confirmation e.g. a shop manager needs to review return requests which by default are added with the status "requested" after a customer submitted a return request. If you choose to disable this option, customer return requests will be added as "processing" and an email confirmation including instructions will be sent immediately to the customer.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
 					'id'                => 'return_manual_confirmation',
 					'placeholder'       => '',
 					'value'             => wc_bool_to_string( $this->get_return_manual_confirmation( 'edit' ) ),
 					'default'           => 'yes',
-					'type'              => 'gzd_toggle',
+					'type'              => 'gzd_shipments_toggle',
 					'custom_attributes' => array(
 						'data-show_if_shipping_provider_supports_customer_returns' => '',
 					),
@@ -1097,7 +1096,7 @@ class Simple extends WC_Data implements ShippingProvider {
 
 				array(
 					'title'             => _x( 'Return instructions', 'shipments', 'woocommerce-germanized-shipments' ),
-					'desc'              => '<div class="wc-gzd-additional-desc">' . _x( 'Provide your customer with instructions on how to return the shipment after a return request has been confirmed e.g. explain how to prepare the return for shipment. In case a label cannot be generated automatically, make sure to provide your customer with information on how to obain a return label.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
+					'desc'              => '<div class="wc-gzd-shipments-additional-desc">' . _x( 'Provide your customer with instructions on how to return the shipment after a return request has been confirmed e.g. explain how to prepare the return for shipment. In case a label cannot be generated automatically, make sure to provide your customer with information on how to obain a return label.', 'shipments', 'woocommerce-germanized-shipments' ) . '</div>',
 					'id'                => 'return_instructions',
 					'placeholder'       => '',
 					'value'             => $this->get_return_instructions( 'edit' ),

@@ -1,23 +1,23 @@
-window.germanized = window.germanized || {};
-window.germanized.admin = window.germanized.admin || {};
+window.shipments = window.shipments || {};
+window.shipments.admin = window.shipments.admin || {};
 
-( function( $, admin ) {
+( function( $, shipments ) {
 
     /**
      * Core
      */
-    admin.shipments_table = {
+    shipments.admin.shipments_table = {
         params: {},
 
         init: function() {
-            var self    = germanized.admin.shipments_table;
-            self.params = wc_gzd_admin_shipments_table_params;
+            var self    = shipments.admin.shipments_table;
+            self.params = wc_gzd_shipments_admin_shipments_table_params;
 
             self.initEnhanced();
 
             $( document ).on( 'click', '#doaction, #doaction2', self.onBulkSubmit );
 
-            $( '.has-shipment-modal' ).wc_gzd_admin_shipment_modal();
+            $( '.has-shipment-modal' ).wc_gzd_shipments_admin_shipment_modal();
 
             $( document.body ).on( 'init_tooltips', function() {
                 self.initTipTip();
@@ -27,7 +27,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         onBulkSubmit: function() {
-            var self   = germanized.admin.shipments_table,
+            var self   = shipments.admin.shipments_table,
                 action = $( this ).parents( '.bulkactions' ).find( 'select[name^=action]' ).val(),
                 type   = $( this ).parents( '#posts-filter' ).find( 'input.shipment_type' ).val(),
                 ids    = [];
@@ -52,7 +52,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         handleBulkAction: function( action, step, ids, type ) {
-            var self       = germanized.admin.shipments_table,
+            var self       = shipments.admin.shipments_table,
                 actionData = self.params.bulk_actions[ action ];
 
             $.ajax( {
@@ -112,14 +112,14 @@ window.germanized.admin = window.germanized.admin || {};
                                     return m;
                                 },
                                 ajax: {
-                                    url:         wc_gzd_admin_shipments_table_params.ajax_url,
+                                    url:         wc_gzd_shipments_admin_shipments_table_params.ajax_url,
                                     dataType:    'json',
                                     delay:       1000,
                                     data:        function( params ) {
                                         return {
                                             term:     params.term,
                                             action:   'woocommerce_gzd_json_search_orders',
-                                            security: wc_gzd_admin_shipments_table_params.search_orders_nonce,
+                                            security: wc_gzd_shipments_admin_shipments_table_params.search_orders_nonce,
                                             exclude:  $( this ).data( 'exclude' )
                                         };
                                     },
@@ -153,14 +153,14 @@ window.germanized.admin = window.germanized.admin || {};
                                     return m;
                                 },
                                 ajax: {
-                                    url:         wc_gzd_admin_shipments_table_params.ajax_url,
+                                    url:         wc_gzd_shipments_admin_shipments_table_params.ajax_url,
                                     dataType:    'json',
                                     delay:       1000,
                                     data:        function( params ) {
                                         return {
                                             term:     params.term,
                                             action:   'woocommerce_gzd_json_search_shipping_provider',
-                                            security: wc_gzd_admin_shipments_table_params.search_shipping_provider_nonce,
+                                            security: wc_gzd_shipments_admin_shipments_table_params.search_shipping_provider_nonce,
                                             exclude:  $( this ).data( 'exclude' )
                                         };
                                     },
@@ -200,7 +200,7 @@ window.germanized.admin = window.germanized.admin || {};
     };
 
     $( document ).ready( function() {
-        germanized.admin.shipments_table.init();
+        shipments.admin.shipments_table.init();
     });
 
-})( jQuery, window.germanized.admin );
+})( jQuery, window.shipments );

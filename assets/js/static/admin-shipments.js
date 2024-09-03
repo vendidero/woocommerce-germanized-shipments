@@ -1,12 +1,12 @@
-window.germanized = window.germanized || {};
-window.germanized.admin = window.germanized.admin || {};
+window.shipments = window.shipments || {};
+window.shipments.admin = window.shipments.admin || {};
 
-( function( $, admin ) {
+( function( $, shipments ) {
 
     /**
      * Core
      */
-    admin.shipments = {
+    shipments.admin.shipments = {
         params: {},
         shipments: {},
         $wrapper: false,
@@ -15,8 +15,8 @@ window.germanized.admin = window.germanized.admin || {};
         needsReturns: false,
 
         init: function() {
-            var self            = germanized.admin.shipments;
-            self.params         = wc_gzd_admin_shipments_params;
+            var self            = shipments.admin.shipments;
+            self.params         = wc_gzd_shipments_admin_shipments_params;
             self.$wrapper       = $( '#panel-order-shipments' );
             self.needsShipments = self.$wrapper.find( '#order-shipment-add' ).is( ':visible' );
             self.needsReturns   = self.$wrapper.find( '#order-return-shipment-add' ).is( ':visible' );
@@ -33,12 +33,12 @@ window.germanized.admin = window.germanized.admin || {};
                 .on( 'click', '#panel-order-shipments .remove-shipment', self.onRemoveShipment )
                 .on( 'click', '#panel-order-shipments button#order-shipments-save', self.onSave )
                 .on( 'click', '#panel-order-shipments .notice-dismiss', self.onRemoveNotice )
-                .on( 'change', '.germanized-create-label #product_id', self.onChangeLabelProductId );
+                .on( 'change', '.shipments-create-label #product_id', self.onChangeLabelProductId );
 
             $( document )
-                .on( 'wc_gzd_admin_shipment_modal_after_submit_success', 'a#order-return-shipment-add', self.onAddReturnSuccess );
+                .on( 'wc_gzd_shipments_admin_shipment_modal_after_submit_success', 'a#order-return-shipment-add', self.onAddReturnSuccess );
 
-            $( '#panel-order-shipments #order-return-shipment-add' ).wc_gzd_admin_shipment_modal();
+            $( '#panel-order-shipments #order-return-shipment-add' ).wc_gzd_shipments_admin_shipment_modal();
 
             $( document.body ).on( 'init_tooltips', self.initTiptip )
 
@@ -46,7 +46,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         onAjaxComplete: function( e, jqXHR, settings ) {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             if ( jqXHR != null ) {
                 if ( settings.hasOwnProperty( 'data' ) ) {
@@ -76,7 +76,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         syncItemQuantities: function() {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             self.block();
 
@@ -89,7 +89,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         onSyncSuccess: function( data ) {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             self.unblock();
             self.initShipments();
@@ -99,7 +99,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         onSave: function( e ) {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             e.preventDefault();
 
@@ -109,7 +109,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         save: function() {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             self.block();
 
@@ -122,17 +122,17 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         initShipment: function( id ) {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             if ( ! self.shipments.hasOwnProperty( id ) ) {
-                self.shipments[ id ] = new $.GermanizedShipment( id );
+                self.shipments[ id ] = new $.shipmentsShipment( id );
             } else {
                 self.shipments[ id ].refreshDom();
             }
         },
 
         onSaveSuccess: function( data ) {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             self.initShipments();
             self.setNeedsSaving( false );
@@ -143,7 +143,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         getActiveShipmentId: function() {
-            var self      = germanized.admin.shipments,
+            var self      = shipments.admin.shipments,
                 $shipment = self.$wrapper.find( '.order-shipment.active' );
 
             if ( $shipment.length > 0 ) {
@@ -154,7 +154,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         block: function() {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             self.$wrapper.block({
                 message: null,
@@ -166,13 +166,13 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         unblock: function() {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             self.$wrapper.unblock();
         },
 
         getData: function( additionalData ) {
-            var self = germanized.admin.shipments,
+            var self = shipments.admin.shipments,
                 data = {};
 
             additionalData = additionalData || {};
@@ -193,7 +193,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         refresh: function( data ) {
-            var self = germanized.admin.shipments,
+            var self = shipments.admin.shipments,
             active               = self.getShipment( self.getActiveShipmentId() );
             current_packaging_id = false;
 
@@ -244,7 +244,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         doAjax: function( params, cSuccess, cError ) {
-            var self             = germanized.admin.shipments,
+            var self             = shipments.admin.shipments,
                 url              = self.params.ajax_url,
                 $wrapper         = self.$wrapper,
                 refreshFragments = true;
@@ -327,19 +327,19 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         addNotice: function( message, noticeType ) {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             self.$wrapper.find( '.notice-wrapper' ).append( '<div class="notice is-dismissible notice-' + noticeType +'"><p>' + message + '</p><button type="button" class="notice-dismiss"></button></div>' );
         },
 
         onChangeLabelProductId: function() {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             self.showOrHideByLabelProduct( $( this ).val() );
         },
 
         showOrHideByLabelProduct: function( productId ) {
-            var $wrapper  = $( '.germanized-create-label' ),
+            var $wrapper  = $( '.shipments-create-label' ),
                 $fields   = $wrapper.find( 'p.form-field :input[data-products-supported]' );
 
             $fields.each( function() {
@@ -420,13 +420,13 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         getParams: function() {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             return self.params;
         },
 
         onRemoveShipment: function() {
-            var self      = germanized.admin.shipments,
+            var self      = shipments.admin.shipments,
                 $shipment = $( this ).parents( '.order-shipment' ),
                 id        = $shipment.data( 'shipment' );
 
@@ -440,7 +440,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         removeShipment: function( shipment_id ) {
-            var self   = germanized.admin.shipments;
+            var self   = shipments.admin.shipments;
 
             var params = {
                 'action'     : 'woocommerce_gzd_remove_shipment',
@@ -452,7 +452,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         onRemoveShipmentSuccess: function( data ) {
-            var self        = germanized.admin.shipments,
+            var self        = shipments.admin.shipments,
                 shipmentIds = Array.isArray( data['shipment_id'] ) ? data['shipment_id'] : [data['shipment_id']];
 
             $.each( shipmentIds, function( i, shipmentId ) {
@@ -477,13 +477,13 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         onRemoveShipmentError: function( data ) {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             self.unblock();
         },
 
         onAddShipment: function() {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             self.addShipment();
 
@@ -491,7 +491,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         addShipment: function() {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             var params = {
                 'action': 'woocommerce_gzd_add_shipment'
@@ -502,7 +502,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         onAddShipmentSuccess: function( data ) {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             if ( self.$wrapper.find( '.order-shipment.active' ).length > 0 ) {
                 self.$wrapper.find( '.order-shipment.active' ).find( '.shipment-content-wrapper' ).slideUp( 300, function() {
@@ -527,7 +527,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         appendNewShipment: function( data ) {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             if ( 'simple' === data['new_shipment_type'] && self.$wrapper.find( '.panel-order-return-title' ).length > 0 ) {
                 self.$wrapper.find( '.panel-order-return-title' ).before( data.new_shipment );
@@ -541,13 +541,13 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         onAddReturnSuccess: function( e, data ) {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             self.onAddShipmentSuccess( data );
         },
 
         setNeedsSaving: function( needsSaving ) {
-            var self       = germanized.admin.shipments,
+            var self       = shipments.admin.shipments,
                 shipmentId = self.getActiveShipmentId(),
                 $shipment  = shipmentId ? self.getShipment( shipmentId ).getShipment() : false;
 
@@ -579,7 +579,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         disableCreateButtons: function( $shipment ) {
-            var self     = germanized.admin.shipments,
+            var self     = shipments.admin.shipments,
                 $buttons = $shipment.find( '.column-shipment-documents a.wc-gzd-shipment-action-button.create, .column-shipment-documents a.wc-gzd-shipment-action-button.refresh' );
 
             if ( $buttons.length > 0 ) {
@@ -593,7 +593,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         enableCreateButtons: function( $shipment ) {
-            var self     = germanized.admin.shipments,
+            var self     = shipments.admin.shipments,
                 $buttons = $shipment.find( '.column-shipment-documents a.wc-gzd-shipment-action-button.create, .column-shipment-documents a.wc-gzd-shipment-action-button.refresh' );
 
             if ( $buttons.length > 0 ) {
@@ -608,7 +608,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         setNeedsShipments: function( needsShipments ) {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             if ( typeof needsShipments !== "boolean" ) {
                 needsShipments = true;
@@ -628,7 +628,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         hideOrShowReturnTitle: function() {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             if ( self.$wrapper.find( '.order-shipment.shipment-return' ).length === 0 ) {
                 self.$wrapper.find( '.panel-order-return-title' ).addClass( 'hide-default' );
@@ -638,7 +638,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         setNeedsReturns: function( needsReturns ) {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             if ( typeof needsReturns !== "boolean" ) {
                 needsReturns = true;
@@ -658,7 +658,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         hideOrShowFooter: function() {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             if ( self.needsSaving || self.needsShipments || self.needsReturns ) {
                 self.$wrapper.find( '.panel-footer' ).slideDown( 300 );
@@ -668,7 +668,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         onToggleShipment: function() {
-            var self      = germanized.admin.shipments,
+            var self      = shipments.admin.shipments,
                 $shipment = $( this ).parents( '.order-shipment:first' ),
                 isActive  = $shipment.hasClass( 'active' );
 
@@ -682,7 +682,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         closeShipments: function() {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             self.$wrapper.find( '.order-shipment.active .shipment-content-wrapper' ).slideUp( 300, function() {
                 self.$wrapper.find( '.order-shipment.active' ).removeClass( 'active' );
@@ -690,7 +690,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         initShipments: function() {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             // Refresh wrapper
             self.$wrapper = $( '#panel-order-shipments' );
@@ -705,24 +705,24 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         getShipments: function() {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             return self.shipments;
         },
 
         getShipment: function( shipment_id ) {
-            var self      = germanized.admin.shipments,
-                shipments = self.getShipments();
+            var self = shipments.admin.shipments,
+                theShipments = self.getShipments();
 
-            if ( shipments.hasOwnProperty( shipment_id ) ) {
-                return shipments[ shipment_id ];
+            if ( theShipments.hasOwnProperty( shipment_id ) ) {
+                return theShipments[ shipment_id ];
             }
 
             return false;
         },
 
         initTiptip: function() {
-            var self = germanized.admin.shipments;
+            var self = shipments.admin.shipments;
 
             self.$wrapper.find( '.woocommerce-help-tip' ).tipTip({
                 'attribute': 'data-tip',
@@ -742,7 +742,7 @@ window.germanized.admin = window.germanized.admin || {};
     };
 
     $( document ).ready( function() {
-        germanized.admin.shipments.init();
+        shipments.admin.shipments.init();
     });
 
-})( jQuery, window.germanized.admin );
+})( jQuery, window.shipments );

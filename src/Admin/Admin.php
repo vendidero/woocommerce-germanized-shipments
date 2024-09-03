@@ -64,6 +64,7 @@ class Admin {
 
 		// Register endpoints within settings
 		add_filter( 'woocommerce_get_settings_advanced', array( __CLASS__, 'register_endpoint_settings' ), 20, 2 );
+		add_filter( 'woocommerce_get_settings_pages', array( __CLASS__, 'register_settings' ) );
 
 		// Product Options
 		add_action( 'woocommerce_product_options_shipping', array( __CLASS__, 'product_options' ), 9 );
@@ -96,7 +97,7 @@ class Admin {
 			}
 		);
 
-		add_action( 'woocommerce_admin_field_gzd_toggle', array( __CLASS__, 'register_toggle_field' ), 30 );
+		add_action( 'woocommerce_admin_field_gzd_shipments_toggle', array( __CLASS__, 'toggle_input_field' ), 30 );
 		add_filter( 'woocommerce_admin_settings_sanitize_option', array( __CLASS__, 'sanitize_toggle_field' ), 10, 3 );
 
 		add_action( 'woocommerce_admin_field_dimensions', array( __CLASS__, 'register_dimensions_field' ), 30 );
@@ -138,10 +139,6 @@ class Admin {
 	}
 
 	public static function sanitize_toggle_field( $value, $option, $raw_value ) {
-		if ( Package::is_integration() ) {
-			return $value;
-		}
-
 		$option = wp_parse_args(
 			$option,
 			array(
@@ -149,7 +146,7 @@ class Admin {
 			)
 		);
 
-		if ( 'gzd_toggle' === $option['type'] ) {
+		if ( 'gzd_shipments_toggle' === $option['type'] ) {
 			$value = '1' === $raw_value || 'yes' === $raw_value ? 'yes' : 'no';
 		}
 
@@ -279,11 +276,7 @@ class Admin {
 		return $value;
 	}
 
-	public static function register_toggle_field( $value ) {
-		if ( Package::is_integration() ) {
-			return;
-		}
-
+	public static function toggle_input_field( $value ) {
 		// Description handling.
 		$field_description_data = \WC_Admin_Settings::get_field_description( $value );
 
@@ -291,11 +284,13 @@ class Admin {
 			$value['value'] = \WC_Admin_Settings::get_option( $value['id'], $value['default'] );
 		}
 
+		$option_value = $value['value'];
+
 		if ( ! isset( $value['checkboxgroup'] ) || 'start' === $value['checkboxgroup'] ) {
 			?>
 			<tr valign="top">
 			<th scope="row" class="titledesc">
-				<span class="wc-gzd-label-wrap"><?php echo esc_html( $value['title'] ); ?><?php echo wp_kses_post( $field_description_data['tooltip_html'] ); ?></span>
+				<span class="wc-gzd-shipments-label-wrap"><?php echo esc_html( $value['title'] ); ?><?php echo wp_kses_post( $field_description_data['tooltip_html'] ); ?></span>
 			</th>
 			<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
 			<fieldset>
@@ -306,7 +301,7 @@ class Admin {
 			<?php
 		}
 		?>
-		<?php self::render_toggle( $value ); ?>
+		<?php self::render_toggle_field( $value ); ?>
 		</fieldset>
 		<?php
 		if ( ! isset( $value['checkboxgroup'] ) || 'end' === $value['checkboxgroup'] ) {
@@ -317,7 +312,7 @@ class Admin {
 		}
 	}
 
-	public static function render_toggle( $args ) {
+	public static function render_toggle_field( $args ) {
 		$args          = wp_parse_args(
 			$args,
 			array(
@@ -337,8 +332,8 @@ class Admin {
 		// Description handling.
 		$field_description_data = \WC_Admin_Settings::get_field_description( $args );
 		?>
-		<a href="#" class="woocommerce-gzd-shipment-input-toggle-trigger">
-			<span id="<?php echo esc_attr( $args['id'] ); ?>-toggle" class="woocommerce-gzd-input-toggle woocommerce-input-toggle woocommerce-input-toggle--<?php echo esc_attr( 'yes' === $args['value'] ? 'enabled' : 'disabled' ); ?>"><?php echo ( ( 'yes' === $args['value'] ) ? esc_html_x( 'Yes', 'shipments', 'woocommerce-germanized-shipments' ) : esc_html_x( 'No', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></span>
+		<a href="#" class="woocommerce-gzd-shipments-input-toggle-trigger">
+			<span id="<?php echo esc_attr( $args['id'] ); ?>-toggle" class="woocommerce-gzd-shipments-input-toggle woocommerce-input-toggle woocommerce-input-toggle--<?php echo esc_attr( 'yes' === $args['value'] ? 'enabled' : 'disabled' ); ?>"><?php echo ( ( 'yes' === $args['value'] ) ? esc_html_x( 'Yes', 'shipments', 'woocommerce-germanized-shipments' ) : esc_html_x( 'No', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></span>
 		</a>
 		<input
 		name="<?php echo esc_attr( $args['name'] ); ?>"
@@ -443,8 +438,8 @@ class Admin {
 		<div class="wc-gzd-shipping-provider-override-title-wrapper">
 			<h3 class="wc-settings-sub-title <?php echo esc_attr( $setting['class'] ); ?>"><?php echo wp_kses_post( $setting['title'] ); ?></h3>
 
-			<fieldset class="gzd-toggle-wrapper override-toggle-wrapper">
-				<a class="woocommerce-gzd-input-toggle-trigger" href="#"><span class="woocommerce-gzd-input-toggle woocommerce-input-toggle woocommerce-input-toggle--<?php echo esc_attr( $has_override ? 'enabled' : 'disabled' ); ?>"><?php echo esc_html_x( 'No', 'shipments', 'woocommerce-germanized-shipments' ); ?></span></a>
+			<fieldset class="wc-gzd-shipments-toggle-wrapper override-toggle-wrapper">
+				<a class="woocommerce-gzd-shipments-input-toggle-trigger" href="#"><span class="woocommerce-gzd-shipments-input-toggle woocommerce-input-toggle woocommerce-input-toggle--<?php echo esc_attr( $has_override ? 'enabled' : 'disabled' ); ?>"><?php echo esc_html_x( 'No', 'shipments', 'woocommerce-germanized-shipments' ); ?></span></a>
 				<input
 						name="<?php echo esc_attr( $setting['name'] ); ?>"
 						id="gzd-toggle-<?php echo esc_attr( $setting['id'] ); ?>"
@@ -510,18 +505,20 @@ class Admin {
 						<?php endforeach; ?>
 					</ul>
 
-					<?php
-					if ( ! empty( $current_settings ) ) :
-						$current_settings_to_print = $current_settings;
+					<div class="wc-gzd-shipments-admin-settings">
+						<?php
+						if ( ! empty( $current_settings ) ) :
+							$current_settings_to_print = $current_settings;
 
-						if ( ! PackagingSettings::is_provider( $current_tab ) ) {
-							$current_settings_to_print = array( $current_settings_to_print );
-						}
-						?>
-						<?php foreach ( $current_settings_to_print as $settings ) : ?>
-							<?php \WC_Admin_Settings::output_fields( $settings ); ?>
-						<?php endforeach; ?>
-					<?php endif; ?>
+							if ( ! PackagingSettings::is_provider( $current_tab ) ) {
+								$current_settings_to_print = array( $current_settings_to_print );
+							}
+							?>
+							<?php foreach ( $current_settings_to_print as $settings ) : ?>
+								<?php \WC_Admin_Settings::output_fields( $settings ); ?>
+							<?php endforeach; ?>
+						<?php endif; ?>
+					</div>
 
 					<?php if ( ! empty( $current_settings ) ) : ?>
 						<p class="submit">
@@ -851,6 +848,12 @@ class Admin {
 		}
 
 		return $settings;
+	}
+
+	public static function register_settings( $integrations ) {
+		$integrations[] = new Tabs\Tabs();
+
+		return $integrations;
 	}
 
 	public static function register_endpoint_settings( $settings, $current_section ) {
@@ -1640,26 +1643,14 @@ class Admin {
 	}
 
 	public static function admin_styles() {
-		global $wp_scripts;
-
 		$screen    = get_current_screen();
 		$screen_id = $screen ? $screen->id : '';
-		$suffix    = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ? '' : '.min';
 
 		// Register admin styles.
 		wp_register_style( 'woocommerce_gzd_shipments_admin', Package::get_assets_url( 'static/admin-styles.css' ), array( 'woocommerce_admin_styles' ), Package::get_version() );
 
 		// Admin styles for WC pages only.
 		if ( in_array( $screen_id, self::get_screen_ids(), true ) ) {
-			wp_enqueue_style( 'woocommerce_gzd_shipments_admin' );
-		}
-
-		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && in_array( $_GET['tab'], array( 'germanized-shipments', 'germanized-shipping_provider' ), true ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			wp_enqueue_style( 'woocommerce_gzd_shipments_admin' );
-		}
-
-		// Shipping zone methods
-		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipping' === $_GET['tab'] && ( isset( $_GET['zone_id'] ) || isset( $_GET['instance_id'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			wp_enqueue_style( 'woocommerce_gzd_shipments_admin' );
 		}
 	}
@@ -1676,21 +1667,23 @@ class Admin {
 			$order_or_post_object = $theorder;
 		}
 
-		wp_register_script( 'wc-gzd-admin-shipment-modal', Package::get_assets_url( 'static/admin-shipment-modal.js' ), array( 'jquery', 'woocommerce_admin', 'wc-backbone-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_register_script( 'wc-gzd-admin-shipment', Package::get_assets_url( 'static/admin-shipment.js' ), array( 'wc-gzd-admin-shipment-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-shipments-admin', Package::get_assets_url( 'static/admin.js' ), array( 'jquery', 'woocommerce_admin' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-shipments-admin-settings', Package::get_assets_url( '/static/admin-settings.js' ), array( 'wc-gzd-shipments-admin' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 
-		wp_register_script( 'wc-gzd-admin-shipping-rules', Package::get_assets_url( '/static/admin-shipping-rules.js' ), array( 'woocommerce_admin', 'jquery', 'jquery-ui-sortable', 'wp-util', 'underscore', 'backbone' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_register_script( 'wc-gzd-admin-shipments', Package::get_assets_url( 'static/admin-shipments.js' ), array( 'wc-admin-order-meta-boxes', 'wc-gzd-admin-shipment' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_register_script( 'wc-gzd-admin-shipment-settings', Package::get_assets_url( '/static/admin-settings.js' ), array( 'jquery', 'woocommerce_admin' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_register_script( 'wc-gzd-admin-packaging', Package::get_assets_url( '/static/admin-packaging.js' ), array( 'wc-gzd-admin-shipment-settings' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_register_script( 'wc-gzd-admin-shipments-table', Package::get_assets_url( 'static/admin-shipments-table.js' ), array( 'woocommerce_admin', 'wc-gzd-admin-shipment-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_register_script( 'wc-gzd-admin-shipping-providers', Package::get_assets_url( 'static/admin-shipping-providers.js' ), array( 'jquery', 'jquery-ui-sortable' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_register_script( 'wc-gzd-admin-shipping-provider-method', Package::get_assets_url( 'static/admin-shipping-provider-method.js' ), array( 'wc-gzd-admin-shipment-settings' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-shipments-admin-shipment-modal', Package::get_assets_url( 'static/admin-shipment-modal.js' ), array( 'wc-gzd-shipments-admin', 'wc-backbone-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-shipments-admin-shipment', Package::get_assets_url( 'static/admin-shipment.js' ), array( 'wc-gzd-shipments-admin-shipment-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-shipments-admin-shipments', Package::get_assets_url( 'static/admin-shipments.js' ), array( 'wc-admin-order-meta-boxes', 'wc-gzd-shipments-admin-shipment' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-shipments-admin-shipments-table', Package::get_assets_url( 'static/admin-shipments-table.js' ), array( 'wc-gzd-shipments-admin', 'wc-gzd-shipments-admin-shipment-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+
+		wp_register_script( 'wc-gzd-shipments-admin-shipping-rules', Package::get_assets_url( '/static/admin-shipping-rules.js' ), array( 'wc-gzd-shipments-admin', 'jquery-ui-sortable', 'wp-util', 'underscore', 'backbone' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-shipments-admin-packaging', Package::get_assets_url( '/static/admin-packaging.js' ), array( 'wc-gzd-shipments-admin-settings' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-shipments-admin-shipping-providers', Package::get_assets_url( 'static/admin-shipping-providers.js' ), array( 'wc-gzd-shipments-admin', 'jquery-ui-sortable' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		wp_register_script( 'wc-gzd-shipments-admin-shipping-provider-method', Package::get_assets_url( 'static/admin-shipping-provider-method.js' ), array( 'wc-gzd-shipments-admin-settings' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
 
 		// Orders.
 		if ( self::is_order_meta_box_screen( $screen_id ) ) {
-			wp_enqueue_script( 'wc-gzd-admin-shipments' );
-			wp_enqueue_script( 'wc-gzd-admin-shipment' );
+			wp_enqueue_script( 'wc-gzd-shipments-admin-shipments' );
+			wp_enqueue_script( 'wc-gzd-shipments-admin-shipment' );
 
 			$order_order_post_id = $post_id;
 
@@ -1699,8 +1692,8 @@ class Admin {
 			}
 
 			wp_localize_script(
-				'wc-gzd-admin-shipments',
-				'wc_gzd_admin_shipments_params',
+				'wc-gzd-shipments-admin-shipments',
+				'wc_gzd_shipments_admin_shipments_params',
 				array(
 					'ajax_url'                           => admin_url( 'admin-ajax.php' ),
 					'edit_shipments_nonce'               => wp_create_nonce( 'edit-shipments' ),
@@ -1726,12 +1719,12 @@ class Admin {
 
 		// Settings
 		if ( 'woocommerce_page_shipment-packaging' === $screen_id ) {
-			wp_enqueue_script( 'wc-gzd-admin-packaging' );
+			wp_enqueue_script( 'wc-gzd-shipments-admin-packaging' );
 		}
 
 		// Table
 		if ( 'woocommerce_page_wc-gzd-shipments' === $screen_id || 'woocommerce_page_wc-gzd-return-shipments' === $screen_id ) {
-			wp_enqueue_script( 'wc-gzd-admin-shipments-table' );
+			wp_enqueue_script( 'wc-gzd-shipments-admin-shipments-table' );
 
 			$bulk_actions = array();
 
@@ -1743,8 +1736,8 @@ class Admin {
 			}
 
 			wp_localize_script(
-				'wc-gzd-admin-shipments-table',
-				'wc_gzd_admin_shipments_table_params',
+				'wc-gzd-shipments-admin-shipments-table',
+				'wc_gzd_shipments_admin_shipments_table_params',
 				array(
 					'ajax_url'                           => admin_url( 'admin-ajax.php' ),
 					'search_orders_nonce'                => wp_create_nonce( 'search-orders' ),
@@ -1758,8 +1751,16 @@ class Admin {
 		}
 
 		wp_localize_script(
-			'wc-gzd-admin-shipment-modal',
-			'wc_gzd_admin_shipment_modal_params',
+			'wc-gzd-shipments-admin',
+			'wc_gzd_shipments_admin_params',
+			array(
+				'ajax_url' => admin_url( 'admin-ajax.php' ),
+			)
+		);
+
+		wp_localize_script(
+			'wc-gzd-shipments-admin-shipment-modal',
+			'wc_gzd_shipments_admin_shipment_modal_params',
 			array(
 				'ajax_url'         => admin_url( 'admin-ajax.php' ),
 				'i18n_modal_close' => _x( 'Close', 'shipments-close-modal', 'woocommerce-germanized-shipments' ),
@@ -1769,18 +1770,18 @@ class Admin {
 		);
 
 		wp_localize_script(
-			'wc-gzd-admin-shipment-settings',
-			'wc_gzd_admin_shipment_settings_params',
+			'wc-gzd-shipments-admin-settings',
+			'wc_gzd_shipments_admin_settings_params',
 			self::get_admin_settings_params()
 		);
 
 		// Shipping provider settings
-		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'germanized-shipping_provider' === $_GET['tab'] && empty( $_GET['provider'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			wp_enqueue_script( 'wc-gzd-admin-shipping-providers' );
+		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && 'shipments-shipping_provider' === $_GET['tab'] && empty( $_GET['provider'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			wp_enqueue_script( 'wc-gzd-shipments-admin-shipping-providers' );
 
 			wp_localize_script(
-				'wc-gzd-admin-shipping-providers',
-				'wc_gzd_admin_shipping_providers_params',
+				'wc-gzd-shipments-admin-shipping-providers',
+				'wc_gzd_shipments_admin_shipping_providers_params',
 				array(
 					'ajax_url'                             => admin_url( 'admin-ajax.php' ),
 					'edit_shipping_providers_nonce'        => wp_create_nonce( 'edit-shipping-providers' ),
@@ -1798,12 +1799,12 @@ class Admin {
 			 * output in a separate section under Settings > Shipping.
 			 */
 			if ( ( isset( $_GET['zone_id'] ) || isset( $_GET['instance_id'] ) ) || ( isset( $_GET['section'] ) && ! MethodHelper::method_is_excluded( wc_clean( wp_unslash( $_GET['section'] ) ) ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				wp_enqueue_script( 'wc-gzd-admin-shipping-provider-method' );
+				wp_enqueue_script( 'wc-gzd-shipments-admin-shipping-provider-method' );
 				$providers = array_filter( array_keys( wc_gzd_get_shipping_provider_select() ) );
 
 				wp_localize_script(
-					'wc-gzd-admin-shipping-provider-method',
-					'wc_gzd_admin_shipping_provider_method_params',
+					'wc-gzd-shipments-admin-shipping-provider-method',
+					'wc_gzd_shipments_admin_shipping_provider_method_params',
 					array(
 						'shipping_providers' => $providers,
 					)
@@ -1909,6 +1910,8 @@ class Admin {
 	}
 
 	public static function get_screen_ids() {
-		return array_merge( self::get_core_screen_ids(), self::get_order_screen_ids() );
+		$setting_screen_ids = array( 'woocommerce_page_wc-settings' );
+
+		return array_merge( self::get_core_screen_ids(), self::get_order_screen_ids(), $setting_screen_ids );
 	}
 }

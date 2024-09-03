@@ -1,13 +1,13 @@
 
-window.germanized = window.germanized || {};
-window.germanized.shipments_pickup_locations = window.germanized.shipments_pickup_locations || {};
+window.shipments = window.shipments || {};
+window.shipments.shipments_pickup_locations = window.shipments.shipments_pickup_locations || {};
 
-( function( $, germanized ) {
+( function( $, shipments ) {
 
     /**
      * Core
      */
-    germanized.shipments_pickup_locations = {
+    shipments.shipments_pickup_locations = {
 
         params: {},
         pickupLocations: {},
@@ -15,7 +15,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         currentProvider: '',
 
         init: function () {
-            var self  = germanized.shipments_pickup_locations;
+            var self  = shipments.shipments_pickup_locations;
             self.params  = wc_gzd_shipments_pickup_locations_params;
 
             var $pickupSelect = self.getPickupLocationSelect();
@@ -52,14 +52,14 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         onChangeAddress: function() {
-            var self= germanized.shipments_pickup_locations,
+            var self= shipments.shipments_pickup_locations,
                 postcode = $( '#shipping_postcode:visible' ).val() ? $( '#shipping_postcode:visible' ).val() : $( '#billing_postcode' ).val();
 
             $( '#pickup-location-postcode' ).val( postcode );
         },
 
         onChangePickupLocation: function() {
-            var self= germanized.shipments_pickup_locations,
+            var self= shipments.shipments_pickup_locations,
                 $pickupSelect = self.getPickupLocationSelect();
 
             if ( $pickupSelect.val() ) {
@@ -70,7 +70,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         hasPickupLocationDelivery: function() {
-            var self     = germanized.shipments_pickup_locations,
+            var self     = shipments.shipments_pickup_locations,
                 $current = $( '#current_pickup_location' ),
                 currentCode = $current.val();
 
@@ -82,7 +82,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         disablePickupLocationDelivery: function( withNotice = false ) {
-            var self= germanized.shipments_pickup_locations,
+            var self= shipments.shipments_pickup_locations,
                 $modal = $( '.wc-gzd-modal-content[data-id="pickup-location"].active' );
 
             $( '.wc-gzd-shipments-managed-by-pickup-location' ).val( '' );
@@ -108,7 +108,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         onRemovePickupLocation: function() {
-            var self= germanized.shipments_pickup_locations;
+            var self= shipments.shipments_pickup_locations;
 
             self.disablePickupLocationDelivery();
 
@@ -120,7 +120,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         onChangeCurrentPickupLocation: function() {
-            var self     = germanized.shipments_pickup_locations,
+            var self     = shipments.shipments_pickup_locations,
                 $current = $( '#current_pickup_location' ),
                 currentCode = $current.val(),
                 currentPickupLocation = currentCode ? self.getPickupLocation( currentCode ) : false,
@@ -158,7 +158,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         onSearch: function() {
-            var self     = germanized.shipments_pickup_locations,
+            var self     = shipments.shipments_pickup_locations,
                 $form      = $( this ),
                 params     = $form.serialize(),
                 $pickupSelect = self.getPickupLocationSelect(),
@@ -195,7 +195,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         updatePickupLocationSelect: function( oldLocations = [] ) {
-            var self     = germanized.shipments_pickup_locations,
+            var self     = shipments.shipments_pickup_locations,
                 $pickupSelect = self.getPickupLocationSelect(),
                 current = $pickupSelect.val();
 
@@ -228,7 +228,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         onSelectDifferentShipping: function() {
-            var self= germanized.shipments_pickup_locations;
+            var self= shipments.shipments_pickup_locations;
 
             if ( ! $( this ).is( ':checked' ) ) {
                 self.disablePickupLocationDelivery();
@@ -263,7 +263,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         onSelectPickupLocation: function() {
-            var self = germanized.shipments_pickup_locations,
+            var self = shipments.shipments_pickup_locations,
                 $pickupSelect  = self.getPickupLocationSelect(),
                 current = $pickupSelect.val();
 
@@ -278,7 +278,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         updateCustomerNumberField: function( currentLocation ) {
-            var self = germanized.shipments_pickup_locations,
+            var self = shipments.shipments_pickup_locations,
                 $customerNumberField = self.getCustomerNumberField();
 
             if ( currentLocation.supports_customer_number ) {
@@ -312,7 +312,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         getPickupLocation: function( locationCode, allowFallback = true ) {
-            var self = germanized.shipments_pickup_locations;
+            var self = shipments.shipments_pickup_locations;
 
             if ( self.pickupLocations.hasOwnProperty( locationCode ) ) {
                 return self.pickupLocations[ locationCode ];
@@ -334,7 +334,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         afterRefreshCheckout: function( e, ajaxData ) {
-            var self = germanized.shipments_pickup_locations,
+            var self = shipments.shipments_pickup_locations,
                 supportsPickupLocationDelivery = false,
                 oldLocations = self.pickupLocations,
                 oldProvider = self.currentProvider;
@@ -377,7 +377,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         disable: function() {
-            var self = germanized.shipments_pickup_locations;
+            var self = shipments.shipments_pickup_locations;
 
             self.available = false;
 
@@ -389,7 +389,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         enable: function() {
-            var self = germanized.shipments_pickup_locations;
+            var self = shipments.shipments_pickup_locations;
 
             self.available = true;
 
@@ -403,13 +403,13 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
         },
 
         isAvailable: function() {
-            var self= germanized.shipments_pickup_locations;
+            var self= shipments.shipments_pickup_locations;
 
             return self.available;
         },
 
         replaceShippingAddress: function( replacements ) {
-            var self = germanized.shipments_pickup_locations,
+            var self = shipments.shipments_pickup_locations,
                 $shipToDifferent = $( '#ship-to-different-address input' ),
             hasChanged = [];
 
@@ -456,7 +456,7 @@ window.germanized.shipments_pickup_locations = window.germanized.shipments_picku
     };
 
     $( document ).ready( function() {
-        germanized.shipments_pickup_locations.init();
+        shipments.shipments_pickup_locations.init();
     });
 
-})( jQuery, window.germanized );
+})( jQuery, window.shipments );

@@ -1,12 +1,12 @@
-window.germanized = window.germanized || {};
-window.germanized.admin = window.germanized.admin || {};
+window.shipments = window.shipments || {};
+window.shipments.admin = window.shipments.admin || {};
 
-( function( $, admin ) {
-    admin.packaging = {
+( function( $, shipments ) {
+    shipments.admin.packaging = {
         params: {},
 
         init: function() {
-            var self = germanized.admin.packaging;
+            var self = shipments.admin.packaging;
 
             $( document )
                 .on( 'change', 'input.gzd-override-toggle', self.onChangeOverride );
@@ -26,7 +26,7 @@ window.germanized.admin = window.germanized.admin || {};
     };
 
     $( document ).ready( function() {
-        germanized.admin.packaging.init();
+        shipments.admin.packaging.init();
     });
 
-})( jQuery, window.germanized.admin );
+})( jQuery, window.shipments );

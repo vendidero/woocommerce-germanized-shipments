@@ -334,14 +334,14 @@ class Service {
 				$value = wc_bool_to_string( $value );
 			}
 
-			$option_type = 'gzd_toggle';
+			$option_type = 'gzd_shipments_toggle';
 		}
 
 		return array_merge(
 			array(
 				array(
 					'title'   => $this->get_label(),
-					'desc'    => $this->get_description() . ( ! empty( $this->get_long_description() ) ? ' <div class="wc-gzd-additional-desc">' . $this->get_long_description() . '</div>' : '' ),
+					'desc'    => $this->get_description() . ( ! empty( $this->get_long_description() ) ? ' <div class="wc-gzd-shipments-additional-desc">' . $this->get_long_description() . '</div>' : '' ),
 					'id'      => $setting_id,
 					'value'   => $value,
 					'default' => $this->get_default_value(),

@@ -1,20 +1,20 @@
-window.germanized = window.germanized || {};
-window.germanized.admin = window.germanized.admin || {};
+window.shipments = window.shipments || {};
+window.shipments.admin = window.shipments.admin || {};
 
-( function( $, admin ) {
+( function( $, shipments ) {
 
     /**
      * Core
      */
-    admin.shipping_provider_method = {
+    shipments.admin.shipping_provider_method = {
 
         params: {},
         currentProvider: '',
 
         init: function () {
-            var self = germanized.admin.shipping_provider_method;
+            var self = shipments.admin.shipping_provider_method;
 
-            self.params = wc_gzd_admin_shipping_provider_method_params;
+            self.params = wc_gzd_shipments_admin_shipping_provider_method_params;
 
             $( document )
                 .on( 'change', 'select[id$=shipping_provider]', self.showOrHideAll )
@@ -33,7 +33,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         onChangeOverride: function() {
-            var self      = germanized.admin.shipping_provider_method,
+            var self      = shipments.admin.shipping_provider_method,
                 $checkbox = $( this ),
                 isChecked = $checkbox.is( ':checked' ),
                 $parent   = $checkbox.parents( '.wc-gzd-shipping-provider-override-wrapper' );
@@ -46,7 +46,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         onChangeTab: function() {
-            var self     = germanized.admin.shipping_provider_method,
+            var self     = shipments.admin.shipping_provider_method,
                 $navTab  = $( this ),
                 $wrapper = $navTab.parents( 'form' ),
                 tab      = $navTab.attr( 'href' ).replace( '#', '' ),
@@ -65,13 +65,13 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         /**
-         * Is being provided as callback for germanized.admin.shipment_settings.getCleanInputId().
+         * Is being provided as callback for shipments.admin.shipment_settings.getCleanInputId().
          *
          * @param $mainInput
          * @returns {*|boolean}
          */
         getCleanInputId: function( $mainInput ) {
-            var self            = germanized.admin.shipping_provider_method,
+            var self            = shipments.admin.shipping_provider_method,
                 currentProvider = self.currentProvider,
                 fieldId         = $mainInput.attr( 'id' ) ? $mainInput.attr( 'id' ) : $mainInput.attr( 'name' );
 
@@ -98,7 +98,7 @@ window.germanized.admin = window.germanized.admin || {};
         },
 
         showOrHideAll: function() {
-            var self       = germanized.admin.shipping_provider_method,
+            var self       = shipments.admin.shipping_provider_method,
                 $select    = $( this ),
                 $providers = $select.find( 'option' ),
                 $form      = $select.parents( 'form' );
@@ -152,7 +152,7 @@ window.germanized.admin = window.germanized.admin || {};
     };
 
     $( document ).ready( function() {
-        germanized.admin.shipping_provider_method.init();
+        shipments.admin.shipping_provider_method.init();
     });
 
-})( jQuery, window.germanized.admin );
+})( jQuery, window.shipments );

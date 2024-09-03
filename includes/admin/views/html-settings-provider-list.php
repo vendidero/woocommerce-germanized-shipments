@@ -40,7 +40,7 @@ defined( 'ABSPATH' ) || exit;
 			</td>
 			<td class="wc-gzd-shipping-provider-activated" id="wc-gzd-shipping-provider-activated-<?php echo esc_attr( $provider->get_name() ); ?>">
 				<fieldset>
-					<a class="woocommerce-gzd-input-toggle-trigger" href="#"><span class="woocommerce-gzd-input-toggle woocommerce-input-toggle woocommerce-input-toggle--<?php echo( $provider->is_activated() ? 'enabled' : 'disabled' ); ?>"><?php echo esc_attr_x( 'Yes', 'shipments', 'woocommerce-germanized-shipments' ); ?></span></a>
+					<a class="woocommerce-gzd-shipments-input-toggle-trigger" href="#"><span class="woocommerce-gzd-shipments-input-toggle woocommerce-input-toggle woocommerce-input-toggle--<?php echo( $provider->is_activated() ? 'enabled' : 'disabled' ); ?>"><?php echo esc_attr_x( 'Yes', 'shipments', 'woocommerce-germanized-shipments' ); ?></span></a>
 					<input
 						name="shipping_provider_activated_<?php echo esc_attr( $provider->get_name() ); ?>"
 						id="wc-gzd-shipping-provider-activated-<?php echo esc_attr( $provider->get_name() ); ?>"
@@ -56,14 +56,14 @@ defined( 'ABSPATH' ) || exit;
 			<td class="wc-gzd-shipping-provider-actions">
 				<?php if ( '' !== $provider->get_help_link() ) : ?>
 					<a
-						class="button button-secondary wc-gzd-dash-button help-link"
+						class="button button-secondary wc-gzd-shipments-dash-button help-link"
 						aria-label="<?php echo esc_attr_x( 'Help', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
 						title="<?php echo esc_attr_x( 'Help', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
 						href="<?php echo esc_url( $provider->get_help_link() ); ?>"
 					><?php echo esc_html_x( 'Help', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 				<?php endif; ?>
 				<a
-					class="button button-secondary wc-gzd-dash-button"
+					class="button button-secondary wc-gzd-shipments-dash-button"
 					aria-label="<?php echo esc_attr_x( 'Manage shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
 					title="<?php echo esc_attr_x( 'Manage shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
 					href="<?php echo esc_url( $provider->get_edit_link() ); ?>"

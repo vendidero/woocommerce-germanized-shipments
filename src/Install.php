@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments;
 
+use Vendidero\Germanized\Shipments\Admin\Tabs\Tabs;
 use Vendidero\Germanized\Shipments\Interfaces\ShippingProvider;
 use Vendidero\Germanized\Shipments\Labels\ConfigurationSetTrait;
 use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
@@ -19,6 +20,7 @@ class Install {
 
 		self::create_upload_dir();
 		self::create_tables();
+		self::create_default_options();
 		self::maybe_create_return_reasons();
 
 		if ( ! is_null( $current_version ) ) {
@@ -64,6 +66,49 @@ class Install {
 		update_option( 'woocommerce_gzd_shipments_db_version', Package::get_version() );
 
 		do_action( 'woocommerce_flush_rewrite_rules' );
+	}
+
+	protected static function create_default_options() {
+		if ( ! class_exists( 'WC_Settings_Page' ) ) {
+			include_once WC()->plugin_path() . '/includes/admin/settings/class-wc-settings-page.php';
+		}
+
+		$settings = false;
+
+		if ( is_admin() ) {
+			include_once WC()->plugin_path() . '/includes/admin/class-wc-admin-settings.php';
+
+			foreach ( \WC_Admin_Settings::get_settings_pages() as $page ) {
+				if ( is_a( $page, '\Vendidero\Germanized\Shipments\Admin\Tabs\Tabs' ) ) {
+					$settings = $page;
+				}
+			}
+		}
+
+		if ( ! $settings ) {
+			$settings = new Tabs();
+		}
+
+		$options = $settings->get_settings_for_section_core( '' );
+
+		foreach ( $options as $value ) {
+			$value = wp_parse_args(
+				$value,
+				array(
+					'id'           => '',
+					'default'      => null,
+					'skip_install' => false,
+					'autoload'     => true,
+				)
+			);
+
+			if ( $value['default'] && ! empty( $value['id'] ) && ! $value['skip_install'] ) {
+				wp_cache_delete( $value['id'], 'options' );
+				$autoload = (bool) $value['autoload'];
+
+				add_option( $value['id'], $value['default'], '', ( $autoload ? 'yes' : 'no' ) );
+			}
+		}
 	}
 
 	protected static function get_configuration_set_data( $setting_name, $value ) {

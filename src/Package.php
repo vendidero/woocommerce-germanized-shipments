@@ -200,9 +200,11 @@ class Package {
 	}
 
 	public static function is_integration() {
-		$gzd_installed = class_exists( 'WooCommerce_Germanized' );
+		return class_exists( 'WooCommerce_Germanized' );
+	}
 
-		return $gzd_installed;
+	public static function is_pro() {
+		return apply_filters( 'woocommerce_gzd_shipments_is_pro', false );
 	}
 
 	/**

@@ -1,4 +1,4 @@
-/* global wc_gzd_admin_shipping_rules_params, ajaxurl */
+/* global wc_gzd_shipments_admin_shipping_rules_params, ajaxurl */
 ( function( $, data, wp, ajaxurl ) {
     $( function() {
         var $tbody            = $( '.wc-gzd-shipments-shipping-rules-rows' ),
@@ -624,4 +624,4 @@
             $( this ).closest( 'tr.shipping-rule' ).addClass( 'current' );
         } );
     });
-})( jQuery, wc_gzd_admin_shipping_rules_params, wp, ajaxurl );
+})( jQuery, wc_gzd_shipments_admin_shipping_rules_params, wp, ajaxurl );
