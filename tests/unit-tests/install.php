@@ -24,7 +24,7 @@ class Install extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTestCa
 			define( 'WC_GZD_SHIPMENTS_REMOVE_ALL_DATA', true );
 		}
 
-		include( dirname( dirname( dirname( dirname( __FILE__ ) ) ) ) . '/uninstall.php' );
+		include( dirname( dirname( dirname( __FILE__ ) ) ) . '/uninstall.php' );
 
 		\Vendidero\Germanized\Shipments\Install::install();
 
