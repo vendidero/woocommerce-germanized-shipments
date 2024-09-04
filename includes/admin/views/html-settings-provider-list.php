@@ -26,12 +26,16 @@ defined( 'ABSPATH' ) || exit;
 				</div>
 			</td>
 			<td class="wc-gzd-shipping-provider-title" id="wc-gzd-shipping-provider-title-<?php echo esc_attr( $provider->get_name() ); ?>">
-				<a href="<?php echo esc_url( $provider->get_edit_link() ); ?>" class="wc-gzd-shipping-provider-edit-link"><?php echo wp_kses_post( $provider->get_title() ); ?></a>
+				<a href="<?php echo esc_url( $provider->get_edit_link() ? $provider->get_edit_link() : $provider->get_help_link() ); ?>" class="wc-gzd-shipping-provider-edit-link"><?php echo wp_kses_post( $provider->get_title() ); ?></a>
 				<div class="row-actions">
-					<a href="<?php echo esc_url( $provider->get_edit_link() ); ?>"><?php echo esc_html_x( 'Edit', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
-					<?php if ( $provider->is_manual_integration() ) : ?>
-						<span class="sep">|</span>
-						<a class="wc-gzd-shipping-provider-delete" href="#"><?php echo esc_html_x( 'Delete', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+					<?php if ( $provider->get_edit_link() ) : ?>
+						<a href="<?php echo esc_url( $provider->get_edit_link() ); ?>"><?php echo esc_html_x( 'Edit', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+						<?php if ( $provider->is_manual_integration() ) : ?>
+							<span class="sep">|</span>
+							<a class="wc-gzd-shipping-provider-delete" href="#"><?php echo esc_html_x( 'Delete', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+						<?php endif; ?>
+					<?php elseif ( is_a( $provider, '\Vendidero\Germanized\Shipments\ShippingProvider\Placeholder' ) && $provider->is_pro() ) : ?>
+						<a href="<?php echo esc_url( $provider->get_help_link() ); ?>"><?php echo wp_kses_post( sprintf( esc_html_x( 'Upgrade to %1$s', 'shipments', 'woocommerce-germanized-shipments' ), '<span class="wc-gzd-shipments-pro wc-gzd-shipments-pro-outlined">' . _x( 'pro', 'shipments', 'woocommerce-germanized-shipments' ) . '</span>' ) ); ?></a>
 					<?php endif; ?>
 				</div>
 			</td>
@@ -39,19 +43,31 @@ defined( 'ABSPATH' ) || exit;
 				<p><?php echo wp_kses_post( $provider->get_description() ); ?></p>
 			</td>
 			<td class="wc-gzd-shipping-provider-activated" id="wc-gzd-shipping-provider-activated-<?php echo esc_attr( $provider->get_name() ); ?>">
-				<fieldset>
-					<a class="woocommerce-gzd-shipments-input-toggle-trigger" href="#"><span class="woocommerce-gzd-shipments-input-toggle woocommerce-input-toggle woocommerce-input-toggle--<?php echo( $provider->is_activated() ? 'enabled' : 'disabled' ); ?>"><?php echo esc_attr_x( 'Yes', 'shipments', 'woocommerce-germanized-shipments' ); ?></span></a>
-					<input
-						name="shipping_provider_activated_<?php echo esc_attr( $provider->get_name() ); ?>"
-						id="wc-gzd-shipping-provider-activated-<?php echo esc_attr( $provider->get_name() ); ?>"
-						type="checkbox"
-						data-shipping-provider="<?php echo esc_attr( $provider->get_name() ); ?>"
-						style="display: none;"
-						value="1"
-						class="wc-gzd-shipping-provider-activated-checkbox"
-						<?php checked( $provider->is_activated() ? 'yes' : 'no', 'yes' ); ?>
-					/>
-				</fieldset>
+				<?php if ( is_a( $provider, '\Vendidero\Germanized\Shipments\ShippingProvider\Placeholder' ) ) : ?>
+					<?php if ( $provider->is_pro() ) : ?>
+
+					<?php else : ?>
+						<?php if ( current_user_can( 'install_plugins' ) ) : ?>
+							<a class="button button-secondary wc-gzd-shipments-install-extension-btn wc-gzd-shipments-ajax-loading-btn" data-extension="<?php echo esc_attr( $provider->get_extension_name() ); ?>" href="<?php echo esc_url( $provider->get_help_link() ); ?>"><span class="btn-text"><?php echo esc_html_x( 'Install', 'shipments', 'woocommerce-germanized-shipments' ); ?></span></a>
+						<?php else : ?>
+							<span class="<?php echo( $provider->is_activated() ? 'status-enabled' : 'status-disabled' ); ?>"><?php echo( $provider->is_activated() ? esc_attr_x( 'Yes', 'shipments', 'woocommerce-germanized-shipments' ) : esc_attr_x( 'No', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></span>
+						<?php endif; ?>
+					<?php endif; ?>
+				<?php else : ?>
+					<fieldset>
+						<a class="woocommerce-gzd-shipments-input-toggle-trigger" href="#"><span class="woocommerce-gzd-shipments-input-toggle woocommerce-input-toggle woocommerce-input-toggle--<?php echo( $provider->is_activated() ? 'enabled' : 'disabled' ); ?>"><?php echo esc_attr_x( 'Yes', 'shipments', 'woocommerce-germanized-shipments' ); ?></span></a>
+						<input
+								name="shipping_provider_activated_<?php echo esc_attr( $provider->get_name() ); ?>"
+								id="wc-gzd-shipping-provider-activated-<?php echo esc_attr( $provider->get_name() ); ?>"
+								type="checkbox"
+								data-shipping-provider="<?php echo esc_attr( $provider->get_name() ); ?>"
+								style="display: none;"
+								value="1"
+								class="wc-gzd-shipping-provider-activated-checkbox"
+							<?php checked( $provider->is_activated() ? 'yes' : 'no', 'yes' ); ?>
+						/>
+					</fieldset>
+				<?php endif; ?>
 			</td>
 			<td class="wc-gzd-shipping-provider-actions">
 				<?php if ( '' !== $provider->get_help_link() ) : ?>
@@ -62,13 +78,15 @@ defined( 'ABSPATH' ) || exit;
 						href="<?php echo esc_url( $provider->get_help_link() ); ?>"
 					><?php echo esc_html_x( 'Help', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 				<?php endif; ?>
-				<a
-					class="button button-secondary wc-gzd-shipments-dash-button"
-					aria-label="<?php echo esc_attr_x( 'Manage shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
-					title="<?php echo esc_attr_x( 'Manage shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
-					href="<?php echo esc_url( $provider->get_edit_link() ); ?>"
-				><?php echo esc_html_x( 'Manage', 'shipments', 'woocommerce-germanized-shipments' ); ?>
-				</a>
+				<?php if ( '' !== $provider->get_edit_link() ) : ?>
+					<a
+						class="button button-secondary wc-gzd-shipments-dash-button"
+						aria-label="<?php echo esc_attr_x( 'Manage shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
+						title="<?php echo esc_attr_x( 'Manage shipping provider', 'shipments', 'woocommerce-germanized-shipments' ); ?>"
+						href="<?php echo esc_url( $provider->get_edit_link() ); ?>"
+					><?php echo esc_html_x( 'Manage', 'shipments', 'woocommerce-germanized-shipments' ); ?>
+					</a>
+				<?php endif; ?>
 			</td>
 		</tr>
 	<?php endforeach; ?>

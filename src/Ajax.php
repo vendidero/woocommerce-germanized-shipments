@@ -42,6 +42,7 @@ class Ajax {
 			'shipments_bulk_action_handle',
 			'remove_shipping_provider',
 			'sort_shipping_provider',
+			'install_shipping_provider_extension',
 			'edit_shipping_provider_status',
 			'create_shipment_label_load',
 			'create_shipment_label_submit',
@@ -454,6 +455,42 @@ class Ajax {
 			wp_send_json( $response );
 		} else {
 			wp_send_json( $response_error );
+		}
+	}
+
+	public static function install_shipping_provider_extension() {
+		check_ajax_referer( 'install-shipping-provider-extension', 'security' );
+
+		if ( ! current_user_can( 'install_plugins' ) || ! isset( $_POST['provider_name'] ) ) {
+			wp_die( - 1 );
+		}
+
+		$provider_name = wc_clean( wp_unslash( $_POST['provider_name'] ) );
+		$provider_name = '_' === substr( $provider_name, 0, 1 ) ? substr( $provider_name, 1 ) : $provider_name;
+		$placeholder   = ShippingProvider\Helper::instance()->get_shipping_provider_integration( $provider_name );
+
+		if ( $placeholder && $placeholder->get_extension_name() && \Vendidero\Germanized\Shipments\Extensions::is_plugin_whitelisted( $placeholder->get_extension_name() ) ) {
+			$result = \Vendidero\Germanized\Shipments\Extensions::install_or_activate_extension( $placeholder->get_extension_name() );
+
+			ShippingProvider\Helper::instance()->load_shipping_providers();
+
+			if ( $provider = wc_gzd_get_shipping_provider( $provider_name ) ) {
+				wp_send_json(
+					array(
+						'success'   => true,
+						'extension' => $placeholder->get_extension_name(),
+						'url'       => $provider->get_edit_link(),
+					)
+				);
+			} else {
+				$message = sprintf( _x( 'There was an error while automatically installing %1$s. %2$s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( $placeholder->get_title() ), \Vendidero\Germanized\Shipments\Extensions::get_plugin_manual_install_message( $placeholder->get_extension_name() ) );
+
+				wp_send_json(
+					array(
+						'message' => $message,
+					)
+				);
+			}
 		}
 	}
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Vendidero\Germanized\Shipments\Extensions;
+namespace Vendidero\Germanized\Shipments;
 
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use Vendidero\Germanized\Shipments\ShippingProvider\Placeholder;
@@ -447,7 +447,7 @@ class Extensions {
 		);
 
 		foreach ( Helper::instance()->get_available_shipping_provider_integrations() as $integration ) {
-			if ( ! empty( $integration->get_extension_name() ) ) {
+			if ( ! empty( $integration->get_extension_name() ) && ! $integration->is_pro() ) {
 				$whitelisted[ $integration->get_extension_name() ] = $integration->get_title();
 			}
 		}

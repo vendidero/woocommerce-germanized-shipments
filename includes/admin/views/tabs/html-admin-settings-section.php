@@ -34,7 +34,7 @@ $section_key = sanitize_key( $current_section );
 			 * @since 3.0.0
 			 *
 			 */
-			do_action( 'woocommerce_gzd_admin_settings_before_' . $current_tab_name . '_' . $current_section, $settings );
+			do_action( 'woocommerce_gzd_shipments_admin_settings_before_' . $current_tab_name . '_' . $current_section, $settings );
 		}
 		?>
 		<?php WC_Admin_Settings::output_fields( $settings ); ?>

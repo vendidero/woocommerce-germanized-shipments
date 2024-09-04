@@ -1149,7 +1149,7 @@ class Table extends WP_List_Table {
 			 * @since 3.0.0
 			 * @package Vendidero/Germanized/Shipments
 			 */
-			$show_date = $shipment->get_date_created()->date_i18n( apply_filters( 'woocommerce_gzd_admin_shipment_date_format', _x( 'M j, Y', 'shipments', 'woocommerce-germanized-shipments' ) ) );
+			$show_date = $shipment->get_date_created()->date_i18n( apply_filters( 'woocommerce_gzd_shipments_admin_shipment_date_format', _x( 'M j, Y', 'shipments', 'woocommerce-germanized-shipments' ) ) );
 		}
 
 		printf(

@@ -47,11 +47,11 @@ class Admin {
 
 		// Return reason options
 		add_action( 'woocommerce_admin_field_shipment_return_reasons', array( __CLASS__, 'output_return_reasons_field' ) );
-		add_action( 'woocommerce_gzd_admin_settings_after_save_shipments', array( __CLASS__, 'save_return_reasons' ), 10, 2 );
+		add_action( 'woocommerce_gzd_shipments_admin_settings_after_save_general_return', array( __CLASS__, 'save_return_reasons' ), 10 );
 
 		// Packaging options
 		add_action( 'woocommerce_admin_field_packaging_list', array( __CLASS__, 'output_packaging_list' ) );
-		add_action( 'woocommerce_gzd_admin_settings_after_save_shipments_packaging', array( __CLASS__, 'save_packaging_list' ), 10 );
+		add_action( 'woocommerce_gzd_shipments_admin_settings_after_save_packaging', array( __CLASS__, 'save_packaging_list' ), 10, 2 );
 
 		add_action( 'woocommerce_admin_field_packaging_reports', array( __CLASS__, 'output_packaging_reports' ) );
 		add_action( 'woocommerce_admin_field_shipments_country_select', array( __CLASS__, 'output_custom_country_select' ) );
@@ -972,7 +972,11 @@ class Admin {
 		return ( $a['order'] < $b['order'] ) ? -1 : 1;
 	}
 
-	public static function save_packaging_list() {
+	public static function save_packaging_list( $settings, $current_section ) {
+		if ( '' !== $current_section ) {
+			return;
+		}
+
 		$current_key_list         = array();
 		$packaging_ids_after_save = array();
 
@@ -1031,11 +1035,7 @@ class Admin {
 		}
 	}
 
-	public static function save_return_reasons( $tab, $current_section ) {
-		if ( '' !== $current_section ) {
-			return;
-		}
-
+	public static function save_return_reasons() {
 		$reasons = array();
 
 		if ( isset( $_POST['shipment_return_reason'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -1787,6 +1787,7 @@ class Admin {
 					'edit_shipping_providers_nonce'        => wp_create_nonce( 'edit-shipping-providers' ),
 					'remove_shipping_provider_nonce'       => wp_create_nonce( 'remove-shipping-provider' ),
 					'sort_shipping_provider_nonce'         => wp_create_nonce( 'sort-shipping-provider' ),
+					'install_extension_nonce'              => wp_create_nonce( 'install-shipping-provider-extension' ),
 					'i18n_remove_shipping_provider_notice' => _x( 'Do you really want to delete the shipping provider? Some of your existing shipments might be linked to that provider and might need adjustments.', 'shipments', 'woocommerce-germanized-shipments' ),
 				)
 			);

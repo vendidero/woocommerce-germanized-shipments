@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\Shipments\Admin\Tabs;
 
+use Vendidero\Germanized\Shipments\Admin\Settings;
+
 class General extends Tab {
 
 	public function get_description() {
@@ -18,8 +20,10 @@ class General extends Tab {
 
 	public function get_sections() {
 		$sections = array(
-			''        => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' ),
-			'address' => _x( 'Addresses', 'shipments', 'woocommerce-germanized-shipments' ),
+			''                     => _x( 'General', 'shipments', 'woocommerce-germanized-shipments' ),
+			'automation'           => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ),
+			'return'               => _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ),
+			'business_information' => _x( 'Business Information', 'shipments', 'woocommerce-germanized-shipments' ),
 		);
 
 		return $sections;
@@ -66,7 +70,7 @@ class General extends Tab {
 		return array( 'state', 'street', 'street_number', 'full_name' );
 	}
 
-	protected function get_address_settings() {
+	protected function get_business_information_settings() {
 		$shipper_fields = wc_gzd_get_shipment_setting_address_fields( 'shipper' );
 		$return_fields  = wc_gzd_get_shipment_setting_address_fields( 'return' );
 
@@ -156,41 +160,12 @@ class General extends Tab {
 		return $settings;
 	}
 
-	protected function get_general_settings() {
+	protected function get_automation_settings() {
 		$statuses = array_diff_key( wc_gzd_get_shipment_statuses(), array_flip( array( 'gzd-requested' ) ) );
 
 		$settings = array(
 			array(
 				'title' => '',
-				'type'  => 'title',
-				'id'    => 'shipments_options',
-			),
-
-			array(
-				'title'   => _x( 'Notify', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc'    => _x( 'Notify customers about new shipments.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-shipments-additional-desc">' . sprintf( _x( 'Notify customers by email as soon as a shipment is marked as shipped. %s the notification email.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=email&section=wc_gzd_email_customer_shipment' ) ) . '" target="_blank">' . _x( 'Manage', 'shipments notification', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
-				'id'      => 'woocommerce_gzd_shipments_notify_enable',
-				'default' => 'yes',
-				'type'    => 'gzd_shipments_toggle',
-			),
-
-			array(
-				'title'    => _x( 'Default provider', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc_tip' => _x( 'Select a default shipping provider which will be selected by default in case no provider could be determined automatically.', 'shipments', 'woocommerce-germanized-shipments' ),
-				'id'       => 'woocommerce_gzd_shipments_default_shipping_provider',
-				'default'  => '',
-				'type'     => 'select',
-				'options'  => wc_gzd_get_shipping_provider_select(),
-				'class'    => 'wc-enhanced-select',
-			),
-
-			array(
-				'type' => 'sectionend',
-				'id'   => 'shipments_options',
-			),
-
-			array(
-				'title' => _x( 'Automation', 'shipments', 'woocommerce-germanized-shipments' ),
 				'type'  => 'title',
 				'id'    => 'shipments_auto_options',
 			),
@@ -250,12 +225,18 @@ class General extends Tab {
 				'type' => 'sectionend',
 				'id'   => 'shipments_auto_options',
 			),
+		);
 
+		return $settings;
+	}
+
+	protected function get_return_settings() {
+		$settings = array(
 			array(
-				'title' => _x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ),
+				'title' => '',
 				'type'  => 'title',
 				'id'    => 'shipments_return_options',
-				'desc'  => sprintf( _x( 'Returns can be added manually by the shop manager or by the customer. Decide what suits you best by turning customer-added returns on or off in your %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=germanized-shipping_provider' ) ) . '">' . _x( 'shipping provider settings', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ),
+				'desc'  => sprintf( _x( 'Returns can be added manually by the shop manager or by the customer. Decide what suits you best by turning customer-added returns on or off in your %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . esc_url( Settings::get_settings_url( 'shipping_provider' ) ) . '">' . _x( 'shipping provider settings', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ),
 			),
 
 			array(
@@ -275,16 +256,40 @@ class General extends Tab {
 				'type' => 'sectionend',
 				'id'   => 'shipments_return_options',
 			),
+		);
 
+		return $settings;
+	}
+
+	protected function get_general_settings() {
+		$settings = array(
 			array(
-				'title' => _x( 'Customer Account', 'shipments', 'woocommerce-germanized-shipments' ),
+				'title' => '',
 				'type'  => 'title',
-				'id'    => 'shipments_customer_options',
+				'id'    => 'shipments_options',
 			),
 
 			array(
-				'title'   => _x( 'List', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc'    => _x( 'List shipments on customer account order screen.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'title'   => _x( 'Notification', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc'    => _x( 'Send shipping notification to customers.', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-shipments-additional-desc">' . sprintf( _x( 'Notify customers by email as soon as a shipment is marked as shipped. %s the notification email.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="' . esc_url( admin_url( 'admin.php?page=wc-settings&tab=email&section=wc_gzd_email_customer_shipment' ) ) . '" target="_blank">' . _x( 'Manage', 'shipments notification', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</div>',
+				'id'      => 'woocommerce_gzd_shipments_notify_enable',
+				'default' => 'yes',
+				'type'    => 'gzd_shipments_toggle',
+			),
+
+			array(
+				'title'    => _x( 'Default provider', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc_tip' => _x( 'Select a default shipping provider which will be selected by default in case no provider could be determined automatically.', 'shipments', 'woocommerce-germanized-shipments' ),
+				'id'       => 'woocommerce_gzd_shipments_default_shipping_provider',
+				'default'  => '',
+				'type'     => 'select',
+				'options'  => wc_gzd_get_shipping_provider_select(),
+				'class'    => 'wc-enhanced-select',
+			),
+
+			array(
+				'title'   => _x( 'Customer Account', 'shipments', 'woocommerce-germanized-shipments' ),
+				'desc'    => _x( 'List shipments and return options, if available, within customer account.', 'shipments', 'woocommerce-germanized-shipments' ),
 				'id'      => 'woocommerce_gzd_shipments_customer_account_enable',
 				'default' => 'yes',
 				'type'    => 'gzd_shipments_toggle',
@@ -292,7 +297,7 @@ class General extends Tab {
 
 			array(
 				'type' => 'sectionend',
-				'id'   => 'shipments_customer_options',
+				'id'   => 'shipments_options',
 			),
 		);
 
@@ -304,8 +309,12 @@ class General extends Tab {
 
 		if ( '' === $current_section ) {
 			$settings = $this->get_general_settings();
-		} elseif ( 'address' === $current_section ) {
-			$settings = $this->get_address_settings();
+		} elseif ( 'automation' === $current_section ) {
+			$settings = $this->get_automation_settings();
+		} elseif ( 'return' === $current_section ) {
+			$settings = $this->get_return_settings();
+		} elseif ( 'business_information' === $current_section ) {
+			$settings = $this->get_business_information_settings();
 		}
 
 		return $settings;

@@ -17,7 +17,6 @@ class Placeholder extends Simple {
 				'title'               => '',
 				'description'         => '',
 				'countries_supported' => array(),
-				'is_builtin'          => true,
 				'is_pro'              => false,
 				'extension_name'      => '',
 			)
@@ -27,7 +26,7 @@ class Placeholder extends Simple {
 	}
 
 	public function get_edit_link( $section = '' ) {
-		return 'https://vendidero.de/woocommerce-germanized/features';
+		return '';
 	}
 
 	public function get_name( $context = 'view' ) {
@@ -36,10 +35,6 @@ class Placeholder extends Simple {
 
 	public function is_base_country_supported() {
 		return empty( $this->placeholder_args['supported_countries'] ) || in_array( Package::get_base_country(), $this->placeholder_args['supported_countries'], true );
-	}
-
-	public function is_builtin() {
-		return $this->placeholder_args['is_builtin'];
 	}
 
 	public function get_extension_name() {
@@ -53,7 +48,7 @@ class Placeholder extends Simple {
 	public function get_title( $context = 'view' ) {
 		$title = $this->placeholder_args['title'];
 
-		if ( $this->is_pro() && ! Package::is_pro() ) {
+		if ( $this->is_pro() ) {
 			$title .= '<span class="wc-gzd-shipments-pro wc-gzd-shipments-pro-outlined">' . _x( 'pro', 'shipments', 'woocommerce-germanized-shipments' ) . '</span>';
 		}
 
@@ -65,7 +60,7 @@ class Placeholder extends Simple {
 	}
 
 	public function is_pro() {
-		return $this->placeholder_args['is_pro'];
+		return $this->placeholder_args['is_pro'] && ! Package::is_pro();
 	}
 
 	public function is_activated() {

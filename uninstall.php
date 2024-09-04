@@ -20,7 +20,7 @@ if ( defined( 'WC_GZD_SHIPMENTS_REMOVE_ALL_DATA' ) && true === WC_GZD_SHIPMENTS_
 		'_date_shipped',
 		'_return_request_key',
 		'_pickup_location_customer_number',
-		'_pickup_location_code'
+		'_pickup_location_code',
 	);
 
 	// Delete gzd meta data
