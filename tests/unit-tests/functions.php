@@ -94,6 +94,7 @@ class Functions extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTest
 		$this->assertEquals( '+491234', $shipper_address['phone'] );
 		$this->assertEquals( '12345678', $shipper_address['customs_reference_number'] );
 
+		update_option( 'woocommerce_gzd_shipments_use_alternate_return', 'yes' );
 		update_option( 'woocommerce_gzd_shipments_return_address_first_name', 'Max1' );
 		update_option( 'woocommerce_gzd_shipments_return_address_last_name', 'Mustermann2' );
 		update_option( 'woocommerce_gzd_shipments_return_address_company', 'Test Shop1' );
