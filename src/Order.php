@@ -57,6 +57,10 @@ class Order {
 		return $this->order;
 	}
 
+	public function get_id() {
+		return $this->get_order()->get_id();
+	}
+
 	/**
 	 * @return WC_DateTime|null
 	 */
@@ -154,7 +158,7 @@ class Order {
 	}
 
 	public function supports_third_party_email_transmission() {
-		$supports_email_transmission = function_exists( 'wc_gzd_order_supports_parcel_delivery_reminder' ) ? wc_gzd_order_supports_parcel_delivery_reminder( $this->get_order() ) : 'yes' === $this->get_order()->get_meta( '_parcel_delivery_opted_in' );
+		$supports_email_transmission = 'yes' === $this->get_order()->get_meta( '_parcel_delivery_opted_in' );
 
 		/**
 		 * Filter to adjust whether the email address may be transmitted to third-parties, e.g.
