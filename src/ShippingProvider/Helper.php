@@ -144,7 +144,7 @@ class Helper {
 		foreach ( $this->integrations as $key => $integration ) {
 			if ( ! $integration->is_base_country_supported() ) {
 				continue;
-			} elseif ( $inactive_only && ! empty( $integration->get_extension_name() ) && Extensions::is_provider_integration_active( $key, $integration->get_extension_name() ) ) {
+			} elseif ( $inactive_only && ! empty( $integration->get_extension_name() ) && Extensions::is_provider_integration_active( $integration->get_original_name(), $integration->get_extension_name() ) ) {
 				continue;
 			}
 

@@ -59,8 +59,10 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 		'weight'                      => 0,
 		'max_content_weight'          => 0,
 		'width'                       => 0,
+		'weight_unit'                 => 'kg',
 		'height'                      => 0,
 		'length'                      => 0,
+		'dimension_unit'              => 'cm',
 		'inner_width'                 => 0,
 		'inner_height'                => 0,
 		'inner_length'                => 0,
@@ -99,6 +101,9 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 			}
 		} else {
 			$this->set_object_read( true );
+
+			$this->set_weight_unit( wc_gzd_get_packaging_weight_unit() );
+			$this->set_dimension_unit( wc_gzd_get_packaging_dimension_unit() );
 		}
 	}
 
@@ -161,7 +166,13 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 	 * @return string
 	 */
 	public function get_weight( $context = 'view' ) {
-		return $this->get_prop( 'weight', $context );
+		$weight = $this->get_prop( 'weight', $context );
+
+		if ( 'view' === $context && ! empty( $weight ) && $this->get_weight_unit() !== wc_gzd_get_packaging_weight_unit() ) {
+			$weight = wc_get_weight( (float) $weight, wc_gzd_get_packaging_weight_unit(), $this->get_weight_unit() );
+		}
+
+		return $weight;
 	}
 
 	/**
@@ -171,7 +182,13 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 	 * @return string
 	 */
 	public function get_max_content_weight( $context = 'view' ) {
-		return $this->get_prop( 'max_content_weight', $context );
+		$max_content_weight = $this->get_prop( 'max_content_weight', $context );
+
+		if ( 'view' === $context && ! empty( $max_content_weight ) && $this->get_weight_unit() !== wc_gzd_get_packaging_weight_unit() ) {
+			$max_content_weight = wc_get_weight( (float) $max_content_weight, wc_gzd_get_packaging_weight_unit(), $this->get_weight_unit() );
+		}
+
+		return $max_content_weight;
 	}
 
 	/**
@@ -211,7 +228,13 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 	 * @return string
 	 */
 	public function get_length( $context = 'view' ) {
-		return $this->get_prop( 'length', $context );
+		$length = $this->get_prop( 'length', $context );
+
+		if ( 'view' === $context && ! empty( $length ) && $this->get_dimension_unit() !== wc_gzd_get_packaging_dimension_unit() ) {
+			$length = wc_get_dimension( (float) $length, wc_gzd_get_packaging_dimension_unit(), $this->get_dimension_unit() );
+		}
+
+		return $length;
 	}
 
 	/**
@@ -221,7 +244,13 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 	 * @return string
 	 */
 	public function get_width( $context = 'view' ) {
-		return $this->get_prop( 'width', $context );
+		$width = $this->get_prop( 'width', $context );
+
+		if ( 'view' === $context && ! empty( $width ) && $this->get_dimension_unit() !== wc_gzd_get_packaging_dimension_unit() ) {
+			$width = wc_get_dimension( (float) $width, wc_gzd_get_packaging_dimension_unit(), $this->get_dimension_unit() );
+		}
+
+		return $width;
 	}
 
 	/**
@@ -231,7 +260,13 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 	 * @return string
 	 */
 	public function get_height( $context = 'view' ) {
-		return $this->get_prop( 'height', $context );
+		$height = $this->get_prop( 'height', $context );
+
+		if ( 'view' === $context && ! empty( $height ) && $this->get_dimension_unit() !== wc_gzd_get_packaging_dimension_unit() ) {
+			$height = wc_get_dimension( (float) $height, wc_gzd_get_packaging_dimension_unit(), $this->get_dimension_unit() );
+		}
+
+		return $height;
 	}
 
 	/**
@@ -243,8 +278,12 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 	public function get_inner_length( $context = 'view' ) {
 		$inner_length = $this->get_prop( 'inner_length', $context );
 
-		if ( 'view' === $context && empty( $inner_length ) ) {
-			$inner_length = $this->get_length( $context );
+		if ( 'view' === $context ) {
+			if ( empty( $inner_length ) ) {
+				$inner_length = $this->get_length( $context );
+			} elseif ( $this->get_dimension_unit() !== wc_gzd_get_packaging_dimension_unit() ) {
+				$inner_length = wc_get_dimension( (float) $inner_length, wc_gzd_get_packaging_dimension_unit(), $this->get_dimension_unit() );
+			}
 		}
 
 		return $inner_length;
@@ -259,8 +298,12 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 	public function get_inner_width( $context = 'view' ) {
 		$inner_width = $this->get_prop( 'inner_width', $context );
 
-		if ( 'view' === $context && empty( $inner_width ) ) {
-			$inner_width = $this->get_width( $context );
+		if ( 'view' === $context ) {
+			if ( empty( $inner_width ) ) {
+				$inner_width = $this->get_width( $context );
+			} elseif ( $this->get_dimension_unit() !== wc_gzd_get_packaging_dimension_unit() ) {
+				$inner_width = wc_get_dimension( (float) $inner_width, wc_gzd_get_packaging_dimension_unit(), $this->get_dimension_unit() );
+			}
 		}
 
 		return $inner_width;
@@ -275,11 +318,47 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 	public function get_inner_height( $context = 'view' ) {
 		$inner_height = $this->get_prop( 'inner_height', $context );
 
-		if ( 'view' === $context && empty( $inner_height ) ) {
-			$inner_height = $this->get_height( $context );
+		if ( 'view' === $context ) {
+			if ( empty( $inner_height ) ) {
+				$inner_height = $this->get_height( $context );
+			} elseif ( $this->get_dimension_unit() !== wc_gzd_get_packaging_dimension_unit() ) {
+				$inner_height = wc_get_dimension( (float) $inner_height, wc_gzd_get_packaging_dimension_unit(), $this->get_dimension_unit() );
+			}
 		}
 
 		return $inner_height;
+	}
+
+	/**
+	 * Returns the packaging weight unit.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
+	public function get_weight_unit( $context = 'view' ) {
+		$unit = $this->get_prop( 'weight_unit', $context );
+
+		if ( 'view' === $context && empty( $unit ) ) {
+			$unit = 'kg';
+		}
+
+		return $unit;
+	}
+
+	/**
+	 * Returns the packaging dimension unit.
+	 *
+	 * @param  string $context What the value is for. Valid values are 'view' and 'edit'.
+	 * @return string
+	 */
+	public function get_dimension_unit( $context = 'view' ) {
+		$unit = $this->get_prop( 'dimension_unit', $context );
+
+		if ( 'view' === $context && empty( $unit ) ) {
+			$unit = 'cm';
+		}
+
+		return $unit;
 	}
 
 	public function has_inner_dimensions() {
@@ -417,6 +496,24 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 	 */
 	public function set_weight( $weight ) {
 		$this->set_prop( 'weight', empty( $weight ) ? 0 : wc_format_decimal( $weight, 2, true ) );
+	}
+
+	/**
+	 * Set packaging weight unit.
+	 *
+	 * @param string $unit The unit.
+	 */
+	public function set_weight_unit( $unit ) {
+		$this->set_prop( 'weight_unit', $unit );
+	}
+
+	/**
+	 * Set packaging dimension unit.
+	 *
+	 * @param string $unit The unit.
+	 */
+	public function set_dimension_unit( $unit ) {
+		$this->set_prop( 'dimension_unit', $unit );
 	}
 
 	public function get_title() {

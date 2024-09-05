@@ -34,7 +34,9 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		'date_created',
 		'date_created_gmt',
 		'weight',
+		'weight_unit',
 		'max_content_weight',
+		'dimension_unit',
 		'length',
 		'width',
 		'height',
@@ -72,12 +74,16 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 		global $wpdb;
 
 		$packaging->set_date_created( time() );
+		$packaging->set_weight_unit( wc_gzd_get_packaging_weight_unit() );
+		$packaging->set_dimension_unit( wc_gzd_get_packaging_dimension_unit() );
 
 		$data = array(
 			'packaging_type'               => $packaging->get_type(),
 			'packaging_description'        => $packaging->get_description(),
 			'packaging_weight'             => $packaging->get_weight(),
+			'packaging_weight_unit'        => $packaging->get_weight_unit(),
 			'packaging_max_content_weight' => $packaging->get_max_content_weight(),
+			'packaging_dimension_unit'     => $packaging->get_dimension_unit(),
 			'packaging_length'             => $packaging->get_length(),
 			'packaging_width'              => $packaging->get_width(),
 			'packaging_height'             => $packaging->get_height(),
@@ -231,7 +237,9 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 					'type'               => $data->packaging_type,
 					'description'        => $data->packaging_description,
 					'weight'             => $data->packaging_weight,
+					'weight_unit'        => $data->packaging_weight_unit,
 					'max_content_weight' => $data->packaging_max_content_weight,
+					'dimension_unit'     => $data->packaging_dimension_unit,
 					'length'             => $data->packaging_length,
 					'width'              => $data->packaging_width,
 					'height'             => $data->packaging_height,

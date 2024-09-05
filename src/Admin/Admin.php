@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments\Admin;
 
 use Vendidero\Germanized\Shipments\Package;
+use Vendidero\Germanized\Shipments\Packaging;
 use Vendidero\Germanized\Shipments\ShippingMethod\MethodHelper;
 use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
@@ -998,12 +999,12 @@ class Admin {
 					$packaging_obj->set_props(
 						array(
 							'type'                        => ! in_array( $packaging['type'], $available_types, true ) ? 'cardboard' : $packaging['type'],
-							'weight'                      => empty( $packaging['weight'] ) ? 0 : $packaging['weight'],
+							'weight'                      => empty( $packaging['weight'] ) ? 0 : PackagingSettings::to_packaging_weight( $packaging['weight'], $packaging_obj ),
 							'description'                 => empty( $packaging['description'] ) ? '' : $packaging['description'],
-							'length'                      => empty( $packaging['length'] ) ? 0 : $packaging['length'],
-							'width'                       => empty( $packaging['width'] ) ? 0 : $packaging['width'],
-							'height'                      => empty( $packaging['height'] ) ? 0 : $packaging['height'],
-							'max_content_weight'          => empty( $packaging['max_content_weight'] ) ? 0 : $packaging['max_content_weight'],
+							'length'                      => empty( $packaging['length'] ) ? 0 : PackagingSettings::to_packaging_dimension( $packaging['length'], $packaging_obj ),
+							'width'                       => empty( $packaging['width'] ) ? 0 : PackagingSettings::to_packaging_dimension( $packaging['width'], $packaging_obj ),
+							'height'                      => empty( $packaging['height'] ) ? 0 : PackagingSettings::to_packaging_dimension( $packaging['height'], $packaging_obj ),
+							'max_content_weight'          => empty( $packaging['max_content_weight'] ) ? 0 : PackagingSettings::to_packaging_weight( $packaging['max_content_weight'], $packaging_obj ),
 							'available_shipping_provider' => empty( $packaging['available_shipping_provider'] ) ? '' : array_filter( (array) $packaging['available_shipping_provider'] ),
 							'order'                       => ++$order,
 						)
@@ -1304,7 +1305,7 @@ class Admin {
 							<th style="width: 10ch;"><?php echo esc_html_x( 'Type', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
 							<th style="width: 5ch;"><?php echo sprintf( esc_html_x( 'Weight (%s)', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_packaging_weight_unit() ) ); ?> <?php echo wc_help_tip( _x( 'The weight of the packaging.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
 							<th style="width: 15ch;"><?php echo sprintf( esc_html_x( 'Dimensions (LxWxH, %s)', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_packaging_dimension_unit() ) ); ?></th>
-							<th style="width: 5ch;"><?php echo esc_html_x( 'Load capacity (kg)', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'The maximum weight this packaging can hold. Leave empty to not restrict maximum weight.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
+							<th style="width: 5ch;"><?php echo sprintf( esc_html_x( 'Load capacity (%s)', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_packaging_weight_unit() ) ); ?> <?php echo wc_help_tip( _x( 'The maximum weight this packaging can hold. Leave empty to not restrict maximum weight.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
 							<th style="width: 5ch;"><?php echo esc_html_x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
 						</tr>
 						</thead>

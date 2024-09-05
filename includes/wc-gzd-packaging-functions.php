@@ -38,11 +38,11 @@ function wc_gzd_get_packaging_list( $args = array() ) {
 }
 
 function wc_gzd_get_packaging_weight_unit() {
-	return apply_filters( 'woocommerce_gzd_packaging_weight_unit', 'kg' );
+	return apply_filters( 'woocommerce_gzd_packaging_weight_unit', get_option( 'woocommerce_weight_unit', 'kg' ) );
 }
 
 function wc_gzd_get_packaging_dimension_unit() {
-	return apply_filters( 'woocommerce_gzd_packaging_dimension_unit', 'cm' );
+	return apply_filters( 'woocommerce_gzd_packaging_dimension_unit', get_option( 'woocommerce_dimension_unit', 'cm' ) );
 }
 
 function wc_gzd_get_packaging_select( $args = array() ) {

@@ -593,6 +593,8 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_packaging (
   packaging_type varchar(200) NOT NULL DEFAULT '',
   packaging_description tinytext NOT NULL DEFAULT '',
   packaging_weight decimal(6,2) unsigned NOT NULL DEFAULT 0,
+  packaging_weight_unit varchar(50) NOT NULL DEFAULT '',
+  packaging_dimension_unit varchar(50) NOT NULL DEFAULT '',
   packaging_order bigint(20) unsigned NOT NULL DEFAULT 0,
   packaging_max_content_weight decimal(6,2) unsigned NOT NULL DEFAULT 0,
   packaging_length decimal(6,2) unsigned NOT NULL DEFAULT 0,

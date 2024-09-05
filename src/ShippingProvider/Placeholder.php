@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments\ShippingProvider;
 
+use Vendidero\Germanized\Shipments\Extensions;
 use Vendidero\Germanized\Shipments\Package;
 
 defined( 'ABSPATH' ) || exit;
@@ -15,12 +16,17 @@ class Placeholder extends Simple {
 			$args,
 			array(
 				'title'               => '',
+				'name'                => '',
 				'description'         => '',
 				'countries_supported' => array(),
 				'is_pro'              => false,
 				'extension_name'      => '',
 			)
 		);
+
+		if ( empty( $this->placeholder_args['name'] ) ) {
+			$this->placeholder_args['name'] = sanitize_title( $this->placeholder_args['title'] );
+		}
 
 		parent::__construct( $data );
 	}
@@ -29,8 +35,12 @@ class Placeholder extends Simple {
 		return '';
 	}
 
+	public function get_original_name() {
+		return $this->placeholder_args['name'];
+	}
+
 	public function get_name( $context = 'view' ) {
-		return '_' . sanitize_key( $this->placeholder_args['title'] );
+		return '_' . sanitize_key( $this->placeholder_args['name'] );
 	}
 
 	public function is_base_country_supported() {
@@ -60,7 +70,7 @@ class Placeholder extends Simple {
 	}
 
 	public function is_pro() {
-		return $this->placeholder_args['is_pro'] && ! Package::is_pro();
+		return $this->placeholder_args['is_pro'] && ! Package::is_pro() && ! Extensions::is_provider_integration_active( $this->get_original_name(), $this->get_extension_name() );
 	}
 
 	public function is_activated() {

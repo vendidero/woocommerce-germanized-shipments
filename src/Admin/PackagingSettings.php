@@ -195,9 +195,9 @@ class PackagingSettings {
 				'id'          => 'inner_dimensions',
 				'desc'        => wc_gzd_get_packaging_dimension_unit(),
 				'value'       => array(
-					'length' => $packaging->get_inner_length( 'edit' ) ? wc_format_localized_decimal( $packaging->get_inner_length( 'edit' ) ) : '',
-					'width'  => $packaging->get_inner_width( 'edit' ) ? wc_format_localized_decimal( $packaging->get_inner_width( 'edit' ) ) : '',
-					'height' => $packaging->get_inner_height( 'edit' ) ? wc_format_localized_decimal( $packaging->get_inner_height( 'edit' ) ) : '',
+					'length' => $packaging->get_inner_length( 'edit' ) ? wc_format_localized_decimal( $packaging->get_inner_length() ) : '',
+					'width'  => $packaging->get_inner_width( 'edit' ) ? wc_format_localized_decimal( $packaging->get_inner_width() ) : '',
+					'height' => $packaging->get_inner_height( 'edit' ) ? wc_format_localized_decimal( $packaging->get_inner_height() ) : '',
 				),
 				'placeholder' => array(
 					'length' => wc_format_localized_decimal( $packaging->get_length() ),
@@ -222,6 +222,26 @@ class PackagingSettings {
 				'id'   => 'packaging_general_options',
 			),
 		);
+	}
+
+	/**
+	 * @param $weight
+	 * @param Packaging $packaging
+	 *
+	 * @return string
+	 */
+	public static function to_packaging_weight( $weight, $packaging ) {
+		return wc_get_weight( (float) wc_format_decimal( $weight ), $packaging->get_weight_unit(), wc_gzd_get_packaging_weight_unit() );
+	}
+
+	/**
+	 * @param $dimension
+	 * @param Packaging $packaging
+	 *
+	 * @return string
+	 */
+	public static function to_packaging_dimension( $dimension, $packaging ) {
+		return wc_get_dimension( (float) wc_format_decimal( $dimension ), $packaging->get_dimension_unit(), wc_gzd_get_packaging_dimension_unit() );
 	}
 
 	/**
@@ -275,6 +295,16 @@ class PackagingSettings {
 					function( $value, $option, $old_value ) use ( $packaging ) {
 						if ( is_callable( array( $packaging, "set_{$option}" ) ) ) {
 							$setter = "set_{$option}";
+
+							/**
+							 * Convert dimensions/weight to packaging unit
+							 */
+							if ( ! empty( $value ) && in_array( $option, array( 'length', 'width', 'height', 'inner_length', 'inner_width', 'inner_height' ), true ) ) {
+								$value = self::to_packaging_dimension( $value, $packaging );
+							} elseif ( ! empty( $value ) && in_array( $option, array( 'weight', 'max_content_weight' ), true ) ) {
+								$value = self::to_packaging_weight( $value, $packaging );
+							}
+
 							$packaging->$setter( $value );
 						}
 
