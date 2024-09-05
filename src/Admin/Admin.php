@@ -1813,6 +1813,13 @@ class Admin {
 				);
 			}
 		}
+
+		if ( 'woocommerce_page_wc-settings' === $screen_id && isset( $_GET['tab'] ) && strstr( wc_clean( wp_unslash( $_GET['tab'] ) ), 'shipments' ) && isset( $_GET['tutorial'] ) && current_user_can( 'manage_options' ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$tab_name  = wc_clean( wp_unslash( $_GET['tab'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$tab_clean = str_replace( 'shipments-', '', $tab_name );
+
+			Tutorial::setup_pointers_for_settings( $tab_clean );
+		}
 	}
 
 	protected static function is_shipping_settings_request() {

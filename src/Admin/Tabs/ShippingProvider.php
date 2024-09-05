@@ -3,6 +3,7 @@
 namespace Vendidero\Germanized\Shipments\Admin\Tabs;
 
 use Vendidero\Germanized\Shipments\Admin\Settings;
+use Vendidero\Germanized\Shipments\Admin\Tutorial;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use Vendidero\Germanized\Shipments\ShippingProvider\Simple;
@@ -123,7 +124,7 @@ class ShippingProvider extends Tab {
 			$pointers = array(
 				'pointers' => array(
 					'provider' => array(
-						'target'       => '.wc-gzd-setting-tab-rows tr:first-child .wc-gzd-shipping-provider-title a.wc-gzd-shipping-provider-edit-link',
+						'target'       => '.wc-gzd-shipments-setting-tab-rows tr:first-child .wc-gzd-shipping-provider-title a.wc-gzd-shipping-provider-edit-link',
 						'next'         => 'activate',
 						'next_url'     => '',
 						'next_trigger' => array(),
@@ -136,7 +137,7 @@ class ShippingProvider extends Tab {
 						),
 					),
 					'activate' => array(
-						'target'       => '.wc-gzd-setting-tab-rows tr:first-child .wc-gzd-shipping-provider-activated .woocommerce-gzd-shipments-input-toggle-trigger',
+						'target'       => '.wc-gzd-shipments-setting-tab-rows tr:first-child .wc-gzd-shipping-provider-activated .woocommerce-gzd-shipments-input-toggle-trigger',
 						'next'         => 'new',
 						'next_url'     => '',
 						'next_trigger' => array(),
@@ -149,12 +150,12 @@ class ShippingProvider extends Tab {
 						),
 					),
 					'new'      => array(
-						'target'       => 'ul.wc-gzd-settings-breadcrumb .breadcrumb-item-active a.page-title-action:first',
+						'target'       => 'ul.wc-gzd-shipments-settings-breadcrumb .breadcrumb-item-active a.page-title-action:first',
 						'next'         => '',
 						'next_url'     => $this->get_next_pointers_link(),
 						'next_trigger' => array(),
 						'options'      => array(
-							'content'  => '<h3>' . esc_html_x( 'Add new', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3><p>' . esc_html_x( 'You may want to manually add a new shipping provider in case an automatic integration does not exist.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
+							'content'  => '<h3>' . esc_html_x( 'Add new', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3><p>' . esc_html_x( 'You may want to manually add a new shipping provider in case a built-in integration is not available.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
 							'position' => array(
 								'edge'  => 'top',
 								'align' => 'top',
@@ -170,7 +171,7 @@ class ShippingProvider extends Tab {
 
 	public function get_next_pointers_link( $provider_name = false ) {
 		$providers        = wc_gzd_get_shipping_providers();
-		$next_url         = admin_url( 'admin.php?page=wc-settings&tab=germanized-emails&tutorial=yes' );
+		$next_url         = Tutorial::get_tutorial_url( 'packaging' );
 		$provider_indexes = array();
 		$provider_counts  = array();
 		$count            = 0;

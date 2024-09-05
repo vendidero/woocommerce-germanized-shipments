@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 		<th class="wc-gzd-shipping-provider-actions"></th>
 	</tr>
 	</thead>
-	<tbody class="wc-gzd-setting-tab-rows">
+	<tbody class="wc-gzd-shipments-setting-tab-rows">
 	<?php foreach ( $providers as $provider_name => $provider ) : ?>
 		<tr data-shipping-provider="<?php echo esc_attr( $provider->get_name() ); ?>">
 			<td class="sort" id="wc-gzd-shipping-provider-sort-<?php echo esc_attr( $provider->get_name() ); ?>">

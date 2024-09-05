@@ -2,6 +2,8 @@
 
 namespace Vendidero\Germanized\Shipments\Admin;
 
+use Vendidero\Germanized\Shipments\Admin\Tabs\Tab;
+use Vendidero\Germanized\Shipments\Admin\Tabs\Tabs;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
 use Vendidero\Germanized\Shipments\Packaging\ReportQueue;
@@ -28,6 +30,29 @@ class Settings {
 		);
 
 		return $breadcrumb;
+	}
+
+	/**
+	* @param string $name
+	*
+	* @return bool|Tab
+	 */
+	public static function get_tab( $name ) {
+		$setting_pages = \WC_Admin_Settings::get_settings_pages();
+		$setting_page  = false;
+
+		foreach ( $setting_pages as $page ) {
+			if ( is_a( $page, '\Vendidero\Germanized\Shipments\Admin\Tabs\Tabs' ) ) {
+				$setting_page = $page;
+				break;
+			}
+		}
+
+		if ( ! $setting_page ) {
+			$setting_page = new Tabs();
+		}
+
+		return $setting_page->get_tab_by_name( $name );
 	}
 
 	public static function get_settings_url( $tab = '', $section = '' ) {

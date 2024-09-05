@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments\Admin\Tabs;
 
+use Vendidero\Germanized\Shipments\Admin\Tutorial;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Packaging\ReportHelper;
 use Vendidero\Germanized\Shipments\Packaging\ReportQueue;
@@ -197,6 +198,88 @@ class Packaging extends Tab {
 				'id'   => 'packaging_options',
 			),
 		);
+	}
+
+	public function get_pointers() {
+		$section  = $this->get_current_section();
+		$pointers = array();
+
+		if ( '' === $section ) {
+			$pointers = array(
+				'pointers' => array(
+					'packaging-edit' => array(
+						'target'       => 'tbody.packaging_list .wc-gzd-shipment-action-button:last',
+						'next'         => 'packaging-add',
+						'next_url'     => '',
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Edit packaging', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3><p>' . esc_html_x( 'Configure additional packaging settings such as shipping class restrictions or inner dimensions.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
+							'position' => array(
+								'edge'  => 'right',
+								'align' => 'left',
+							),
+						),
+					),
+					'packaging-add'  => array(
+						'target'       => '#packaging_list_wrapper a.add',
+						'next'         => 'auto',
+						'next_url'     => Tutorial::get_tutorial_url( 'packaging', 'reports' ),
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Add packaging', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3><p>' . esc_html_x( 'Add all your available packaging options to make sure the packing algorithm knows about it.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+				),
+			);
+		} elseif ( 'reports' === $section ) {
+			$pointers = array(
+				'pointers' => array(
+					'create_report' => array(
+						'target'       => '.wc-gzd-shipments-create-packaging-report button',
+						'next'         => '',
+						'next_url'     => Tutorial::get_tutorial_url( 'packaging', 'packing' ),
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Create packaging reports', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3><p>' . esc_html_x( 'You may create yearly packaging reports, e.g. for recycling purposes.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+				),
+			);
+		} elseif ( 'packing' === $section ) {
+			$last_url = Tutorial::get_last_tutorial_url();
+
+			$pointers = array(
+				'pointers' => array(
+					'auto' => array(
+						'target'       => '#woocommerce_gzd_shipments_enable_auto_packing-toggle',
+						'next'         => '',
+						'next_url'     => Tutorial::get_last_tutorial_url(),
+						'next_trigger' => array(),
+						'options'      => array(
+							'content'  => '<h3>' . esc_html_x( 'Automated packing', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3><p>' . esc_html_x( 'The packing algorithm will determine which packaging option to use and may split an order into multiple shipments automatically.', 'shipments', 'woocommerce-germanized-shipments' ) . '</p>',
+							'position' => array(
+								'edge'  => 'left',
+								'align' => 'left',
+							),
+						),
+					),
+				),
+			);
+
+			if ( strstr( $last_url, 'tab=shipments' ) ) {
+				$pointers['pointers']['auto']['last_step'] = true;
+			}
+		}
+
+		return $pointers;
 	}
 
 	public function get_tab_settings( $current_section = '' ) {
