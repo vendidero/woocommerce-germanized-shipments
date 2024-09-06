@@ -68,6 +68,18 @@ class Install {
 		do_action( 'woocommerce_flush_rewrite_rules' );
 	}
 
+	public static function deactivate() {
+		if ( function_exists( 'as_unschedule_all_actions' ) ) {
+			$hooks = array(
+				'woocommerce_gzd_shipments_daily_cleanup',
+			);
+
+			foreach ( $hooks as $hook ) {
+				as_unschedule_all_actions( $hook );
+			}
+		}
+	}
+
 	protected static function create_default_options() {
 		if ( ! class_exists( 'WC_Settings_Page' ) ) {
 			include_once WC()->plugin_path() . '/includes/admin/settings/class-wc-settings-page.php';

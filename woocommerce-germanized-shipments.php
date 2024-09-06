@@ -73,4 +73,5 @@ if ( is_readable( $autoloader ) ) {
 }
 
 register_activation_hook( __FILE__, array( '\Vendidero\Germanized\Shipments\Package', 'install' ) );
+register_deactivation_hook( __FILE__, array( '\Vendidero\Germanized\Shipments\Package', 'deactivate' ) );
 add_action( 'plugins_loaded', array( '\Vendidero\Germanized\Shipments\Package', 'init' ) );

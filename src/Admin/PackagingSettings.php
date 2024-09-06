@@ -7,9 +7,6 @@ use Vendidero\Germanized\Shipments\Packaging;
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * WC_Admin class.
- */
 class PackagingSettings {
 
 	/**
