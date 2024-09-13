@@ -27,6 +27,23 @@ class Bundles implements Compatibility {
 		add_filter( 'woocommerce_gzd_shipments_order_item_product', array( __CLASS__, 'get_product_from_item' ), 10, 2 );
 		add_filter( 'woocommerce_gzd_shipments_cart_item', array( __CLASS__, 'adjust_cart_item' ), 10, 2 );
 		add_action( 'woocommerce_gzd_shipment_items_synced', array( __CLASS__, 'apply_bundle_hierarchy' ), 10, 3 );
+		add_filter( 'woocommerce_gzd_shipment_order_item_quantity_left_for_shipping', array( __CLASS__, 'maybe_remove_children' ), 10, 2 );
+	}
+
+	/**
+	 * @param integer $quantity_left
+	 * @param \WC_Order_Item $order_item
+	 *
+	 * @return integer
+	 */
+	public static function maybe_remove_children( $quantity_left, $order_item ) {
+		if ( wc_pb_is_bundled_order_item( $order_item ) ) {
+			if ( apply_filters( 'woocommerce_gzd_shipments_remove_hidden_bundled_items', 'yes' === $order_item->get_meta( '_bundled_item_hidden' ), $order_item ) ) {
+				$quantity_left = 0;
+			}
+		}
+
+		return $quantity_left;
 	}
 
 	/**
