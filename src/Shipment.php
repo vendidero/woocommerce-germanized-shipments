@@ -147,6 +147,7 @@ abstract class Shipment extends WC_Data {
 		'height'                          => '',
 		'length'                          => '',
 		'packaging_weight'                => '',
+		'packaging_title'                 => '',
 		'weight_unit'                     => '',
 		'dimension_unit'                  => '',
 		'country'                         => '',
@@ -484,6 +485,18 @@ abstract class Shipment extends WC_Data {
 		}
 
 		return $weight;
+	}
+
+	public function get_packaging_title( $context = 'view' ) {
+		$title = $this->get_prop( 'packaging_title', $context );
+
+		if ( 'view' === $context && '' === $title ) {
+			if ( $packaging = $this->get_packaging() ) {
+				$title = $packaging->get_title();
+			}
+		}
+
+		return $title;
 	}
 
 	/**
@@ -1863,6 +1876,10 @@ abstract class Shipment extends WC_Data {
 		$this->set_prop( 'packaging_weight', '' === $weight ? '' : wc_format_decimal( $weight ) );
 	}
 
+	public function set_packaging_title( $title ) {
+		$this->set_prop( 'packaging_title', $title );
+	}
+
 	/**
 	 * Set shipment total weight.
 	 *
@@ -2092,11 +2109,15 @@ abstract class Shipment extends WC_Data {
 				'length'           => wc_get_dimension( $packaging->get_length( 'edit' ), $this->get_dimension_unit(), $packaging_dimension ),
 				'height'           => wc_get_dimension( $packaging->get_height( 'edit' ), $this->get_dimension_unit(), $packaging_dimension ),
 				'packaging_weight' => wc_get_weight( $packaging->get_weight( 'edit' ), $this->get_weight_unit(), wc_gzd_get_packaging_weight_unit() ),
+				'packaging_title'  => $packaging->get_title(),
 			);
 
 			$this->set_props( $props );
 		} else {
-			$props   = array( 'packaging_weight' => '' );
+			$props   = array(
+				'packaging_weight' => '',
+				'packaging_title'  => '',
+			);
 			$changes = $this->get_changes();
 
 			/**
