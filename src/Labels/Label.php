@@ -301,17 +301,17 @@ class Label extends WC_Data implements ShipmentLabel {
 	 *
 	 * @param $service
 	 * @param $prop
-	 * @param $default
+	 * @param $default_value
 	 *
 	 * @return mixed
 	 */
-	public function get_service_prop( $service, $prop, $default = null, $context = 'view' ) {
+	public function get_service_prop( $service, $prop, $default_value = null, $context = 'view' ) {
 		$meta_key = "service_{$service}_{$prop}";
 
 		if ( $this->get_meta( $meta_key, true, $context ) ) {
 			return $this->get_meta( $meta_key, true, $context );
 		} else {
-			return $default;
+			return $default_value;
 		}
 	}
 
@@ -755,7 +755,7 @@ class Label extends WC_Data implements ShipmentLabel {
 		 * Discrepancies detected between item weights and total shipment weight.
 		 * Try to distribute the mismatch between items.
 		 */
-		if ( $item_total_weight != $total_weight ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+		if ( $item_total_weight != $total_weight ) { // phpcs:ignore Universal.Operators.StrictComparisons.LooseNotEqual
 			$diff     = $total_weight - $item_total_weight;
 			$diff_abs = abs( $diff );
 

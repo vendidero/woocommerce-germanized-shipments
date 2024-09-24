@@ -222,9 +222,9 @@ class AddressSplitter {
             \s*\Z/xu';
 		$result                 = preg_match( $regex, $address, $matches );
 		if ( 0 === $result ) {
-			throw new Exception( sprintf( 'Error occurred while trying to split address \'%s\'', $address ) );
+			throw new Exception( esc_html( sprintf( 'Error occurred while trying to split address \'%s\'', $address ) ) );
 		} elseif ( false === $result ) {
-			throw new RuntimeException( sprintf( 'Error occurred while trying to split address \'%s\'', $address ) );
+			throw new RuntimeException( esc_html( sprintf( 'Error occurred while trying to split address \'%s\'', $address ) ) );
 		}
 		if ( ! empty( $matches['A_Street_name'] ) ) {
 			$result = array(
@@ -280,9 +280,9 @@ class AddressSplitter {
             /xu'; // Option (u)nicode and e(x)tended syntax
 		$result = preg_match( $regex, $house_number, $matches );
 		if ( 0 === $result ) {
-			throw new Exception( sprintf( 'Error occurred while trying to house number \'%s\'', $house_number ) );
+			throw new Exception( esc_html( sprintf( 'Error occurred while trying to house number \'%s\'', $house_number ) ) );
 		} elseif ( false === $result ) {
-			throw new RuntimeException( sprintf( 'Error occurred while trying to house number \'%s\'', $house_number ) );
+			throw new RuntimeException( esc_html( sprintf( 'Error occurred while trying to house number \'%s\'', $house_number ) ) );
 		}
 
 		return array(

@@ -11,7 +11,7 @@ namespace Vendidero\Germanized\Shipments\Orders;
 
 use Vendidero\Germanized\Shipments\Caches\Helper;
 use Vendidero\Germanized\Shipments\Order;
-use \Exception;
+use Exception;
 
 defined( 'ABSPATH' ) || exit;
 

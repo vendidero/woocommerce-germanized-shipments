@@ -26,7 +26,7 @@ $count      = 0;
 		<td style="text-align:<?php echo esc_attr( $text_align ); ?>; font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif; border:0; padding:0;" valign="top">
 			<?php
 			foreach ( $shipments as $key => $shipment ) :
-				$count++;
+				++$count;
 				?>
 				<?php if ( count( $shipments ) > 1 ) : ?>
 					<h2><?php printf( esc_html_x( 'Shipment %1$d of %2$d', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( $count ), esc_html( count( $shipments ) ) ); ?></h2>

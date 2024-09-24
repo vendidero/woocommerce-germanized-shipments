@@ -30,8 +30,8 @@ class Api {
 		add_filter( 'woocommerce_rest_prepare_product_variation_object', array( __CLASS__, 'prepare_product' ), 10, 3 );
 	}
 
-	public static function prepare_product( $response, $object, $request ) {
-		if ( $product = wc_get_product( $object ) ) {
+	public static function prepare_product( $response, $product_object, $request ) {
+		if ( $product = wc_get_product( $product_object ) ) {
 			$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
 
 			$response->set_data( array_merge_recursive( $response->data, self::get_product_data( $product, $context ) ) );

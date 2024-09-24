@@ -923,7 +923,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 					$count = 0;
 
 					foreach ( $service_setting_fields as $k => $service_setting ) {
-						$count++;
+						++$count;
 
 						$service_setting_fields[ $k ] = wp_parse_args(
 							$service_setting_fields[ $k ],
@@ -1379,7 +1379,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 						$hits = false === get_transient( "{$this->get_general_hook_prefix()}label_rate_limit_hits" ) ? 0 : absint( get_transient( "{$this->get_general_hook_prefix()}label_rate_limit_hits" ) );
 
 						if ( $hits <= apply_filters( 'woocommerce_gzd_shipments_max_api_retries', 5 ) ) {
-							$hits++;
+							++$hits;
 
 							sleep( 0.25 * $hits );
 							set_transient( "{$this->get_general_hook_prefix()}label_rate_limit_hits", $hits, MINUTE_IN_SECONDS );
@@ -1649,19 +1649,19 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		return 'shipping_provider';
 	}
 
-	public function get_setting( $key, $default = null, $context = 'view' ) {
+	public function get_setting( $key, $default_value = null, $context = 'view' ) {
 		$setting_name_clean = $this->unprefix_setting_key( $key );
 
 		if ( $this->is_configuration_set_setting( $setting_name_clean ) ) {
 			if ( $configuration_set = $this->get_configuration_set( $setting_name_clean ) ) {
-				$value = $configuration_set->get_setting( $setting_name_clean, $default );
+				$value = $configuration_set->get_setting( $setting_name_clean, $default_value );
 			} else {
-				$value = $default;
+				$value = $default_value;
 			}
 
-			return apply_filters( "{$this->get_hook_prefix()}setting_{$setting_name_clean}", $value, $key, $default, $context );
+			return apply_filters( "{$this->get_hook_prefix()}setting_{$setting_name_clean}", $value, $key, $default_value, $context );
 		} else {
-			return parent::get_setting( $key, $default, $context );
+			return parent::get_setting( $key, $default_value, $context );
 		}
 	}
 

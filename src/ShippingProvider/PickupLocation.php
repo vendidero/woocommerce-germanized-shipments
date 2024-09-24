@@ -190,12 +190,12 @@ class PickupLocation {
 		return $replacements;
 	}
 
-	public function replace_address( $object ) {
+	public function replace_address( $target_object ) {
 		foreach ( $this->get_address_replacements() as $address_field => $address_value ) {
 			$setter = "set_shipping_{$address_field}";
 
-			if ( is_callable( array( $object, $setter ) ) ) {
-				$object->{$setter}( $address_value );
+			if ( is_callable( array( $target_object, $setter ) ) ) {
+				$target_object->{$setter}( $address_value );
 			}
 		}
 	}

@@ -81,13 +81,13 @@ class Helper {
 	 *
 	 * @return PackedBoxList
 	 */
-	public static function pack( $items, $boxes, $for = 'order' ) {
+	public static function pack( $items, $boxes, $context = 'order' ) {
 		self::$items_too_large = array();
 
 		/**
 		 * @var \Vendidero\Germanized\Shipments\Packing\Packer $packer
 		 */
-		$packer = apply_filters( 'woocommerce_gzd_shipments_packer_instance', new Packer(), $items, $boxes, $for );
+		$packer = apply_filters( 'woocommerce_gzd_shipments_packer_instance', new Packer(), $items, $boxes, $context );
 		$packer->set_boxes( $boxes );
 		$packer->set_items( $items );
 
@@ -98,7 +98,7 @@ class Helper {
 			$packer->set_max_boxes_to_balance_weight( 0 );
 		}
 
-		do_action( 'woocommerce_gzd_shipments_packer_before_pack', $packer, $for );
+		do_action( 'woocommerce_gzd_shipments_packer_before_pack', $packer, $context );
 
 		$packed_boxes = $packer->pack();
 

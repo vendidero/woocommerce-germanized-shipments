@@ -44,7 +44,7 @@ class Tabs extends \WC_Settings_Page {
 		<ul class="wc-gzd-shipments-settings-breadcrumb">
 			<?php
 			foreach ( $breadcrumb as $breadcrumb_item ) :
-				$count++;
+				++$count;
 				?>
 				<li class="breadcrumb-item breadcrumb-item-<?php echo esc_attr( $breadcrumb_item['class'] ) . ' ' . ( count( $breadcrumb ) === $count ? 'breadcrumb-item-active' : '' ); ?>"><?php echo ( ! empty( $breadcrumb_item['href'] ) ? '<a class="breadcrumb-link" href="' . esc_attr( $breadcrumb_item['href'] ) . '">' . wp_kses_post( $breadcrumb_item['title'] ) . '</a>' : wp_kses_post( $breadcrumb_item['title'] ) ); ?></li>
 			<?php endforeach; ?>

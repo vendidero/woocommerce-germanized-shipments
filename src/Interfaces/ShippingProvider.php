@@ -1,18 +1,15 @@
 <?php
 namespace Vendidero\Germanized\Shipments\Interfaces;
 
-/**
- * Shipment Label Interface
- *
- * @package  Germanized/Shipments/Interfaces
- * @version  3.1.0
- */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 /**
- * ShipmentLabel class.
+ * ShippingProvider Interface
+ *
+ * @package  Germanized/Shipments/Interfaces
+ * @version  3.1.0
  */
 interface ShippingProvider {
 
@@ -74,7 +71,7 @@ interface ShippingProvider {
 
 	public function get_tracking_placeholders( $shipment = false );
 
-	public function get_setting( $key, $default = null );
+	public function get_setting( $key, $default_value = null );
 
 	public function update_settings( $section = '', $data = null, $save = true );
 

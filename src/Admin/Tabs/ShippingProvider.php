@@ -180,7 +180,7 @@ class ShippingProvider extends Tab {
 			if ( is_a( $provider, '\Vendidero\Germanized\Shipments\ShippingProvider\Auto' ) && ! empty( $provider->get_settings_help_pointers() ) ) {
 				$provider_indexes[ $provider_key ] = $count;
 				$provider_counts[ $count ]         = $provider_key;
-				$count++;
+				++$count;
 			}
 		}
 

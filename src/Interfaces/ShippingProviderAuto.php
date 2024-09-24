@@ -4,18 +4,15 @@ namespace Vendidero\Germanized\Shipments\Interfaces;
 use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 use Vendidero\Germanized\Shipments\ShippingProvider\PickupLocation;
 
-/**
- * Shipment Label Interface
- *
- * @package  Germanized/Shipments/Interfaces
- * @version  3.1.0
- */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 /**
- * ShipmentLabel class.
+ * ShippingProviderAuto Interface
+ *
+ * @package  Germanized/Shipments/Interfaces
+ * @version  3.1.0
  */
 interface ShippingProviderAuto extends ShippingProvider, LabelConfigurationSet {
 

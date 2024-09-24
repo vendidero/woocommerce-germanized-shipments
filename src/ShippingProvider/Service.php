@@ -77,7 +77,7 @@ class Service {
 		}
 
 		if ( empty( $args['id'] ) ) {
-			throw new \Exception( _x( 'A service needs an id.', 'shipments', 'woocommerce-germanized-shipments' ), 500 );
+			throw new \Exception( esc_html_x( 'A service needs an id.', 'shipments', 'woocommerce-germanized-shipments' ), 500 );
 		}
 
 		$this->id               = $args['id'];

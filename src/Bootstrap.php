@@ -58,7 +58,7 @@ class Bootstrap {
 			} else {
 				add_action(
 					'woocommerce_blocks_loaded',
-					function() {
+					function () {
 						$this->load_blocks();
 					}
 				);

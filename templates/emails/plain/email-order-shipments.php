@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 $count = 0;
 
 foreach ( $shipments as $key => $shipment ) {
-	$count++;
+	++$count;
 
 	echo "\n";
 

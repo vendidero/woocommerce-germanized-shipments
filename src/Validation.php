@@ -20,7 +20,7 @@ class Validation {
 
 		add_action(
 			'woocommerce_before_order_object_save',
-			function( $order ) {
+			function ( $order ) {
 				$changes               = $order->get_changes();
 				$screen                = is_admin() && function_exists( 'get_current_screen' ) ? get_current_screen() : false;
 				$is_edit_order_request = $screen ? in_array( $screen->id, array( 'woocommerce_page_wc-orders' ), true ) : false;
@@ -36,7 +36,7 @@ class Validation {
 				if ( ! $skip_validation ) {
 					add_action(
 						'woocommerce_update_order',
-						function( $order_id ) use ( $order ) {
+						function ( $order_id ) use ( $order ) {
 							if ( $order_id === $order->get_id() ) {
 								self::update_order( $order_id );
 							}
@@ -51,7 +51,7 @@ class Validation {
 				 */
 				add_action(
 					'woocommerce_update_order_item',
-					function( $order_item_id, $order_item ) use ( $order ) {
+					function ( $order_item_id, $order_item ) use ( $order ) {
 						if ( is_a( $order_item, 'WC_Order_Item' ) ) {
 							if ( $order_item->get_order_id() === $order->get_id() ) {
 								remove_action( 'woocommerce_update_order_item', array( __CLASS__, 'update_order_item' ), 10 );
@@ -67,10 +67,10 @@ class Validation {
 
 		add_action(
 			'woocommerce_new_order',
-			function( $order_id ) {
+			function ( $order_id ) {
 				add_action(
 					'woocommerce_after_order_object_save',
-					function( $order ) use ( $order_id ) {
+					function ( $order ) use ( $order_id ) {
 						if ( $order_id === $order->get_id() ) {
 							self::new_order( $order );
 						}

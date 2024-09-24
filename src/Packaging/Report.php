@@ -251,10 +251,8 @@ class Report {
 			if ( isset( $this->args['packaging'][ "$packaging_id" ] ) ) {
 				$count = absint( $this->args['packaging'][ "$packaging_id" ]['count'] );
 			}
-		} else {
-			if ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ]['packaging'][ "$packaging_id" ] ) ) {
+		} elseif ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ]['packaging'][ "$packaging_id" ] ) ) {
 				$count = absint( $this->args['countries'][ $country ]['packaging'][ "$packaging_id" ]['count'] );
-			}
 		}
 
 		return $count;
@@ -267,10 +265,8 @@ class Report {
 			if ( isset( $this->args['packaging'][ "$packaging_id" ] ) ) {
 				$weight = $this->args['packaging'][ "$packaging_id" ]['weight_in_kg'];
 			}
-		} else {
-			if ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ]['packaging'][ "$packaging_id" ] ) ) {
+		} elseif ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ]['packaging'][ "$packaging_id" ] ) ) {
 				$weight = $this->args['countries'][ $country ]['packaging'][ "$packaging_id" ]['weight_in_kg'];
-			}
 		}
 
 		$weight = wc_get_weight( $weight, $unit, 'kg' );

@@ -3,16 +3,16 @@ namespace Vendidero\Germanized\Shipments\Interfaces;
 
 use Vendidero\Germanized\Shipments\Labels\ConfigurationSet;
 
-/**
- * Shipment Label Interface
- *
- * @package  Germanized/Shipments/Interfaces
- * @version  3.1.0
- */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * LabelConfigurationSet Interface
+ *
+ * @package  Germanized/Shipments/Interfaces
+ * @version  3.1.0
+ */
 interface LabelConfigurationSet {
 	public function get_configuration_sets( $context = 'view' );
 

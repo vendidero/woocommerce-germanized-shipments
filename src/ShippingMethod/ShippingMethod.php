@@ -359,7 +359,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 							'data_type' => 'array',
 							'class'     => 'wc-enhanced-select',
 							'label'     => _x( 'Class', 'shipments', 'woocommerce-germanized-shipments' ),
-							'options'   => function() {
+							'options'   => function () {
 								return Package::get_shipping_classes();
 							},
 						),
@@ -375,7 +375,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 							'data_type' => 'array',
 							'class'     => 'wc-enhanced-select',
 							'label'     => _x( 'Class', 'shipments', 'woocommerce-germanized-shipments' ),
-							'options'   => function() {
+							'options'   => function () {
 								return Package::get_shipping_classes();
 							},
 						),
@@ -424,7 +424,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 		return $label;
 	}
 
-	public function get_cache( $property = null, $default = null ) {
+	public function get_cache( $property = null, $default_value = null ) {
 		$cache = wp_parse_args(
 			$this->get_option( 'cache', array() ),
 			array(
@@ -443,7 +443,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 			if ( array_key_exists( $property, $cache ) ) {
 				return $cache[ $property ];
 			} else {
-				return $default;
+				return $default_value;
 			}
 		}
 
@@ -714,18 +714,18 @@ class ShippingMethod extends \WC_Shipping_Method {
 							$weight           += $cart_item_wrapper->getWeight();
 
 							if ( array_key_exists( $product_key, $item_map ) ) {
-								$item_map[ $product_key ]++;
+								++$item_map[ $product_key ];
 							} else {
 								$item_map[ $product_key ] = 1;
 							}
 
 							if ( array_key_exists( $product_key, $total_packed_item_map ) ) {
-								$total_packed_item_map[ $product_key ]++;
+								++$total_packed_item_map[ $product_key ];
 							} else {
 								$total_packed_item_map[ $product_key ] = 1;
 							}
 
-							$total_packed_items++;
+							++$total_packed_items;
 						}
 
 						$applied_rules[] = array(
@@ -746,7 +746,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 
 						foreach ( $applied_rules as $applied_rule ) {
 							if ( $packaging = wc_gzd_get_packaging( $applied_rule['packaging_id'] ) ) {
-								$package_count++;
+								++$package_count;
 								$debug_notices[] = sprintf( _x( '## Package %1$d/%2$d: %3$s: ', 'shipments', 'woocommerce-germanized-shipments' ), $package_count, count( $applied_rules ), $packaging->get_title() );
 
 								foreach ( $applied_rule['rules'] as $rule ) {
@@ -959,13 +959,11 @@ class ShippingMethod extends \WC_Shipping_Method {
 					if ( 'exactly' === $operator_name ) {
 						$has_missing_shipping_classes = 'package_shipping_classes' === $condition_type_name ? $package_data['package_has_missing_shipping_classes'] : $package_data['has_missing_shipping_classes'];
 						$condition_applies            = ! $has_missing_shipping_classes && $package_data[ $condition_type_name ] === $classes;
-					} else {
-						if ( array_intersect( $package_data[ $condition_type_name ], $classes ) ) {
-							if ( 'any_of' === $operator_name ) {
-								$condition_applies = true;
-							} elseif ( 'none_of' === $operator_name ) {
-								$condition_applies = false;
-							}
+					} elseif ( array_intersect( $package_data[ $condition_type_name ], $classes ) ) {
+						if ( 'any_of' === $operator_name ) {
+							$condition_applies = true;
+						} elseif ( 'none_of' === $operator_name ) {
+							$condition_applies = false;
 						}
 					}
 				}

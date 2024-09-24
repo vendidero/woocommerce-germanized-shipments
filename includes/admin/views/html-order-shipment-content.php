@@ -268,7 +268,7 @@ defined( 'ABSPATH' ) || exit;
 				<?php endif; ?>
 
 				<?php if ( $shipment->is_editable() ) : ?>
-					<a class="shipment-footer-action remove-shipment delete" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php echo sprintf( esc_html_x( 'Delete %s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_shipment_label_title( $shipment->get_type() ) ) ); ?></a>
+					<a class="shipment-footer-action remove-shipment delete" href="#" data-id="<?php echo esc_attr( $shipment->get_id() ); ?>"><?php printf( esc_html_x( 'Delete %s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_shipment_label_title( $shipment->get_type() ) ) ); ?></a>
 				<?php endif; ?>
 
 				<?php

@@ -100,7 +100,7 @@ class CartSearchPickupLocations extends AbstractCartRoute {
 
 		$result                   = new \stdClass();
 		$result->pickup_locations = array_map(
-			function( $location ) {
+			function ( $location ) {
 				return $location->get_data();
 			},
 			$results['locations']

@@ -88,7 +88,7 @@ class Admin {
 
 		add_action(
 			'admin_init',
-			function() {
+			function () {
 				// Order shipping status
 				add_filter( 'manage_' . ( 'shop_order' === self::get_order_screen_id() ? 'shop_order_posts' : self::get_order_screen_id() ) . '_columns', array( __CLASS__, 'register_order_shipping_status_column' ), 20 );
 				add_action( 'manage_' . ( 'shop_order' === self::get_order_screen_id() ? 'shop_order_posts' : self::get_order_screen_id() ) . '_custom_column', array( __CLASS__, 'render_order_columns' ), 20, 2 );
@@ -532,7 +532,7 @@ class Admin {
 							<?php wp_nonce_field( 'woocommerce-gzd-packaging-settings' ); ?>
 						</p>
 					<?php else : ?>
-						<div class="notice notice-warning inline"><p><?php echo sprintf( esc_html_x( 'This provider does not support adjusting settings related to %1$s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_shipment_label_title( $current_section, true ) ) ); ?></p></div>
+						<div class="notice notice-warning inline"><p><?php printf( esc_html_x( 'This provider does not support adjusting settings related to %1$s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_shipment_label_title( $current_section, true ) ) ); ?></p></div>
 					<?php endif; ?>
 				</form>
 			</div>
@@ -842,7 +842,7 @@ class Admin {
 		$key = self::get_setting_key_by_id( $settings, $id, $type );
 
 		if ( is_numeric( $key ) ) {
-			$key ++;
+			++$key;
 			$settings = array_merge( array_merge( array_slice( $settings, 0, $key, true ), $insert ), array_slice( $settings, $key, count( $settings ) - 1, true ) );
 		} else {
 			$settings += $insert;
@@ -1084,7 +1084,7 @@ class Admin {
 						<?php
 						$i = -1;
 						foreach ( wc_gzd_get_return_shipment_reasons() as $reason ) {
-							$i++;
+							++$i;
 
 							echo '<tr class="reason">
                                     <td class="sort"></td>
@@ -1303,9 +1303,9 @@ class Admin {
 							<th class="sort">&nbsp;</th>
 							<th style="width: 15ch;"><?php echo esc_html_x( 'Description', 'shipments', 'woocommerce-germanized-shipments' ); ?> <?php echo wc_help_tip( _x( 'A description to help you identify the packaging.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
 							<th style="width: 10ch;"><?php echo esc_html_x( 'Type', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
-							<th style="width: 5ch;"><?php echo sprintf( esc_html_x( 'Weight (%s)', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_packaging_weight_unit() ) ); ?> <?php echo wc_help_tip( _x( 'The weight of the packaging.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
-							<th style="width: 15ch;"><?php echo sprintf( esc_html_x( 'Dimensions (LxWxH, %s)', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_packaging_dimension_unit() ) ); ?></th>
-							<th style="width: 5ch;"><?php echo sprintf( esc_html_x( 'Load capacity (%s)', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_packaging_weight_unit() ) ); ?> <?php echo wc_help_tip( _x( 'The maximum weight this packaging can hold. Leave empty to not restrict maximum weight.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
+							<th style="width: 5ch;"><?php printf( esc_html_x( 'Weight (%s)', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_packaging_weight_unit() ) ); ?> <?php echo wc_help_tip( _x( 'The weight of the packaging.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
+							<th style="width: 15ch;"><?php printf( esc_html_x( 'Dimensions (LxWxH, %s)', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_packaging_dimension_unit() ) ); ?></th>
+							<th style="width: 5ch;"><?php printf( esc_html_x( 'Load capacity (%s)', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_packaging_weight_unit() ) ); ?> <?php echo wc_help_tip( _x( 'The maximum weight this packaging can hold. Leave empty to not restrict maximum weight.', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></th>
 							<th style="width: 5ch;"><?php echo esc_html_x( 'Actions', 'shipments', 'woocommerce-germanized-shipments' ); ?></th>
 						</tr>
 						</thead>
@@ -1345,7 +1345,7 @@ class Admin {
 								</td>
 							</tr>
 							<?php
-							$count++;
+							++$count;
 						endforeach;
 						?>
 						</tbody>
@@ -1439,7 +1439,7 @@ class Admin {
 
 				if ( $order ) {
 					Automation::create_shipments( $id );
-					$changed++;
+					++$changed;
 				}
 			}
 		}

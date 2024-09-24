@@ -150,7 +150,7 @@ class Automation {
 				if ( $args['is_hook'] ) {
 					add_action(
 						$hook_prefix . $status,
-						function( $shipment_id, $shipment ) use ( $args ) {
+						function ( $shipment_id, $shipment ) use ( $args ) {
 							self::maybe_create_label( $shipment_id, $shipment, $args );
 						},
 						5,

@@ -787,10 +787,10 @@ class Package {
 		return trailingslashit( $assets_url ) . $script_or_style;
 	}
 
-	public static function get_setting( $name, $default = false ) {
+	public static function get_setting( $name, $default_value = false ) {
 		$option_name = "woocommerce_gzd_shipments_{$name}";
 
-		return get_option( $option_name, $default );
+		return get_option( $option_name, $default_value );
 	}
 
 	public static function get_store_address_country() {

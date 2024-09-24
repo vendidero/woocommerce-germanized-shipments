@@ -153,7 +153,7 @@ class Settings {
 		return $settings_to_save;
 	}
 
-	public static function render_label_fields( $settings, $shipment, $echo = false ) {
+	public static function render_label_fields( $settings, $shipment, $do_echo = false ) {
 		$missing_div_closes = 0;
 		ob_start();
 		foreach ( $settings as $setting ) {
@@ -199,7 +199,7 @@ class Settings {
 				woocommerce_wp_text_input( $setting );
 			} elseif ( 'services_start' === $setting['type'] ) {
 				$hide_default = isset( $setting['hide_default'] ) ? wc_string_to_bool( $setting['hide_default'] ) : false;
-				$missing_div_closes++;
+				++$missing_div_closes;
 				?>
 				<p class="show-services-trigger show-more-trigger">
 					<a href="#" class="show-more show-further-services <?php echo ( ! $hide_default ? 'hide-default' : '' ); ?>">
@@ -212,17 +212,17 @@ class Settings {
 				<div class="<?php echo ( $hide_default ? 'hide-default' : '' ); ?> show-more-wrapper show-if-further-services" data-trigger=".show-services-trigger">
 				<?php
 			} elseif ( 'columns' === $setting['type'] ) {
-				$missing_div_closes++;
+				++$missing_div_closes;
 				?>
 				<div class="columns <?php echo esc_attr( isset( $setting['class'] ) ? $setting['class'] : '' ); ?>">
 				<?php
 			} elseif ( 'wrapper' === $setting['type'] ) {
-				$missing_div_closes++;
+				++$missing_div_closes;
 				?>
 					<div class="wc-gzd-shipment-label-wrapper" id="wc-gzd-shipment-label-wrapper-<?php echo esc_attr( $setting['id'] ); ?>">
 				<?php
 			} elseif ( in_array( $setting['type'], array( 'columns_end', 'services_end', 'wrapper_end' ), true ) ) {
-				$missing_div_closes--;
+				--$missing_div_closes;
 				?>
 					</div>
 				<?php
@@ -233,14 +233,14 @@ class Settings {
 
 		if ( $missing_div_closes > 0 ) {
 			while ( $missing_div_closes > 0 ) {
-				$missing_div_closes--;
+				--$missing_div_closes;
 				echo '</div>';
 			}
 		}
 
 		$html = ob_get_clean();
 
-		if ( ! $echo ) {
+		if ( ! $do_echo ) {
 			return $html;
 		} else {
 			echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

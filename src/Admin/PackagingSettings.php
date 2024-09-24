@@ -264,7 +264,7 @@ class PackagingSettings {
 
 				add_filter(
 					'woocommerce_admin_settings_sanitize_option',
-					function( $value, $setting, $raw_value ) use ( $packaging ) {
+					function ( $value, $setting, $raw_value ) use ( $packaging ) {
 						$setting_id = $setting['id'];
 						$args       = $packaging->get_configuration_set_args_by_id( $setting_id );
 						$value      = wc_clean( $value );
@@ -289,7 +289,7 @@ class PackagingSettings {
 			} else {
 				add_filter(
 					'pre_update_option',
-					function( $value, $option, $old_value ) use ( $packaging ) {
+					function ( $value, $option, $old_value ) use ( $packaging ) {
 						if ( is_callable( array( $packaging, "set_{$option}" ) ) ) {
 							$setter = "set_{$option}";
 

@@ -19,7 +19,7 @@ class Bundles implements Compatibility {
 	public static function init() {
 		add_action(
 			'woocommerce_gzd_shipments_before_prepare_cart_contents',
-			function() {
+			function () {
 				self::$cart_bundled_by_map = array();
 			}
 		);

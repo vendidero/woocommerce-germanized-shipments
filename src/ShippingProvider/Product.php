@@ -80,7 +80,7 @@ class Product {
 		}
 
 		if ( empty( $args['id'] ) ) {
-			throw new \Exception( _x( 'A product needs an id.', 'shipments', 'woocommerce-germanized-shipments' ), 500 );
+			throw new \Exception( esc_html_x( 'A product needs an id.', 'shipments', 'woocommerce-germanized-shipments' ), 500 );
 		}
 
 		$this->id             = $args['id'];
@@ -114,25 +114,25 @@ class Product {
 		$this->set_min_max_prop( 'height', $args['height'] );
 	}
 
-	private function set_min_max_prop( $prop, $default = null ) {
-		if ( ! is_null( $default ) ) {
-			$default = wp_parse_args(
-				(array) $default,
+	private function set_min_max_prop( $prop, $default_value = null ) {
+		if ( ! is_null( $default_value ) ) {
+			$default_value = wp_parse_args(
+				(array) $default_value,
 				array(
 					'min' => null,
 					'max' => null,
 				)
 			);
 
-			if ( is_null( $default['min'] ) && is_null( $default['max'] ) ) {
+			if ( is_null( $default_value['min'] ) && is_null( $default_value['max'] ) ) {
 				$this->{$prop} = null;
 			} else {
-				$default['min'] = is_null( $default['min'] ) ? null : (float) wc_format_decimal( $default['min'] );
-				$default['max'] = is_null( $default['max'] ) ? null : (float) wc_format_decimal( $default['max'] );
+				$default_value['min'] = is_null( $default_value['min'] ) ? null : (float) wc_format_decimal( $default_value['min'] );
+				$default_value['max'] = is_null( $default_value['max'] ) ? null : (float) wc_format_decimal( $default_value['max'] );
 
 				$this->{$prop} = array(
-					'min' => $default['min'],
-					'max' => $default['max'],
+					'min' => $default_value['min'],
+					'max' => $default_value['max'],
 				);
 			}
 		}
@@ -174,13 +174,13 @@ class Product {
 		return in_array( $zone, $this->zones, true );
 	}
 
-	public function get_meta( $prop = null, $default = false ) {
+	public function get_meta( $prop = null, $default_value = false ) {
 		if ( is_null( $prop ) ) {
 			return $this->meta;
 		} elseif ( array_key_exists( $prop, $this->meta ) ) {
 			return $this->meta[ $prop ];
 		} else {
-			return $default;
+			return $default_value;
 		}
 	}
 

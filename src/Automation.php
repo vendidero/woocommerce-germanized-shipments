@@ -33,7 +33,7 @@ class Automation {
 			 */
 			add_action(
 				'woocommerce_new_order',
-				function( $order_id ) {
+				function ( $order_id ) {
 					self::$current_new_order_id = $order_id;
 					add_action( 'woocommerce_after_order_object_save', array( __CLASS__, 'after_new_order' ), 150 );
 				},
@@ -282,13 +282,12 @@ class Automation {
 			if ( self::is_admin_edit_order_request() ) {
 				add_action(
 					'woocommerce_process_shop_order_meta',
-					function( $order_id ) {
+					function ( $order_id ) {
 						self::create_shipments( $order_id );
 					},
 					70
 				);
-			} else {
-				if ( $args['allow_deferred_sync'] ) {
+			} elseif ( $args['allow_deferred_sync'] ) {
 					Package::log( 'Deferring order #' . $order_id . ' shipments sync' );
 
 					$queue      = WC()->queue();
@@ -307,9 +306,8 @@ class Automation {
 						$defer_args,
 						'woocommerce-gzd-shipments-order-sync'
 					);
-				} else {
-					self::create_shipments( $order_id );
-				}
+			} else {
+				self::create_shipments( $order_id );
 			}
 		}
 	}

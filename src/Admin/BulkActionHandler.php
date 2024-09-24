@@ -81,11 +81,9 @@ abstract class BulkActionHandler {
 	}
 
 	public function admin_handled() {
-
 	}
 
 	public function admin_after_error() {
-
 	}
 
 	public function add_notice( $notice, $type = 'error' ) {

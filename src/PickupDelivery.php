@@ -3,7 +3,7 @@
 namespace Vendidero\Germanized\Shipments;
 
 use Automattic\WooCommerce\StoreApi\Utilities\CartController;
-use \Exception;
+use Exception;
 use WC_Order;
 use WP_Query;
 
@@ -371,7 +371,7 @@ class PickupDelivery {
 			</div>
 			<div class="currently-shipping-to" <?php echo ( ! $args['current_location'] ? 'style="display: none;"' : '' ); ?>>
 				<p>
-					<span class="currently-shipping-to-title"><?php echo sprintf( esc_html_x( 'Currently shipping to:', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></span>
+					<span class="currently-shipping-to-title"><?php printf( esc_html_x( 'Currently shipping to:', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></span>
 					<a href="#" class="pickup-location-notice-link pickup-location-manage-link wc-gzd-modal-launcher" data-modal-id="pickup-location"><?php echo wp_kses_post( $args['current_location'] ? $args['current_location']->get_label() : '' ); ?></a>
 				</p>
 				<a href="#" class="pickup-location-remove"><?php echo esc_html_x( 'Remove pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
@@ -877,7 +877,7 @@ class PickupDelivery {
 		if ( 'order' === $current_pickup_location_field_group ) {
 			add_action(
 				'woocommerce_after_order_notes',
-				function( $checkout ) use ( $current_pickup_location_field ) {
+				function ( $checkout ) use ( $current_pickup_location_field ) {
 					if ( ! did_action( 'woocommerce_gzd_shipments_current_pickup_location_field_rendered' ) ) {
 						woocommerce_form_field( 'current_pickup_location', $current_pickup_location_field, $checkout->get_value( 'current_pickup_location' ) );
 					}

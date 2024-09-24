@@ -2,16 +2,16 @@
 
 namespace Vendidero\Germanized\Shipments\Interfaces;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Compatibility
  *
  * @package  Germanized/StoreaBill/Interfaces
  * @version  1.0.0
  */
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
-
 interface Compatibility {
 
 	public static function is_active();
