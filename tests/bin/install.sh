@@ -127,7 +127,7 @@ install_deps() {
     # get built plugin from .org
     # Get github version
     FILE="woocommerce.zip"
-    BRANCH="master"
+    BRANCH="trunk"
 
 	if [ "$WOO_VERSION" != "latest" ]; then
 		FILE="woocommerce.$WOO_VERSION.zip"
