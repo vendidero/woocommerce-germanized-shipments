@@ -8,7 +8,7 @@ use Vendidero\Germanized\Shipments\Admin\Tutorial;
 class General extends Tab {
 
 	public function get_description() {
-		return _x( 'Configure when and how to create shipments and manage your addresses.', 'shipments', 'woocommerce-germanized-shipments' );
+		return _x( 'Configure when and how to create shipments and manage information on your business.', 'shipments', 'woocommerce-germanized-shipments' );
 	}
 
 	public function get_label() {
