@@ -144,7 +144,7 @@ install_deps() {
     WORKING_DIR="$PWD"
 
 	git clone --branch $BRANCH --depth 1 "https://github.com/woocommerce/woocommerce.git" "$TMPDIR/woocommerce-git"
-	mv "$TMPDIR/woocommerce-git/tests" "$WP_CORE_DIR/wp-content/plugins/woocommerce"
+	mv "$TMPDIR/woocommerce-git/plugins/woocommerce/tests" "$WP_CORE_DIR/wp-content/plugins/woocommerce"
 }
 
 install_db() {
