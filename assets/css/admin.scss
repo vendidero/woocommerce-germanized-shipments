@@ -33,6 +33,18 @@ a.wc-gzd-shipments-pro:not(.wc-gzd-shipments-pro-outlined) {
   }
 }
 
+a {
+  .wc-gzd-shipments-pro-outlined {
+    text-decoration: none;
+    border: 1px solid #0073aa;
+    color: #0073aa;
+
+    &:hover {
+      color: #135e96;
+    }
+  }
+}
+
 .wc-gzd-shipments-pro-outlined {
   margin-left: 5px;
   margin-top: 3px;
