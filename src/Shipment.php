@@ -2102,11 +2102,13 @@ abstract class Shipment extends WC_Data {
 
 	public function update_packaging() {
 		if ( $packaging = $this->get_packaging() ) {
+			$dimension_unit = wc_gzd_get_packaging_dimension_unit();
+
 			$props = array(
-				'width'            => wc_get_dimension( $packaging->get_width( 'edit' ), $this->get_dimension_unit(), $packaging->get_dimension_unit() ),
-				'length'           => wc_get_dimension( $packaging->get_length( 'edit' ), $this->get_dimension_unit(), $packaging->get_dimension_unit() ),
-				'height'           => wc_get_dimension( $packaging->get_height( 'edit' ), $this->get_dimension_unit(), $packaging->get_dimension_unit() ),
-				'packaging_weight' => wc_get_weight( $packaging->get_weight( 'edit' ), $this->get_weight_unit(), $packaging->get_weight_unit() ),
+				'width'            => wc_get_dimension( $packaging->get_width(), $this->get_dimension_unit(), $dimension_unit ),
+				'length'           => wc_get_dimension( $packaging->get_length(), $this->get_dimension_unit(), $dimension_unit ),
+				'height'           => wc_get_dimension( $packaging->get_height(), $this->get_dimension_unit(), $dimension_unit ),
+				'packaging_weight' => wc_get_weight( $packaging->get_weight(), $this->get_weight_unit(), wc_gzd_get_packaging_weight_unit() ),
 				'packaging_title'  => $packaging->get_title(),
 			);
 
