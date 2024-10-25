@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments\ShippingMethod;
 
+use Vendidero\Germanized\Shipments\Compatibility\Bundles;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Packing\CartItem;
 use Vendidero\Germanized\Shipments\Packing\ItemList;
@@ -30,9 +31,26 @@ class MethodHelper {
 		add_filter( 'woocommerce_generate_shipping_provider_method_tabs_close_html', array( __CLASS__, 'render_method_tab_content_close' ), 10, 4 );
 		add_filter( 'woocommerce_generate_shipping_provider_method_configuration_sets_html', array( __CLASS__, 'render_method_configuration_sets' ), 10 );
 
-		add_filter( 'woocommerce_cart_shipping_packages', array( __CLASS__, 'register_cart_items_to_pack' ) );
 		add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'register_shipping_methods' ) );
 		add_filter( 'woocommerce_hidden_order_itemmeta', array( __CLASS__, 'set_shipping_order_meta_hidden' ) );
+
+		add_filter( 'woocommerce_cart_shipping_packages', array( __CLASS__, 'register_cart_items_to_pack' ) );
+
+		add_action(
+			'woocommerce_before_calculate_totals1',
+			function ( $cart ) {
+				remove_filter( 'woocommerce_cart_shipping_packages', array( __CLASS__, 'register_cart_items_to_pack' ) );
+
+				add_filter(
+					'woocommerce_cart_shipping_packages',
+					function ( $package ) use ( $cart ) {
+						$package = self::register_cart_items_to_pack( $package, $cart );
+
+						return $package;
+					}
+				);
+			}
+		);
 	}
 
 	public static function set_shipping_order_meta_hidden( $meta ) {
@@ -66,6 +84,8 @@ class MethodHelper {
 		if ( ! Package::is_packing_supported() || apply_filters( 'woocommerce_gzd_shipments_disable_cart_packing', false ) ) {
 			return $cart_contents;
 		}
+
+		$cart = WC()->cart;
 
 		foreach ( $cart_contents as $index => $content ) {
 			$package_data = array(
@@ -129,20 +149,24 @@ class MethodHelper {
 			do_action( 'woocommerce_gzd_shipments_after_prepare_cart_contents' );
 
 			/**
-			 * In case prices have already been calculated, use the official
-			 * Woo API for better compatibility with extensions, e.g. Bundles.
+			 * In case prices have already been calculated, maybe prefer the official
+			 * Woo API for improved compatibility with extensions, e.g. unassembled, individually priced bundled items.
+			 *
+			 * This may cause problems with plugins that add additional carts and calculate shipping (e.g. Subscriptions) based on these separate carts
+			 * as Woo does not pass the current $cart object to the filter used here. Within the shipping package data there is unfortunately
+			 * no item total amount (incl taxes) available.
 			 */
-			if ( 0 !== WC()->cart->get_subtotal() ) {
-				$total    = (float) WC()->cart->get_cart_contents_total();
-				$subtotal = (float) WC()->cart->get_subtotal();
+			if ( 0 !== $cart_contents[ $index ]['cart_subtotal'] && apply_filters( 'woocommerce_gzd_shipments_prefer_cart_totals_over_cart_item_totals', false, $cart_contents ) ) {
+				$total = (float) $cart->get_cart_contents_total();
 
-				if ( wc()->cart->display_prices_including_tax() ) {
-					$total    += (float) WC()->cart->get_cart_contents_tax();
-					$subtotal += (float) WC()->cart->get_subtotal_tax();
+				if ( $cart->display_prices_including_tax() ) {
+					$total += (float) $cart->get_cart_contents_tax();
+				} else {
+					$total = (float) $cart_contents[ $index ]['contents_cost']; // this is excl tax
 				}
 
-				$package_data['total']    = NumberUtil::round_to_precision( $total );
-				$package_data['subtotal'] = NumberUtil::round_to_precision( $subtotal );
+				$package_data['total']    = NumberUtil::round_to_precision( $total ); // item total after discounts
+				$package_data['subtotal'] = NumberUtil::round_to_precision( (float) $cart_contents[ $index ]['cart_subtotal'] ); // item total before discounts
 			}
 
 			$cart_contents[ $index ]['package_data']  = $package_data;
