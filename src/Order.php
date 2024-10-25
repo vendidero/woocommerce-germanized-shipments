@@ -1270,10 +1270,10 @@ class Order {
 			$shipping_method_id = wc_gzd_get_shipment_order_shipping_method_id( $this->get_order() );
 
 			if ( 'shipping_provider_' === substr( $shipping_method_id, 0, 18 ) ) {
-				$method = MethodHelper::get_provider_method( $shipping_method_id );
+				$the_method = MethodHelper::get_provider_method( $shipping_method_id );
 
-				if ( $method && ! $method->is_placeholder() ) {
-					return $method;
+				if ( $the_method && ! $the_method->is_placeholder() ) {
+					return $the_method;
 				}
 			}
 		}
