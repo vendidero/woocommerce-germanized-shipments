@@ -3,6 +3,11 @@
 namespace Vendidero\Germanized\Shipments;
 
 class SecretBox {
+
+	public static function supports_storing_secrets() {
+		return function_exists( 'sodium_crypto_secretbox_keygen' ) && defined( 'SODIUM_CRYPTO_PWHASH_SALTBYTES' );
+	}
+
 	public static function get_encryption_key_notice( $encryption_type = '', $explanation = '' ) {
 		$notice = '';
 
@@ -103,6 +108,13 @@ class SecretBox {
 	 * @return string|\WP_Error
 	 */
 	public static function encrypt( $message, $encryption_type = '' ) {
+		if ( ! self::supports_storing_secrets() ) {
+			$error = new \WP_Error();
+			$error->add( 'secrets-not-supported', 'Client does not support storing secrets.' );
+
+			return self::log_error( $error );
+		}
+
 		try {
 			$key_data = self::get_encryption_key_data( $encryption_type );
 			$nonce    = random_bytes( SODIUM_CRYPTO_SECRETBOX_NONCEBYTES );
@@ -132,6 +144,11 @@ class SecretBox {
 
 		$decoded = base64_decode( $cipher ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
 		$error   = new \WP_Error();
+
+		if ( ! self::supports_storing_secrets() ) {
+			$error->add( 'secrets-not-supported', 'Client does not support storing secrets.' );
+			return self::log_error( $error );
+		}
 
 		if ( false === $decoded ) {
 			$error->add( 'decrypt-decode', 'Error while decoding the encrypted message.' );
