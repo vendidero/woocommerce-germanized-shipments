@@ -31,26 +31,9 @@ class MethodHelper {
 		add_filter( 'woocommerce_generate_shipping_provider_method_tabs_close_html', array( __CLASS__, 'render_method_tab_content_close' ), 10, 4 );
 		add_filter( 'woocommerce_generate_shipping_provider_method_configuration_sets_html', array( __CLASS__, 'render_method_configuration_sets' ), 10 );
 
+		add_filter( 'woocommerce_cart_shipping_packages', array( __CLASS__, 'register_cart_items_to_pack' ) );
 		add_filter( 'woocommerce_shipping_methods', array( __CLASS__, 'register_shipping_methods' ) );
 		add_filter( 'woocommerce_hidden_order_itemmeta', array( __CLASS__, 'set_shipping_order_meta_hidden' ) );
-
-		add_filter( 'woocommerce_cart_shipping_packages', array( __CLASS__, 'register_cart_items_to_pack' ) );
-
-		add_action(
-			'woocommerce_before_calculate_totals1',
-			function ( $cart ) {
-				remove_filter( 'woocommerce_cart_shipping_packages', array( __CLASS__, 'register_cart_items_to_pack' ) );
-
-				add_filter(
-					'woocommerce_cart_shipping_packages',
-					function ( $package ) use ( $cart ) {
-						$package = self::register_cart_items_to_pack( $package, $cart );
-
-						return $package;
-					}
-				);
-			}
-		);
 	}
 
 	public static function set_shipping_order_meta_hidden( $meta ) {
@@ -84,8 +67,6 @@ class MethodHelper {
 		if ( ! Package::is_packing_supported() || apply_filters( 'woocommerce_gzd_shipments_disable_cart_packing', false ) ) {
 			return $cart_contents;
 		}
-
-		$cart = WC()->cart;
 
 		foreach ( $cart_contents as $index => $content ) {
 			$package_data = array(
@@ -157,6 +138,7 @@ class MethodHelper {
 			 * no item total amount (incl taxes) available.
 			 */
 			if ( 0 !== $cart_contents[ $index ]['cart_subtotal'] && apply_filters( 'woocommerce_gzd_shipments_prefer_cart_totals_over_cart_item_totals', false, $cart_contents ) ) {
+				$cart  = WC()->cart;
 				$total = (float) $cart->get_cart_contents_total();
 
 				if ( $cart->display_prices_including_tax() ) {
