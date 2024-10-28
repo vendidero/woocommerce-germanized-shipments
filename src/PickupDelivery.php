@@ -725,6 +725,7 @@ class PickupDelivery {
 					'height' => 0.0,
 				),
 				'payment_gateway' => '',
+				'shipping_method' => false,
 			);
 		}
 
@@ -804,6 +805,7 @@ class PickupDelivery {
 			'max_weight'      => $max_weight,
 			'max_dimensions'  => $max_dimensions,
 			'payment_gateway' => WC()->session ? WC()->session->get( 'chosen_payment_method' ) : '',
+			'shipping_method' => $shipping_method,
 		);
 	}
 

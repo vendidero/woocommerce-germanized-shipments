@@ -1190,12 +1190,68 @@ class Order {
 		return apply_filters( 'woocommerce_gzd_shipment_order_returnable_item_count', $count, $this );
 	}
 
+	public function get_pickup_delivery_args() {
+		$args = array(
+			'max_weight'      => 0.0,
+			'max_dimensions'  => array(
+				'length' => 0.0,
+				'width'  => 0.0,
+				'height' => 0.0,
+			),
+			'payment_gateway' => $this->get_order()->get_payment_method(),
+			'shipping_method' => $this->get_shipping_method(),
+		);
+
+		foreach ( $this->get_shippable_items() as $item ) {
+			if ( ! is_callable( array( $item, 'get_product' ) ) ) {
+				continue;
+			}
+
+			if ( $product = $item->get_product() ) {
+				$s_product = apply_filters( 'woocommerce_gzd_shipments_order_item_product', wc_gzd_shipments_get_product( $product ), $item );
+
+				if ( $s_product ) {
+					$width  = empty( $s_product->get_shipping_width() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_width() );
+					$length = empty( $s_product->get_shipping_length() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_length() );
+					$height = empty( $s_product->get_shipping_height() ) ? 0 : (float) wc_format_decimal( $s_product->get_shipping_height() );
+
+					$dimensions = array(
+						'width'  => (float) wc_get_dimension( $width, wc_gzd_get_packaging_dimension_unit() ),
+						'length' => (float) wc_get_dimension( $length, wc_gzd_get_packaging_dimension_unit() ),
+						'height' => (float) wc_get_dimension( $height, wc_gzd_get_packaging_dimension_unit() ),
+					);
+
+					if ( $dimensions['width'] > $args['max_dimensions']['width'] ) {
+						$args['max_dimensions']['width'] = $dimensions['width'];
+					}
+
+					if ( $dimensions['length'] > $args['max_dimensions']['length'] ) {
+						$args['max_dimensions']['length'] = $dimensions['length'];
+					}
+
+					if ( $dimensions['height'] > $args['max_dimensions']['height'] ) {
+						$args['max_dimensions']['height'] = $dimensions['height'];
+					}
+
+					$weight = empty( $product->get_weight() ) ? 0 : (float) wc_format_decimal( $product->get_weight() );
+					$weight = (float) wc_get_weight( $weight, wc_gzd_get_packaging_weight_unit() );
+
+					if ( $weight > $args['max_weight'] ) {
+						$args['max_weight'] = $weight;
+					}
+				}
+			}
+		}
+
+		return $args;
+	}
+
 	public function supports_pickup_location() {
 		$supports_pickup_location = false;
 
 		if ( $provider = $this->get_shipping_provider() ) {
 			if ( is_a( $provider, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProviderAuto' ) ) {
-				$supports_pickup_location = $provider->supports_pickup_location_delivery( $this->get_order()->get_address( 'shipping' ) );
+				$supports_pickup_location = $provider->supports_pickup_location_delivery( $this->get_order()->get_address( 'shipping' ), $this->get_pickup_delivery_args() );
 			}
 		}
 
@@ -1263,6 +1319,16 @@ class Order {
 	/**
 	 * @return ProviderMethod|false
 	 */
+	public function get_shipping_method() {
+		$shipping_method_id = wc_gzd_get_shipment_order_shipping_method_id( $this->get_order() );
+		$method             = MethodHelper::get_provider_method( $shipping_method_id );
+
+		return $method;
+	}
+
+	/**
+	 * @return ProviderMethod|false
+	 */
 	public function get_builtin_shipping_method() {
 		$method = false;
 
@@ -1270,7 +1336,7 @@ class Order {
 			$shipping_method_id = wc_gzd_get_shipment_order_shipping_method_id( $this->get_order() );
 
 			if ( 'shipping_provider_' === substr( $shipping_method_id, 0, 18 ) ) {
-				$the_method = MethodHelper::get_provider_method( $shipping_method_id );
+				$the_method = $this->get_shipping_method();
 
 				if ( $the_method && ! $the_method->is_placeholder() ) {
 					return $the_method;

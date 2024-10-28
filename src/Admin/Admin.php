@@ -1833,7 +1833,7 @@ class Admin {
 		$params = array();
 
 		if ( self::is_shipping_settings_request() ) {
-			$params['clean_input_callback'] = 'germanized.admin.shipping_provider_method.getCleanInputId';
+			$params['clean_input_callback'] = 'shipments.admin.shipping_provider_method.getCleanInputId';
 		}
 
 		return $params;

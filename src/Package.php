@@ -360,6 +360,18 @@ class Package {
 		return apply_filters( 'woocommerce_gzd_base_country_supports_export_reference_number', self::country_belongs_to_eu_customs_area( $base_country ) );
 	}
 
+	public static function get_shipping_zone( $country, $args = array() ) {
+		$zone = 'int';
+
+		if ( self::is_shipping_domestic( $country, $args ) ) {
+			$zone = 'dom';
+		} elseif ( self::is_shipping_inner_eu_country( $country, $args ) ) {
+			$zone = 'eu';
+		}
+
+		return $zone;
+	}
+
 	public static function is_shipping_international( $country, $args = array() ) {
 		$args = self::parse_location_data( $args );
 		/**
