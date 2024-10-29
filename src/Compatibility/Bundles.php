@@ -3,8 +3,10 @@
 namespace Vendidero\Germanized\Shipments\Compatibility;
 
 use Vendidero\Germanized\Shipments\Interfaces\Compatibility;
+use Vendidero\Germanized\Shipments\Order;
 use Vendidero\Germanized\Shipments\Product;
 use Vendidero\Germanized\Shipments\Shipment;
+use Vendidero\Germanized\Shipments\ShipmentItem;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -26,8 +28,77 @@ class Bundles implements Compatibility {
 
 		add_filter( 'woocommerce_gzd_shipments_order_item_product', array( __CLASS__, 'get_product_from_item' ), 10, 2 );
 		add_filter( 'woocommerce_gzd_shipments_cart_item', array( __CLASS__, 'adjust_cart_item' ), 10, 2 );
-		add_action( 'woocommerce_gzd_shipment_items_synced', array( __CLASS__, 'apply_bundle_hierarchy' ), 10, 3 );
+		add_filter( 'woocommerce_gzd_shipment_order_selectable_items_for_shipment', array( __CLASS__, 'filter_bundle_children' ), 10, 3 );
+		add_action( 'woocommerce_gzd_shipment_added_item', array( __CLASS__, 'on_added_shipment_item' ), 10, 2 );
 		add_filter( 'woocommerce_gzd_shipment_order_item_quantity_left_for_shipping', array( __CLASS__, 'maybe_remove_children' ), 10, 2 );
+	}
+
+	/**
+	 * @param ShipmentItem $item
+	 * @param Shipment $shipment
+	 *
+	 * @return void
+	 */
+	public static function on_added_shipment_item( $item, $shipment ) {
+		if ( $order_item = $item->get_order_item() ) {
+			if ( $shipment_order = $shipment->get_order_shipment() ) {
+				$order = $shipment_order->get_order();
+
+				if ( self::order_item_is_assembled_bundle( $order_item, $shipment_order ) ) {
+					$available = $shipment_order->get_available_items_for_shipment(
+						array(
+							'shipment_id'        => $shipment->get_id(),
+							'disable_duplicates' => true,
+						)
+					);
+
+					$children_to_add = array();
+
+					foreach ( $available as $item_id => $item_data ) {
+						if ( ! $child_order_item = $order->get_item( $item_id ) ) {
+							continue;
+						}
+
+						if ( wc_pb_is_bundled_order_item( $child_order_item ) ) {
+							$container_id = wc_pb_get_bundled_order_item_container( $child_order_item, $order, true );
+
+							if ( $container_id === $order_item->get_id() ) {
+								$children_to_add[ $item_id ] = $item_data['max_quantity'];
+
+								$props = array(
+									'quantity' => $item_data['max_quantity'],
+									'parent'   => $item,
+								);
+
+								if ( $child_item = wc_gzd_create_shipment_item( $shipment, $child_order_item, $props ) ) {
+									$shipment->add_item( $child_item );
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * @param $order_item
+	 * @param $order
+	 *
+	 * @return void
+	 */
+	protected static function order_item_is_assembled_bundle( $order_item, $shipment_order ) {
+		$is_assembled = false;
+
+		if ( wc_pb_is_bundle_container_order_item( $order_item ) ) {
+			if ( $product = $shipment_order->get_order_item_product( $order_item ) ) {
+				if ( ! $product->is_virtual() && apply_filters( 'woocommerce_gzd_shipments_force_bundle_item_container', true, $order_item, $shipment_order ) ) {
+					$is_assembled = true;
+				}
+			}
+		}
+
+		return $is_assembled;
 	}
 
 	/**
@@ -47,41 +118,30 @@ class Bundles implements Compatibility {
 	}
 
 	/**
-	 * Add parent bundle id to the child bundles.
+	 * @param \WC_Order_Item[] $items
+	 * @param array $args
+	 * @param Order $shipment_order
 	 *
-	 * @param Shipment $shipment
-	 *
-	 * @return void
+	 * @return \WC_Order_Item[]
 	 */
-	public static function apply_bundle_hierarchy( $shipment ) {
-		$map     = array();
-		$parents = array();
+	public static function filter_bundle_children( $items, $args, $shipment_order ) {
+		$order = $shipment_order->get_order();
 
-		foreach ( $shipment->get_items() as $item ) {
-			if ( $order_item = $item->get_order_item() ) {
-				$map[ $item->get_order_item_id() ] = $item->get_id();
+		foreach ( $items as $order_item_id => $item ) {
+			if ( ! $order_item = $order->get_item( $order_item_id ) ) {
+				continue;
+			}
 
-				if ( wc_pb_is_bundled_order_item( $order_item ) ) {
-					$container_id = wc_pb_get_bundled_order_item_container( $order_item, false, true );
-
-					if ( ! isset( $parents[ $container_id ] ) ) {
-						$parents[ $container_id ] = array();
+			if ( wc_pb_is_bundled_order_item( $order_item ) ) {
+				if ( $container = wc_pb_get_bundled_order_item_container( $order_item, $order, false ) ) {
+					if ( self::order_item_is_assembled_bundle( $container, $shipment_order ) ) {
+						unset( $items[ $order_item_id ] );
 					}
-
-					$parents[ $container_id ][] = $item;
 				}
 			}
 		}
 
-		foreach ( $parents as $order_item_id => $shipment_items ) {
-			if ( array_key_exists( $order_item_id, $map ) ) {
-				$parent_id = $map[ $order_item_id ];
-
-				foreach ( $shipment_items as $shipment_item ) {
-					$shipment_item->set_item_parent_id( $parent_id );
-				}
-			}
-		}
+		return $items;
 	}
 
 	/**

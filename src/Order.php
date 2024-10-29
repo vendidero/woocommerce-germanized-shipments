@@ -840,8 +840,13 @@ class Order {
 		return apply_filters( 'woocommerce_gzd_shipment_order_items_to_pack_left_for_shipping', $items_to_be_packed );
 	}
 
+	public function get_selectable_items_for_shipment( $args = array() ) {
+		return apply_filters( 'woocommerce_gzd_shipment_order_selectable_items_for_shipment', $this->get_available_items_for_shipment( $args ), $args, $this );
+	}
+
 	/**
-	 * @param bool|Shipment $shipment
+	 * @param array $args
+	 *
 	 * @return array
 	 */
 	public function get_available_items_for_shipment( $args = array() ) {
@@ -919,6 +924,10 @@ class Order {
 		}
 
 		return $items;
+	}
+
+	public function get_selectable_items_for_return( $args = array() ) {
+		return apply_filters( 'woocommerce_gzd_shipment_order_selectable_items_for_return', $this->get_available_items_for_return( $args ), $args, $this );
 	}
 
 	/**
@@ -1072,7 +1081,6 @@ class Order {
 		 * @since 3.0.0
 		 * @package Vendidero/Germanized/Shipments
 		 */
-
 		do_action( 'woocommerce_gzd_shipments_order_after_get_items', $this->get_order() );
 
 		return apply_filters( 'woocommerce_gzd_shipment_order_shippable_items', $items, $this->get_order(), $this );

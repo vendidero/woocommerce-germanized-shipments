@@ -353,7 +353,7 @@ class ReturnShipment extends Shipment {
 				)
 			);
 
-			$available_items = $order_shipment->get_available_items_for_return(
+			$available_items = $order_shipment->get_selectable_items_for_return(
 				array(
 					'shipment_id'              => $this->get_id(),
 					'exclude_current_shipment' => true,
@@ -473,7 +473,6 @@ class ReturnShipment extends Shipment {
 	 * @return bool
 	 */
 	public function needs_items( $available_items = false ) {
-
 		if ( ! $available_items && ( $order_shipment = $this->get_order_shipment() ) ) {
 			$available_items = array_keys( $order_shipment->get_available_items_for_return() );
 		}

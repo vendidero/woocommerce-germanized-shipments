@@ -48,7 +48,7 @@ defined( 'ABSPATH' ) || exit;
 		 */
 		do_action( 'woocommerce_gzd_add_return_shipment_details_before_shipment_table_items', $order );
 
-		foreach ( $shipment_order->get_available_items_for_return() as $order_item_id => $item_data ) {
+		foreach ( $shipment_order->get_selectable_items_for_return() as $order_item_id => $item_data ) {
 			wc_get_template(
 				'shipment/add-return-shipment-item.php',
 				array(

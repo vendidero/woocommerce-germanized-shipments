@@ -2307,6 +2307,8 @@ abstract class Shipment extends WC_Data {
 		$this->reset_content_data();
 		$this->calculate_totals();
 		$this->sync_packaging();
+
+		do_action( "{$this->get_general_hook_prefix()}added_item", $item, $this );
 	}
 
 	/**

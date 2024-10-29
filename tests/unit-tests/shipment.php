@@ -75,4 +75,45 @@ class Shipment extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTestC
 		$item = array_values( $shipment->get_items() )[0];
 		$this->assertEquals( 4, $item->get_quantity() );
 	}
+
+	function test_child_parent_hierarchy() {
+		$shipment = new \Vendidero\Germanized\Shipments\SimpleShipment();
+		$parent_item = new \Vendidero\Germanized\Shipments\ShipmentItem();
+		$parent_item->set_quantity( 1 );
+		$parent_item->set_name( 'parent' );
+		$shipment->add_item( $parent_item );
+
+		$child_item = new \Vendidero\Germanized\Shipments\ShipmentItem();
+		$child_item->set_quantity( 3 );
+		$child_item->set_name( 'child' );
+		$child_item->set_parent( $parent_item );
+		$shipment->add_item( $child_item );
+
+		$child_item_2 = new \Vendidero\Germanized\Shipments\ShipmentItem();
+		$child_item_2->set_quantity( 1 );
+		$child_item_2->set_name( 'child_2' );
+		$child_item_2->set_parent( $parent_item );
+		$shipment->add_item( $child_item_2 );
+
+		$id = $shipment->save();
+		$parent_id = 0;
+
+		foreach( $shipment->get_items() as $item ) {
+			if ( 'parent' === $item->get_name() ) {
+				$this->assertEquals( 2, count( $item->get_children() ) );
+				$parent_id = $item->get_id();
+			} elseif ( 'child' === $item->get_name() ) {
+				$this->assertEquals( $parent_id, $item->get_item_parent_id() );
+			} elseif ( 'child_2' === $item->get_name() ) {
+				$this->assertEquals( $parent_id, $item->get_item_parent_id() );
+			} else {
+				$this->assertEquals( false, true );
+			}
+		}
+
+		$shipment->remove_item( $parent_id );
+		$shipment->save();
+
+		$this->assertEquals( 0, count( $shipment->get_items() ) );
+	}
 }

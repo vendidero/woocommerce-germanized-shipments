@@ -232,6 +232,10 @@ class SecretBox {
 	public static function maybe_insert_missing_key( $encryption_type = '' ) {
 		$updated = false;
 
+		if ( ! self::supports_storing_secrets() ) {
+			return $updated;
+		}
+
 		if ( ! self::has_valid_encryption_key( $encryption_type ) ) {
 			$constant  = self::get_encryption_key_constant( $encryption_type );
 			$key_value = self::get_random_encryption_key();

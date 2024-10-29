@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 
 <tbody id="wc-gzd-return-shipment-items" data-row="">
 <?php
-foreach ( $order_shipment->get_available_items_for_return() as $item_id => $item_data ) :
+foreach ( $order_shipment->get_selectable_items_for_return() as $item_id => $item_data ) :
 	?>
 	<tr>
 		<td><?php echo esc_attr( $item_data['name'] ); ?></td>

@@ -1287,14 +1287,14 @@ class Ajax {
 		$items = array();
 
 		if ( 'return' === $shipment->get_type() ) {
-			$items = $order_shipment->get_available_items_for_return(
+			$items = $order_shipment->get_selectable_items_for_return(
 				array(
 					'shipment_id'        => $shipment->get_id(),
 					'disable_duplicates' => true,
 				)
 			);
 		} else {
-			$items = $order_shipment->get_available_items_for_shipment(
+			$items = $order_shipment->get_selectable_items_for_shipment(
 				array(
 					'shipment_id'        => $shipment_id,
 					'disable_duplicates' => true,
@@ -1322,9 +1322,8 @@ class Ajax {
 		);
 
 		$response = array(
-			'success'  => true,
-			'message'  => '',
-			'new_item' => '',
+			'success' => true,
+			'message' => '',
 		);
 
 		$shipment_id      = absint( $_POST['reference_id'] );
@@ -1367,10 +1366,13 @@ class Ajax {
 		}
 
 		ob_start();
-		include Package::get_path() . '/includes/admin/views/html-order-shipment-item.php';
-		$response['new_item'] = ob_get_clean();
+		foreach ( $shipment->get_items() as $item ) {
+			include Package::get_path() . '/includes/admin/views/html-order-shipment-item.php';
+		}
+		$html = ob_get_clean();
 
 		$response['fragments'] = array(
+			'#shipment-' . $shipment->get_id() . ' .shipment-item-list:first' => '<div class="shipment-item-list">' . $html . '</div>',
 			'#shipment-' . $shipment->get_id() . ' .item-count:first' => self::get_item_count_html( $shipment, $order_shipment ),
 		);
 
