@@ -96,6 +96,22 @@ class Order {
 	/**
 	 * @return Shipment|false
 	 */
+	public function get_last_shipment_without_tracking() {
+		$last_shipment = false;
+
+		foreach ( array_reverse( $this->get_simple_shipments() ) as $shipment ) {
+			if ( ! $shipment->get_tracking_id() && ! $shipment->is_shipped() ) {
+				$last_shipment = $shipment;
+				break;
+			}
+		}
+
+		return apply_filters( 'woocommerce_gzd_shipment_order_last_shipment_without_tracking', $last_shipment, $this );
+	}
+
+	/**
+	 * @return Shipment|false
+	 */
 	public function get_last_shipment_with_tracking() {
 		$last_shipment = false;
 

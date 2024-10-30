@@ -58,9 +58,41 @@ class Package {
 		add_filter( 'wc_get_template', array( __CLASS__, 'add_return_shipment_guest_endpoints' ), 10, 2 );
 		add_action( 'init', array( __CLASS__, 'register_shortcodes' ) );
 		add_action( 'init', array( __CLASS__, 'check_version' ), 10 );
+		add_action( 'init', array( __CLASS__, 'load_fallback_compatibility' ) );
 
 		add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
 		add_filter( 'woocommerce_shipping_method_add_rate_args', array( __CLASS__, 'manipulate_shipping_rates' ), 1000, 2 );
+	}
+
+	/**
+	 * Some label-related plugins, e.g. Swiss Post may have a built-in compatibility
+	 * for the WooCommerce Shipment Tracking plugin. Let's mimic/add those basic API functions
+	 * to make sure tracking-related info gets updates within shipments too.
+	 *
+	 * @return void
+	 */
+	public static function load_fallback_compatibility() {
+		if ( ! function_exists( 'wc_st_add_tracking_number' ) ) {
+			function wc_st_add_tracking_number( $order_id, $tracking_number, $provider, $date_shipped = null, $custom_url = false ) {
+				$tracking_item = array(
+					'tracking_provider'    => $provider,
+					'custom_tracking_link' => $custom_url,
+					'tracking_number'      => $tracking_number,
+				);
+
+				Compatibility\ShipmentTracking::transfer_tracking_to_shipment( $tracking_item, $order_id );
+			}
+		}
+
+		if ( ! function_exists( 'wc_st_delete_tracking_number' ) ) {
+			function wc_st_delete_tracking_number( $order_id, $tracking_number, $provider = false ) {
+				$tracking_item = array(
+					'tracking_number' => $tracking_number,
+				);
+
+				Compatibility\ShipmentTracking::remove_tracking_from_shipment( $tracking_item, $order_id );
+			}
+		}
 	}
 
 	/**
@@ -95,7 +127,8 @@ class Package {
 		$compatibilities = apply_filters(
 			'woocommerce_gzd_shipments_compatibilities',
 			array(
-				'bundles' => '\Vendidero\Germanized\Shipments\Compatibility\Bundles',
+				'bundles'           => '\Vendidero\Germanized\Shipments\Compatibility\Bundles',
+				'shipment-tracking' => '\Vendidero\Germanized\Shipments\Compatibility\ShipmentTracking',
 			)
 		);
 
