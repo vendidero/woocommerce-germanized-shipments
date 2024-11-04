@@ -267,6 +267,17 @@ class Package {
 		return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
 	}
 
+	public static function get_current_payment_gateway() {
+		$current_gateway    = WC()->session ? WC()->session->get( 'chosen_payment_method' ) : '';
+		$has_block_checkout = has_block( 'woocommerce/checkout' ) || has_block( 'woocommerce/cart' ) || WC()->is_rest_api_request();
+
+		if ( $has_block_checkout ) {
+			$current_gateway = WC()->session ? WC()->session->get( 'wc_gzd_shipments_blocks_chosen_payment_method', '' ) : '';
+		}
+
+		return $current_gateway;
+	}
+
 	public static function inject_endpoints() {
 		if ( function_exists( 'WC' ) && WC()->query ) {
 			foreach ( self::get_endpoints() as $endpoint ) {

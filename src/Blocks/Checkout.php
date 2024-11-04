@@ -197,6 +197,17 @@ final class Checkout {
 				},
 			)
 		);
+
+		woocommerce_store_api_register_update_callback(
+			array(
+				'namespace' => 'woocommerce-gzd-shipments-set-payment-method',
+				'callback'  => function ( $data ) {
+					$active_method = isset( $data['active_method'] ) ? wc_clean( wp_unslash( $data['active_method'] ) ) : '';
+
+					WC()->session->set( 'wc_gzd_shipments_blocks_chosen_payment_method', $active_method );
+				},
+			)
+		);
 	}
 
 	private function get_checkout_schema() {

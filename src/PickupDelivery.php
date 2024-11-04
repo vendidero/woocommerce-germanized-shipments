@@ -715,6 +715,17 @@ class PickupDelivery {
 		wp_enqueue_script( 'wc-gzd-shipments-pickup-locations' );
 	}
 
+	public static function get_excluded_gateways() {
+		/**
+		 * Filter to disable pickup delivery for certain gateways.
+		 *
+		 * @param array $gateways Array of gateway IDs to exclude.
+		 */
+		$codes = apply_filters( 'woocommerce_gzd_shipments_pickup_delivery_excluded_gateways', array( 'cod', 'amazon_payments_advanced' ) );
+
+		return $codes;
+	}
+
 	public static function get_pickup_delivery_cart_args() {
 		if ( ! wc()->cart ) {
 			return array(
@@ -804,7 +815,7 @@ class PickupDelivery {
 		return array(
 			'max_weight'      => $max_weight,
 			'max_dimensions'  => $max_dimensions,
-			'payment_gateway' => WC()->session ? WC()->session->get( 'chosen_payment_method' ) : '',
+			'payment_gateway' => Package::get_current_payment_gateway(),
 			'shipping_method' => $shipping_method,
 		);
 	}
