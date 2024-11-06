@@ -14,7 +14,7 @@ $is_active = ( isset( $is_active ) ) ? $is_active : false;
 	<div class="shipment-header title-spread">
 		<div class="left">
 			<h3><?php printf( esc_html_x( '%1$s #%2$s', 'shipment admin title', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_shipment_label_title( $shipment->get_type() ) ), esc_html( $shipment->get_shipment_number() ) ); ?></h3>
-			<span class="shipment-status shipment-type-<?php echo esc_attr( $shipment->get_type() ); ?>-status status-<?php echo esc_attr( $shipment->get_status() ); ?>"><?php echo esc_html( wc_gzd_get_shipment_status_name( $shipment->get_status() ) ); ?></span>
+			<mark class="shipment-status shipment-type-<?php echo esc_attr( $shipment->get_type() ); ?>-status status-<?php echo esc_attr( $shipment->get_status() ); ?>"><span><?php echo esc_html( wc_gzd_get_shipment_status_name( $shipment->get_status() ) ); ?></span></mark>
 		</div>
 
 		<div class="right">

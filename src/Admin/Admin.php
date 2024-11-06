@@ -587,7 +587,7 @@ class Admin {
 
 			if ( $shipment_order = wc_gzd_get_shipment_order( $the_order ) ) {
 				$shipping_status = $shipment_order->get_shipping_status();
-				$status_html     = '<span class="order-shipping-status status-' . esc_attr( $shipping_status ) . '">' . esc_html( wc_gzd_get_shipment_order_shipping_status_name( $shipping_status ) ) . '</span>';
+				$status_html     = '<mark class="order-shipping-status status-' . esc_attr( $shipping_status ) . '"><span>' . esc_html( wc_gzd_get_shipment_order_shipping_status_name( $shipping_status ) ) . '</span></mark>';
 
 				if ( in_array( $shipping_status, array( 'shipped', 'partially-shipped' ), true ) && $shipment_order->get_shipments() ) {
 					if ( $last_shipment = $shipment_order->get_last_shipment_with_tracking() ) {

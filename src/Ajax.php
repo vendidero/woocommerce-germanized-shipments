@@ -1028,7 +1028,7 @@ class Ajax {
 	}
 
 	private static function get_order_status_html( $order_shipment ) {
-		$status_html = '<span class="order-shipping-status status-' . esc_attr( $order_shipment->get_shipping_status() ) . '">' . wc_gzd_get_shipment_order_shipping_status_name( $order_shipment->get_shipping_status() ) . '</span>';
+		$status_html = '<mark class="order-shipping-status status-' . esc_attr( $order_shipment->get_shipping_status() ) . '"><span>' . wc_gzd_get_shipment_order_shipping_status_name( $order_shipment->get_shipping_status() ) . '</span></mark>';
 
 		return $status_html;
 	}
@@ -1090,7 +1090,7 @@ class Ajax {
 	}
 
 	private static function get_order_return_status_html( $order_shipment ) {
-		$status_html = '<span class="order-return-status status-' . esc_attr( $order_shipment->get_return_status() ) . '">' . wc_gzd_get_shipment_order_return_status_name( $order_shipment->get_return_status() ) . '</span>';
+		$status_html = '<mark class="order-return-status status-' . esc_attr( $order_shipment->get_return_status() ) . '"><span>' . wc_gzd_get_shipment_order_return_status_name( $order_shipment->get_return_status() ) . '</span></mark>';
 
 		return $status_html;
 	}

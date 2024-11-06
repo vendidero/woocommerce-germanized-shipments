@@ -633,6 +633,7 @@ table.wc-gzd-shipments-shipping-rules {
   border-radius: 3px;
   display: inline-flex;
   white-space: nowrap;
+  max-width: 100%;
 
   &.status-draft, &.status-processing, &.status-requested, &.status-partially-shipped, &.status-partially-delivered, &.status-open, &.status-partially-returned {
     background: #f8dda7;
@@ -652,6 +653,11 @@ table.wc-gzd-shipments-shipping-rules {
   &.shipment-type-return-status.status-shipped {
     background: #f8dda7;
     color: #94660c;
+  }
+
+  > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 
