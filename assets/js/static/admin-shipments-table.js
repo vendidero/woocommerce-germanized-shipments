@@ -37,7 +37,6 @@ window.shipments.admin = window.shipments.admin || {};
             });
 
             if ( self.params.bulk_actions.hasOwnProperty( action ) && ids.length > 0 ) {
-
                 var actionData = self.params.bulk_actions[ action ];
 
                 $( '.bulk-action-wrapper' ).find( '.bulk-title' ).text( actionData['title'] );
@@ -63,6 +62,7 @@ window.shipments.admin = window.shipments.admin || {};
                     bulk_action      : action,
                     step             : step,
                     type             : type,
+                    referer          : window.location.href,
                     ids              : ids,
                     security         : actionData['nonce']
                 },

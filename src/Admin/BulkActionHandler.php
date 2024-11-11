@@ -52,14 +52,23 @@ abstract class BulkActionHandler {
 		$this->type = $type;
 	}
 
-	public function get_success_redirect_url() {
+	public function get_success_redirect_url( $referer = false ) {
 		$page = 'wc-gzd-shipments';
 
 		if ( 'simple' !== $this->get_shipment_type() ) {
 			$page = 'wc-gzd-' . $this->get_shipment_type() . '-shipments';
 		}
 
-		return admin_url( 'admin.php?page=' . $page . '&bulk_action_handling=finished&current_bulk_action=' . sanitize_key( $this->get_action() ) );
+		$base_url = $referer ? $referer : admin_url( 'admin.php?page=' . $page );
+		$base_url = add_query_arg(
+			array(
+				'bulk_action_handling' => 'finished',
+				'current_bulk_action'  => sanitize_key( $this->get_action() ),
+			),
+			$base_url
+		);
+
+		return esc_url_raw( $base_url );
 	}
 
 	public function get_step() {

@@ -518,8 +518,9 @@ class Ajax {
 	}
 
 	public static function shipments_bulk_action_handle() {
-		$action = isset( $_POST['bulk_action'] ) ? wc_clean( wp_unslash( $_POST['bulk_action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$type   = isset( $_POST['type'] ) ? wc_clean( wp_unslash( $_POST['type'] ) ) : 'simple'; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$action  = isset( $_POST['bulk_action'] ) ? wc_clean( wp_unslash( $_POST['bulk_action'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$type    = isset( $_POST['type'] ) ? wc_clean( wp_unslash( $_POST['type'] ) ) : 'simple'; // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$referer = isset( $_POST['referer'] ) ? wp_sanitize_redirect( wp_unslash( $_POST['referer'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
 		check_ajax_referer( "woocommerce_gzd_shipments_{$action}", 'security' );
 
@@ -570,7 +571,7 @@ class Ajax {
 				array(
 					'step'       => 'done',
 					'percentage' => 100,
-					'url'        => $handler->get_success_redirect_url(),
+					'url'        => $handler->get_success_redirect_url( $referer ),
 					'type'       => $handler->get_shipment_type(),
 				)
 			);
