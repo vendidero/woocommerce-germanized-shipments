@@ -83,7 +83,7 @@ class ProviderMethod implements LabelConfigurationSet {
 	 * @return false|ShippingProvider
 	 */
 	public function get_shipping_provider_instance() {
-		if ( is_a( $this->method, '\Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod' ) ) {
+		if ( $this->is_builtin_method() ) {
 			return $this->method->get_shipping_provider();
 		}
 
@@ -98,8 +98,16 @@ class ProviderMethod implements LabelConfigurationSet {
 		return $this->provider ? $this->provider : false;
 	}
 
-	public function get_shipping_provider() {
+	public function is_builtin_method() {
 		if ( is_a( $this->method, '\Vendidero\Germanized\Shipments\ShippingMethod\ShippingMethod' ) ) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public function get_shipping_provider() {
+		if ( $this->is_builtin_method() ) {
 			$provider_slug = $this->method->get_shipping_provider()->get_name();
 		} else {
 			$provider_slug = $this->get_prop( 'shipping_provider' );

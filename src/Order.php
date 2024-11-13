@@ -1362,7 +1362,7 @@ class Order {
 			if ( 'shipping_provider_' === substr( $shipping_method_id, 0, 18 ) ) {
 				$the_method = $this->get_shipping_method();
 
-				if ( $the_method && ! $the_method->is_placeholder() ) {
+				if ( $the_method && $the_method->is_builtin_method() ) {
 					return $the_method;
 				}
 			}
