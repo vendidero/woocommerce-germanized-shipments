@@ -182,10 +182,10 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	public function get_edit_link( $section = '' ) {
-		$url = admin_url( 'admin.php?page=wc-settings&tab=shipments-shipping_provider&provider=' . esc_attr( $this->get_name() ) );
-		$url = add_query_arg( array( 'section' => $section ), $url );
+		$base_url = Settings::get_settings_url( 'shipping_provider', $section );
+		$base_url = add_query_arg( array( 'provider' => $this->get_name() ), $base_url );
 
-		return esc_url_raw( $url );
+		return esc_url_raw( $base_url );
 	}
 
 	/**
