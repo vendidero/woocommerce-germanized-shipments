@@ -1,23 +1,20 @@
 <?php
 
-namespace Vendidero\Germanized\Shipments;
+namespace Vendidero\Germanized\Shipments\Compatibility;
 
+use Vendidero\Germanized\Shipments\Interfaces\Compatibility;
 use Vendidero\Germanized\Shipments\ShippingProvider\Helper;
 use Vendidero\Germanized\Shipments\ShippingProvider\Simple;
-use WC_GZD_Compatibility_WPML;
 
 defined( 'ABSPATH' ) || exit;
 
-class WPMLHelper {
+class WPML implements Compatibility {
 
-	private static $compatibility = false;
+	public static function is_active() {
+		return defined( 'ICL_SITEPRESS_VERSION' );
+	}
 
-	/**
-	 * @param bool|WC_GZD_Compatibility_WPML $compatibility
-	 */
-	public static function init( $compatibility = false ) {
-		self::$compatibility = $compatibility;
-
+	public static function init() {
 		add_filter( 'woocommerce_gzd_wpml_email_ids', array( __CLASS__, 'register_emails' ), 10 );
 
 		/**
@@ -36,10 +33,20 @@ class WPMLHelper {
 			add_action( 'woocommerce_gzd_load_shipping_providers', array( __CLASS__, 'register_provider_filters' ) );
 		}
 
-		/**
-		 * Translate shipment item name
-		 */
 		add_filter( 'woocommerce_gzd_email_shipment_items_args', array( __CLASS__, 'translate_email_shipment_items' ), 10 );
+		add_filter(
+			'woocommerce_gzd_shipments_shipping_method_shipping_classes',
+			function ( $shipping_classes ) {
+				$shipping_classes = array_map(
+					function ( $class_id ) {
+						return apply_filters( 'wpml_object_id', $class_id, 'category' );
+					},
+					$shipping_classes
+				);
+
+				return $shipping_classes;
+			}
+		);
 	}
 
 	public static function translate_email_shipment_items( $args ) {
@@ -99,7 +106,6 @@ class WPMLHelper {
 	 * @param Simple $provider
 	 */
 	public static function register_shipping_provider_strings( $provider_id, $provider ) {
-
 		foreach ( self::get_shipping_provider_strings() as $string_name => $title ) {
 			$title  = sprintf( $title, $provider->get_title() );
 			$getter = "get_{$string_name}";

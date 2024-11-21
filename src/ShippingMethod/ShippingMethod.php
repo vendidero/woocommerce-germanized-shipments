@@ -954,7 +954,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 						}
 					}
 				} elseif ( 'shipping_classes' === $condition_type_name || 'package_shipping_classes' === $condition_type_name ) {
-					$classes = isset( $condition['classes'] ) && ! empty( $condition['classes'] ) ? array_map( 'absint', (array) $condition['classes'] ) : array();
+					$classes = isset( $condition['classes'] ) && ! empty( $condition['classes'] ) ? apply_filters( 'woocommerce_gzd_shipments_shipping_method_shipping_classes', array_map( 'absint', (array) $condition['classes'] ) ) : array();
 
 					if ( 'exactly' === $operator_name ) {
 						$has_missing_shipping_classes = 'package_shipping_classes' === $condition_type_name ? $package_data['package_has_missing_shipping_classes'] : $package_data['has_missing_shipping_classes'];

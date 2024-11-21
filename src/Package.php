@@ -60,7 +60,6 @@ class Package {
 		add_action( 'init', array( __CLASS__, 'check_version' ), 10 );
 		add_action( 'init', array( __CLASS__, 'load_fallback_compatibility' ) );
 
-		add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
 		add_filter( 'woocommerce_shipping_method_add_rate_args', array( __CLASS__, 'manipulate_shipping_rates' ), 1000, 2 );
 	}
 
@@ -129,6 +128,7 @@ class Package {
 			array(
 				'bundles'           => '\Vendidero\Germanized\Shipments\Compatibility\Bundles',
 				'shipment-tracking' => '\Vendidero\Germanized\Shipments\Compatibility\ShipmentTracking',
+				'wpml'              => '\Vendidero\Germanized\Shipments\Compatibility\WPML',
 			)
 		);
 
@@ -203,10 +203,6 @@ class Package {
 		$html .= wc_get_template_html( 'global/form-return-request.php', $args );
 
 		return $html;
-	}
-
-	public static function load_wpml_compatibility( $compatibility ) {
-		WPMLHelper::init( $compatibility );
 	}
 
 	public static function get_method_settings( $force_load_all = false ) {
