@@ -518,13 +518,14 @@ class Packaging extends WC_Data implements LabelConfigurationSet {
 
 	public function get_title() {
 		$description = $this->get_description();
-
-		return sprintf(
+		$title       = sprintf(
 			_x( '%1$s (%2$s, %3$s)', 'shipments-packaging-title', 'woocommerce-germanized-shipments' ),
 			$description,
 			$this->get_formatted_dimensions(),
 			wc_gzd_format_shipment_weight( wc_format_decimal( $this->get_weight(), false, true ), wc_gzd_get_packaging_weight_unit() )
 		);
+
+		return apply_filters( "{$this->get_hook_prefix()}title", $title, $this );
 	}
 
 	/**
