@@ -1328,7 +1328,7 @@ class Order {
 		 * @since 3.1.6
 		 * @package Vendidero/Germanized/Shipments
 		 */
-		$pickup_methods = apply_filters( 'woocommerce_gzd_shipment_local_pickup_shipping_methods', array( 'local_pickup' ) );
+		$pickup_methods = apply_filters( 'woocommerce_gzd_shipment_local_pickup_shipping_methods', array( 'local_pickup', 'pickup_location' ) );
 
 		foreach ( $shipping_methods as $shipping_method ) {
 			if ( in_array( $shipping_method->get_method_id(), $pickup_methods, true ) ) {
