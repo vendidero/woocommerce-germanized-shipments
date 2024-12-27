@@ -10,6 +10,8 @@ abstract class OAuth extends Auth {
 
 	abstract protected function get_access_token();
 
+	abstract public function get_url();
+
 	public function get_headers() {
 		$headers = array();
 

@@ -34,7 +34,13 @@ abstract class REST {
 	 * @return bool
 	 */
 	protected function is_auth_request( $url ) {
-		return strstr( $url, $this->get_auth()->get_url() );
+		$auth_url = $this->get_auth()->get_url();
+
+		if ( empty( $auth_url ) ) {
+			return false;
+		}
+
+		return strstr( $url, $auth_url );
 	}
 
 	protected function get_timeout( $request_type = 'GET' ) {
@@ -68,7 +74,6 @@ abstract class REST {
 	 * @return Response
 	 */
 	protected function get_response( $url, $type = 'GET', $body_args = array(), $headers = array() ) {
-		$headers         = $this->get_headers( $headers );
 		$response        = false;
 		$is_auth_request = false;
 
@@ -77,6 +82,12 @@ abstract class REST {
 		} elseif ( ! $this->get_auth()->has_auth() ) {
 			$auth_response = $this->get_auth()->auth();
 		}
+
+		/**
+		 * Need to build-up headers after (potentially) performing the auth request
+		 * to make sure new auth headers are set.
+		 */
+		$headers = $this->get_headers( $headers );
 
 		if ( 'GET' === $type ) {
 			$response = wp_remote_get(

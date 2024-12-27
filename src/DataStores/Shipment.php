@@ -206,7 +206,6 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 
 		// Shipping provider has changed - lets remove existing label
 		if ( in_array( 'shipping_provider', $changed_props, true ) ) {
-
 			if ( $shipment->supports_label() && $shipment->has_label() ) {
 				$shipment->get_label()->delete();
 			}

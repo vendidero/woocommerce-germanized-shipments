@@ -716,14 +716,20 @@ class PickupDelivery {
 	}
 
 	public static function get_excluded_gateways() {
+		$excluded_gateways = array( 'cod' );
+
+		if ( ! is_admin() ) {
+			$excluded_gateways[] = 'amazon_payments_advanced';
+		}
+
 		/**
 		 * Filter to disable pickup delivery for certain gateways.
 		 *
 		 * @param array $gateways Array of gateway IDs to exclude.
 		 */
-		$codes = apply_filters( 'woocommerce_gzd_shipments_pickup_delivery_excluded_gateways', array( 'cod', 'amazon_payments_advanced' ) );
+		$excluded_gateways = apply_filters( 'woocommerce_gzd_shipments_pickup_delivery_excluded_gateways', $excluded_gateways );
 
-		return $codes;
+		return $excluded_gateways;
 	}
 
 	public static function get_pickup_delivery_cart_args() {

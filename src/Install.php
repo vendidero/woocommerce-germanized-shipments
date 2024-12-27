@@ -549,7 +549,7 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipments (
   shipment_date_sent_gmt datetime default NULL,
   shipment_est_delivery_date datetime default NULL,
   shipment_est_delivery_date_gmt datetime default NULL,
-  shipment_status varchar(20) NOT NULL default 'gzd-draft',
+  shipment_status varchar(150) NOT NULL default 'gzd-draft',
   shipment_order_id bigint(20) unsigned NOT NULL DEFAULT 0,
   shipment_packaging_id bigint(20) unsigned NOT NULL DEFAULT 0,
   shipment_parent_id bigint(20) unsigned NOT NULL DEFAULT 0,

@@ -12,6 +12,10 @@ abstract class Basic extends Auth {
 		return true;
 	}
 
+	public function get_url() {
+		return '';
+	}
+
 	abstract protected function get_username();
 
 	abstract protected function get_password();
