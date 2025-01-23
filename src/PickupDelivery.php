@@ -281,7 +281,7 @@ class PickupDelivery {
 							);
 							?>
 
-							<button type="submit" class="button <?php echo esc_attr( wc_gzd_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_gzd_wp_theme_get_element_class_name( 'button' ) : '' ); ?>" id="wc-gzd-shipments-search-pickup-location-submit"><?php echo esc_html_x( 'Search', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
+							<button type="submit" class="button <?php echo esc_attr( wc_gzd_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_gzd_wp_theme_get_element_class_name( 'button' ) : '' ); ?>" id="wc-gzd-shipments-search-pickup-location-submit" aria-label="<?php echo esc_html_x( 'Search', 'shipments', 'woocommerce-germanized-shipments' ); ?>"><?php echo esc_html_x( 'Search', 'shipments', 'woocommerce-germanized-shipments' ); ?></button>
 						</div>
 
 						<div class="pickup-location-search-results">
@@ -301,8 +301,8 @@ class PickupDelivery {
 						</div>
 
 						<div class="pickup-location-search-actions">
-							<a href="#" class="pickup-location-remove <?php echo esc_attr( $pickup_delivery_data['current_location'] ? '' : 'hidden' ); ?>"><?php echo esc_html_x( 'Remove pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
-							<a href="#" class="submit-pickup-location <?php echo esc_attr( $pickup_delivery_data['current_location'] ? '' : 'hidden' ); ?> button <?php echo esc_attr( wc_gzd_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_gzd_wp_theme_get_element_class_name( 'button' ) : '' ); ?>"><?php echo esc_html_x( 'Choose pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+							<a href="#" class="pickup-location-remove <?php echo esc_attr( $pickup_delivery_data['current_location'] ? '' : 'hidden' ); ?>" aria-label="<?php echo esc_html_x( 'Remove pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?>" role="button"><?php echo esc_html_x( 'Remove pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+							<a href="#" class="submit-pickup-location <?php echo esc_attr( $pickup_delivery_data['current_location'] ? '' : 'hidden' ); ?> button <?php echo esc_attr( wc_gzd_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_gzd_wp_theme_get_element_class_name( 'button' ) : '' ); ?>" aria-label="<?php echo esc_html_x( 'Choose pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?>" role="button"><?php echo esc_html_x( 'Choose pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 						</div>
 
 						<?php wp_nonce_field( 'wc-gzd-shipments-search-pickup-location' ); ?>
@@ -364,7 +364,7 @@ class PickupDelivery {
 			<div class="choose-pickup-location" <?php echo ( $args['current_location'] ? 'style="display: none;"' : '' ); ?>>
 				<p>
 					<span class="pickup-location-notice-title"><?php echo esc_html_x( 'Not at home?', 'shipments', 'woocommerce-germanized-shipments' ); ?></span>
-					<a href="#" class="pickup-location-notice-link wc-gzd-modal-launcher" data-modal-id="pickup-location"><?php echo esc_html_x( 'Choose a pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+					<a href="#" class="pickup-location-notice-link wc-gzd-modal-launcher" data-modal-id="pickup-location" aria-label="<?php echo esc_html_x( 'Choose a pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?>" role="button"><?php echo esc_html_x( 'Choose a pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 
 					<?php do_action( 'woocommerce_gzd_shipments_after_pickup_location_choose_notice', $args ); ?>
 				</p>
@@ -372,9 +372,9 @@ class PickupDelivery {
 			<div class="currently-shipping-to" <?php echo ( ! $args['current_location'] ? 'style="display: none;"' : '' ); ?>>
 				<p>
 					<span class="currently-shipping-to-title"><?php printf( esc_html_x( 'Currently shipping to:', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></span>
-					<a href="#" class="pickup-location-notice-link pickup-location-manage-link wc-gzd-modal-launcher" data-modal-id="pickup-location"><?php echo wp_kses_post( $args['current_location'] ? $args['current_location']->get_label() : '' ); ?></a>
+					<a href="#" class="pickup-location-notice-link pickup-location-manage-link wc-gzd-modal-launcher" data-modal-id="pickup-location" role="button"><?php echo wp_kses_post( $args['current_location'] ? $args['current_location']->get_label() : '' ); ?></a>
 				</p>
-				<a href="#" class="pickup-location-remove"><?php echo esc_html_x( 'Remove pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
+				<a href="#" class="pickup-location-remove" aria-label="<?php echo esc_html_x( 'Remove pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?>" role="button"><?php echo esc_html_x( 'Remove pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 			</div>
 		</div>
 		<?php
