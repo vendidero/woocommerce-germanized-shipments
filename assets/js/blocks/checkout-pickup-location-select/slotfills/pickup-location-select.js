@@ -299,6 +299,10 @@ const render = () => {
         };
     } );
 
+    const {
+        __internalSetUseShippingAsBilling
+    } = useDispatch( CHECKOUT_STORE_KEY );
+
     const shippingAddress = customerData.shippingAddress;
     const { setShippingAddress, updateCustomerData } = useDispatch( CART_STORE_KEY );
     const checkoutOptions = getCheckoutData();
@@ -546,6 +550,8 @@ const render = () => {
         if ( availableLocationsByCode.hasOwnProperty( pickupLocation ) ) {
             setOption( 'pickup_location', pickupLocation );
             setPickupLocationSearchAddress( { 'address_1': '' } );
+
+            __internalSetUseShippingAsBilling( false );
 
             const { removeNotice } = dispatch( 'core/notices' );
 

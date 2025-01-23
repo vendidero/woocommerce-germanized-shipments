@@ -2,7 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments;
 
-use \Exception;
+use Exception;
 use WC_Order;
 use WP_Query;
 

@@ -2,6 +2,7 @@
 
 namespace Vendidero\Germanized\Shipments\ShippingMethod;
 
+use Vendidero\Germanized\Shipments\Compatibility\Bundles;
 use Vendidero\Germanized\Shipments\Package;
 use Vendidero\Germanized\Shipments\Packing\CartItem;
 use Vendidero\Germanized\Shipments\Packing\ItemList;
@@ -129,20 +130,25 @@ class MethodHelper {
 			do_action( 'woocommerce_gzd_shipments_after_prepare_cart_contents' );
 
 			/**
-			 * In case prices have already been calculated, use the official
-			 * Woo API for better compatibility with extensions, e.g. Bundles.
+			 * In case prices have already been calculated, maybe prefer the official
+			 * Woo API for improved compatibility with extensions, e.g. unassembled, individually priced bundled items.
+			 *
+			 * This may cause problems with plugins that add additional carts and calculate shipping (e.g. Subscriptions) based on these separate carts
+			 * as Woo does not pass the current $cart object to the filter used here. Within the shipping package data there is unfortunately
+			 * no item total amount (incl taxes) available.
 			 */
-			if ( 0 !== WC()->cart->get_subtotal() ) {
-				$total    = (float) WC()->cart->get_cart_contents_total();
-				$subtotal = (float) WC()->cart->get_subtotal();
+			if ( 0 !== $cart_contents[ $index ]['cart_subtotal'] && apply_filters( 'woocommerce_gzd_shipments_prefer_cart_totals_over_cart_item_totals', false, $cart_contents ) ) {
+				$cart  = WC()->cart;
+				$total = (float) $cart->get_cart_contents_total();
 
-				if ( wc()->cart->display_prices_including_tax() ) {
-					$total    += (float) WC()->cart->get_cart_contents_tax();
-					$subtotal += (float) WC()->cart->get_subtotal_tax();
+				if ( $cart->display_prices_including_tax() ) {
+					$total += (float) $cart->get_cart_contents_tax();
+				} else {
+					$total = (float) $cart_contents[ $index ]['contents_cost']; // this is excl tax
 				}
 
-				$package_data['total']    = NumberUtil::round_to_precision( $total );
-				$package_data['subtotal'] = NumberUtil::round_to_precision( $subtotal );
+				$package_data['total']    = NumberUtil::round_to_precision( $total ); // item total after discounts
+				$package_data['subtotal'] = NumberUtil::round_to_precision( (float) $cart_contents[ $index ]['cart_subtotal'] ); // item total before discounts
 			}
 
 			$cart_contents[ $index ]['package_data']  = $package_data;
@@ -191,7 +197,7 @@ class MethodHelper {
 		if ( is_callable( array( $wc, 'is_rest_api_request' ) ) && $wc->is_rest_api_request() ) {
 			add_filter(
 				'pre_option',
-				function( $pre, $option, $default_value ) {
+				function ( $pre, $option, $default_value ) {
 					if ( strstr( $option, 'woocommerce_' ) && '_settings' === substr( $option, -9 ) ) {
 						$option_clean = explode( '_', substr( $option, 0, -9 ) );
 						$last_part    = $option_clean[ count( $option_clean ) - 1 ];
@@ -202,7 +208,7 @@ class MethodHelper {
 						if ( absint( $last_part ) > 0 ) {
 							add_filter(
 								"option_{$option}",
-								function( $option_value, $option_name ) {
+								function ( $option_value, $option_name ) {
 									if ( is_array( $option_value ) ) {
 										foreach ( self::get_method_settings() as $setting_id => $setting ) {
 											if ( ! array_key_exists( $setting_id, $option_value ) ) {
@@ -515,7 +521,7 @@ class MethodHelper {
 					$count = 0;
 
 					foreach ( $provider_inner_settings as $shipment_type => $settings ) {
-						$count ++;
+						++$count;
 
 						$tabs_open_id  = "label_config_set_tabs_{$provider}_{$shipment_type}_open";
 						$tabs_close_id = "label_config_set_tabs_{$provider}_{$shipment_type}_close";
@@ -647,7 +653,7 @@ class MethodHelper {
 			<nav class="nav-tab-wrapper woo-nav-tab-wrapper shipments-nav-tab-wrapper">
 				<?php
 				foreach ( $setting['tabs'] as $tab => $tab_title ) :
-					$count++;
+					++$count;
 					?>
 					<a class="nav-tab <?php echo 1 === $count ? esc_attr( 'nav-tab-active' ) : ''; ?>" href="#<?php echo esc_attr( $tab ); ?>" data-tab="<?php echo esc_attr( $tab ); ?>"><?php echo esc_html( $tab_title ); ?></a>
 				<?php endforeach; ?>

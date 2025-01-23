@@ -229,5 +229,12 @@ class Functions extends \Vendidero\Germanized\Shipments\Tests\Framework\UnitTest
 			'addition'   => '4 OG',
 			'addition_2' => '',
 		), wc_gzd_split_shipment_street( 'Konrad-Adenauer-Allee 50, 4 OG' ) );
+
+		$this->assertEquals( array(
+			'street'     => 'Bahnhofstraße',
+			'number'     => '0',
+			'addition'   => '',
+			'addition_2' => '',
+		), wc_gzd_split_shipment_street( 'Bahnhofstraße 0' ) );
 	}
 }

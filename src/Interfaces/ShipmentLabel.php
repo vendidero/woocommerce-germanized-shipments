@@ -3,18 +3,15 @@ namespace Vendidero\Germanized\Shipments\Interfaces;
 
 use Vendidero\Germanized\Shipments\ShipmentError;
 
-/**
- * Shipment Label Interface
- *
- * @package  Germanized/Shipments/Interfaces
- * @version  3.1.0
- */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 /**
- * ShipmentLabel class.
+ * Shipment Label Interface
+ *
+ * @package  Germanized/Shipments/Interfaces
+ * @version  3.1.0
  */
 interface ShipmentLabel {
 

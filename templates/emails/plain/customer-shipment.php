@@ -25,10 +25,10 @@ echo sprintf( esc_html__( 'Hi %s,', 'woocommerce' ), esc_html( $order->get_billi
 
 if ( $partial_shipment ) {
 	/* translators: %s: Site title */
-	printf( esc_html_x( 'Your order on %1$s has been partially shipped via %2$s. Find details below for your reference:', 'shipments', 'woocommerce-germanized-shipments' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), wc_gzd_get_shipment_shipping_provider_title( $shipment ) ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
+	printf( esc_html_x( 'Your order on %1$s has been partially shipped via %2$s. Find details below for your reference:', 'shipments', 'woocommerce-germanized-shipments' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), wc_gzd_get_shipment_shipping_provider_title( $shipment ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 } else {
 	/* translators: %s: Site title */
-	printf( esc_html_x( 'Your order on %1$s has been shipped via %2$s. Find details below for your reference:', 'shipments', 'woocommerce-germanized-shipments' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), wc_gzd_get_shipment_shipping_provider_title( $shipment ) ); // phpcs:ignore WordPress.XSS.EscapeOutput.OutputNotEscaped
+	printf( esc_html_x( 'Your order on %1$s has been shipped via %2$s. Find details below for your reference:', 'shipments', 'woocommerce-germanized-shipments' ), wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), wc_gzd_get_shipment_shipping_provider_title( $shipment ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
 
 echo "\n\n";

@@ -338,7 +338,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		}
 
 		if ( ! $shipment ) {
-			throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_id', _x( 'There was an error while creating the shipment.', 'shipments', 'woocommerce-germanized-shipments' ) );
+			throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_id', esc_html_x( 'There was an error while creating the shipment.', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
 
 		if ( isset( $request['order_id'] ) ) {
@@ -349,17 +349,15 @@ class ShipmentsController extends \WC_REST_Controller {
 			$order_shipment = $shipment->get_order_shipment();
 
 			if ( ! $order_shipment ) {
-				throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_id', _x( 'This order does not exist.', 'shipments', 'woocommerce-germanized-shipments' ) );
+				throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_id', esc_html_x( 'This order does not exist.', 'shipments', 'woocommerce-germanized-shipments' ) );
 			}
 
 			if ( 'return' === $shipment->get_type() ) {
 				if ( ! $order_shipment->needs_return() ) {
-					throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_id', _x( 'This order does need a return.', 'shipments', 'woocommerce-germanized-shipments' ) );
+					throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_id', esc_html_x( 'This order does need a return.', 'shipments', 'woocommerce-germanized-shipments' ) );
 				}
-			} else {
-				if ( ! $order_shipment->needs_shipping() ) {
-					throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_id', _x( 'This order does need shipping.', 'shipments', 'woocommerce-germanized-shipments' ) );
-				}
+			} elseif ( ! $order_shipment->needs_shipping() ) {
+					throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_id', esc_html_x( 'This order does need shipping.', 'shipments', 'woocommerce-germanized-shipments' ) );
 			}
 
 			$shipment->sync();
@@ -532,7 +530,7 @@ class ShipmentsController extends \WC_REST_Controller {
 		if ( $shipment->get_item_count() <= 0 ) {
 			$shipment->delete( true );
 
-			throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_id', _x( 'This shipment does not contain any items and was deleted.', 'shipments', 'woocommerce-germanized-shipments' ) );
+			throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_id', esc_html_x( 'This shipment does not contain any items and was deleted.', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
 
 		/**
@@ -568,7 +566,7 @@ class ShipmentsController extends \WC_REST_Controller {
 			$item = $shipment->get_item( absint( $posted['id'] ) );
 
 			if ( ! $item ) {
-				throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_item_id', _x( 'Shipment item ID provided is not associated with shipment.', 'shipments', 'woocommerce-germanized-shipments' ), 400 );
+				throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_item_id', esc_html_x( 'Shipment item ID provided is not associated with shipment.', 'shipments', 'woocommerce-germanized-shipments' ), 400 );
 			}
 		}
 
@@ -610,48 +608,46 @@ class ShipmentsController extends \WC_REST_Controller {
 			}
 
 			if ( $quantity <= 0 ) {
-				throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_item_id', _x( 'This order item does not need shipping/returning.', 'shipments', 'woocommerce-germanized-shipments' ), 400 );
+				throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_item_id', esc_html_x( 'This order item does not need shipping/returning.', 'shipments', 'woocommerce-germanized-shipments' ), 400 );
 			}
 
 			if ( $shipment->get_item_by_order_item_id( $item->get_order_item_id() ) ) {
-				throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_item_id', _x( 'The order item is already associated with another item.', 'shipments', 'woocommerce-germanized-shipments' ), 400 );
+				throw new \WC_REST_Exception( 'woocommerce_gzd_rest_invalid_item_id', esc_html_x( 'The order item is already associated with another item.', 'shipments', 'woocommerce-germanized-shipments' ), 400 );
 			}
 
 			$item->sync( array( 'quantity' => $quantity ) );
-		} else {
-			if ( $order_shipment = $shipment->get_order_shipment() ) {
+		} elseif ( $order_shipment = $shipment->get_order_shipment() ) {
 				$quantity      = isset( $posted['quantity'] ) ? absint( wp_unslash( $posted['quantity'] ) ) : $item->get_quantity();
 				$quantity_left = 0;
 
-				if ( 'return' === $shipment->get_type() ) {
-					$quantity_left = $order_shipment->get_item_quantity_left_for_returning(
-						$item->get_order_item_id(),
-						array(
-							'exclude_current_shipment' => true,
-							'shipment_id'              => $shipment->get_id(),
-						)
-					);
-				} elseif ( $order_item = $item->get_order_item() ) {
-					$quantity_left = $order_shipment->get_item_quantity_left_for_shipping(
-						$order_item,
-						array(
-							'exclude_current_shipment' => true,
-							'shipment_id'              => $shipment->get_id(),
-						)
-					);
-				}
+			if ( 'return' === $shipment->get_type() ) {
+				$quantity_left = $order_shipment->get_item_quantity_left_for_returning(
+					$item->get_order_item_id(),
+					array(
+						'exclude_current_shipment' => true,
+						'shipment_id'              => $shipment->get_id(),
+					)
+				);
+			} elseif ( $order_item = $item->get_order_item() ) {
+				$quantity_left = $order_shipment->get_item_quantity_left_for_shipping(
+					$order_item,
+					array(
+						'exclude_current_shipment' => true,
+						'shipment_id'              => $shipment->get_id(),
+					)
+				);
+			}
 
-				if ( $quantity > $quantity_left ) {
-					$quantity = $quantity_left;
-				}
+			if ( $quantity > $quantity_left ) {
+				$quantity = $quantity_left;
+			}
 
-				if ( $quantity <= 0 ) {
-					$shipment->remove_item( $item->get_id() );
-					return;
-				}
+			if ( $quantity <= 0 ) {
+				$shipment->remove_item( $item->get_id() );
+				return;
+			}
 
 				$shipment->update_item_quantity( $item->get_id(), $quantity );
-			}
 		}
 
 		$props_to_set = array(

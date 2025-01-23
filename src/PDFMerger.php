@@ -32,7 +32,7 @@ class PDFMerger {
 		if ( file_exists( $filename ) ) {
 			$page_count = $this->_pdf->setSourceFile( $filename );
 
-			for ( $i = 1; $i <= $page_count; $i ++ ) {
+			for ( $i = 1; $i <= $page_count; $i++ ) {
 				if ( $this->_isPageInRange( $i, $pages ) ) {
 					$this->_addPage( $i, $width );
 				}

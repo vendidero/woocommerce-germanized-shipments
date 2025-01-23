@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 						<span class="screen-reader-text">Close modal panel</span>
 					</button>
 				</header>
-				<article class="germanized-shipments germanized-create-label" data-shipment-type="<?php echo esc_attr( $shipment->get_type() ); ?>">
+				<article class="germanized-shipments shipments-create-label" data-shipment-type="<?php echo esc_attr( $shipment->get_type() ); ?>">
 					<div class="notice-wrapper"></div>
 
 					<form action="" method="post" class="wc-gzd-create-shipment-label-form">

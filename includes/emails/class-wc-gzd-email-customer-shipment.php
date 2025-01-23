@@ -200,7 +200,7 @@ if ( ! class_exists( 'WC_GZD_Email_Customer_Shipment', false ) ) :
 			foreach ( $order->get_simple_shipments() as $key => $shipment ) {
 				if ( $shipment->is_shipped() ) {
 					if ( (int) $shipment->get_id() !== (int) $shipment_id ) {
-						$shipped_count++;
+						++$shipped_count;
 					}
 				}
 			}

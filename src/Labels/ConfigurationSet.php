@@ -147,10 +147,8 @@ class ConfigurationSet {
 	public function get_service_id( $name ) {
 		if ( array_key_exists( $name, $this->services ) ) {
 			return $name;
-		} else {
-			if ( $key = array_search( $name, $this->get_all_services(), true ) ) {
+		} elseif ( $key = array_search( $name, $this->get_all_services(), true ) ) {
 				return $key;
-			}
 		}
 
 		return $name;
@@ -238,12 +236,12 @@ class ConfigurationSet {
 		return array_key_exists( $additional_id, $this->additional ) ? $this->additional[ $additional_id ] : $default_value;
 	}
 
-	public function get_service_value( $service, $default = null ) {
+	public function get_service_value( $service, $default_value = null ) {
 		if ( $service_id = $this->get_service_id( $service ) ) {
 			$service = $service_id;
 		}
 
-		return array_key_exists( $service, $this->services ) ? $this->services[ $service ]['value'] : $default;
+		return array_key_exists( $service, $this->services ) ? $this->services[ $service ]['value'] : $default_value;
 	}
 
 	public function get_settings() {
@@ -314,7 +312,7 @@ class ConfigurationSet {
 		return false;
 	}
 
-	public function get_setting( $id, $default = null, $group = '' ) {
+	public function get_setting( $id, $default_value = null, $group = '' ) {
 		$details  = $this->get_setting_details( $id );
 		$settings = $this->get_settings();
 
@@ -324,7 +322,7 @@ class ConfigurationSet {
 		}
 
 		if ( 'service_meta' === $group && ! empty( $details['service_meta'] ) ) {
-			return $this->get_service_meta( $id, $details['service_meta'], $default );
+			return $this->get_service_meta( $id, $details['service_meta'], $default_value );
 		} else {
 			$setting_id = $this->get_clean_setting_id( $id );
 
@@ -333,7 +331,7 @@ class ConfigurationSet {
 			}
 		}
 
-		return $default;
+		return $default_value;
 	}
 
 	public function update_setting( $id, $value, $group = '' ) {

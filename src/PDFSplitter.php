@@ -173,5 +173,4 @@ class PDFSplitter {
 
 		return range( $value[0] > $value[1] ? $value[1] : $value[0], $value[0] > $value[1] ? $value[0] : $value[1] );
 	}
-
 }

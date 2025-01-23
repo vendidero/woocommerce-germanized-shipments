@@ -51,7 +51,7 @@ abstract class Tab extends \WC_Settings_Page {
 		$count = 0;
 
 		foreach ( $breadcrumb as $breadcrumb_item ) {
-			$count ++;
+			++$count;
 			echo '<li class="breadcrumb-item breadcrumb-item-' . esc_attr( $breadcrumb_item['class'] ) . ' ' . ( count( $breadcrumb ) === $count ? 'breadcrumb-item-active' : '' ) . '">' . ( ! empty( $breadcrumb_item['href'] ) ? '<a class="breadcrumb-link" href="' . esc_attr( $breadcrumb_item['href'] ) . '">' . wp_kses_post( $breadcrumb_item['title'] ) . '</a>' : wp_kses_post( $breadcrumb_item['title'] ) ) . '</li>';
 		}
 

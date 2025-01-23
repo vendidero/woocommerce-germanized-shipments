@@ -113,7 +113,7 @@ class AsyncReportGenerator {
 				$packaging_data[ $country ][ "$packaging_id" ]['count']        += 1;
 				$packaging_data[ $country ][ "$packaging_id" ]['weight_in_kg'] += wc_add_number_precision( (float) wc_get_weight( $packaging_weight, 'kg', $shipment->get_weight_unit() ), false );
 
-				$shipments_processed++;
+				++$shipments_processed;
 			}
 
 			$this->args['processed'] = absint( $this->args['processed'] ) + $shipments_processed;

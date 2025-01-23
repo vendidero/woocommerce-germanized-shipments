@@ -62,7 +62,7 @@ class RoutesController {
 		$route = isset( $this->routes[ $version ][ $name ] ) ? $this->routes[ $version ][ $name ] : false;
 
 		if ( ! $route ) {
-			throw new \Exception( "{$name} {$version} route does not exist" );
+			throw new \Exception( esc_html( "{$name} {$version} route does not exist" ) );
 		}
 
 		return new $route(
@@ -74,10 +74,10 @@ class RoutesController {
 	/**
 	 * Register defined list of routes with WordPress.
 	 *
-	 * @param string $version API Version being registered..
-	 * @param string $namespace Overrides the default route namespace.
+	 * @param string $version API Version being registered.
+	 * @param string $ns Overrides the default route namespace.
 	 */
-	protected function register_routes( $version = 'v1', $namespace = 'wc/store/v1' ) {
+	protected function register_routes( $version = 'v1', $ns = 'wc/store/v1' ) {
 		if ( ! isset( $this->routes[ $version ] ) ) {
 			return;
 		}
@@ -86,7 +86,7 @@ class RoutesController {
 
 		foreach ( $route_identifiers as $route ) {
 			$route_instance = $this->get( $route, $version );
-			$route_instance->set_namespace( $namespace );
+			$route_instance->set_namespace( $ns );
 
 			register_rest_route(
 				$route_instance->get_namespace(),

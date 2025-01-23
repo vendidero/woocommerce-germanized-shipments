@@ -182,10 +182,10 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	public function get_edit_link( $section = '' ) {
-		$url = admin_url( 'admin.php?page=wc-settings&tab=shipments-shipping_provider&provider=' . esc_attr( $this->get_name() ) );
-		$url = add_query_arg( array( 'section' => $section ), $url );
+		$base_url = Settings::get_settings_url( 'shipping_provider', $section );
+		$base_url = add_query_arg( array( 'provider' => $this->get_name() ), $base_url );
 
-		return esc_url_raw( $url );
+		return esc_url_raw( $base_url );
 	}
 
 	/**
@@ -934,28 +934,28 @@ class Simple extends WC_Data implements ShippingProvider {
 	 * @param Shipment $shipment
 	 * @param $key
 	 */
-	public function get_shipment_setting( $shipment, $key, $default = null ) {
-		$value = $this->get_setting( $key, $default );
+	public function get_shipment_setting( $shipment, $key, $default_value = null ) {
+		$value = $this->get_setting( $key, $default_value );
 
 		if ( $config_set = $shipment->get_label_configuration_set() ) {
 			if ( $config_set->has_setting( $key ) ) {
-				$value = $config_set->get_setting( $key, $default );
+				$value = $config_set->get_setting( $key, $default_value );
 			}
 		}
 
 		return $value;
 	}
 
-	public function get_setting( $key, $default = null, $context = 'view' ) {
+	public function get_setting( $key, $default_value = null, $context = 'view' ) {
 		$clean_key = $this->unprefix_setting_key( $key );
 		$getter    = "get_{$clean_key}";
-		$value     = $default;
+		$value     = $default_value;
 
 		if ( is_callable( array( $this, $getter ) ) ) {
 			$value = $this->$getter( $context );
 
-			if ( '' === $value && 'view' === $context && ! is_null( $default ) ) {
-				$value = $default;
+			if ( '' === $value && 'view' === $context && ! is_null( $default_value ) ) {
+				$value = $default_value;
 			}
 		} elseif ( $this->meta_exists( $clean_key ) ) {
 			$value = $this->get_meta( $clean_key, true, $context );
@@ -971,7 +971,7 @@ class Simple extends WC_Data implements ShippingProvider {
 			$value = $this->retrieve_password( $value );
 		}
 
-		return apply_filters( "{$this->get_hook_prefix()}setting_{$clean_key}", $value, $key, $default, $context );
+		return apply_filters( "{$this->get_hook_prefix()}setting_{$clean_key}", $value, $key, $default_value, $context );
 	}
 
 	protected function retrieve_password( $value ) {
@@ -1208,7 +1208,6 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	protected function register_products() {
-
 	}
 
 	protected function register_product( $id, $args = array() ) {
@@ -1265,7 +1264,6 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	protected function register_print_formats() {
-
 	}
 
 	protected function register_print_format( $id, $args = array() ) {
@@ -1319,7 +1317,6 @@ class Simple extends WC_Data implements ShippingProvider {
 	}
 
 	protected function register_services() {
-
 	}
 
 	/**

@@ -19,13 +19,20 @@ window.shipments.admin = window.shipments.admin || {};
             $( document )
                 .on( 'change', 'select[id$=shipping_provider]', self.showOrHideAll )
                 .on( 'click', '.wc-gzd-shipping-provider-method-tabs .nav-tab-wrapper a.nav-tab', self.onChangeTab )
-                .on( 'change', '.override-checkbox :input', self.onChangeOverride );
+                .on( 'change', '.override-checkbox :input', self.onChangeOverride )
+                .on( 'change', '.wc-gzd-shipping-provider-method-tab-content :input[id]', self.onChangeInput );
 
             $( document.body ).on( 'wc_backbone_modal_loaded', self.onShippingMethodOpen );
 
             if ( $( 'select[id$=shipping_provider]' ).length > 0 ) {
                 $( 'select[id$=shipping_provider]' ).trigger( 'change' );
             }
+        },
+
+        onChangeInput: function() {
+            var settings = shipments.admin.shipment_settings;
+
+            settings.onChangeInput.call( $( this ) );
         },
 
         parseFieldId: function( fieldId ) {
@@ -58,6 +65,7 @@ window.shipments.admin = window.shipments.admin || {};
             if ( $tab.length > 0 ) {
                 $navTab.addClass( 'nav-tab-active' );
                 $tab.addClass( 'tab-content-active' );
+
                 $tab.find( ':input:visible' ).trigger( 'change' );
             }
 
@@ -100,54 +108,17 @@ window.shipments.admin = window.shipments.admin || {};
         showOrHideAll: function() {
             var self       = shipments.admin.shipping_provider_method,
                 $select    = $( this ),
-                $providers = $select.find( 'option' ),
                 $form      = $select.parents( 'form' );
 
             self.currentProvider = $select.val();
-
-            $providers.each( function() {
-                var $provider               = $( this ),
-                    provider_setting_prefix = $provider.val();
-
-                if ( provider_setting_prefix.length > 0 ) {
-                    $form.find( 'table.form-table' ).each( function() {
-                        if ( $( this ).find( ':input[id*=_' + provider_setting_prefix + '_]' ).length > 0 ) {
-                            self.hideTable( $( this ) );
-                        }
-                    });
-                }
-            });
 
             $form.find( '.wc-gzd-shipping-provider-method-tabs' ).hide();
             $form.find( '.wc-gzd-shipping-provider-method-tab-content' ).removeClass( 'tab-content-active' );
 
             if ( self.currentProvider.length > 0 ) {
-                $form.find( 'table.form-table' ).each( function() {
-                    if ( $( this ).find( ':input[id*=_' + self.currentProvider + '_]' ).length > 0 ) {
-                        self.showTable( $( this ) );
-                    }
-                });
-
                 $form.find( '.wc-gzd-shipping-provider-method-tabs[data-provider="' + self.currentProvider + '"]' ).show();
                 $form.find( '.wc-gzd-shipping-provider-method-tabs[data-provider="' + self.currentProvider + '"] .nav-tab-wrapper' ).find( 'a.nav-tab:first' ).trigger( 'click' );
-
-                // Trigger show/hide
-                $form.find( ':input[id*=_' + self.currentProvider + '_]:visible' ).trigger( 'change' );
             }
-        },
-
-        hideTable: function( $table ) {
-            if ( $table.find( 'select[id$=shipping_provider]' ).length > 0 ) {
-                return false;
-            }
-
-            $table.prevUntil( 'table.form-table' ).hide();
-            $table.hide();
-        },
-
-        showTable: function( $table ) {
-            $table.prevUntil( 'table.form-table' ).show();
-            $table.show();
         }
     };
 

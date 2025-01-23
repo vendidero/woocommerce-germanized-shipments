@@ -10,11 +10,11 @@ $position_number = $order_shipment ? $order_shipment->get_shipment_position_numb
 ?>
 <div class="wc-gzd-preview-shipment">
 	<p class="shipment-summary">
-		<?php echo sprintf( esc_html_x( '%1$s %2$d/%3$d to ', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_shipment_label_title( $shipment->get_type() ) ), esc_html( $position_number ), esc_html( $total_shipments ) ); ?>
+		<?php printf( esc_html_x( '%1$s %2$d/%3$d to ', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( wc_gzd_get_shipment_label_title( $shipment->get_type() ) ), esc_html( $position_number ), esc_html( $total_shipments ) ); ?>
 		<?php if ( ( $s_order = $shipment->get_order() ) && is_callable( array( $s_order, 'get_edit_order_url' ) ) ) : ?>
-			<a href="<?php echo esc_url( $s_order->get_edit_order_url() ); ?>"><?php echo sprintf( esc_html_x( '#%1$s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( $s_order->get_order_number() ) ); ?></a>
+			<a href="<?php echo esc_url( $s_order->get_edit_order_url() ); ?>"><?php printf( esc_html_x( '#%1$s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( $s_order->get_order_number() ) ); ?></a>
 		<?php else : ?>
-			<?php echo sprintf( esc_html_x( '#%1$s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( $shipment->get_order_number() ) ); ?>
+			<?php printf( esc_html_x( '#%1$s', 'shipments', 'woocommerce-germanized-shipments' ), esc_html( $shipment->get_order_number() ) ); ?>
 		<?php endif; ?>
 	</p>
 
@@ -34,7 +34,7 @@ $position_number = $order_shipment ? $order_shipment->get_shipment_position_numb
 			if ( ! empty( $provider ) && ! empty( $tracking_id ) ) :
 				?>
 				<p>
-					<span class="shipment-shipping-provider"><?php echo sprintf( esc_html_x( 'via %s', 'shipments', 'woocommerce-germanized-shipments' ), wp_kses_post( wc_gzd_get_shipping_provider_title( $provider ) ) ); ?></span>
+					<span class="shipment-shipping-provider"><?php printf( esc_html_x( 'via %s', 'shipments', 'woocommerce-germanized-shipments' ), wp_kses_post( wc_gzd_get_shipping_provider_title( $provider ) ) ); ?></span>
 
 					<?php if ( $shipment->has_tracking() && ( $tracking_url = $shipment->get_tracking_url() ) ) : ?>
 						<a class="shipment-tracking-id" target="_blank" href="<?php echo esc_url( $tracking_url ); ?>"><?php echo esc_html( $tracking_id ); ?></a>

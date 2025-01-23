@@ -16,14 +16,14 @@ class Helper {
 	public static function init() {
 		add_action(
 			'woocommerce_after_order_object_save',
-			function( $order_id ) {
+			function ( $order_id ) {
 				self::flush_order_cache( $order_id );
 			}
 		);
 
 		add_action(
 			'woocommerce_before_delete_order',
-			function( $order_id ) {
+			function ( $order_id ) {
 				self::flush_order_cache( $order_id );
 			}
 		);

@@ -3,7 +3,7 @@
 namespace Vendidero\Germanized\Shipments;
 
 use Automattic\WooCommerce\StoreApi\Utilities\CartController;
-use \Exception;
+use Exception;
 use WC_Order;
 use WP_Query;
 
@@ -371,7 +371,7 @@ class PickupDelivery {
 			</div>
 			<div class="currently-shipping-to" <?php echo ( ! $args['current_location'] ? 'style="display: none;"' : '' ); ?>>
 				<p>
-					<span class="currently-shipping-to-title"><?php echo sprintf( esc_html_x( 'Currently shipping to:', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></span>
+					<span class="currently-shipping-to-title"><?php printf( esc_html_x( 'Currently shipping to:', 'shipments', 'woocommerce-germanized-shipments' ) ); ?></span>
 					<a href="#" class="pickup-location-notice-link pickup-location-manage-link wc-gzd-modal-launcher" data-modal-id="pickup-location" role="button"><?php echo wp_kses_post( $args['current_location'] ? $args['current_location']->get_label() : '' ); ?></a>
 				</p>
 				<a href="#" class="pickup-location-remove" aria-label="<?php echo esc_html_x( 'Remove pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?>" role="button"><?php echo esc_html_x( 'Remove pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
@@ -694,8 +694,8 @@ class PickupDelivery {
 			return;
 		}
 
-		wp_register_script( 'wc-gzd-shipments-modal', Package::get_assets_url( 'static/modal.js' ), array( 'jquery' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
-		wp_register_script( 'wc-gzd-shipments-pickup-locations', Package::get_assets_url( 'static/pickup-locations.js' ), array( 'jquery', 'woocommerce', 'selectWoo', 'wc-gzd-shipments-modal' ), Package::get_version() ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.NotInFooter
+		Package::register_script( 'wc-gzd-shipments-modal', 'static/modal.js', array( 'jquery' ) );
+		Package::register_script( 'wc-gzd-shipments-pickup-locations', 'static/pickup-locations.js', array( 'jquery', 'woocommerce', 'selectWoo', 'wc-gzd-shipments-modal' ) );
 
 		// Register admin styles.
 		wp_register_style( 'woocommerce_gzd_shipments_pickup_locations', Package::get_assets_url( 'static/pickup-locations-styles.css' ), array(), Package::get_version() );
@@ -715,6 +715,23 @@ class PickupDelivery {
 		wp_enqueue_script( 'wc-gzd-shipments-pickup-locations' );
 	}
 
+	public static function get_excluded_gateways() {
+		$excluded_gateways = array( 'cod' );
+
+		if ( ! is_admin() ) {
+			$excluded_gateways[] = 'amazon_payments_advanced';
+		}
+
+		/**
+		 * Filter to disable pickup delivery for certain gateways.
+		 *
+		 * @param array $gateways Array of gateway IDs to exclude.
+		 */
+		$excluded_gateways = apply_filters( 'woocommerce_gzd_shipments_pickup_delivery_excluded_gateways', $excluded_gateways );
+
+		return $excluded_gateways;
+	}
+
 	public static function get_pickup_delivery_cart_args() {
 		if ( ! wc()->cart ) {
 			return array(
@@ -725,6 +742,7 @@ class PickupDelivery {
 					'height' => 0.0,
 				),
 				'payment_gateway' => '',
+				'shipping_method' => false,
 			);
 		}
 
@@ -803,7 +821,8 @@ class PickupDelivery {
 		return array(
 			'max_weight'      => $max_weight,
 			'max_dimensions'  => $max_dimensions,
-			'payment_gateway' => WC()->session ? WC()->session->get( 'chosen_payment_method' ) : '',
+			'payment_gateway' => Package::get_current_payment_gateway(),
+			'shipping_method' => $shipping_method,
 		);
 	}
 
@@ -877,7 +896,7 @@ class PickupDelivery {
 		if ( 'order' === $current_pickup_location_field_group ) {
 			add_action(
 				'woocommerce_after_order_notes',
-				function( $checkout ) use ( $current_pickup_location_field ) {
+				function ( $checkout ) use ( $current_pickup_location_field ) {
 					if ( ! did_action( 'woocommerce_gzd_shipments_current_pickup_location_field_rendered' ) ) {
 						woocommerce_form_field( 'current_pickup_location', $current_pickup_location_field, $checkout->get_value( 'current_pickup_location' ) );
 					}

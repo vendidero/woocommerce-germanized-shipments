@@ -317,6 +317,39 @@ class Helper {
 	}
 
 	/**
+	 * @param string|ShippingProvider $title
+	 *
+	 * @return false|Simple|Auto|ShippingProvider
+	 */
+	public function get_shipping_provider_by_title( $title ) {
+		if ( is_a( $title, 'Vendidero\Germanized\Shipments\Interfaces\ShippingProvider' ) ) {
+			$title = $title->get_title();
+		}
+
+		$title           = sanitize_title( $title );
+		$providers       = $this->get_shipping_providers();
+		$the_provider    = false;
+		$alternate_match = false;
+
+		foreach ( $providers as $provider ) {
+			$provider_title = sanitize_title( $provider->get_title() );
+
+			if ( $provider_title === $title ) {
+				$the_provider = $provider;
+				break;
+			} elseif ( strstr( $provider_title, $title ) ) {
+				$alternate_match = $provider;
+			}
+		}
+
+		if ( ! $the_provider && $alternate_match ) {
+			$the_provider = $alternate_match;
+		}
+
+		return $the_provider;
+	}
+
+	/**
 	 * @param string|ShippingProvider $name
 	 *
 	 * @return false|Simple|Auto|ShippingProvider

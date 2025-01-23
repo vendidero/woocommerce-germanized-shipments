@@ -251,26 +251,26 @@ class Report {
 			if ( isset( $this->args['packaging'][ "$packaging_id" ] ) ) {
 				$count = absint( $this->args['packaging'][ "$packaging_id" ]['count'] );
 			}
-		} else {
-			if ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ]['packaging'][ "$packaging_id" ] ) ) {
+		} elseif ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ]['packaging'][ "$packaging_id" ] ) ) {
 				$count = absint( $this->args['countries'][ $country ]['packaging'][ "$packaging_id" ]['count'] );
-			}
 		}
 
 		return $count;
 	}
 
 	public function get_packaging_weight( $packaging_id, $country = '', $round = true, $unit = '' ) {
+		if ( '' === $unit ) {
+			$unit = wc_gzd_get_packaging_weight_unit();
+		}
+
 		$weight = 0.0;
 
 		if ( '' === $country ) {
 			if ( isset( $this->args['packaging'][ "$packaging_id" ] ) ) {
 				$weight = $this->args['packaging'][ "$packaging_id" ]['weight_in_kg'];
 			}
-		} else {
-			if ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ]['packaging'][ "$packaging_id" ] ) ) {
-				$weight = $this->args['countries'][ $country ]['packaging'][ "$packaging_id" ]['weight_in_kg'];
-			}
+		} elseif ( isset( $this->args['countries'][ $country ], $this->args['countries'][ $country ]['packaging'][ "$packaging_id" ] ) ) {
+			$weight = $this->args['countries'][ $country ]['packaging'][ "$packaging_id" ]['weight_in_kg'];
 		}
 
 		$weight = wc_get_weight( $weight, $unit, 'kg' );
@@ -279,6 +279,10 @@ class Report {
 	}
 
 	public function get_total_packaging_weight_by_country( $country, $round = true, $unit = '' ) {
+		if ( '' === $unit ) {
+			$unit = wc_gzd_get_packaging_weight_unit();
+		}
+
 		$weight = 0.0;
 
 		if ( isset( $this->args['countries'][ $country ] ) ) {

@@ -18,7 +18,7 @@ class Package {
 	 *
 	 * @var string
 	 */
-	const VERSION = '3.5.2';
+	const VERSION = '4.2.1';
 
 	public static $upload_dir_suffix = '';
 
@@ -58,9 +58,40 @@ class Package {
 		add_filter( 'wc_get_template', array( __CLASS__, 'add_return_shipment_guest_endpoints' ), 10, 2 );
 		add_action( 'init', array( __CLASS__, 'register_shortcodes' ) );
 		add_action( 'init', array( __CLASS__, 'check_version' ), 10 );
+		add_action( 'init', array( __CLASS__, 'load_fallback_compatibility' ) );
 
-		add_action( 'woocommerce_gzd_wpml_compatibility_loaded', array( __CLASS__, 'load_wpml_compatibility' ), 10 );
 		add_filter( 'woocommerce_shipping_method_add_rate_args', array( __CLASS__, 'manipulate_shipping_rates' ), 1000, 2 );
+	}
+
+	/**
+	 * Some label-related plugins, e.g. Swiss Post may have a built-in compatibility
+	 * for the WooCommerce Shipment Tracking plugin. Let's mimic/add those basic API functions
+	 * to make sure tracking-related info gets updates within shipments too.
+	 *
+	 * @return void
+	 */
+	public static function load_fallback_compatibility() {
+		if ( ! function_exists( 'wc_st_add_tracking_number' ) ) {
+			function wc_st_add_tracking_number( $order_id, $tracking_number, $provider, $date_shipped = null, $custom_url = false ) {
+				$tracking_item = array(
+					'tracking_provider'    => $provider,
+					'custom_tracking_link' => $custom_url,
+					'tracking_number'      => $tracking_number,
+				);
+
+				Compatibility\ShipmentTracking::transfer_tracking_to_shipment( $tracking_item, $order_id );
+			}
+		}
+
+		if ( ! function_exists( 'wc_st_delete_tracking_number' ) ) {
+			function wc_st_delete_tracking_number( $order_id, $tracking_number, $provider = false ) {
+				$tracking_item = array(
+					'tracking_number' => $tracking_number,
+				);
+
+				Compatibility\ShipmentTracking::remove_tracking_from_shipment( $tracking_item, $order_id );
+			}
+		}
 	}
 
 	/**
@@ -95,7 +126,9 @@ class Package {
 		$compatibilities = apply_filters(
 			'woocommerce_gzd_shipments_compatibilities',
 			array(
-				'bundles' => '\Vendidero\Germanized\Shipments\Compatibility\Bundles',
+				'bundles'           => '\Vendidero\Germanized\Shipments\Compatibility\Bundles',
+				'shipment-tracking' => '\Vendidero\Germanized\Shipments\Compatibility\ShipmentTracking',
+				'wpml'              => '\Vendidero\Germanized\Shipments\Compatibility\WPML',
 			)
 		);
 
@@ -172,10 +205,6 @@ class Package {
 		return $html;
 	}
 
-	public static function load_wpml_compatibility( $compatibility ) {
-		WPMLHelper::init( $compatibility );
-	}
-
 	public static function get_method_settings( $force_load_all = false ) {
 		wc_deprecated_function( __FUNCTION__, '3.0.0', 'MethodHelper::get_method_settings()' );
 
@@ -194,7 +223,7 @@ class Package {
 	 * @return bool
 	 */
 	public static function is_packing_supported() {
-		return version_compare( phpversion(), '7.1', '>=' ) && apply_filters( 'woocommerce_gzd_enable_rucksack_packaging', true );
+		return version_compare( phpversion(), '7.4', '>=' ) && apply_filters( 'woocommerce_gzd_enable_rucksack_packaging', true );
 	}
 
 	public static function is_integration() {
@@ -232,6 +261,17 @@ class Package {
 		}
 
 		return \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled();
+	}
+
+	public static function get_current_payment_gateway() {
+		$current_gateway    = WC()->session ? WC()->session->get( 'chosen_payment_method' ) : '';
+		$has_block_checkout = has_block( 'woocommerce/checkout' ) || has_block( 'woocommerce/cart' ) || WC()->is_rest_api_request();
+
+		if ( $has_block_checkout ) {
+			$current_gateway = WC()->session ? WC()->session->get( 'wc_gzd_shipments_blocks_chosen_payment_method', '' ) : '';
+		}
+
+		return $current_gateway;
 	}
 
 	public static function inject_endpoints() {
@@ -358,6 +398,18 @@ class Package {
 		$base_country = self::get_base_country();
 
 		return apply_filters( 'woocommerce_gzd_base_country_supports_export_reference_number', self::country_belongs_to_eu_customs_area( $base_country ) );
+	}
+
+	public static function get_shipping_zone( $country, $args = array() ) {
+		$zone = 'int';
+
+		if ( self::is_shipping_domestic( $country, $args ) ) {
+			$zone = 'dom';
+		} elseif ( self::is_shipping_inner_eu_country( $country, $args ) ) {
+			$zone = 'eu';
+		}
+
+		return $zone;
 	}
 
 	public static function is_shipping_international( $country, $args = array() ) {
@@ -774,6 +826,24 @@ class Package {
 		return version_compare( $woo_version, '8.2.0', '>=' );
 	}
 
+	public static function register_script( $handle, $path, $dep = array(), $ver = '', $in_footer = array( 'strategy' => 'defer' ) ) {
+		global $wp_version;
+
+		if ( version_compare( $wp_version, '6.3', '<' ) ) {
+			$in_footer = true;
+		}
+
+		$ver = empty( $ver ) ? self::get_version() : $ver;
+
+		wp_register_script(
+			$handle,
+			self::get_assets_url( $path ),
+			$dep,
+			$ver,
+			$in_footer
+		);
+	}
+
 	public static function get_assets_url( $script_or_style ) {
 		$assets_url = self::get_url() . '/build';
 		$is_debug   = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG;
@@ -787,10 +857,10 @@ class Package {
 		return trailingslashit( $assets_url ) . $script_or_style;
 	}
 
-	public static function get_setting( $name, $default = false ) {
+	public static function get_setting( $name, $default_value = false ) {
 		$option_name = "woocommerce_gzd_shipments_{$name}";
 
-		return get_option( $option_name, $default );
+		return get_option( $option_name, $default_value );
 	}
 
 	public static function get_store_address_country() {

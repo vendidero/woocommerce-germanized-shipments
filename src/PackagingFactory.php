@@ -9,7 +9,7 @@
  */
 namespace Vendidero\Germanized\Shipments;
 
-use \Exception;
+use Exception;
 use Vendidero\Germanized\Shipments\Caches\Helper;
 
 defined( 'ABSPATH' ) || exit;

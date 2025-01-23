@@ -266,7 +266,7 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 			 */
 			do_action( 'woocommerce_gzd_packaging_loaded', $packaging );
 		} else {
-			throw new Exception( _x( 'Invalid packaging.', 'shipments', 'woocommerce-germanized-shipments' ) );
+			throw new Exception( esc_html_x( 'Invalid packaging.', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
 	}
 
@@ -383,19 +383,19 @@ class Packaging extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfa
 	 *
 	 * Note: WordPress `get_metadata` function returns an empty string when meta data does not exist.
 	 *
-	 * @param WC_Data $object The WP_Data object (WC_Coupon for coupons, etc).
+	 * @param WC_Data $wc_data_object The WP_Data object (WC_Coupon for coupons, etc).
 	 * @param string  $meta_key Meta key to update.
 	 * @param mixed   $meta_value Value to save.
 	 *
-	 * @since 3.6.0 Added to prevent empty meta being stored unless required.
-	 *
 	 * @return bool True if updated/deleted.
+	 *@since 3.6.0 Added to prevent empty meta being stored unless required.
+	 *
 	 */
-	protected function update_or_delete_meta( $object, $meta_key, $meta_value ) {
+	protected function update_or_delete_meta( $wc_data_object, $meta_key, $meta_value ) {
 		if ( in_array( $meta_value, array( array(), '' ), true ) && ! in_array( $meta_key, $this->must_exist_meta_keys, true ) ) {
-			$updated = delete_metadata( $this->meta_type, $object->get_id(), $meta_key );
+			$updated = delete_metadata( $this->meta_type, $wc_data_object->get_id(), $meta_key );
 		} else {
-			$updated = update_metadata( $this->meta_type, $object->get_id(), $meta_key, $meta_value );
+			$updated = update_metadata( $this->meta_type, $wc_data_object->get_id(), $meta_key, $meta_value );
 		}
 
 		return (bool) $updated;

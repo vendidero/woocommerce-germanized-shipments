@@ -39,6 +39,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 		'_height',
 		'_weight',
 		'_packaging_weight',
+		'_packaging_title',
 		'_address',
 		'_total',
 		'_subtotal',
@@ -205,7 +206,6 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 
 		// Shipping provider has changed - lets remove existing label
 		if ( in_array( 'shipping_provider', $changed_props, true ) ) {
-
 			if ( $shipment->supports_label() && $shipment->has_label() ) {
 				$shipment->get_label()->delete();
 			}
@@ -360,7 +360,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 			 */
 			do_action( "woocommerce_gzd_{$hook_postfix}shipment_loaded", $shipment );
 		} else {
-			throw new Exception( _x( 'Invalid shipment.', 'shipments', 'woocommerce-germanized-shipments' ) );
+			throw new Exception( esc_html_x( 'Invalid shipment.', 'shipments', 'woocommerce-germanized-shipments' ) );
 		}
 	}
 
@@ -531,19 +531,19 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 	 *
 	 * Note: WordPress `get_metadata` function returns an empty string when meta data does not exist.
 	 *
-	 * @param WC_Data $object The WP_Data object (WC_Coupon for coupons, etc).
+	 * @param WC_Data $wc_data_object The WP_Data object (WC_Coupon for coupons, etc).
 	 * @param string  $meta_key Meta key to update.
 	 * @param mixed   $meta_value Value to save.
 	 *
-	 * @since 3.6.0 Added to prevent empty meta being stored unless required.
-	 *
 	 * @return bool True if updated/deleted.
+	 *@since 3.6.0 Added to prevent empty meta being stored unless required.
+	 *
 	 */
-	protected function update_or_delete_meta( $object, $meta_key, $meta_value ) {
+	protected function update_or_delete_meta( $wc_data_object, $meta_key, $meta_value ) {
 		if ( in_array( $meta_value, array( array(), '' ), true ) && ! in_array( $meta_key, $this->must_exist_meta_keys, true ) ) {
-			$updated = delete_metadata( 'gzd_shipment', $object->get_id(), $meta_key );
+			$updated = delete_metadata( 'gzd_shipment', $wc_data_object->get_id(), $meta_key );
 		} else {
-			$updated = update_metadata( 'gzd_shipment', $object->get_id(), $meta_key, $meta_value );
+			$updated = update_metadata( 'gzd_shipment', $wc_data_object->get_id(), $meta_key, $meta_value );
 		}
 
 		return (bool) $updated;
@@ -584,7 +584,7 @@ class Shipment extends WC_Data_Store_WP implements WC_Object_Data_Store_Interfac
 			$shipment_type = $shipment->get_type();
 
 			$items = array_map(
-				function( $item_id ) use ( $shipment_type, $shipment ) {
+				function ( $item_id ) use ( $shipment_type, $shipment ) {
 					$item = wc_gzd_get_shipment_item( $item_id, $shipment_type );
 
 					if ( $item ) {

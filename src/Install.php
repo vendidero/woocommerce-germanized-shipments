@@ -490,15 +490,15 @@ class Install {
 		$dir = Package::get_upload_dir();
 
 		if ( ! @is_dir( $dir['basedir'] ) ) { // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-			@mkdir( $dir['basedir'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			@mkdir( $dir['basedir'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_mkdir
 		}
 
 		if ( ! file_exists( trailingslashit( $dir['basedir'] ) . '.htaccess' ) ) {
-			@file_put_contents( trailingslashit( $dir['basedir'] ) . '.htaccess', 'deny from all' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged,WordPress.WP.AlternativeFunctions.file_system_read_file_put_contents
+			@file_put_contents( trailingslashit( $dir['basedir'] ) . '.htaccess', 'deny from all' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 		}
 
 		if ( ! file_exists( trailingslashit( $dir['basedir'] ) . 'index.php' ) ) {
-			@touch( trailingslashit( $dir['basedir'] ) . 'index.php' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			@touch( trailingslashit( $dir['basedir'] ) . 'index.php' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_touch
 		}
 	}
 
@@ -549,7 +549,7 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_shipments (
   shipment_date_sent_gmt datetime default NULL,
   shipment_est_delivery_date datetime default NULL,
   shipment_est_delivery_date_gmt datetime default NULL,
-  shipment_status varchar(20) NOT NULL default 'gzd-draft',
+  shipment_status varchar(150) NOT NULL default 'gzd-draft',
   shipment_order_id bigint(20) unsigned NOT NULL DEFAULT 0,
   shipment_packaging_id bigint(20) unsigned NOT NULL DEFAULT 0,
   shipment_parent_id bigint(20) unsigned NOT NULL DEFAULT 0,
@@ -604,17 +604,17 @@ CREATE TABLE {$wpdb->prefix}woocommerce_gzd_packaging (
   packaging_date_created_gmt datetime default NULL,
   packaging_type varchar(200) NOT NULL DEFAULT '',
   packaging_description tinytext NOT NULL DEFAULT '',
-  packaging_weight decimal(6,2) unsigned NOT NULL DEFAULT 0,
+  packaging_weight decimal(20,2) unsigned NOT NULL DEFAULT 0,
   packaging_weight_unit varchar(50) NOT NULL DEFAULT '',
   packaging_dimension_unit varchar(50) NOT NULL DEFAULT '',
   packaging_order bigint(20) unsigned NOT NULL DEFAULT 0,
-  packaging_max_content_weight decimal(6,2) unsigned NOT NULL DEFAULT 0,
-  packaging_length decimal(6,2) unsigned NOT NULL DEFAULT 0,
-  packaging_width decimal(6,2) unsigned NOT NULL DEFAULT 0,
-  packaging_height decimal(6,2) unsigned NOT NULL DEFAULT 0,
-  packaging_inner_length decimal(6,2) unsigned NOT NULL DEFAULT 0,
-  packaging_inner_width decimal(6,2) unsigned NOT NULL DEFAULT 0,
-  packaging_inner_height decimal(6,2) unsigned NOT NULL DEFAULT 0,
+  packaging_max_content_weight decimal(20,2) unsigned NOT NULL DEFAULT 0,
+  packaging_length decimal(20,2) unsigned NOT NULL DEFAULT 0,
+  packaging_width decimal(20,2) unsigned NOT NULL DEFAULT 0,
+  packaging_height decimal(20,2) unsigned NOT NULL DEFAULT 0,
+  packaging_inner_length decimal(20,2) unsigned NOT NULL DEFAULT 0,
+  packaging_inner_width decimal(20,2) unsigned NOT NULL DEFAULT 0,
+  packaging_inner_height decimal(20,2) unsigned NOT NULL DEFAULT 0,
   PRIMARY KEY  (packaging_id)
 ) $collate;
 CREATE TABLE {$wpdb->prefix}woocommerce_gzd_packagingmeta (

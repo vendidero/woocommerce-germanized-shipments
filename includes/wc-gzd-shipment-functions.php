@@ -1593,12 +1593,12 @@ function wc_gzd_get_shipment_error( $error ) {
 	}
 }
 
-function wc_gzd_shipments_substring( $string, $start, $length = null ) {
+function wc_gzd_shipments_substring( $str, $start, $length = null ) {
 	if ( function_exists( 'mb_substr' ) ) {
-		$string = mb_substr( $string, $start, $length );
+		$str = mb_substr( $str, $start, $length );
 	} else {
-		$string = substr( $string, $start, $length );
+		$str = substr( $str, $start, $length );
 	}
 
-	return $string;
+	return $str;
 }

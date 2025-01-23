@@ -451,8 +451,13 @@ class ShipmentItem extends WC_Data {
 					'manufacture_country' => $product ? $product->get_manufacture_country() : '',
 					'attributes'          => $attributes,
 					'item_parent_id'      => $this->get_item_parent_id() ? $this->get_item_parent_id() : 0,
+					'parent'              => null,
 				)
 			);
+
+			if ( ! is_null( $args['parent'] ) && is_a( $args['parent'], 'Vendidero\Germanized\Shipments\ShipmentItem' ) ) {
+				$this->set_parent( $args['parent'] );
+			}
 		}
 
 		$this->set_props( $args );
@@ -585,6 +590,17 @@ class ShipmentItem extends WC_Data {
 	 *
 	 * @return void
 	 */
+	public function set_parent( $item ) {
+		$this->parent = $item;
+
+		$this->set_item_parent_id( $item->get_id() );
+	}
+
+	/**
+	 * @param ShipmentItem $item
+	 *
+	 * @return void
+	 */
 	public function add_child( $item, $key = '' ) {
 		$key      = empty( $key ) ? $item->get_id() : $key;
 		$children = is_null( $this->children ) ? array() : $this->children;
@@ -605,11 +621,11 @@ class ShipmentItem extends WC_Data {
 	 * @return ShipmentItem|ShipmentReturnItem|null
 	 */
 	public function get_parent() {
-		if ( ! $this->get_item_parent_id() ) {
-			return null;
-		}
-
 		if ( is_null( $this->parent ) ) {
+			if ( ! $this->get_item_parent_id() ) {
+				return null;
+			}
+
 			if ( $this->get_shipment() ) {
 				if ( $item = $this->get_shipment()->get_item( $this->get_item_parent_id() ) ) {
 					$this->parent = $item;
@@ -762,5 +778,25 @@ class ShipmentItem extends WC_Data {
 
 	public function is_readonly() {
 		return apply_filters( "{$this->get_general_hook_prefix()}is_readonly", $this->get_item_parent_id() > 0 ? true : false, $this );
+	}
+
+	public function save() {
+		if ( $parent = $this->get_parent() ) {
+			if ( $this->get_item_parent_id() !== $parent->get_id() ) {
+				$this->set_item_parent_id( $parent->get_id() );
+			}
+		}
+
+		return parent::save();
+	}
+
+	public function delete( $force_delete = false ) {
+		$has_deleted = parent::delete( $force_delete );
+
+		if ( true === $has_deleted && $this->has_children() ) {
+			foreach ( $this->get_children() as $child ) {
+				$child->delete( $force_delete );
+			}
+		}
 	}
 }

@@ -6,6 +6,7 @@
 /composer.* export-ignore
 /phpcs.xml export-ignore
 /phpunit.* export-ignore
+/.phpunit.* export-ignore
 /renovate.json export-ignore
 /package.json export-ignore
 /webpack.config.js export-ignore

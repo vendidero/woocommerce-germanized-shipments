@@ -13,7 +13,7 @@ final class StoreApi {
 	public function init() {
 		add_action(
 			'rest_api_init',
-			function() {
+			function () {
 				Package::container()->get( RoutesController::class )->register_all_routes();
 			}
 		);

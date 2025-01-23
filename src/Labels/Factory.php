@@ -11,8 +11,8 @@ namespace Vendidero\Germanized\Shipments\Labels;
 
 use Vendidero\Germanized\Shipments\Caches\Helper;
 use Vendidero\Germanized\Shipments\Interfaces\ShipmentLabel;
-use \WC_Data_Store;
-use \Exception;
+use WC_Data_Store;
+use Exception;
 
 defined( 'ABSPATH' ) || exit;
 

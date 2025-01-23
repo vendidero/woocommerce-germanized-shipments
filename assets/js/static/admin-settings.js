@@ -26,8 +26,8 @@ window.shipments.admin = window.shipments.admin || {};
                     objectName = '',
                     methodName = '';
 
-                if ( callback.substring( 0, 17 ) === 'shipments.admin.' ) {
-                    callback = callback.slice( 17 );
+                if ( callback.substring( 0, 16 ) === 'shipments.admin.' ) {
+                    callback = callback.slice( 16 );
 
                     params = callback.split( "." );
                     objectName = shipments.admin[params[0]];
@@ -135,9 +135,20 @@ window.shipments.admin = window.shipments.admin || {};
                 }
 
                 if ( meetsConditions ) {
-                    $field.show();
+                    if ( $field.length === 0 ) {
+                        // Use this markup as fallback in case field does not belong to a table, e.g. shipping method settings
+                        $input.parents( 'fieldset' ).show();
+                        $input.parents( 'fieldset' ).prev( 'label' ).show();
+                    } else {
+                        $field.show();
+                    }
                 } else {
-                    $field.hide();
+                    if ( $field.length === 0 ) {
+                        $input.parents( 'fieldset' ).hide();
+                        $input.parents( 'fieldset' ).prev( 'label' ).hide();
+                    } else {
+                        $field.hide();
+                    }
                 }
             } );
         },

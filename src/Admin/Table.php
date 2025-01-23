@@ -125,7 +125,7 @@ class Table extends WP_List_Table {
 						 * @package Vendidero/Germanized/Shipments
 						 */
 						do_action( 'woocommerce_gzd_shipment_edit_status', $id, $new_status );
-						$changed++;
+						++$changed;
 					}
 				}
 			}
@@ -133,7 +133,7 @@ class Table extends WP_List_Table {
 			foreach ( $ids as $id ) {
 				if ( $shipment = wc_gzd_get_shipment( $id ) ) {
 					$shipment->delete( true );
-					$changed++;
+					++$changed;
 				}
 			}
 		} elseif ( 'confirm_requests' === $action ) {
@@ -142,7 +142,7 @@ class Table extends WP_List_Table {
 					if ( 'return' === $shipment->get_type() ) {
 						if ( $shipment->is_customer_requested() && $shipment->has_status( 'requested' ) ) {
 							if ( $shipment->confirm_customer_request() ) {
-								$changed++;
+								++$changed;
 							}
 						}
 					}
@@ -448,7 +448,7 @@ class Table extends WP_List_Table {
 			);
 
 			$status_label = sprintf(
-				translate_nooped_plural( _nx_noop( ( $title . ' <span class="count">(%s)</span>' ), ( $title . ' <span class="count">(%s)</span>' ), 'shipments', 'woocommerce-germanized-shipments' ), $num_shipments[ $status ] ), // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingle,WordPress.WP.I18n.NonSingularStringLiteralPlural
+				translate_nooped_plural( _nx_noop( ( $title . ' <span class="count">(%s)</span>' ), ( $title . ' <span class="count">(%s)</span>' ), 'shipments', 'woocommerce-germanized-shipments' ), $num_shipments[ $status ] ), // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralSingular, WordPress.WP.I18n.NonSingularStringLiteralPlural
 				number_format_i18n( $num_shipments[ $status ] )
 			);
 
@@ -461,24 +461,25 @@ class Table extends WP_List_Table {
 	/**
 	 * Helper to create links to edit.php with params.
 	 *
-	 * @since 4.4.0
-	 *
 	 * @param string[] $args  Associative array of URL parameters for the link.
 	 * @param string   $label Link text.
-	 * @param string   $class Optional. Class attribute. Default empty string.
+	 * @param string   $html_class Optional. Class attribute. Default empty string.
+	 *
 	 * @return string The formatted link string.
+	 *@since 4.4.0
+	 *
 	 */
-	protected function get_edit_link( $args, $label, $class = '' ) {
+	protected function get_edit_link( $args, $label, $html_class = '' ) {
 		$url = add_query_arg( $args, $this->get_main_page() );
 
 		$class_html = $aria_current = '';
-		if ( ! empty( $class ) ) {
+		if ( ! empty( $html_class ) ) {
 			$class_html = sprintf(
 				' class="%s"',
-				esc_attr( $class )
+				esc_attr( $html_class )
 			);
 
-			if ( 'current' === $class ) {
+			if ( 'current' === $html_class ) {
 				$aria_current = ' aria-current="page"';
 			}
 		}
@@ -831,7 +832,7 @@ class Table extends WP_List_Table {
 			echo wp_kses_post( $title ) . ' ';
 		}
 
-		echo '<a href="#" class="shipment-preview has-shipment-modal" data-id="wc-gzd-modal-preview-shipment" data-load-async="1" data-reference="' . esc_attr( $shipment->get_id() ) . '" data-nonce-params="wc_gzd_admin_shipments_table_params">' . esc_html_x( 'Preview', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
+		echo '<a href="#" class="shipment-preview has-shipment-modal" data-id="wc-gzd-modal-preview-shipment" data-load-async="1" data-reference="' . esc_attr( $shipment->get_id() ) . '" data-nonce-params="wc_gzd_shipments_admin_shipments_table_params">' . esc_html_x( 'Preview', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>';
 
 		?>
 		<script type="text/template" id="tmpl-wc-gzd-modal-preview-shipment-<?php echo esc_attr( $shipment->get_id() ); ?>" class="wc-gzd-shipment-preview-<?php echo esc_attr( $shipment->get_type() ); ?>">
@@ -950,7 +951,7 @@ class Table extends WP_List_Table {
 						'data-id'           => 'wc-gzd-modal-create-shipment-label',
 						'data-load-async'   => true,
 						'data-reference'    => $shipment->get_id(),
-						'data-nonce-params' => 'wc_gzd_admin_shipments_table_params',
+						'data-nonce-params' => 'wc_gzd_shipments_admin_shipments_table_params',
 					),
 				);
 
@@ -1078,7 +1079,7 @@ class Table extends WP_List_Table {
 	 * @param Shipment $shipment The current shipment object.
 	 */
 	public function column_status( $shipment ) {
-		echo '<span class="shipment-status shipment-type-' . esc_attr( $shipment->get_type() ) . '-status status-' . esc_attr( $shipment->get_status() ) . '">' . esc_html( wc_gzd_get_shipment_status_name( $shipment->get_status() ) ) . '</span>';
+		echo '<mark class="shipment-status shipment-type-' . esc_attr( $shipment->get_type() ) . '-status status-' . esc_attr( $shipment->get_status() ) . '"><span>' . esc_html( wc_gzd_get_shipment_status_name( $shipment->get_status() ) ) . '</span></mark>';
 	}
 
 	/**
@@ -1231,5 +1232,4 @@ class Table extends WP_List_Table {
 		 */
 		return apply_filters( "{$this->get_hook_prefix()}bulk_actions", $actions );
 	}
-
 }

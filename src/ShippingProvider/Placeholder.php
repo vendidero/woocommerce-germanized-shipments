@@ -25,7 +25,7 @@ class Placeholder extends Simple {
 		);
 
 		if ( empty( $this->placeholder_args['name'] ) ) {
-			$this->placeholder_args['name'] = sanitize_title( $this->placeholder_args['title'] );
+			$this->placeholder_args['name'] = str_replace( '-', '_', sanitize_title( $this->placeholder_args['title'] ) );
 		}
 
 		parent::__construct( $data );
@@ -52,7 +52,7 @@ class Placeholder extends Simple {
 	}
 
 	public function get_description( $context = 'view' ) {
-		return $this->placeholder_args['description'];
+		return empty( $this->placeholder_args['description'] ) ? sprintf( _x( 'Conveniently create %1$s labels to your shipments.', 'shipments', 'woocommerce-germanized-shipments' ), $this->get_title() ) : $this->placeholder_args['description'];
 	}
 
 	public function get_title( $context = 'view' ) {
