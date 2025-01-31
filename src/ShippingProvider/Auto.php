@@ -375,7 +375,7 @@ abstract class Auto extends Simple implements ShippingProviderAuto {
 		$help_link = parent::get_section_help_link( $section );
 
 		if ( 'pickup_locations' === $section ) {
-			$help_link = 'https://vendidero.de/dokument/lieferung-an-eine-abholstation';
+			$help_link = 'https://vendidero.de/doc/woocommerce-germanized/lieferung-an-eine-abholstation';
 		}
 
 		return $help_link;

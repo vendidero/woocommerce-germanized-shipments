@@ -48,7 +48,7 @@ class Packaging extends Tab {
 
 			array(
 				'title'   => _x( 'Enable', 'shipments', 'woocommerce-germanized-shipments' ),
-				'desc'    => _x( 'Automatically pack orders based on available packaging options', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-shipments-additional-desc">' . sprintf( _x( 'By enabling this option, shipments will be packed based on your available packaging options. For that purpose a knapsack algorithm is used to best fit available order items within your packaging. <a href="%s" target="_blank">Learn more</a> about the feature.', 'shipments', 'woocommerce-germanized-shipments' ), 'https://vendidero.de/dokument/sendungen-automatisiert-packen' ) . '</div>',
+				'desc'    => _x( 'Automatically pack orders based on available packaging options', 'shipments', 'woocommerce-germanized-shipments' ) . '<div class="wc-gzd-shipments-additional-desc">' . sprintf( _x( 'By enabling this option, shipments will be packed based on your available packaging options. For that purpose a knapsack algorithm is used to best fit available order items within your packaging. <a href="%s" target="_blank">Learn more</a> about the feature.', 'shipments', 'woocommerce-germanized-shipments' ), 'https://vendidero.de/doc/woocommerce-germanized/sendungen-automatisiert-packen' ) . '</div>',
 				'id'      => 'woocommerce_gzd_shipments_enable_auto_packing',
 				'default' => 'yes',
 				'type'    => 'gzd_shipments_toggle',

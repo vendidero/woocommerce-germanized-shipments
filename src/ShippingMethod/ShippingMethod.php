@@ -44,7 +44,7 @@ class ShippingMethod extends \WC_Shipping_Method {
 		$this->id                 = 'shipping_provider_' . $this->shipping_provider->get_name();
 		$this->instance_id        = absint( $instance_id );
 		$this->method_title       = $this->shipping_provider->get_title();
-		$this->method_description = sprintf( _x( 'Apply rule-based shipping costs for shipments handled by %1$s based on your available packaging options. Learn <a href="%2$s">how to configure →</a>', 'shipments', 'woocommerce-germanized-shipments' ), $this->shipping_provider->get_title(), 'https://vendidero.de/dokument/versandregeln-erstellen' );
+		$this->method_description = sprintf( _x( 'Apply rule-based shipping costs for shipments handled by %1$s based on your available packaging options. Learn <a href="%2$s">how to configure →</a>', 'shipments', 'woocommerce-germanized-shipments' ), $this->shipping_provider->get_title(), 'https://vendidero.de/doc/woocommerce-germanized/versandregeln-erstellen' );
 		$this->title              = $this->method_title;
 		$this->supports           = array(
 			'shipping-zones',

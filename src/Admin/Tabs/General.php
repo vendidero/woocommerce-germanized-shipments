@@ -89,7 +89,7 @@ class General extends Tab {
 						'next_url'     => $next_url,
 						'next_trigger' => array(),
 						'options'      => array(
-							'content'  => '<h3>' . esc_html_x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3><p>' . sprintf( _x( 'Minimize manual work while handling customer returns. Learn more about returns within our %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="https://vendidero.de/dokument/retouren-konfigurieren-und-verwalten" target="_blank">' . _x( 'documentation', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</p>',
+							'content'  => '<h3>' . esc_html_x( 'Returns', 'shipments', 'woocommerce-germanized-shipments' ) . '</h3><p>' . sprintf( _x( 'Minimize manual work while handling customer returns. Learn more about returns within our %s.', 'shipments', 'woocommerce-germanized-shipments' ), '<a href="https://vendidero.de/doc/woocommerce-germanized/retouren-konfigurieren-und-verwalten" target="_blank">' . _x( 'documentation', 'shipments', 'woocommerce-germanized-shipments' ) . '</a>' ) . '</p>',
 							'position' => array(
 								'edge'  => 'top',
 								'align' => 'top',
