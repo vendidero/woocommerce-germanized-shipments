@@ -251,7 +251,7 @@ class PickupDelivery {
 				</header>
 				<article>
 					<form id="wc-gzd-shipments-pickup-location-search-form" method="post">
-                        <?php do_action( 'woocommerce_gzd_shipments_pickup_delivery_modal_before_fields' ); ?>
+						<?php do_action( 'woocommerce_gzd_shipments_pickup_delivery_modal_before_fields' ); ?>
 
 						<div class="pickup-location-search-fields-wrapper">
 							<?php
@@ -307,7 +307,7 @@ class PickupDelivery {
 							<a href="#" class="submit-pickup-location <?php echo esc_attr( $pickup_delivery_data['current_location'] ? '' : 'hidden' ); ?> button <?php echo esc_attr( wc_gzd_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_gzd_wp_theme_get_element_class_name( 'button' ) : '' ); ?>" aria-label="<?php echo esc_html_x( 'Choose pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?>" role="button"><?php echo esc_html_x( 'Choose pickup location', 'shipments', 'woocommerce-germanized-shipments' ); ?></a>
 
 							<?php do_action( 'woocommerce_gzd_shipments_pickup_delivery_modal_actions' ); ?>
-                        </div>
+						</div>
 
 						<?php wp_nonce_field( 'wc-gzd-shipments-search-pickup-location' ); ?>
 					</form>
