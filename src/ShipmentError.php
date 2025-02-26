@@ -116,4 +116,16 @@ class ShipmentError extends \WP_Error {
 			}
 		}
 	}
+
+	/**
+	 * Verifies if the instance contains errors.
+	 *
+	 * @return bool If the instance contains errors.
+	 */
+	public function has_errors() {
+		if ( ! empty( $this->errors ) ) {
+			return true;
+		}
+		return false;
+	}
 }
